@@ -44,15 +44,17 @@ def assert_schema_classes(source_text: str) -> None:
 
 def assert_baseline_constraints(source_text: str) -> None:
     fact_types = parse_check_constraint_values(r"fact_type\s+IN\s*\(([^)]+)\)", source_text)
-    expected_fact_types = ["world", "experience", "opinion", "observation"]
-    assert fact_types == expected_fact_types, (
-        f"Unexpected fact_type set in forked schema. Expected {expected_fact_types}, got {fact_types}"
+    expected_fact_types = {"world", "experience", "opinion", "observation"}
+    assert expected_fact_types.issubset(set(fact_types)), (
+        "Forked schema does not preserve baseline fact_type values. "
+        f"Expected at least {sorted(expected_fact_types)}, got {fact_types}"
     )
 
     link_types = parse_check_constraint_values(r"link_type\s+IN\s*\(([^)]+)\)", source_text)
-    expected_link_types = ["temporal", "semantic", "entity", "causes", "caused_by", "enables", "prevents"]
-    assert link_types == expected_link_types, (
-        f"Unexpected link_type set in forked schema. Expected {expected_link_types}, got {link_types}"
+    expected_link_types = {"temporal", "semantic", "entity", "causes", "caused_by", "enables", "prevents"}
+    assert expected_link_types.issubset(set(link_types)), (
+        "Forked schema does not preserve baseline link_type values. "
+        f"Expected at least {sorted(expected_link_types)}, got {link_types}"
     )
 
 

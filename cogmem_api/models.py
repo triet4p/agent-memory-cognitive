@@ -75,12 +75,14 @@ class MemoryUnit(Base):
     bank_id: Mapped[str] = mapped_column(Text, nullable=False)
     document_id: Mapped[str | None] = mapped_column(Text)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    raw_snippet: Mapped[str | None] = mapped_column(Text)
     embedding = mapped_column(Vector(EMBEDDING_DIMENSION))
     context: Mapped[str | None] = mapped_column(Text)
     event_date: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     occurred_start: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
     occurred_end: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
     mentioned_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
+    network_type: Mapped[str] = mapped_column(Text, nullable=False, server_default="world")
     fact_type: Mapped[str] = mapped_column(Text, nullable=False, server_default="world")
     confidence_score: Mapped[float | None] = mapped_column(Float)
     unit_metadata: Mapped[dict] = mapped_column("metadata", JSONB, server_default=sql_text("'{}'::jsonb"))
@@ -103,7 +105,14 @@ class MemoryUnit(Base):
             name="memory_units_document_fkey",
             ondelete="CASCADE",
         ),
-        CheckConstraint("fact_type IN ('world', 'experience', 'opinion', 'observation')"),
+        CheckConstraint(
+            "fact_type IN ('world', 'experience', 'opinion', 'observation', 'habit', 'intention', 'action_effect')",
+            name="memory_units_fact_type_check",
+        ),
+        CheckConstraint(
+            "network_type IN ('world', 'experience', 'opinion', 'observation', 'habit', 'intention', 'action_effect')",
+            name="memory_units_network_type_check",
+        ),
         CheckConstraint("confidence_score IS NULL OR (confidence_score >= 0.0 AND confidence_score <= 1.0)"),
         CheckConstraint(
             "(fact_type = 'opinion' AND confidence_score IS NOT NULL) OR "
@@ -116,11 +125,20 @@ class MemoryUnit(Base):
         Index("idx_memory_units_event_date", "event_date", postgresql_ops={"event_date": "DESC"}),
         Index("idx_memory_units_bank_date", "bank_id", "event_date", postgresql_ops={"event_date": "DESC"}),
         Index("idx_memory_units_fact_type", "fact_type"),
+        Index("idx_memory_units_network_type", "network_type"),
         Index("idx_memory_units_bank_fact_type", "bank_id", "fact_type"),
+        Index("idx_memory_units_bank_network_type", "bank_id", "network_type"),
         Index(
             "idx_memory_units_bank_type_date",
             "bank_id",
             "fact_type",
+            "event_date",
+            postgresql_ops={"event_date": "DESC"},
+        ),
+        Index(
+            "idx_memory_units_bank_network_date",
+            "bank_id",
+            "network_type",
             "event_date",
             postgresql_ops={"event_date": "DESC"},
         ),
@@ -249,6 +267,7 @@ class MemoryLink(Base):
         UUID(as_uuid=True), ForeignKey("memory_units.id", ondelete="CASCADE"), primary_key=True
     )
     link_type: Mapped[str] = mapped_column(Text, primary_key=True)
+    transition_type: Mapped[str | None] = mapped_column(Text)
     entity_id: Mapped[PyUUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("entities.id", ondelete="CASCADE"), primary_key=True
     )
@@ -261,13 +280,22 @@ class MemoryLink(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "link_type IN ('temporal', 'semantic', 'entity', 'causes', 'caused_by', 'enables', 'prevents')",
+            "link_type IN ('temporal', 'semantic', 'entity', 'causes', 'caused_by', 'enables', 'prevents', 'causal', 's_r_link', 'a_o_causal', 'transition')",
             name="memory_links_link_type_check",
+        ),
+        CheckConstraint(
+            "transition_type IS NULL OR transition_type IN ('fulfilled_by', 'abandoned', 'triggered', 'enabled_by', 'revised_to', 'contradicted_by')",
+            name="memory_links_transition_type_values_check",
+        ),
+        CheckConstraint(
+            "(link_type = 'transition' AND transition_type IS NOT NULL) OR (link_type <> 'transition' AND transition_type IS NULL)",
+            name="memory_links_transition_type_usage_check",
         ),
         CheckConstraint("weight >= 0.0 AND weight <= 1.0", name="memory_links_weight_check"),
         Index("idx_memory_links_from", "from_unit_id"),
         Index("idx_memory_links_to", "to_unit_id"),
         Index("idx_memory_links_type", "link_type"),
+        Index("idx_memory_links_transition_type", "transition_type"),
         Index("idx_memory_links_entity", "entity_id", postgresql_where=sql_text("entity_id IS NOT NULL")),
         Index(
             "idx_memory_links_from_weight",
