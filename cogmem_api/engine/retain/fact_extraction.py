@@ -14,6 +14,17 @@ from ..response_models import TokenUsage
 from .types import CausalRelation, ChunkMetadata, ExtractedFact, RetainContent, coerce_fact_type
 
 
+_HABIT_PATTERNS: tuple[str, ...] = (
+    r"\balways\b",
+    r"\busually\b",
+    r"\boften\b",
+    r"\bevery\s+(day|morning|evening|night|week|weekday|weekend)\b",
+    r"\btends\s+to\b",
+    r"\broutine\b",
+    r"\bhabit\b",
+)
+
+
 def _safe_datetime(value: datetime | None) -> datetime | None:
     if value is None:
         return None
@@ -42,6 +53,25 @@ def _extract_entities(raw_entities) -> list[str]:
             seen.add(lowered)
             deduped.append(entity)
     return deduped
+
+
+def _extract_entities_from_text(text: str) -> list[str]:
+    """Lightweight fallback NER for title-cased names when no entities are provided."""
+    candidates = re.findall(r"\b[A-Z][a-z]{2,}\b", text)
+    if not candidates:
+        return []
+
+    blocked = {"The", "This", "That", "When", "Then", "Because", "User", "Assistant"}
+    return [candidate for candidate in candidates if candidate not in blocked]
+
+
+def _infer_fact_type(segment: str, default_fact_type: str = "world") -> str:
+    """Classify fallback segments into CogMem fact types using lightweight heuristics."""
+    lowered = segment.lower()
+    for pattern in _HABIT_PATTERNS:
+        if re.search(pattern, lowered):
+            return "habit"
+    return default_fact_type
 
 
 def _extract_causal_relations(raw_relations) -> list[CausalRelation]:
@@ -110,11 +140,23 @@ async def extract_facts_from_contents(
                 if not fact_text:
                     continue
 
+                requested_type = str(payload.get("fact_type", "")).strip() if payload.get("fact_type") else ""
+                if requested_type:
+                    inferred_fact_type = coerce_fact_type(requested_type)
+                else:
+                    inferred_fact_type = _infer_fact_type(fact_text)
+
+                payload_entities = _extract_entities(payload.get("entities"))
+                if not payload_entities:
+                    payload_entities = _extract_entities(content.entities)
+                if not payload_entities:
+                    payload_entities = _extract_entities_from_text(fact_text)
+
                 extracted.append(
                     ExtractedFact(
                         fact_text=fact_text,
-                        fact_type=coerce_fact_type(str(payload.get("fact_type", "world"))),
-                        entities=_extract_entities(payload.get("entities")),
+                        fact_type=inferred_fact_type,
+                        entities=payload_entities,
                         occurred_start=_safe_datetime(content.event_date),
                         occurred_end=_safe_datetime(content.event_date),
                         mentioned_at=_safe_datetime(content.event_date),
@@ -139,12 +181,16 @@ async def extract_facts_from_contents(
             continue
 
         fallback_segments = _fallback_fact_splits(content.content)
+        fallback_entities = _extract_entities(content.entities)
+        if not fallback_entities:
+            fallback_entities = _extract_entities_from_text(content.content)
+
         for segment in fallback_segments:
             extracted.append(
                 ExtractedFact(
                     fact_text=segment,
-                    fact_type="world",
-                    entities=_extract_entities(content.entities),
+                    fact_type=_infer_fact_type(segment),
+                    entities=fallback_entities,
                     occurred_start=_safe_datetime(content.event_date),
                     occurred_end=_safe_datetime(content.event_date),
                     mentioned_at=_safe_datetime(content.event_date),

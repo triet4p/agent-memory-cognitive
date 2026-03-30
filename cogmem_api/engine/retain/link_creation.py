@@ -37,3 +37,36 @@ async def create_causal_links_batch(conn, unit_ids: list[str], facts: list[Proce
             links.append((source_id, target_id, "causal", None, None, float(relation.strength)))
 
     return await link_utils.insert_links(conn, links)
+
+
+async def create_habit_sr_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int:
+    """Create S-R links from habit nodes to facts that share at least one entity."""
+    if not unit_ids or not facts or len(unit_ids) != len(facts):
+        return 0
+
+    links: list[link_utils.LinkRecord] = []
+
+    habit_indices = [idx for idx, fact in enumerate(facts) if fact.fact_type == "habit"]
+    non_habit_indices = [idx for idx, fact in enumerate(facts) if fact.fact_type != "habit"]
+
+    for habit_index in habit_indices:
+        habit_entities = {entity.strip().lower() for entity in facts[habit_index].entities if entity.strip()}
+        if not habit_entities:
+            continue
+
+        for target_index in non_habit_indices:
+            target_entities = {entity.strip().lower() for entity in facts[target_index].entities if entity.strip()}
+            if not target_entities:
+                continue
+
+            overlap = habit_entities.intersection(target_entities)
+            if not overlap:
+                continue
+
+            # Stronger overlap means stronger behavioral reinforcement signal.
+            overlap_ratio = len(overlap) / max(1, len(habit_entities))
+            weight = max(0.5, min(1.0, 0.6 + 0.4 * overlap_ratio))
+
+            links.append((unit_ids[habit_index], unit_ids[target_index], "s_r_link", None, None, weight))
+
+    return await link_utils.insert_links(conn, links)
