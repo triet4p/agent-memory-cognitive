@@ -153,6 +153,8 @@ async def retain_batch(
                 await link_creation.create_semantic_links_batch(conn, bank_id, created_unit_ids, embeddings_for_links)
                 await entity_processing.insert_entity_links_batch(conn, entity_links)
                 await link_creation.create_habit_sr_links_batch(conn, created_unit_ids, processed_facts)
+                await link_creation.create_action_effect_links_batch(conn, created_unit_ids, processed_facts)
+                await link_creation.create_transition_links_batch(conn, created_unit_ids, processed_facts)
                 await link_creation.create_causal_links_batch(conn, created_unit_ids, processed_facts)
 
                 if outbox_callback:

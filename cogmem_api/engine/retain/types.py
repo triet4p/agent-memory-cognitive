@@ -39,6 +39,14 @@ class RetainFactSeed(TypedDict, total=False):
     fact_type: str
     entities: list[str] | list[dict[str, str]]
     causal_relations: list[dict[str, object]]
+    action_effect_relations: list[dict[str, object]]
+    transition_relations: list[dict[str, object]]
+    intention_status: str
+    precondition: str
+    action: str
+    outcome: str
+    confidence: float
+    devalue_sensitive: bool
 
 
 class RetainContentDict(TypedDict, total=False):
@@ -114,6 +122,24 @@ class CausalRelation:
 
 
 @dataclass(slots=True)
+class ActionEffectRelation:
+    """A-O causal relation between an action_effect fact and another fact."""
+
+    target_fact_index: int
+    relation_type: str = "a_o_causal"
+    strength: float = 1.0
+
+
+@dataclass(slots=True)
+class TransitionRelation:
+    """Lifecycle transition between facts in a single retain batch."""
+
+    target_fact_index: int | None = None
+    transition_type: str = "fulfilled_by"
+    strength: float = 1.0
+
+
+@dataclass(slots=True)
 class ExtractedFact:
     """Fact emitted by extraction step before embeddings/storage."""
 
@@ -128,6 +154,8 @@ class ExtractedFact:
     content_index: int = 0
     chunk_index: int = 0
     causal_relations: list[CausalRelation] = field(default_factory=list)
+    action_effect_relations: list[ActionEffectRelation] = field(default_factory=list)
+    transition_relations: list[TransitionRelation] = field(default_factory=list)
     raw_snippet: str | None = None
 
 
@@ -146,6 +174,8 @@ class ProcessedFact:
     entities: list[str] = field(default_factory=list)
     content_index: int = 0
     causal_relations: list[CausalRelation] = field(default_factory=list)
+    action_effect_relations: list[ActionEffectRelation] = field(default_factory=list)
+    transition_relations: list[TransitionRelation] = field(default_factory=list)
     raw_snippet: str | None = None
     document_id: str | None = None
     chunk_id: str | None = None
@@ -164,6 +194,8 @@ class ProcessedFact:
             entities=list(extracted_fact.entities),
             content_index=extracted_fact.content_index,
             causal_relations=list(extracted_fact.causal_relations),
+            action_effect_relations=list(extracted_fact.action_effect_relations),
+            transition_relations=list(extracted_fact.transition_relations),
             raw_snippet=extracted_fact.raw_snippet,
         )
 

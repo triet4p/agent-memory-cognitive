@@ -119,3 +119,41 @@ uv run python -m scripts.test_hindsight
 
 - Dữ liệu trong thư mục data là dữ liệu thực nghiệm, nên commit có kiểm soát và backup trước khi chạy distill lại.
 - Pipeline dùng random seed cố định để đảm bảo tái lập kết quả.
+
+## 9. Tiến độ Migration CogMem (đến hết Sprint 2)
+
+Trạng thái hiện tại theo [docs/PLAN.md](docs/PLAN.md):
+
+- Sprint 0 hoàn tất: T0.1, T0.2
+- Sprint 1 hoàn tất: T1.1, T1.2, T1.3
+- Sprint 2 hoàn tất: T2.1, T2.2, T2.3, T2.4
+
+Các thành phần đã có trong `cogmem_api` sau Sprint 2:
+
+- Retain baseline pipeline độc lập trong `cogmem_api/engine/retain/`
+- Habit Network + `s_r_link`
+- Intention lifecycle transitions (`fulfilled_by`, `triggered`, `enabled_by`, `abandoned` status-only)
+- Action-Effect parsing (precondition/action/outcome) + `a_o_causal`
+
+Artifact logs cho Sprint 2:
+
+- [logs/task_201_summary.md](logs/task_201_summary.md)
+- [logs/task_202_summary.md](logs/task_202_summary.md)
+- [logs/task_203_summary.md](logs/task_203_summary.md)
+- [logs/task_204_summary.md](logs/task_204_summary.md)
+
+Artifact tests cho Sprint 2:
+
+- [tests/artifacts/test_task201_retain_baseline.py](tests/artifacts/test_task201_retain_baseline.py)
+- [tests/artifacts/test_task202_habit_network.py](tests/artifacts/test_task202_habit_network.py)
+- [tests/artifacts/test_task203_intention_lifecycle.py](tests/artifacts/test_task203_intention_lifecycle.py)
+- [tests/artifacts/test_task204_action_effect.py](tests/artifacts/test_task204_action_effect.py)
+
+Lệnh kiểm tra nhanh:
+
+```bash
+uv run python tests/artifacts/test_task201_retain_baseline.py
+uv run python tests/artifacts/test_task202_habit_network.py
+uv run python tests/artifacts/test_task203_intention_lifecycle.py
+uv run python tests/artifacts/test_task204_action_effect.py
+```

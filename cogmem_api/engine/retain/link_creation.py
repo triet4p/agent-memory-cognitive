@@ -70,3 +70,89 @@ async def create_habit_sr_links_batch(conn, unit_ids: list[str], facts: list[Pro
             links.append((unit_ids[habit_index], unit_ids[target_index], "s_r_link", None, None, weight))
 
     return await link_utils.insert_links(conn, links)
+
+
+async def create_transition_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int:
+    """Create typed transition edges for intention lifecycle handling."""
+    if not unit_ids or not facts or len(unit_ids) != len(facts):
+        return 0
+
+    links: list[link_utils.LinkRecord] = []
+
+    for source_index, fact in enumerate(facts):
+        source_id = unit_ids[source_index]
+
+        for relation in fact.transition_relations:
+            transition_type = relation.transition_type.strip().lower()
+
+            # Abandoned is a status-only lifecycle update (no edge target by design).
+            if transition_type == "abandoned":
+                continue
+
+            target_index = relation.target_fact_index
+            if target_index is None or target_index < 0 or target_index >= len(unit_ids):
+                continue
+
+            target_id = unit_ids[target_index]
+            if source_id == target_id:
+                continue
+
+            links.append(
+                (
+                    source_id,
+                    target_id,
+                    "transition",
+                    transition_type,
+                    None,
+                    float(relation.strength),
+                )
+            )
+
+    return await link_utils.insert_links(conn, links)
+
+
+async def create_action_effect_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int:
+    """Create A-O causal links from action_effect nodes."""
+    if not unit_ids or not facts or len(unit_ids) != len(facts):
+        return 0
+
+    links: list[link_utils.LinkRecord] = []
+
+    for source_index, fact in enumerate(facts):
+        if fact.fact_type != "action_effect":
+            continue
+
+        source_id = unit_ids[source_index]
+
+        # Primary path: explicit target relations declared by extraction.
+        if fact.action_effect_relations:
+            for relation in fact.action_effect_relations:
+                target_index = relation.target_fact_index
+                if target_index < 0 or target_index >= len(unit_ids):
+                    continue
+                target_id = unit_ids[target_index]
+                if source_id == target_id:
+                    continue
+
+                links.append((source_id, target_id, "a_o_causal", None, None, float(relation.strength)))
+            continue
+
+        # Fallback path: infer target by shared entities with non-action_effect facts.
+        source_entities = {entity.strip().lower() for entity in fact.entities if entity.strip()}
+        if not source_entities:
+            continue
+
+        for target_index, target_fact in enumerate(facts):
+            if target_index == source_index or target_fact.fact_type == "action_effect":
+                continue
+
+            target_entities = {entity.strip().lower() for entity in target_fact.entities if entity.strip()}
+            overlap = source_entities.intersection(target_entities)
+            if not overlap:
+                continue
+
+            overlap_ratio = len(overlap) / max(1, len(source_entities))
+            weight = max(0.5, min(1.0, 0.65 + 0.35 * overlap_ratio))
+            links.append((source_id, unit_ids[target_index], "a_o_causal", None, None, weight))
+
+    return await link_utils.insert_links(conn, links)

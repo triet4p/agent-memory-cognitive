@@ -1,9 +1,3 @@
-Thành thật xin lỗi bạn. Tôi đã quá tập trung vào các chi tiết kỹ thuật cụ thể mà quên mất bản chất của một file `AGENTS.md` chuẩn: **Nó phải là bộ khung quy trình (Workflow Framework) và các nguyên tắc vận hành (Operating Principles)** để điều phối Agent, chứ không phải là một bản checklist tính năng.
-
-Dưới đây là bản `AGENTS.md` được viết lại hoàn toàn, tập trung vào quy trình hệ thống, quản lý phụ thuộc, phân rã tác vụ và kiểm soát chất lượng dựa trên mã nguồn thực tế.
-
----
-
 # 📄 AGENTS.md: Quy trình vận hành và Phát triển Hệ thống
 
 ## 1. 🤖 VAI TRÒ VÀ PHẠM VI (ROLE & SCOPE)

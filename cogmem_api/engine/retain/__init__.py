@@ -4,6 +4,7 @@ from . import chunk_storage, embedding_processing, entity_processing, fact_extra
 from .orchestrator import retain_batch
 from .types import (
     COGMEM_FACT_TYPES,
+    ActionEffectRelation,
     CausalRelation,
     ChunkMetadata,
     EntityLink,
@@ -11,6 +12,7 @@ from .types import (
     ProcessedFact,
     RetainContent,
     RetainContentDict,
+    TransitionRelation,
 )
 
 __all__ = [
@@ -21,6 +23,8 @@ __all__ = [
     "ProcessedFact",
     "ChunkMetadata",
     "CausalRelation",
+    "ActionEffectRelation",
+    "TransitionRelation",
     "EntityLink",
     "chunk_storage",
     "embedding_processing",
