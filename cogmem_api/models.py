@@ -106,18 +106,17 @@ class MemoryUnit(Base):
             ondelete="CASCADE",
         ),
         CheckConstraint(
-            "fact_type IN ('world', 'experience', 'opinion', 'observation', 'habit', 'intention', 'action_effect')",
+            "fact_type IN ('world', 'experience', 'opinion', 'habit', 'intention', 'action_effect')",
             name="memory_units_fact_type_check",
         ),
         CheckConstraint(
-            "network_type IN ('world', 'experience', 'opinion', 'observation', 'habit', 'intention', 'action_effect')",
+            "network_type IN ('world', 'experience', 'opinion', 'habit', 'intention', 'action_effect')",
             name="memory_units_network_type_check",
         ),
         CheckConstraint("confidence_score IS NULL OR (confidence_score >= 0.0 AND confidence_score <= 1.0)"),
         CheckConstraint(
             "(fact_type = 'opinion' AND confidence_score IS NOT NULL) OR "
-            "(fact_type = 'observation') OR "
-            "(fact_type NOT IN ('opinion', 'observation') AND confidence_score IS NULL)",
+            "(fact_type <> 'opinion' AND confidence_score IS NULL)",
             name="confidence_score_fact_type_check",
         ),
         Index("idx_memory_units_bank_id", "bank_id"),
@@ -154,13 +153,6 @@ class MemoryUnit(Base):
             "bank_id",
             "event_date",
             postgresql_where=sql_text("fact_type = 'opinion'"),
-            postgresql_ops={"event_date": "DESC"},
-        ),
-        Index(
-            "idx_memory_units_observation_date",
-            "bank_id",
-            "event_date",
-            postgresql_where=sql_text("fact_type = 'observation'"),
             postgresql_ops={"event_date": "DESC"},
         ),
         Index(
@@ -280,7 +272,7 @@ class MemoryLink(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "link_type IN ('temporal', 'semantic', 'entity', 'causes', 'caused_by', 'enables', 'prevents', 'causal', 's_r_link', 'a_o_causal', 'transition')",
+            "link_type IN ('temporal', 'semantic', 'entity', 'causal', 's_r_link', 'a_o_causal', 'transition')",
             name="memory_links_link_type_check",
         ),
         CheckConstraint(

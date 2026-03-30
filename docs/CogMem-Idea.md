@@ -34,7 +34,7 @@ CogMem gồm **4 đóng góp kỹ thuật chính** (và 1 thăm dò), mỗi cái
 | 3 | **Episodic Buffer SUM + Cycle Guards** | MAX propagation bỏ qua bằng chứng đa đường | Multi-hop, Multi-session |
 | 4 | **Adaptive Query Routing** | Equal-weight RRF không phân biệt query type | Temporal, Causal |
 
-CogMem **kế thừa toàn bộ** các thành phần của HINDSIGHT (4 networks cũ, 4-way retrieval, RRF fusion, opinion reinforcement, stripped-down CARA reflect) và build on top — không loại bỏ component nào. Điều này đảm bảo fair comparison: mọi performance gap đều do kiến trúc mới, không phải do bỏ đi thứ baseline đã có.
+CogMem kế thừa lõi retrieval và retain từ HINDSIGHT (4-way retrieval, RRF fusion, opinion reinforcement, stripped-down CARA reflect), nhưng **chủ động loại bỏ Observation network và pipeline consolidation chủ động** trong nhánh CogMem. Điều này đảm bảo fair comparison: baseline HINDSIGHT vẫn chạy đầy đủ 4 mạng, còn CogMem tập trung vào 6 mạng nhận thức đã chọn và lazy synthesis ở bước reflect.
 
 CogMem được đánh giá theo **end-to-end accuracy (LLM-as-judge)** trên stratified subset của LongMemEval-S và LoCoMo, cho phép so sánh trực tiếp với published numbers của HINDSIGHT mà không cần rebuild lại baseline từ đầu.
 
@@ -118,7 +118,6 @@ Trong hệ thống AI, lợi ích thực tiễn: (1) mỗi mạng có schema nod
 | **World** | Semantic Memory (Tulving, 1972) | Temporal-Parietal Cortex | Sự kiện khách quan, kiến thức chung | "DI chuyên về LLM infrastructure" |
 | **Experience** | Episodic Memory (Tulving, 1983) | Hippocampus | Sự kiện cá nhân có gắn thời gian-không gian | "User vào làm DI tháng 4/2024" |
 | **Opinion** | Belief System / Attitude Memory | Prefrontal Cortex | Nhận xét chủ quan + confidence score | "Python tốt nhất cho ML (0.85)" |
-| **Observation** | Entity Summary Layer | — | Tổng hợp khách quan về entities | "Alice: proactive, detail-oriented" |
 | **Habit ★** | Habit Memory · S-R (Squire & ZM, 1991) | Basal Ganglia | Mẫu hành vi lặp lại, tự động | "User luôn check email trước standup" |
 | **Intention ★** | Prospective Memory (Brandimonte et al., 1996) | Prefrontal Cortex | Kế hoạch và mục tiêu tương lai có deadline | "User định học Rust trước Q3" |
 | **Action-Effect ★** | A-O Learning / TEC (Hommel et al., 2001) | Prefrontal + Premotor Cortex | Bộ ba nhân quả Precondition→Action→Outcome | "Lọc shop rating cao → giao hàng nhanh hơn" |
@@ -177,7 +176,7 @@ CogMem định nghĩa 7 loại edge, trong đó có 3 loại mới so với HIND
 | **Temporal** | Directed | Thứ tự thời gian | e_join → e_promo (9 tháng) |
 | **Semantic** | Undirected | Tương đồng ngữ nghĩa (cosine ≥ θ) | ML Engineer ↔ AI Team |
 | **Causal** | Directed | Opinion/belief shape hành động | o_python → w_proj |
-| **S-R link ★** | Directed | Habit reinforces/contributes to Observation | h_email → obs_work |
+| **S-R link ★** | Directed | Habit reinforces preference evidence across fact nodes | h_email → e_standup_prep |
 | **A-O causal ★** | Directed | Precondition→Action→Outcome triple | ae_quant → e_fix |
 | **Transition ★** | Directed + typed | State change của concept theo thời gian, across networks | i_rust → e_rust_done |
 

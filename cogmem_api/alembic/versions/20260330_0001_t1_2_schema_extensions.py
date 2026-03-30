@@ -29,13 +29,13 @@ def upgrade() -> None:
     op.create_check_constraint(
         "memory_units_fact_type_check",
         "memory_units",
-        "fact_type IN ('world', 'experience', 'opinion', 'observation', 'habit', 'intention', 'action_effect')",
+        "fact_type IN ('world', 'experience', 'opinion', 'habit', 'intention', 'action_effect')",
     )
 
     op.create_check_constraint(
         "memory_units_network_type_check",
         "memory_units",
-        "network_type IN ('world', 'experience', 'opinion', 'observation', 'habit', 'intention', 'action_effect')",
+        "network_type IN ('world', 'experience', 'opinion', 'habit', 'intention', 'action_effect')",
     )
 
     op.create_index("idx_memory_units_network_type", "memory_units", ["network_type"], unique=False)
@@ -54,7 +54,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "memory_links_link_type_check",
         "memory_links",
-        "link_type IN ('temporal', 'semantic', 'entity', 'causes', 'caused_by', 'enables', 'prevents', 'causal', 's_r_link', 'a_o_causal', 'transition')",
+        "link_type IN ('temporal', 'semantic', 'entity', 'causal', 's_r_link', 'a_o_causal', 'transition')",
     )
     op.create_check_constraint(
         "memory_links_transition_type_values_check",

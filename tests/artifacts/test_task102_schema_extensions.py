@@ -33,13 +33,20 @@ def assert_memory_unit_extensions(models_text: str) -> None:
     for network_type in expected_network_types:
         assert f"'{network_type}'" in models_text, f"Missing extended network_type value: {network_type}"
 
+    assert "'observation'" not in models_text, "Observation network must be removed from CogMem schema"
+    assert "idx_memory_units_observation_date" not in models_text, "Observation-specific index must be removed"
+
 
 def assert_memory_link_transition_typing(models_text: str) -> None:
     assert "transition_type" in models_text, "transition_type column is missing from MemoryLink"
 
-    expected_link_types = ["causal", "s_r_link", "a_o_causal", "transition"]
+    expected_link_types = ["temporal", "semantic", "entity", "causal", "s_r_link", "a_o_causal", "transition"]
     for link_type in expected_link_types:
         assert f"'{link_type}'" in models_text, f"Missing extended link_type value: {link_type}"
+
+    removed_link_types = ["causes", "caused_by", "enables", "prevents"]
+    for link_type in removed_link_types:
+        assert f"'{link_type}'" not in models_text, f"Legacy link_type must be removed from CogMem schema: {link_type}"
 
     expected_transition_types = [
         "fulfilled_by",
@@ -63,6 +70,9 @@ def assert_migration_content(migration_text: str) -> None:
         r"memory_units_network_type_check",
         r"memory_links_transition_type_values_check",
         r"memory_links_transition_type_usage_check",
+        r"fact_type IN \('world', 'experience', 'opinion', 'habit', 'intention', 'action_effect'\)",
+        r"network_type IN \('world', 'experience', 'opinion', 'habit', 'intention', 'action_effect'\)",
+        r"link_type IN \('temporal', 'semantic', 'entity', 'causal', 's_r_link', 'a_o_causal', 'transition'\)",
     ]
     for pattern in required_upgrade_patterns:
         assert re.search(pattern, migration_text), f"Missing required migration pattern: {pattern}"
