@@ -5,11 +5,11 @@ from pathlib import Path
 
 # Cấu hình API - Trỏ trực tiếp vào Docker Hindsight đang chạy trên Windows
 BASE_URL = "http://localhost:8888/v1/default"
-BANK_ID_PREFIX = "cost_eval_"
+BANK_ID_PREFIX = "hindsight_eval_"
 
 def analyze_hindsight_cost(sample_index=0):
     # 1. Load dữ liệu từ tập distilled (đảm bảo đúng đường dẫn file của bạn)
-    data_path = Path("data/longmemeval_s_distilled.json")
+    data_path = Path("data/longmemeval_s_distilled_small.json")
     if not data_path.exists():
         print(f"❌ Không tìm thấy file: {data_path}")
         return
@@ -120,4 +120,4 @@ def analyze_hindsight_cost(sample_index=0):
     print("="*60)
 
 if __name__ == "__main__":
-    analyze_hindsight_cost(12) # Chạy cho sample đầu tiên
+    analyze_hindsight_cost(4) # Chạy cho sample đầu tiên
