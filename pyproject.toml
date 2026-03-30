@@ -6,5 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "hindsight-client>=0.4.19",
+    "pgvector>=0.4.2",
     "requests>=2.32.5",
+    "sqlalchemy>=2.0.48",
 ]

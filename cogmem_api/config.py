@@ -1,0 +1,4 @@
+"""Minimal CogMem configuration for core schema modules."""
+
+DEFAULT_EMBEDDING_DIMENSION = 384
+EMBEDDING_DIMENSION = DEFAULT_EMBEDDING_DIMENSION
