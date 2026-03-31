@@ -1,0 +1,52 @@
+# Docker Compose for CogMem with external PostgreSQL (pgvector image)
+# Usage: docker compose --env-file .env -f docker/docker-compose/external-pg/docker-compose.yaml up --build
+
+services:
+  db:
+    image: pgvector/pgvector:pg${COGMEM_DB_VERSION:-18}
+    container_name: cogmem-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${COGMEM_DB_USER:-cogmem_user}
+      POSTGRES_PASSWORD: ${COGMEM_DB_PASSWORD:?Please set COGMEM_DB_PASSWORD in your .env}
+      POSTGRES_DB: ${COGMEM_DB_NAME:-cogmem_db}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - cogmem-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${COGMEM_DB_USER:-cogmem_user} -d ${COGMEM_DB_NAME:-cogmem_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  cogmem:
+    build:
+      context: ../../..
+      dockerfile: docker/standalone/Dockerfile
+    image: cogmem:local
+    container_name: cogmem-app
+    restart: always
+    ports:
+      - "8888:8888"
+    environment:
+      COGMEM_API_DATABASE_URL: postgresql://${COGMEM_DB_USER:-cogmem_user}:${COGMEM_DB_PASSWORD:?Please set COGMEM_DB_PASSWORD in your .env}@db:5432/${COGMEM_DB_NAME:-cogmem_db}
+      COGMEM_API_DATABASE_SCHEMA: ${COGMEM_API_DATABASE_SCHEMA:-public}
+      COGMEM_API_HOST: 0.0.0.0
+      COGMEM_API_PORT: 8888
+      COGMEM_API_LOG_LEVEL: ${COGMEM_API_LOG_LEVEL:-info}
+      COGMEM_API_LLM_PROVIDER: ${COGMEM_API_LLM_PROVIDER:-openai}
+      COGMEM_API_LLM_MODEL: ${COGMEM_API_LLM_MODEL:-gpt-4o-mini}
+      COGMEM_API_LLM_API_KEY: ${COGMEM_API_LLM_API_KEY:-dummy}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cogmem-net
+
+networks:
+  cogmem-net:
+    driver: bridge
+
+volumes:
+  pg_data:
