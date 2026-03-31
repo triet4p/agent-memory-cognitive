@@ -9,10 +9,44 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+QueryType = Literal["semantic", "temporal", "causal", "prospective", "preference", "multi_hop"]
+
+_QUERY_CHANNELS = ("semantic", "bm25", "graph", "temporal")
+_ADAPTIVE_RRF_WEIGHTS: dict[QueryType, dict[str, float]] = {
+    "semantic": {"semantic": 1.0, "bm25": 1.0, "graph": 1.0, "temporal": 1.0},
+    "temporal": {"semantic": 0.8, "bm25": 0.6, "graph": 0.8, "temporal": 2.2},
+    "causal": {"semantic": 0.8, "bm25": 0.7, "graph": 2.4, "temporal": 1.0},
+    "prospective": {"semantic": 0.9, "bm25": 0.8, "graph": 2.0, "temporal": 1.4},
+    "preference": {"semantic": 1.0, "bm25": 1.2, "graph": 1.4, "temporal": 0.5},
+    "multi_hop": {"semantic": 0.9, "bm25": 0.7, "graph": 2.6, "temporal": 0.8},
+}
+
+_PROSPECTIVE_PATTERN = re.compile(
+    r"\b(will|future|next|upcoming|plan|planning|intend|intention|goal|what\s+if|going\s+to|should\s+we)\b",
+    re.IGNORECASE,
+)
+_CAUSAL_PATTERN = re.compile(
+    r"\b(why|cause|caused|because|reason|result|led\s+to|due\s+to|impact|effect)\b",
+    re.IGNORECASE,
+)
+_PREFERENCE_PATTERN = re.compile(
+    r"\b(prefer|preference|favorite|favourite|like|dislike|love|hate|usually\s+choose)\b",
+    re.IGNORECASE,
+)
+_MULTI_HOP_PATTERN = re.compile(
+    r"\b(connect|connected|link|related|relationship|between|across|together|and\s+then|after\s+that|before\s+that)\b",
+    re.IGNORECASE,
+)
+_TEMPORAL_HINT_PATTERN = re.compile(
+    r"\b(when|today|yesterday|last|week|month|year|morning|afternoon|night|ago|before|after|during)\b",
+    re.IGNORECASE,
+)
 
 
 class TemporalConstraint(BaseModel):
@@ -38,6 +72,50 @@ class QueryAnalysis(BaseModel):
 
     temporal_constraint: TemporalConstraint | None = Field(
         default=None, description="Extracted temporal constraint, if any"
+    )
+    query_type: QueryType = Field(default="semantic", description="Detected query intent type")
+    rrf_weights: dict[str, float] = Field(
+        default_factory=lambda: get_adaptive_rrf_weights("semantic"),
+        description="Dynamic RRF channel weights for semantic, bm25, graph, temporal",
+    )
+
+
+def get_adaptive_rrf_weights(query_type: QueryType) -> dict[str, float]:
+    """Return a normalized channel-weight map for adaptive RRF."""
+    weights = _ADAPTIVE_RRF_WEIGHTS.get(query_type, _ADAPTIVE_RRF_WEIGHTS["semantic"])
+    normalized = {channel: max(float(weights.get(channel, 0.0)), 0.0) for channel in _QUERY_CHANNELS}
+
+    if sum(normalized.values()) <= 0.0:
+        return dict(_ADAPTIVE_RRF_WEIGHTS["semantic"])
+
+    return normalized
+
+
+def classify_query_type(query: str, temporal_constraint: TemporalConstraint | None = None) -> QueryType:
+    """Classify query into one of six adaptive-routing intent types."""
+    text = query.strip().lower()
+
+    # Prioritize prospective and causal routing rules over generic temporal hints.
+    if _PROSPECTIVE_PATTERN.search(text):
+        return "prospective"
+    if _CAUSAL_PATTERN.search(text):
+        return "causal"
+    if _PREFERENCE_PATTERN.search(text):
+        return "preference"
+    if _MULTI_HOP_PATTERN.search(text):
+        return "multi_hop"
+    if temporal_constraint is not None or _TEMPORAL_HINT_PATTERN.search(text):
+        return "temporal"
+    return "semantic"
+
+
+def build_query_analysis(query: str, temporal_constraint: TemporalConstraint | None = None) -> QueryAnalysis:
+    """Build query analysis payload with inferred route and adaptive RRF weights."""
+    query_type = classify_query_type(query=query, temporal_constraint=temporal_constraint)
+    return QueryAnalysis(
+        temporal_constraint=temporal_constraint,
+        query_type=query_type,
+        rrf_weights=get_adaptive_rrf_weights(query_type),
     )
 
 
@@ -125,7 +203,7 @@ class DateparserQueryAnalyzer(QueryAnalyzer):
         query_lower = query.lower()
         period_result = self._extract_period(query_lower, reference_date)
         if period_result is not None:
-            return QueryAnalysis(temporal_constraint=period_result)
+            return build_query_analysis(query=query, temporal_constraint=period_result)
 
         # Lazy load dateparser (only imports on first call, then cached)
         self.load()
@@ -140,14 +218,14 @@ class DateparserQueryAnalyzer(QueryAnalyzer):
         results = self._search_dates(query, settings=settings)
 
         if not results:
-            return QueryAnalysis(temporal_constraint=None)
+            return build_query_analysis(query=query, temporal_constraint=None)
 
         # Filter out false positives (common words parsed as dates)
         false_positives = {"do", "may", "march", "will", "can", "sat", "sun", "mon", "tue", "wed", "thu", "fri"}
         valid_results = [(text, date) for text, date in results if text.lower() not in false_positives or len(text) > 3]
 
         if not valid_results:
-            return QueryAnalysis(temporal_constraint=None)
+            return build_query_analysis(query=query, temporal_constraint=None)
 
         # Use the first valid date found
         _, parsed_date = valid_results[0]
@@ -156,7 +234,10 @@ class DateparserQueryAnalyzer(QueryAnalyzer):
         start_date = parsed_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = parsed_date.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-        return QueryAnalysis(temporal_constraint=TemporalConstraint(start_date=start_date, end_date=end_date))
+        return build_query_analysis(
+            query=query,
+            temporal_constraint=TemporalConstraint(start_date=start_date, end_date=end_date),
+        )
 
     def _extract_period(self, query: str, reference_date: datetime) -> TemporalConstraint | None:
         """
@@ -434,7 +515,7 @@ class TransformerQueryAnalyzer(QueryAnalyzer):
         # Try rule-based extraction first (handles 90%+ of cases)
         result = self._extract_with_rules(query, reference_date)
         if result is not None:
-            return QueryAnalysis(temporal_constraint=result)
+            return build_query_analysis(query=query, temporal_constraint=result)
 
         # Fall back to T5 model for unusual patterns
         self._load_model()
@@ -469,7 +550,7 @@ what is the weather = none
 
         # Parse the generated output
         temporal = self._parse_generated_output(result, reference_date)
-        return QueryAnalysis(temporal_constraint=temporal)
+        return build_query_analysis(query=query, temporal_constraint=temporal)
 
     def _no_grad(self):
         """Get torch.no_grad context manager."""

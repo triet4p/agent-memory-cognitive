@@ -17,11 +17,18 @@ from typing import Optional
 from cogmem_api.config import get_config
 from cogmem_api.engine.db_utils import acquire_with_retry
 from cogmem_api.engine.memory_engine import fq_table
+from cogmem_api.engine.query_analyzer import (
+    DateparserQueryAnalyzer,
+    QueryAnalyzer,
+    QueryType,
+    get_adaptive_rrf_weights,
+)
+from .fusion import weighted_reciprocal_rank_fusion
 from .graph_retrieval import BFSGraphRetriever, GraphRetriever
 from .link_expansion_retrieval import LinkExpansionRetriever
 from .mpfp_retrieval import MPFPGraphRetriever
 from .tags import TagGroup, TagsMatch, build_tag_groups_where_clause, build_tags_where_clause_simple
-from .types import MPFPTimings, RetrievalResult
+from .types import MPFPTimings, MergedCandidate, RetrievalResult
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +43,19 @@ class ParallelRetrievalResult:
     temporal: list[RetrievalResult] | None
     timings: dict[str, float] = field(default_factory=dict)
     temporal_constraint: tuple | None = None  # (start_date, end_date)
+    query_type: QueryType = "semantic"
+    rrf_weights: dict[str, float] = field(default_factory=dict)
     mpfp_timings: list[MPFPTimings] = field(default_factory=list)  # MPFP sub-step timings per fact type
     max_conn_wait: float = 0.0  # Maximum connection acquisition wait time across all methods
+
+
+@dataclass
+class QueryRoutingDecision:
+    """Routing decision from query analysis for adaptive retrieval fusion."""
+
+    query_type: QueryType
+    temporal_constraint: tuple[datetime, datetime] | None
+    rrf_weights: dict[str, float]
 
 
 @dataclass
@@ -50,6 +68,60 @@ class MultiFactTypeRetrievalResult:
     timings: dict[str, float] = field(default_factory=dict)
     # Max connection wait across all operations
     max_conn_wait: float = 0.0
+    query_type: QueryType = "semantic"
+    rrf_weights: dict[str, float] = field(default_factory=dict)
+
+
+def resolve_query_routing(
+    query_text: str,
+    question_date: datetime | None = None,
+    query_analyzer: QueryAnalyzer | None = None,
+) -> QueryRoutingDecision:
+    """Analyze query and derive adaptive routing metadata for retrieval/fusion."""
+    analyzer = query_analyzer or DateparserQueryAnalyzer()
+    analysis = analyzer.analyze(query_text, reference_date=question_date)
+
+    query_type = analysis.query_type
+    rrf_weights = analysis.rrf_weights or get_adaptive_rrf_weights(query_type)
+
+    temporal_constraint = None
+    if analysis.temporal_constraint is not None:
+        temporal_constraint = (analysis.temporal_constraint.start_date, analysis.temporal_constraint.end_date)
+
+    return QueryRoutingDecision(
+        query_type=query_type,
+        temporal_constraint=temporal_constraint,
+        rrf_weights=rrf_weights,
+    )
+
+
+def fuse_parallel_results(
+    parallel_result: ParallelRetrievalResult,
+    query_type: QueryType | None = None,
+    rrf_weights: dict[str, float] | None = None,
+    k: int = 60,
+) -> list[MergedCandidate]:
+    """Fuse 4-channel retrieval output with weighted RRF based on routing decision."""
+    source_names = ["semantic", "bm25", "graph"]
+    result_lists: list[list[RetrievalResult]] = [
+        parallel_result.semantic,
+        parallel_result.bm25,
+        parallel_result.graph,
+    ]
+
+    if parallel_result.temporal:
+        source_names.append("temporal")
+        result_lists.append(parallel_result.temporal)
+
+    effective_query_type = query_type or parallel_result.query_type
+    effective_weights = rrf_weights or parallel_result.rrf_weights or get_adaptive_rrf_weights(effective_query_type)
+
+    return weighted_reciprocal_rank_fusion(
+        result_lists=result_lists,
+        source_weights=effective_weights,
+        source_names=source_names,
+        k=k,
+    )
 
 
 # Default graph retriever instance (can be overridden)
@@ -530,7 +602,7 @@ async def retrieve_all_fact_types_parallel(
     fact_types: list[str],
     thinking_budget: int,
     question_date: datetime | None = None,
-    query_analyzer: Optional["QueryAnalyzer"] = None,
+    query_analyzer: QueryAnalyzer | None = None,
     graph_retriever: GraphRetriever | None = None,
     tags: list[str] | None = None,
     tags_match: TagsMatch = "any",
@@ -564,14 +636,12 @@ async def retrieve_all_fact_types_parallel(
     start_time = time.time()
     timings: dict[str, float] = {}
 
-    # Step 1: Extract temporal constraint first (CPU work, no DB)
-    # Do this before DB queries so we know if we need temporal retrieval
-    temporal_extraction_start = time.time()
-    from .temporal_extraction import extract_temporal_constraint
-
-    temporal_constraint = extract_temporal_constraint(query_text, reference_date=question_date, analyzer=query_analyzer)
-    temporal_extraction_time = time.time() - temporal_extraction_start
-    timings["temporal_extraction"] = temporal_extraction_time
+    # Step 1: Analyze query once for temporal extraction + adaptive routing.
+    query_routing_start = time.time()
+    routing = resolve_query_routing(query_text, question_date=question_date, query_analyzer=query_analyzer)
+    temporal_constraint = routing.temporal_constraint
+    temporal_extraction_time = time.time() - query_routing_start
+    timings["query_routing"] = temporal_extraction_time
 
     # Step 2: Run semantic + BM25 + temporal combined in ONE connection!
     # This reduces connection usage from 2 to 1 for these operations
@@ -677,9 +747,11 @@ async def retrieve_all_fact_types_parallel(
                 "bm25": semantic_bm25_time / 2,
                 "graph": graph_time,
                 "temporal": temporal_time,  # Same for all fact types (single query)
-                "temporal_extraction": temporal_extraction_time,
+                "query_routing": temporal_extraction_time,
             },
             temporal_constraint=temporal_constraint,
+            query_type=routing.query_type,
+            rrf_weights=routing.rrf_weights,
             mpfp_timings=[mpfp_timing] if mpfp_timing else [],
             max_conn_wait=max_conn_wait,
         )
@@ -691,4 +763,6 @@ async def retrieve_all_fact_types_parallel(
         results_by_fact_type=results_by_fact_type,
         timings=timings,
         max_conn_wait=max_conn_wait,
+        query_type=routing.query_type,
+        rrf_weights=routing.rrf_weights,
     )
