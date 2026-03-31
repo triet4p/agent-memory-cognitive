@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import argparse
-import os
 
 import uvicorn
+
+from cogmem_api.config import _get_raw_config
 
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8888
@@ -15,6 +16,8 @@ DEFAULT_WORKERS = 1
 
 def build_parser() -> argparse.ArgumentParser:
     """Build CLI parser for cogmem-api runtime."""
+    config = _get_raw_config()
+
     parser = argparse.ArgumentParser(
         prog="cogmem-api",
         description="CogMem API Server",
@@ -22,18 +25,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "--host",
-        default=os.getenv("COGMEM_API_HOST", DEFAULT_HOST),
+        default=config.host,
         help="Host to bind to",
     )
     parser.add_argument(
         "--port",
         type=int,
-        default=int(os.getenv("COGMEM_API_PORT", str(DEFAULT_PORT))),
+        default=config.port,
         help="Port to bind to",
     )
     parser.add_argument(
         "--log-level",
-        default=os.getenv("COGMEM_API_LOG_LEVEL", DEFAULT_LOG_LEVEL),
+        default=config.log_level,
         choices=["critical", "error", "warning", "info", "debug", "trace"],
         help="Log level",
     )
@@ -41,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--workers",
         type=int,
-        default=int(os.getenv("COGMEM_API_WORKERS", str(DEFAULT_WORKERS))),
+        default=config.workers,
         help="Number of worker processes",
     )
     parser.add_argument("--access-log", action="store_true", help="Enable access log")

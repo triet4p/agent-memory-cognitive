@@ -19,9 +19,15 @@ dependencies = [
     { name = "httpx" },
     { name = "pgvector" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "requests" },
     { name = "sqlalchemy" },
     { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+embedded-db = [
+    { name = "pg0-embedded" },
 ]
 
 [package.metadata]
@@ -30,12 +36,15 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.135.2" },
     { name = "hindsight-client", specifier = ">=0.4.19" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pg0-embedded", marker = "extra == 'embedded-db'", specifier = ">=0.11.0" },
     { name = "pgvector", specifier = ">=0.4.2" },
     { name = "pydantic", specifier = ">=2.12.5" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "sqlalchemy", specifier = ">=2.0.48" },
     { name = "uvicorn", specifier = ">=0.42.0" },
 ]
+provides-extras = ["embedded-db"]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -614,6 +623,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pg0-embedded"
+version = "0.12.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/78/fc34914b2005c9e2102c8958bfb73dc1f4962702a647b7b797902ed9bcd3/pg0_embedded-0.12.2.tar.gz", hash = "sha256:7a35d79fa5be250c47cc6c32a40b17536cb2435336e36cc81d9132523234e66f", size = 18407, upload-time = "2026-03-26T14:41:03.928Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bb/62/4940bb2c760a2d723dd66a0ad6d75083978e615c51753565a0ead3a4746d/pg0_embedded-0.12.2-py3-none-macosx_14_0_arm64.whl", hash = "sha256:09cfdb02e35ad966f4ee8b108956dcf159f217ced022640efb9b661b8c9b453d", size = 13048083, upload-time = "2026-03-26T14:40:48.146Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/30/d39667ba551d0c68ec00b19bcc3e836f1a0b038d9e2e56f969556ebe8780/pg0_embedded-0.12.2-py3-none-macosx_15_0_x86_64.whl", hash = "sha256:f56f75d31959dcc33f8ef915d04417e54f6280aa1bd2d40077c1e4da8f0f4347", size = 13653946, upload-time = "2026-03-26T14:40:50.887Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/7b/406f6a6244a9958529e6c6575c20e23c43a1e1afc05c71238da12e847028/pg0_embedded-0.12.2-py3-none-manylinux_2_35_aarch64.whl", hash = "sha256:6cb8e97834f4c4a1cefe6d11410cbbb4f864fe598f9aa54ed26853a7f3bc1897", size = 14755993, upload-time = "2026-03-26T14:40:53.771Z" },
+    { url = "https://files.pythonhosted.org/packages/39/dd/1484c0bc71839cbba48da5f93c218feba3e4abae7f5323975c4a6d9cd9a9/pg0_embedded-0.12.2-py3-none-manylinux_2_35_x86_64.whl", hash = "sha256:1b180fa0ae3f2f2344c33291a49d9b63f6d292f2c25ac239c69f9ef6d902fb43", size = 15198744, upload-time = "2026-03-26T14:40:56.518Z" },
+    { url = "https://files.pythonhosted.org/packages/33/7a/843ef38f403f61da659d5bd0c16268ca91e36b8e6a242ad42271b5c0291c/pg0_embedded-0.12.2-py3-none-win_amd64.whl", hash = "sha256:15a807e0b5f41f0e3a4d2f7d7e5d334e4078cb94a9635035083e28fca5cdded8", size = 54958406, upload-time = "2026-03-26T14:41:01.044Z" },
+]
+
+[[package]]
 name = "pgvector"
 version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -772,6 +794,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
 ]
 
 [[package]]

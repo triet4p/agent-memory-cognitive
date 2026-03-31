@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextvars
+import os
 import re
 from contextlib import contextmanager
 from typing import Any
@@ -10,6 +11,7 @@ from typing import Any
 import asyncpg
 
 from cogmem_api import config
+from cogmem_api.pg0 import EmbeddedPostgres, parse_pg0_url
 from .db_utils import acquire_with_retry
 
 _current_schema: contextvars.ContextVar[str | None] = contextvars.ContextVar("current_schema", default=None)
@@ -101,7 +103,19 @@ class MemoryEngine:
         pool_min_size: int | None = None,
         pool_max_size: int | None = None,
     ):
-        self.db_url = db_url
+        resolved_db_url = db_url if db_url is not None else os.getenv(config.ENV_DATABASE_URL)
+
+        self._pg0: EmbeddedPostgres | None = None
+        if resolved_db_url:
+            self._use_pg0, self._pg0_instance_name, self._pg0_port = parse_pg0_url(resolved_db_url)
+        else:
+            self._use_pg0, self._pg0_instance_name, self._pg0_port = (False, None, None)
+
+        if self._use_pg0:
+            self.db_url = None
+        else:
+            self.db_url = resolved_db_url
+
         self.database_schema = database_schema or config.DATABASE_SCHEMA
         self._pool_min_size = pool_min_size if pool_min_size is not None else config.DB_POOL_MIN_SIZE
         self._pool_max_size = pool_max_size if pool_max_size is not None else config.DB_POOL_MAX_SIZE
@@ -123,6 +137,16 @@ class MemoryEngine:
 
         _current_schema.set(self.database_schema)
 
+        if self._use_pg0:
+            kwargs: dict[str, Any] = {"name": self._pg0_instance_name}
+            if self._pg0_port is not None:
+                kwargs["port"] = self._pg0_port
+            pg0 = EmbeddedPostgres(**kwargs)
+            was_already_running = await pg0.is_running()
+            self.db_url = await pg0.ensure_running()
+            if not was_already_running:
+                self._pg0 = pg0
+
         if not self.db_url:
             self._initialized = True
             return
@@ -139,6 +163,11 @@ class MemoryEngine:
         if self._pool is not None:
             await self._pool.close()
             self._pool = None
+
+        if self._pg0 is not None:
+            await self._pg0.stop()
+            self._pg0 = None
+
         self._initialized = False
 
     async def execute(self, sql: str, *args: Any) -> str:
@@ -161,6 +190,9 @@ class MemoryEngine:
                 "schema": self.database_schema,
             },
         }
+
+        if self._use_pg0:
+            health["database"]["mode"] = "embedded_pg0"
 
         if self._pool is None:
             if self.db_url:
