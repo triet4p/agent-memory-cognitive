@@ -21,6 +21,9 @@ DEFAULT_GRAPH_RETRIEVER = "link_expansion"
 DEFAULT_TEXT_SEARCH_EXTENSION = "native"
 DEFAULT_MPFP_TOP_K_NEIGHBORS = 20
 DEFAULT_RERANKER_PROVIDER = "rrf"
+DEFAULT_BFS_REFRACTORY_STEPS = 1
+DEFAULT_BFS_FIRING_QUOTA = 2
+DEFAULT_BFS_ACTIVATION_SATURATION = 2.0
 
 
 @dataclass(frozen=True)
@@ -31,6 +34,9 @@ class CogMemConfig:
     text_search_extension: str = DEFAULT_TEXT_SEARCH_EXTENSION
     mpfp_top_k_neighbors: int = DEFAULT_MPFP_TOP_K_NEIGHBORS
     reranker_provider: str = DEFAULT_RERANKER_PROVIDER
+    bfs_refractory_steps: int = DEFAULT_BFS_REFRACTORY_STEPS
+    bfs_firing_quota: int = DEFAULT_BFS_FIRING_QUOTA
+    bfs_activation_saturation: float = DEFAULT_BFS_ACTIVATION_SATURATION
 
 
 _cached_config: CogMemConfig | None = None
@@ -47,5 +53,12 @@ def get_config() -> CogMemConfig:
                 os.getenv("COGMEM_API_MPFP_TOP_K_NEIGHBORS", str(DEFAULT_MPFP_TOP_K_NEIGHBORS))
             ),
             reranker_provider=os.getenv("COGMEM_API_RERANKER_PROVIDER", DEFAULT_RERANKER_PROVIDER),
+            bfs_refractory_steps=int(
+                os.getenv("COGMEM_API_BFS_REFRACTORY_STEPS", str(DEFAULT_BFS_REFRACTORY_STEPS))
+            ),
+            bfs_firing_quota=int(os.getenv("COGMEM_API_BFS_FIRING_QUOTA", str(DEFAULT_BFS_FIRING_QUOTA))),
+            bfs_activation_saturation=float(
+                os.getenv("COGMEM_API_BFS_ACTIVATION_SATURATION", str(DEFAULT_BFS_ACTIVATION_SATURATION))
+            ),
         )
     return _cached_config

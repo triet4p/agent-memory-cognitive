@@ -7,6 +7,7 @@ swapped without changing the rest of the recall pipeline.
 """
 
 import logging
+from collections import defaultdict
 from abc import ABC, abstractmethod
 
 from cogmem_api.engine.db_utils import acquire_with_retry
@@ -87,6 +88,9 @@ class BFSGraphRetriever(GraphRetriever):
         activation_decay: float = 0.8,
         min_activation: float = 0.1,
         batch_size: int = 20,
+        refractory_steps: int = 1,
+        firing_quota: int = 2,
+        activation_saturation: float = 2.0,
     ):
         """
         Initialize BFS graph retriever.
@@ -97,12 +101,18 @@ class BFSGraphRetriever(GraphRetriever):
             activation_decay: Decay factor per hop (activation *= decay)
             min_activation: Minimum activation to continue spreading
             batch_size: Number of nodes to process per batch (for neighbor fetching)
+            refractory_steps: Minimum steps before a node can fire again
+            firing_quota: Maximum number of times a node can fire
+            activation_saturation: Upper bound (A_max) for node activation
         """
         self.entry_point_limit = entry_point_limit
         self.entry_point_threshold = entry_point_threshold
         self.activation_decay = activation_decay
         self.min_activation = min_activation
         self.batch_size = batch_size
+        self.refractory_steps = max(0, refractory_steps)
+        self.firing_quota = max(1, firing_quota)
+        self.activation_saturation = max(min_activation, activation_saturation)
 
     @property
     def name(self) -> str:
@@ -201,28 +211,68 @@ class BFSGraphRetriever(GraphRetriever):
             f"(tags={tags}, tags_match={tags_match})"
         )
 
-        # Step 2: BFS spreading activation
-        visited = set()
-        results = []
-        queue = [(RetrievalResult.from_db_row(dict(r)), r["similarity"]) for r in entry_points]
+        # Step 2: SUM spreading activation with cycle guards.
+        # - Refractory: node cannot fire in consecutive steps.
+        # - Firing quota: each node has a bounded number of firings.
+        # - Saturation: node activation is clipped to A_max.
+        results_by_id: dict[str, RetrievalResult] = {}
+        node_payload: dict[str, RetrievalResult] = {}
+        frontier_activation: dict[str, float] = defaultdict(float)
+        firing_count: dict[str, int] = defaultdict(int)
+        last_fired_step: dict[str, int] = {}
+
+        for row in entry_points:
+            seed = RetrievalResult.from_db_row(dict(row))
+            node_payload[seed.id] = seed
+            frontier_activation[seed.id] = min(
+                self.activation_saturation,
+                frontier_activation[seed.id] + max(float(row["similarity"]), 0.0),
+            )
+
+        step = 0
         budget_remaining = budget
 
-        while queue and budget_remaining > 0:
-            # Collect a batch of nodes to process
-            batch_nodes = []
-            batch_activations = {}
+        while frontier_activation and budget_remaining > 0:
+            step += 1
 
-            while queue and len(batch_nodes) < self.batch_size and budget_remaining > 0:
-                current, activation = queue.pop(0)
-                unit_id = current.id
+            fireable: list[tuple[str, float]] = []
+            for node_id, raw_activation in frontier_activation.items():
+                activation = min(self.activation_saturation, raw_activation)
+                if activation <= self.min_activation:
+                    continue
+                if firing_count[node_id] >= self.firing_quota:
+                    continue
 
-                if unit_id not in visited:
-                    visited.add(unit_id)
+                previous_step = last_fired_step.get(node_id)
+                if previous_step is not None and (step - previous_step) <= self.refractory_steps:
+                    continue
+
+                fireable.append((node_id, activation))
+
+            if not fireable:
+                break
+
+            fireable.sort(key=lambda item: item[1], reverse=True)
+            selected = fireable[: self.batch_size]
+            batch_nodes = [node_id for node_id, _ in selected]
+            batch_activations = {node_id: activation for node_id, activation in selected}
+
+            for node_id, activation in selected:
+                firing_count[node_id] += 1
+                last_fired_step[node_id] = step
+                frontier_activation.pop(node_id, None)
+
+                node = node_payload.get(node_id)
+                if node is None:
+                    continue
+
+                if node_id not in results_by_id:
+                    node.activation = activation
+                    results_by_id[node_id] = node
                     budget_remaining -= 1
-                    current.activation = activation
-                    results.append(current)
-                    batch_nodes.append(current.id)
-                    batch_activations[unit_id] = activation
+                else:
+                    prior = results_by_id[node_id].activation or 0.0
+                    results_by_id[node_id].activation = min(self.activation_saturation, prior + activation)
 
             # Batch fetch neighbors
             if batch_nodes and budget_remaining > 0:
@@ -249,27 +299,33 @@ class BFSGraphRetriever(GraphRetriever):
 
                 for n in neighbors:
                     neighbor_id = str(n["id"])
-                    if neighbor_id not in visited:
-                        parent_id = str(n["from_unit_id"])
-                        parent_activation = batch_activations.get(parent_id, 0.5)
+                    parent_id = str(n["from_unit_id"])
+                    parent_activation = batch_activations.get(parent_id, 0.5)
 
-                        # Boost causal links
-                        link_type = n["link_type"]
-                        base_weight = n["weight"]
+                    # Boost causal links
+                    link_type = n["link_type"]
+                    base_weight = n["weight"]
 
-                        if link_type in ("causes", "caused_by"):
-                            causal_boost = 2.0
-                        elif link_type in ("enables", "prevents"):
-                            causal_boost = 1.5
-                        else:
-                            causal_boost = 1.0
+                    if link_type in ("causes", "caused_by"):
+                        causal_boost = 2.0
+                    elif link_type in ("enables", "prevents"):
+                        causal_boost = 1.5
+                    else:
+                        causal_boost = 1.0
 
-                        effective_weight = base_weight * causal_boost
-                        new_activation = parent_activation * effective_weight * self.activation_decay
+                    effective_weight = base_weight * causal_boost
+                    propagated = parent_activation * effective_weight * self.activation_decay
 
-                        if new_activation > self.min_activation:
-                            neighbor_result = RetrievalResult.from_db_row(dict(n))
-                            queue.append((neighbor_result, new_activation))
+                    if propagated <= self.min_activation:
+                        continue
+
+                    node_payload.setdefault(neighbor_id, RetrievalResult.from_db_row(dict(n)))
+                    frontier_activation[neighbor_id] = min(
+                        self.activation_saturation,
+                        frontier_activation.get(neighbor_id, 0.0) + propagated,
+                    )
+
+        results = sorted(results_by_id.values(), key=lambda r: r.activation or 0.0, reverse=True)
 
         # Apply tags filtering (BFS may traverse into memories that don't match tags criteria)
         if tags:

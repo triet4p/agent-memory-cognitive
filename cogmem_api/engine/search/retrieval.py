@@ -68,7 +68,11 @@ def get_default_graph_retriever() -> GraphRetriever:
                 f"Using MPFP graph retriever (top_k_neighbors={_default_graph_retriever.config.top_k_neighbors})"
             )
         elif retriever_type == "bfs":
-            _default_graph_retriever = BFSGraphRetriever()
+            _default_graph_retriever = BFSGraphRetriever(
+                refractory_steps=config.bfs_refractory_steps,
+                firing_quota=config.bfs_firing_quota,
+                activation_saturation=config.bfs_activation_saturation,
+            )
             logger.info("Using BFS graph retriever")
         elif retriever_type == "link_expansion":
             _default_graph_retriever = LinkExpansionRetriever()
