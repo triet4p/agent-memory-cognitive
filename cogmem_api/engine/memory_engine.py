@@ -149,3 +149,33 @@ class MemoryEngine:
 
         async with acquire_with_retry(self._pool) as conn:
             return await conn.execute(sql, *args)
+
+    async def health_check(self) -> dict[str, Any]:
+        """Return runtime health information for service probes."""
+        health: dict[str, Any] = {
+            "status": "healthy",
+            "initialized": self._initialized,
+            "database": {
+                "url_configured": bool(self.db_url),
+                "connected": False,
+                "schema": self.database_schema,
+            },
+        }
+
+        if self._pool is None:
+            if self.db_url:
+                health["status"] = "unhealthy"
+                health["reason"] = "database pool is not initialized"
+            else:
+                health["database"]["mode"] = "no_database_url"
+            return health
+
+        try:
+            async with acquire_with_retry(self._pool) as conn:
+                await conn.fetchval("SELECT 1")
+            health["database"]["connected"] = True
+            return health
+        except Exception as exc:  # pragma: no cover - defensive runtime guard
+            health["status"] = "unhealthy"
+            health["reason"] = f"database check failed: {exc}"
+            return health
