@@ -40,6 +40,7 @@ class RetrievalResult:
     text: str
     fact_type: str
     context: str | None = None
+    raw_snippet: str | None = None
     event_date: datetime | None = None
     occurred_start: datetime | None = None
     occurred_end: datetime | None = None
@@ -63,6 +64,7 @@ class RetrievalResult:
             text=row["text"],
             fact_type=row["fact_type"],
             context=row.get("context"),
+            raw_snippet=row.get("raw_snippet"),
             event_date=row.get("event_date"),
             occurred_start=row.get("occurred_start"),
             occurred_end=row.get("occurred_end"),
@@ -146,6 +148,7 @@ class ScoredResult:
             "text": self.retrieval.text,
             "fact_type": self.retrieval.fact_type,
             "context": self.retrieval.context,
+            "raw_snippet": self.retrieval.raw_snippet,
             "event_date": self.retrieval.event_date,
             "occurred_start": self.retrieval.occurred_start,
             "occurred_end": self.retrieval.occurred_end,

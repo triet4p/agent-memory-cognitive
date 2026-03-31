@@ -216,7 +216,7 @@ async def retrieve_semantic_bm25_combined(
     hnsw_fetch = max(limit * 5, 100)
 
     cols = (
-        "id, text, context, event_date, occurred_start, occurred_end, mentioned_at, "
+        "id, text, context, raw_snippet, event_date, occurred_start, occurred_end, mentioned_at, "
         "fact_type, document_id, chunk_id, tags"
     )
     table = fq_table("memory_units")
@@ -407,7 +407,7 @@ async def retrieve_temporal_combined(
               {groups_clause}
         ),
         sim_ranked AS (
-            SELECT mu.id, mu.text, mu.context, mu.event_date, mu.occurred_start, mu.occurred_end, mu.mentioned_at, mu.fact_type, mu.document_id, mu.chunk_id, mu.tags,
+                 SELECT mu.id, mu.text, mu.context, mu.raw_snippet, mu.event_date, mu.occurred_start, mu.occurred_end, mu.mentioned_at, mu.fact_type, mu.document_id, mu.chunk_id, mu.tags,
                    1 - (mu.embedding <=> $1::vector) AS similarity,
                    ROW_NUMBER() OVER (PARTITION BY mu.fact_type ORDER BY mu.embedding <=> $1::vector) AS sim_rn
             FROM date_ranked dr
@@ -415,7 +415,7 @@ async def retrieve_temporal_combined(
             WHERE dr.rn <= 50
               AND (1 - (mu.embedding <=> $1::vector)) >= $6
         )
-        SELECT id, text, context, event_date, occurred_start, occurred_end, mentioned_at, fact_type, document_id, chunk_id, tags, similarity
+        SELECT id, text, context, raw_snippet, event_date, occurred_start, occurred_end, mentioned_at, fact_type, document_id, chunk_id, tags, similarity
         FROM sim_ranked
         WHERE sim_rn <= 10
         """,
