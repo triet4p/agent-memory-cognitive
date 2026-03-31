@@ -9,7 +9,7 @@ from typing import Any
 
 import asyncpg
 
-from .. import config
+from cogmem_api import config
 from .db_utils import acquire_with_retry
 
 _current_schema: contextvars.ContextVar[str | None] = contextvars.ContextVar("current_schema", default=None)

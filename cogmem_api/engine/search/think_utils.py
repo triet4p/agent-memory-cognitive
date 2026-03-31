@@ -5,7 +5,7 @@ Think operation utilities for formulating answers based on agent and world facts
 import logging
 from datetime import datetime
 
-from ..response_models import DispositionTraits, MemoryFact
+from cogmem_api.engine.response_models import DispositionTraits, MemoryFact
 
 logger = logging.getLogger(__name__)
 

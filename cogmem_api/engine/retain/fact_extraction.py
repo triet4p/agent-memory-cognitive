@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from datetime import UTC, datetime
 
-from ..response_models import TokenUsage
+from cogmem_api.engine.response_models import TokenUsage
 from .types import (
     ActionEffectRelation,
     CausalRelation,

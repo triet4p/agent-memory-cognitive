@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from datetime import datetime, timedelta
 
-from ..memory_engine import fq_table
+from cogmem_api.engine.memory_engine import fq_table
 
 # Link tuple format:
 # (from_unit_id, to_unit_id, link_type, transition_type, entity_id, weight)

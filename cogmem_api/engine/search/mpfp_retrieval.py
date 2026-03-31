@@ -20,8 +20,8 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from ..db_utils import acquire_with_retry
-from ..memory_engine import fq_table
+from cogmem_api.engine.db_utils import acquire_with_retry
+from cogmem_api.engine.memory_engine import fq_table
 from .graph_retrieval import GraphRetriever
 from .tags import TagGroup, TagsMatch
 from .types import MPFPTimings, RetrievalResult
@@ -483,7 +483,7 @@ class MPFPGraphRetriever(GraphRetriever):
         """
         if config is None:
             # Read top_k_neighbors from global config
-            from ...config import get_config
+            from cogmem_api.config import get_config
 
             global_config = get_config()
             config = MPFPConfig(top_k_neighbors=global_config.mpfp_top_k_neighbors)

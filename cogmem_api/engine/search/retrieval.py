@@ -14,9 +14,9 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Optional
 
-from ...config import get_config
-from ..db_utils import acquire_with_retry
-from ..memory_engine import fq_table
+from cogmem_api.config import get_config
+from cogmem_api.engine.db_utils import acquire_with_retry
+from cogmem_api.engine.memory_engine import fq_table
 from .graph_retrieval import BFSGraphRetriever, GraphRetriever
 from .link_expansion_retrieval import LinkExpansionRetriever
 from .mpfp_retrieval import MPFPGraphRetriever
@@ -281,7 +281,7 @@ async def retrieve_temporal_combined(
     Returns:
         Dict mapping fact_type -> list of RetrievalResult
     """
-    from ..memory_engine import fq_table
+    from cogmem_api.engine.memory_engine import fq_table
 
     # Ensure dates are timezone-aware
     if start_date.tzinfo is None:

@@ -7,7 +7,7 @@ Handles natural language temporal expressions using transformer-based query anal
 import logging
 from datetime import datetime
 
-from ..query_analyzer import DateparserQueryAnalyzer, QueryAnalyzer
+from cogmem_api.engine.query_analyzer import DateparserQueryAnalyzer, QueryAnalyzer
 
 logger = logging.getLogger(__name__)
 

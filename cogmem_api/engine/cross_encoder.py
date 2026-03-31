@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 
-from ..config import get_config
+from cogmem_api.config import get_config
 
 logger = logging.getLogger(__name__)
 

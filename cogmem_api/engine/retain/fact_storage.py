@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from ..memory_engine import fq_table
+from cogmem_api.engine.memory_engine import fq_table
 from .types import ProcessedFact, coerce_fact_type
 
 _DEFAULT_DISPOSITION = {"skepticism": 3, "literalism": 3, "empathy": 3}

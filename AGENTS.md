@@ -6,6 +6,7 @@ Bạn là một chuyên gia **Senior Backend Engineer** và **Knowledge Graph Ar
 ## 2. 🛠️ NGUYÊN TẮC QUẢN LÝ MÃ NGUỒN (CODE MANAGEMENT)
 *   **Nguyên tắc Forking (Sao chép logic):** Không bao giờ `import` trực tiếp từ `hindsight_api`. Khi cần một chức năng, hãy sao chép module đó sang `cogmem_api` và thực hiện sửa đổi.
 *   **Cô lập Namespace:** Tất cả các tham chiếu `hindsight_api` trong package mới phải được đổi thành `cogmem_api`.
+*   **Quy tắc Import tương đối (Bài học bắt buộc):** Chỉ được dùng import tương đối trong cùng 1 cấp folder (ví dụ `from .x import ...`). Tuyệt đối không dùng import kiểu `..` hoặc `...` để đi lên thư mục cha. Nếu cần truy cập module ngoài cấp hiện tại, bắt buộc import tuyệt đối từ root `cogmem_api`.
 *   **Truy vết phụ thuộc (Recursive Dependency):** Khi sao chép một file, phải kiểm tra toàn bộ các `import` bên trong nó. Nếu file phụ thuộc vào các module khác trong `hindsight_api`, bạn phải sao chép cả các module đó sang `cogmem_api`.
 *   **Quản lý thư viện:** Sử dụng `uv` để quản lý môi trường. Nếu thiếu thư viện trong quá trình thực hiện, hãy sử dụng lệnh `uv add <library_name>`. Tuyệt đối không tự bịa ra thư viện không tồn tại.
 

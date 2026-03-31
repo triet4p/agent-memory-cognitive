@@ -86,7 +86,7 @@ class CrossEncoderReranker:
                           environment variables (defaults to local provider)
         """
         if cross_encoder is None:
-            from ..cross_encoder import create_cross_encoder_from_env
+            from cogmem_api.engine.cross_encoder import create_cross_encoder_from_env
 
             cross_encoder = create_cross_encoder_from_env()
         self.cross_encoder = cross_encoder

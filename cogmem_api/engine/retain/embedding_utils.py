@@ -6,7 +6,7 @@ import hashlib
 import math
 from collections.abc import Sequence
 
-from ...config import EMBEDDING_DIMENSION
+from cogmem_api.config import EMBEDDING_DIMENSION
 
 
 def _deterministic_embedding(text: str, dimension: int) -> list[float]:

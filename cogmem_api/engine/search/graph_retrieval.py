@@ -9,8 +9,8 @@ swapped without changing the rest of the recall pipeline.
 import logging
 from abc import ABC, abstractmethod
 
-from ..db_utils import acquire_with_retry
-from ..memory_engine import fq_table
+from cogmem_api.engine.db_utils import acquire_with_retry
+from cogmem_api.engine.memory_engine import fq_table
 from .tags import TagGroup, TagsMatch, filter_results_by_tag_groups, filter_results_by_tags
 from .types import MPFPTimings, RetrievalResult
 
