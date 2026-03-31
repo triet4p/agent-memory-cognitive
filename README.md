@@ -70,7 +70,54 @@ Kích hoạt môi trường ảo trên Windows (nếu cần):
 .\.venv\Scripts\Activate.ps1
 ```
 
-## 6. Distill dữ liệu
+## 6. Chạy Docker (Sprint 5)
+
+### 6.1 Standalone với embedded pg0
+
+Build image:
+
+```bash
+docker build -f docker/standalone/Dockerfile -t cogmem:local .
+```
+
+Run container:
+
+```bash
+docker run --rm -it -p 8888:8888 \
+	-e COGMEM_API_DATABASE_URL=pg0 \
+	-v $HOME/.cogmem-docker:/home/cogmem/.pg0 \
+	cogmem:local
+```
+
+Health check:
+
+```bash
+curl http://localhost:8888/health
+```
+
+### 6.2 Docker Compose với external PostgreSQL
+
+```bash
+cp .env.example .env
+# cập nhật COGMEM_DB_PASSWORD và các biến LLM nếu cần
+docker compose --env-file .env -f docker/docker-compose/external-pg/docker-compose.yaml up --build
+```
+
+### 6.3 Smoke test retain/recall qua container
+
+Sau khi container healthy:
+
+```bash
+./scripts/smoke-test-cogmem.sh http://localhost:8888
+```
+
+Hoặc chạy end-to-end build + health + retain/recall smoke bằng script:
+
+```bash
+./docker/test-image.sh cogmem:local
+```
+
+## 7. Distill dữ liệu
 
 Chạy pipeline distill:
 
@@ -78,7 +125,7 @@ Chạy pipeline distill:
 uv run python -m scripts.distill_dataset
 ```
 
-### 6.1 LongMemEval
+### 7.1 LongMemEval
 
 Heuristic chính:
 
@@ -87,7 +134,7 @@ Heuristic chính:
 - Bổ sung nhóm Prospective theo từ khóa ý định tương lai.
 - Giữ thêm nhóm single-session-user và single-session-preference để phủ tín hiệu habit/profile.
 
-### 6.2 LoCoMo
+### 7.2 LoCoMo
 
 Heuristic chính:
 
@@ -95,12 +142,12 @@ Heuristic chính:
 - Giữ toàn bộ QA trong mỗi hội thoại đã lọc.
 - Giảm quy mô ở mức hội thoại (conversation-level sampling), hiện tại khoảng 5 hội thoại đầy đủ.
 
-### 6.3 Tệp đầu ra
+### 7.3 Tệp đầu ra
 
 - [data/longmemeval_s_distilled.json](data/longmemeval_s_distilled.json)
 - [data/locomo_distilled.json](data/locomo_distilled.json)
 
-## 7. Đánh giá chi phí HINDSIGHT (tùy chọn)
+## 8. Đánh giá chi phí HINDSIGHT (tùy chọn)
 
 Script [scripts/test_hindsight.py](scripts/test_hindsight.py) dùng để đo chi phí xây dựng memory graph trên mẫu LongMemEval distilled.
 
@@ -115,12 +162,12 @@ Lệnh chạy:
 uv run python -m scripts.test_hindsight
 ```
 
-## 8. Ghi chú vận hành
+## 9. Ghi chú vận hành
 
 - Dữ liệu trong thư mục data là dữ liệu thực nghiệm, nên commit có kiểm soát và backup trước khi chạy distill lại.
 - Pipeline dùng random seed cố định để đảm bảo tái lập kết quả.
 
-## 9. Tiến độ Migration CogMem (đến hết Sprint 2)
+## 10. Tiến độ Migration CogMem (đến hết Sprint 5.3)
 
 Trạng thái hiện tại theo [docs/PLAN.md](docs/PLAN.md):
 
@@ -135,12 +182,15 @@ Các thành phần đã có trong `cogmem_api` sau Sprint 2:
 - Intention lifecycle transitions (`fulfilled_by`, `triggered`, `enabled_by`, `abandoned` status-only)
 - Action-Effect parsing (precondition/action/outcome) + `a_o_causal`
 
-Artifact logs cho Sprint 2:
+Artifact logs hiện có:
 
 - [logs/task_201_summary.md](logs/task_201_summary.md)
 - [logs/task_202_summary.md](logs/task_202_summary.md)
 - [logs/task_203_summary.md](logs/task_203_summary.md)
 - [logs/task_204_summary.md](logs/task_204_summary.md)
+- [logs/task_501_summary.md](logs/task_501_summary.md)
+- [logs/task_502_summary.md](logs/task_502_summary.md)
+- [logs/task_503_summary.md](logs/task_503_summary.md)
 
 Artifact tests cho Sprint 2:
 

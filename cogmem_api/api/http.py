@@ -28,6 +28,65 @@ class VersionResponse(BaseModel):
     service: str
 
 
+class RetainItem(BaseModel):
+    """Single memory item accepted by retain endpoint."""
+
+    content: str
+
+
+class RetainRequest(BaseModel):
+    """Retain request payload for smoke-level API contract."""
+
+    items: list[RetainItem]
+
+
+class RetainResponse(BaseModel):
+    """Retain response payload."""
+
+    success: bool
+    count: int
+
+
+class RecallRequest(BaseModel):
+    """Recall request payload for smoke-level API contract."""
+
+    query: str
+
+
+class RecallResult(BaseModel):
+    """Recall result payload entry."""
+
+    text: str
+
+
+class RecallResponse(BaseModel):
+    """Recall response payload."""
+
+    results: list[RecallResult]
+
+
+def _tokenize(text: str) -> set[str]:
+    """Tokenize text with a lightweight alnum-only split for smoke recall."""
+    lowered = "".join(ch if ch.isalnum() else " " for ch in text.lower())
+    return {token for token in lowered.split() if token}
+
+
+def _rank_smoke_results(query: str, memories: list[str], limit: int = 10) -> list[str]:
+    """Rank in-memory retained memories using simple lexical overlap scoring."""
+    query_tokens = _tokenize(query)
+    if not query_tokens:
+        return memories[:limit]
+
+    scored: list[tuple[int, str]] = []
+    for memory in memories:
+        overlap = len(query_tokens.intersection(_tokenize(memory)))
+        if overlap > 0:
+            scored.append((overlap, memory))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [memory for _, memory in scored[:limit]]
+
+
 def create_app(
     memory: MemoryEngine,
     initialize_memory: bool = True,
@@ -37,6 +96,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.memory = memory
+        app.state.smoke_banks = {}
         if initialize_memory:
             await memory.initialize()
         try:
@@ -53,6 +113,7 @@ def create_app(
 
     # Keep memory available even when lifespan does not fire (mounted app scenarios).
     app.state.memory = memory
+    app.state.smoke_banks = {}
 
     @app.get(
         "/health",
@@ -75,5 +136,32 @@ def create_app(
     )
     async def version_endpoint() -> VersionResponse:
         return VersionResponse(version=__version__, service="cogmem-api")
+
+    @app.post(
+        "/v1/default/banks/{bank_id}/memories",
+        response_model=RetainResponse,
+        summary="Retain memories (smoke baseline)",
+        description="Stores memories in an in-process buffer for Docker smoke testing.",
+        tags=["Memory"],
+    )
+    async def retain_memories(bank_id: str, payload: RetainRequest) -> RetainResponse:
+        if bank_id not in app.state.smoke_banks:
+            app.state.smoke_banks[bank_id] = []
+
+        contents = [item.content.strip() for item in payload.items if item.content.strip()]
+        app.state.smoke_banks[bank_id].extend(contents)
+        return RetainResponse(success=True, count=len(contents))
+
+    @app.post(
+        "/v1/default/banks/{bank_id}/memories/recall",
+        response_model=RecallResponse,
+        summary="Recall memories (smoke baseline)",
+        description="Retrieves memories from in-process buffer for Docker smoke testing.",
+        tags=["Memory"],
+    )
+    async def recall_memories(bank_id: str, payload: RecallRequest) -> RecallResponse:
+        memories: list[str] = app.state.smoke_banks.get(bank_id, [])
+        ranked = _rank_smoke_results(payload.query, memories)
+        return RecallResponse(results=[RecallResult(text=item) for item in ranked])
 
     return app
