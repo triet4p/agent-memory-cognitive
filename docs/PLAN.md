@@ -120,3 +120,21 @@ Kết luận audit: Sprint 1->5 có nhiều phần được triển khai theo ba
 
 6. Gate Rule
 - Chỉ được bắt đầu evaluation E1-E7/E8 khi B1-B5 đều pass và có artifact tương ứng.
+
+## Canonical Execution Order (From Current State)
+
+Thứ tự bắt buộc để hoàn thiện Full CogMem từ trạng thái hiện tại:
+
+1. Hoàn tất Backfill B1 (Config Contract Parity).
+2. Hoàn tất Backfill B2 (Retain LLM Path + Prompt Parity).
+3. Hoàn tất Backfill B3 (Runtime API Completeness, bỏ smoke-only buffer).
+4. Hoàn tất Backfill B4 (Retrieval Quality Parity: reranker/embeddings thật).
+5. Hoàn tất Backfill B5 (Docker Run Contract Parity).
+6. Gate kiểm tra: B1-B5 phải pass đầy đủ Drift/Behavior/Isolation + artifact.
+7. Chạy Sprint 6 theo thứ tự T6.1 -> T6.2 -> T6.3 -> T6.4.
+8. Chạy Sprint 7 theo thứ tự T7.1 -> T7.2.
+9. Chạy Sprint 8 theo thứ tự T8.1 -> T8.2.
+10. Chạy Sprint 9 với T9.1 (final release gate).
+
+Chuỗi ngắn gọn để vận hành hàng ngày:
+B1 -> B2 -> B3 -> B4 -> B5 -> Gate -> T6.1 -> T6.2 -> T6.3 -> T6.4 -> T7.1 -> T7.2 -> T8.1 -> T8.2 -> T9.1.
