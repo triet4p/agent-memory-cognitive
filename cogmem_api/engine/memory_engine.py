@@ -11,8 +11,11 @@ from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from cogmem_api import config
+from cogmem_api.models import Base
 from cogmem_api.engine.llm_wrapper import LLMConfig
 from cogmem_api.pg0 import EmbeddedPostgres, parse_pg0_url
 from .db_utils import acquire_with_retry
@@ -168,7 +171,32 @@ class MemoryEngine:
             min_size=self._pool_min_size,
             max_size=self._pool_max_size,
         )
+
+        await self._bootstrap_schema_objects()
         self._initialized = True
+
+    async def _bootstrap_schema_objects(self) -> None:
+        """Ensure required schema/tables exist for retain/recall runtime paths."""
+        if not self.db_url:
+            return
+
+        sqlalchemy_url = self.db_url
+        if sqlalchemy_url.startswith("postgresql://"):
+            sqlalchemy_url = sqlalchemy_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        engine = create_async_engine(sqlalchemy_url)
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{self.database_schema}"'))
+                try:
+                    await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+                except Exception as exc:  # pragma: no cover - runtime guard
+                    logger.warning("Unable to ensure pgvector extension: %s", exc)
+
+                await conn.execute(text(f'SET search_path TO "{self.database_schema}"'))
+                await conn.run_sync(Base.metadata.create_all)
+        finally:
+            await engine.dispose()
 
     async def _initialize_embeddings_model(self) -> None:
         """Initialize configured embeddings provider with deterministic fallback."""

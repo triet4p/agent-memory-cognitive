@@ -11,8 +11,6 @@ wheels/
 
 data/
 
-scripts/docker
-
 final_stats_*.json
 
 hindsight_api/*

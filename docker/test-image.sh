@@ -23,6 +23,19 @@ TIMEOUT="${SMOKE_TEST_TIMEOUT:-120}"
 CONTAINER_NAME="${SMOKE_TEST_CONTAINER_NAME:-cogmem-smoke-test}"
 HEALTH_URL="${COGMEM_API_HEALTH_URL:-http://localhost:8888/health}"
 SMOKE_BASE_URL="${COGMEM_SMOKE_BASE_URL:-http://localhost:8888}"
+SMOKE_DATABASE_URL="${COGMEM_SMOKE_DATABASE_URL:-pg0}"
+SMOKE_PG0_VOLUME_DIR="${COGMEM_SMOKE_PG0_VOLUME_DIR:-${HOME}/.cogmem-docker-smoke}"
+
+# Backfill B5: pass through LLM + retain knobs for real retain runtime.
+LLM_PROVIDER="${COGMEM_API_LLM_PROVIDER:-openai}"
+LLM_BASE_URL="${COGMEM_API_LLM_BASE_URL:-}"
+LLM_API_KEY="${COGMEM_API_LLM_API_KEY:-dummy}"
+LLM_MODEL="${COGMEM_API_LLM_MODEL:-gpt-4o-mini}"
+LLM_TIMEOUT="${COGMEM_API_LLM_TIMEOUT:-120}"
+RETAIN_LLM_TIMEOUT="${COGMEM_API_RETAIN_LLM_TIMEOUT:-120}"
+REFLECT_LLM_TIMEOUT="${COGMEM_API_REFLECT_LLM_TIMEOUT:-120}"
+RETAIN_MAX_COMPLETION_TOKENS="${COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS:-64000}"
+RETAIN_EXTRACTION_MODE="${COGMEM_API_RETAIN_EXTRACTION_MODE:-concise}"
 
 if [ -z "$IMAGE" ]; then
     echo -e "${RED}Error: image argument is required${NC}"
@@ -41,13 +54,39 @@ echo -e "${YELLOW}Starting CogMem Docker smoke test${NC}"
 echo "  Image: $IMAGE"
 echo "  Health URL: $HEALTH_URL"
 echo "  Timeout: ${TIMEOUT}s"
+echo "  Database mode: ${SMOKE_DATABASE_URL}"
+echo "  LLM provider/model: ${LLM_PROVIDER}/${LLM_MODEL}"
+if [ -n "$LLM_BASE_URL" ]; then
+    echo "  LLM base URL: $LLM_BASE_URL"
+fi
 
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 
-docker run -d --name "$CONTAINER_NAME" \
-    -p 8888:8888 \
-    -e COGMEM_API_DATABASE_URL="${COGMEM_API_DATABASE_URL:-pg0}" \
-    "$IMAGE" >/dev/null
+DOCKER_RUN_ARGS=(
+    -d
+    --name "$CONTAINER_NAME"
+    -p 8888:8888
+    -e "COGMEM_API_DATABASE_URL=${SMOKE_DATABASE_URL}"
+    -e "COGMEM_API_LLM_PROVIDER=${LLM_PROVIDER}"
+    -e "COGMEM_API_LLM_API_KEY=${LLM_API_KEY}"
+    -e "COGMEM_API_LLM_MODEL=${LLM_MODEL}"
+    -e "COGMEM_API_LLM_TIMEOUT=${LLM_TIMEOUT}"
+    -e "COGMEM_API_RETAIN_LLM_TIMEOUT=${RETAIN_LLM_TIMEOUT}"
+    -e "COGMEM_API_REFLECT_LLM_TIMEOUT=${REFLECT_LLM_TIMEOUT}"
+    -e "COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS=${RETAIN_MAX_COMPLETION_TOKENS}"
+    -e "COGMEM_API_RETAIN_EXTRACTION_MODE=${RETAIN_EXTRACTION_MODE}"
+)
+
+if [ -n "$LLM_BASE_URL" ]; then
+    DOCKER_RUN_ARGS+=( -e "COGMEM_API_LLM_BASE_URL=${LLM_BASE_URL}" )
+fi
+
+if [[ "$SMOKE_DATABASE_URL" == pg0* ]]; then
+    mkdir -p "$SMOKE_PG0_VOLUME_DIR"
+    DOCKER_RUN_ARGS+=( -v "${SMOKE_PG0_VOLUME_DIR}:/home/cogmem/.pg0" )
+fi
+
+docker run "${DOCKER_RUN_ARGS[@]}" "$IMAGE" >/dev/null
 
 start_time=$(date +%s)
 for i in $(seq 1 "$TIMEOUT"); do

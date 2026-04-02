@@ -72,6 +72,18 @@ Kích hoạt môi trường ảo trên Windows (nếu cần):
 
 ## 6. Chạy Docker (Sprint 5)
 
+Backfill B5 chuẩn hóa contract chạy runtime để retain LLM hoạt động thực chiến. Các biến tối thiểu cần khai báo:
+
+- `COGMEM_API_LLM_PROVIDER`
+- `COGMEM_API_LLM_MODEL`
+- `COGMEM_API_LLM_API_KEY`
+- `COGMEM_API_LLM_BASE_URL` (nếu dùng OpenAI-compatible proxy/local endpoint)
+- `COGMEM_API_LLM_TIMEOUT`
+- `COGMEM_API_RETAIN_LLM_TIMEOUT`
+- `COGMEM_API_REFLECT_LLM_TIMEOUT`
+- `COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS`
+- `COGMEM_API_RETAIN_EXTRACTION_MODE`
+
 ### 6.1 Standalone với embedded pg0
 
 Build image:
@@ -111,10 +123,73 @@ Sau khi container healthy:
 ./scripts/smoke-test-cogmem.sh http://localhost:8888
 ```
 
+PowerShell (Windows):
+
+```powershell
+.\scripts\smoke-test-cogmem.ps1 http://localhost:8888
+```
+
 Hoặc chạy end-to-end build + health + retain/recall smoke bằng script:
 
 ```bash
 ./docker/test-image.sh cogmem:local
+```
+
+PowerShell (Windows):
+
+```powershell
+.\docker\test-image.ps1 -Image cogmem:local
+```
+
+Script `docker/test-image.sh` và `docker/test-image.ps1` hỗ trợ cả 2 chế độ DB qua `COGMEM_SMOKE_DATABASE_URL`:
+
+- Embedded pg0 (mặc định): `COGMEM_SMOKE_DATABASE_URL=pg0`
+- External PostgreSQL: `COGMEM_SMOKE_DATABASE_URL=postgresql://user:pass@host:5432/dbname`
+
+### 6.4 Lệnh nhanh bằng scripts/docker (B5)
+
+Linux/WSL (`scripts/docker.sh`) - chế độ embedded pg0:
+
+```bash
+COGMEM_API_LLM_PROVIDER=openai \
+COGMEM_API_LLM_BASE_URL=http://host.docker.internal:11434/v1 \
+COGMEM_API_LLM_API_KEY=ollama \
+COGMEM_API_LLM_MODEL=qwen3:8b \
+COGMEM_API_RETAIN_EXTRACTION_MODE=concise \
+./scripts/docker.sh embedded
+```
+
+Linux/WSL (`scripts/docker.sh`) - chế độ external PostgreSQL:
+
+```bash
+COGMEM_EXTERNAL_DATABASE_URL=postgresql://cogmem_user:change-me@localhost:5432/cogmem_db \
+COGMEM_API_LLM_PROVIDER=openai \
+COGMEM_API_LLM_BASE_URL=http://host.docker.internal:11434/v1 \
+COGMEM_API_LLM_API_KEY=ollama \
+COGMEM_API_LLM_MODEL=qwen3:8b \
+./scripts/docker.sh external
+```
+
+PowerShell (`scripts/docker.ps1`) - chế độ embedded pg0:
+
+```powershell
+$env:COGMEM_API_LLM_PROVIDER = "openai"
+$env:COGMEM_API_LLM_BASE_URL = "http://host.docker.internal:11434/v1"
+$env:COGMEM_API_LLM_API_KEY = "ollama"
+$env:COGMEM_API_LLM_MODEL = "qwen3:8b"
+$env:COGMEM_API_RETAIN_EXTRACTION_MODE = "concise"
+.\scripts\docker.ps1 -Mode embedded
+```
+
+PowerShell (`scripts/docker.ps1`) - chế độ external PostgreSQL:
+
+```powershell
+$env:COGMEM_EXTERNAL_DATABASE_URL = "postgresql://cogmem_user:change-me@localhost:5432/cogmem_db"
+$env:COGMEM_API_LLM_PROVIDER = "openai"
+$env:COGMEM_API_LLM_BASE_URL = "http://host.docker.internal:11434/v1"
+$env:COGMEM_API_LLM_API_KEY = "ollama"
+$env:COGMEM_API_LLM_MODEL = "qwen3:8b"
+.\scripts\docker.ps1 -Mode external
 ```
 
 ## 7. Distill dữ liệu

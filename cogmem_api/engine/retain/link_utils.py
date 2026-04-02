@@ -11,6 +11,8 @@ from cogmem_api.engine.memory_engine import fq_table
 # (from_unit_id, to_unit_id, link_type, transition_type, entity_id, weight)
 LinkRecord = tuple[str, str, str, str | None, str | None, float]
 
+_PLACEHOLDER_ENTITY_ID = "00000000-0000-0000-0000-000000000000"
+
 
 def cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
     """Compute cosine similarity with defensive numeric handling."""
@@ -73,17 +75,26 @@ async def insert_links(conn, links: list[LinkRecord]) -> int:
         await conn.insert_memory_links(links)
         return len(links)
 
+    await conn.execute(
+        f"""
+        INSERT INTO {fq_table("entities")}
+            (id, canonical_name, bank_id, metadata)
+        VALUES
+            ($1::uuid, '__link_placeholder__', '__global__', '{{}}'::jsonb)
+        ON CONFLICT (id) DO NOTHING
+        """,
+        _PLACEHOLDER_ENTITY_ID,
+    )
+
     await conn.executemany(
         f"""
         INSERT INTO {fq_table("memory_links")}
             (from_unit_id, to_unit_id, link_type, transition_type, entity_id, weight)
         VALUES
-            ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6)
-        ON CONFLICT
-            (from_unit_id, to_unit_id, link_type, COALESCE(entity_id, '00000000-0000-0000-0000-000000000000'::uuid))
-        DO NOTHING
+            ($1::uuid, $2::uuid, $3, $4, COALESCE($5::uuid, $7::uuid), $6)
+        ON CONFLICT DO NOTHING
         """,
-        links,
+        [(*link, _PLACEHOLDER_ENTITY_ID) for link in links],
     )
     return len(links)
 
