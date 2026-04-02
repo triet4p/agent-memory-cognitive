@@ -3,6 +3,7 @@ Cross-encoder neural reranking for search results.
 """
 
 from datetime import datetime, timezone
+from math import exp
 
 from .types import MergedCandidate, ScoredResult
 
@@ -97,15 +98,7 @@ class CrossEncoderReranker:
         if self._initialized:
             return
 
-        import asyncio
-
-        cross_encoder = self.cross_encoder
-        # For local providers, run in thread pool to avoid blocking event loop
-        if cross_encoder.provider_name == "local":
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, lambda: asyncio.run(cross_encoder.initialize()))
-        else:
-            await cross_encoder.initialize()
+        await self.cross_encoder.initialize()
         self._initialized = True
 
     async def rerank(self, query: str, candidates: list[MergedCandidate]) -> list[ScoredResult]:
@@ -146,17 +139,13 @@ class CrossEncoderReranker:
                 # Prepend date to document text
                 doc_text = f"[Date: {date_readable} ({date_iso})] {doc_text}"
 
-            pairs.append([query, doc_text])
+            pairs.append((query, doc_text))
 
         # Get cross-encoder scores
         scores = await self.cross_encoder.predict(pairs)
 
-        # Normalize scores using sigmoid to [0, 1] range
-        # Cross-encoder returns logits which can be negative
-        import numpy as np
-
         def sigmoid(x):
-            return 1 / (1 + np.exp(-x))
+            return 1.0 / (1.0 + exp(-float(x)))
 
         normalized_scores = [sigmoid(score) for score in scores]
 

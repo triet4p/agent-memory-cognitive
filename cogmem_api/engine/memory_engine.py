@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextvars
+import logging
 import os
 import re
 from contextlib import contextmanager
@@ -15,6 +16,7 @@ from cogmem_api import config
 from cogmem_api.engine.llm_wrapper import LLMConfig
 from cogmem_api.pg0 import EmbeddedPostgres, parse_pg0_url
 from .db_utils import acquire_with_retry
+from .embeddings import DeterministicEmbeddings, create_embeddings_from_env
 
 _current_schema: contextvars.ContextVar[str | None] = contextvars.ContextVar("current_schema", default=None)
 
@@ -34,6 +36,7 @@ _PROTECTED_TABLES = frozenset(
 )
 
 _VALIDATE_SQL_SCHEMAS = True
+logger = logging.getLogger(__name__)
 
 
 class UnqualifiedTableError(Exception):
@@ -154,6 +157,8 @@ class MemoryEngine:
             if not was_already_running:
                 self._pg0 = pg0
 
+        await self._initialize_embeddings_model()
+
         if not self.db_url:
             self._initialized = True
             return
@@ -164,6 +169,25 @@ class MemoryEngine:
             max_size=self._pool_max_size,
         )
         self._initialized = True
+
+    async def _initialize_embeddings_model(self) -> None:
+        """Initialize configured embeddings provider with deterministic fallback."""
+        if self._embeddings_model is not None:
+            return
+
+        try:
+            model = create_embeddings_from_env()
+            await model.initialize()
+            self._embeddings_model = model
+            logger.info("Embeddings provider initialized: %s", model.provider_name)
+        except Exception as exc:  # pragma: no cover - defensive runtime guard
+            fallback = DeterministicEmbeddings(config.EMBEDDING_DIMENSION)
+            await fallback.initialize()
+            self._embeddings_model = fallback
+            logger.warning(
+                "Embeddings provider initialization failed (%s). Falling back to deterministic embeddings.",
+                exc,
+            )
 
     async def close(self) -> None:
         """Close connection pool if initialized."""
