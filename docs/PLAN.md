@@ -20,8 +20,15 @@ Mục tiêu là triển khai CogMem theo mô hình fork-isolated từ HINDSIGHT 
 15. Sprint 5 - Atomic Task T5.2: hoàn thiện dependency/config packaging để chạy được trong container, bao gồm script entrypoint package (`cogmem-api`), biến môi trường runtime, và support `pg0` cho embedded DB mode; output gồm cập nhật pyproject.toml, cogmem_api/config.py (nếu cần), logs/task_502_summary.md, tests/artifacts/test_task502_packaging_config.py; verification gồm Drift giữ semantics config quan trọng từ HINDSIGHT (host/port/database/llm), Behavioral test parse env và boot không lỗi, Isolation check import chain chỉ nằm trong cogmem_api.
 16. Sprint 5 - Atomic Task T5.3: migrate Docker assets theo 2 chế độ chạy chính của HINDSIGHT: standalone embedded pg0 và compose external PostgreSQL; output gồm docker/standalone/Dockerfile, docker/standalone/start-all.sh, docker/docker-compose/external-pg/docker-compose.yaml, .env.example cập nhật cho CogMem, logs/task_503_summary.md, tests/artifacts/test_task503_docker_assets.py; verification gồm Drift map trực tiếp từ F:/ai-ml/hindsight/docker/standalone và docker/docker-compose/external-pg, Behavioral test `docker build` + smoke `GET /health` thành công, Isolation check image chỉ chạy cogmem_api entrypoint.
 17. Sprint 5 - Atomic Task T5.4: tạo smoke scripts và tài liệu vận hành Docker cho CogMem (tương tự test-image.sh + quick-start), đảm bảo tương thích yêu cầu pg0-in-docker; output gồm scripts/docker (hoặc docker/test-image.sh), README.md cập nhật mục Docker, logs/task_504_summary.md, tests/artifacts/test_task504_docker_smoke_contract.py; verification gồm Drift so với chiến lược smoke test của HINDSIGHT, Behavioral test retain/recall smoke tối thiểu qua container, Isolation check script không gọi binary/package hindsight.
-18. Sprint 6 - Evaluation và ablation có kiểm soát (sau khi Sprint 5 pass). Atomic Task T6.1: dựng harness E1-E7 trên subset LongMemEval/LoCoMo nhưng giai đoạn test ban đầu bắt buộc dùng tạm `data/longmemeval_s_distilled_small.json`; output gồm scripts/eval_cogmem.py, scripts/ablation_runner.py, logs/task_601_summary.md, tests/artifacts/test_task601_eval_harness.py, logs/eval/*.json; verification gồm Drift xác nhận metric end-to-end accuracy cùng judge setup định nghĩa trong idea, Behavioral test chạy ít nhất một mini-split từ file small và sinh thống kê per-category, Isolation check runner không gọi package hindsight_api trực tiếp.
-19. Sprint 6 - Atomic Task T6.2: báo cáo phân tích lỗi và quyết định phạm vi E8 (hierarchical KG); output gồm logs/task_602_summary.md và logs/error_analysis_report.md; verification gồm Drift kiểm tra kết luận dựa trên artifact thực nghiệm, Behavioral kiểm tra report có đủ category-level wins/losses, Isolation check không phát sinh phụ thuộc mới ngoài phạm vi.
+18. Sprint 6 - Completeness Gate trước evaluation (sau khi Sprint 5 pass). Atomic Task T6.1: khôi phục đầy đủ retain extraction path theo HINDSIGHT (LLM-driven extraction + prompt modes concise/custom/verbatim/verbose) vào cogmem_api, đồng thời giữ đúng phạm vi Idea (không observation, không consolidation chủ động); output gồm cập nhật cogmem_api/engine/retain/fact_extraction.py, cogmem_api/engine/retain/orchestrator.py, cogmem_api/engine/llm_wrapper.py (nếu cần), logs/task_601_summary.md, tests/artifacts/test_task601_retain_prompt_parity.py; verification gồm Drift map chi tiết source prompt logic từ hindsight_api/engine/retain/fact_extraction.py sang CogMem với bảng phần giữ/phần lược bỏ theo Idea, Behavioral test đủ 4 mode prompt và assert parse schema/fact types đúng, Isolation check không còn import hindsight_api trong toàn bộ retain chain.
+19. Sprint 6 - Atomic Task T6.2: hoàn thiện retain behavior parity cho metadata và edge intent của CogMem (raw_snippet, causal, transition, action_effect) trên luồng LLM thực tế; output gồm cập nhật cogmem_api/engine/retain/types.py, link_creation.py, fact_storage.py, logs/task_602_summary.md, tests/artifacts/test_task602_retain_behavior_parity.py; verification gồm Drift đối chiếu semantics từ HINDSIGHT rồi áp mapping sang 6-network CogMem, Behavioral test conversation nhiều phiên tạo đúng node/link và lifecycle intention, Isolation check chạy retain e2e mà không cần hindsight_api runtime.
+20. Sprint 6 - Atomic Task T6.3: dựng harness evaluation/ablation E1-E7 với gate dữ liệu small trước rồi mở rộng subset stratified; output gồm scripts/eval_cogmem.py, scripts/ablation_runner.py, logs/task_603_summary.md, tests/artifacts/test_task603_eval_harness.py, logs/eval/*.json; verification gồm Drift xác nhận metric end-to-end accuracy và judge setup theo docs/CogMem-Idea.md, Behavioral test chạy mini split từ data/longmemeval_s_distilled_small.json và sinh thống kê per-category, Isolation check runner không gọi package hindsight_api trực tiếp.
+21. Sprint 6 - Atomic Task T6.4: phân tích lỗi theo category và chốt backlog fix bắt buộc trước Full CogMem; output gồm logs/task_604_summary.md và logs/error_analysis_report.md; verification gồm Drift kiểm tra kết luận bám đúng artifact thực nghiệm, Behavioral kiểm tra report có wins/losses theo category + nguyên nhân gốc, Isolation check không phát sinh dependency ngoài phạm vi.
+22. Sprint 7 - Reliability Hardening sau E1-E7. Atomic Task T7.1: xử lý các regression hạng P0/P1 từ T6.4 (ưu tiên multi-hop, temporal, causal, prospective) bằng sửa logic trong search/retain/reflect; output gồm các file code liên quan, logs/task_701_summary.md, tests/artifacts/test_task701_regression_fixes.py; verification gồm Drift xác nhận chỉ sửa logic nghiệp vụ được chỉ ra bởi error analysis, Behavioral test replay bộ case lỗi và phải pass, Isolation check import/runtime độc lập trong cogmem_api.
+23. Sprint 7 - Atomic Task T7.2: đóng gói reproducibility cho kết quả E1-E7 (config freeze, seed, command contract, artifact index); output gồm logs/task_702_summary.md, docs/PGNV/cogmem_eval_repro.md, tests/artifacts/test_task702_repro_contract.py; verification gồm Drift giữ nguyên evaluator semantics, Behavioral test chạy lại 2 lần cho variance trong ngưỡng định nghĩa, Isolation check script chỉ dùng cogmem_api.
+24. Sprint 8 - Hierarchical KG (Contribution 5) để hoàn thiện Full CogMem. Atomic Task T8.1: triển khai schema + retrieval support cho level abstract/basic/specific và rule mapping từ facts hiện hữu; output gồm cập nhật cogmem_api/models.py, migration mới ở cogmem_api/alembic/versions/, cập nhật cogmem_api/engine/search/*, logs/task_801_summary.md, tests/artifacts/test_task801_hierarchical_kg_schema.py; verification gồm Drift đối chiếu section 3.5 trong docs/CogMem-Idea.md và giữ tương thích hạ tầng hiện tại, Behavioral test ingest + retrieve across levels đúng anchor behavior, Isolation check không kéo dependency từ hindsight_api.
+25. Sprint 8 - Atomic Task T8.2: chạy E8 ablation và so sánh E7 vs E8 theo từng category; output gồm logs/task_802_summary.md, logs/eval/e8_*.json, tests/artifacts/test_task802_e8_ablation.py; verification gồm Drift đảm bảo cùng judge setup và cùng subset protocol, Behavioral test báo cáo chênh lệch per-category và case studies, Isolation check pipeline đánh giá độc lập.
+26. Sprint 9 - Release Gate cho dự án CogMem đầy đủ. Atomic Task T9.1: tổng hợp final QA matrix (Drift/Behavior/Isolation toàn sprint), chuẩn hóa vận hành và checklist phát hành; output gồm logs/task_901_summary.md, logs/final_release_report.md, tests/artifacts/test_task901_release_gate.py, README.md cập nhật đường chạy chuẩn; verification gồm Drift xác nhận mọi contribution trong Idea đã có mã + artifact + test, Behavioral test full smoke retain/recall/eval pass, Isolation check toàn repo cogmem_api không còn import hindsight_api.
 
 **Relevant files**
 - f:/ai-ml/agent-memory-cognitive/AGENTS.md - quy trình bắt buộc về sprint/task/artifact/verification
@@ -55,9 +62,9 @@ Mục tiêu là triển khai CogMem theo mô hình fork-isolated từ HINDSIGHT 
 5. Evaluation checkpoints: E1 làm mốc; E2-E7 chạy cùng pipeline judge/metric để so sánh công bằng theo category.
 
 **Decisions**
-- Bao gồm trong phạm vi hiện tại: Contribution 1-4 + E1-E7 theo docs/CogMem-Idea.md.
-- Stage-gate mới: chỉ bắt đầu Sprint 6 (evaluation/ablation) sau khi Sprint 5 chứng minh image Docker CogMem boot ổn định và pass smoke retain/recall.
-- Tạm loại khỏi phạm vi bắt buộc: E8 Hierarchical KG, chỉ thực hiện khi sprint trước đạt ổn định.
+- Bao gồm trong phạm vi hiện tại: Contribution 1-5 + E1-E8 theo docs/CogMem-Idea.md, với stage-gate kiểm soát rủi ro giữa các sprint.
+- Stage-gate mới: chỉ bắt đầu evaluation từ T6.3 sau khi T6.1-T6.2 pass (retain logic completeness + behavior parity) và Sprint 5 đã pass Docker smoke.
+- E8 Hierarchical KG được triển khai trong Sprint 8 để hoàn thiện Full CogMem; chỉ được phép hoãn khi có blocker hạ tầng đã được ghi nhận bằng artifact và kế hoạch xử lý cụ thể.
 - Chiến lược kiến trúc: fork-then-modify, tuyệt đối không import trực tiếp từ hindsight_api vào cogmem_api.
 - Chuẩn artifact bắt buộc cho mỗi atomic task: logs/task_<id>_summary.md và tests/artifacts/test_<task_name>.py.
 
@@ -65,4 +72,51 @@ Mục tiêu là triển khai CogMem theo mô hình fork-isolated từ HINDSIGHT 
 1. Threshold cho Habit và cycle guards sẽ được cố định bằng config và hiệu chỉnh sau E1 dựa trên kết quả subset, không hardcode rải rác.
 2. Raw snippet storage mặc định để trong DB column trước; nếu phát sinh vấn đề kích thước sẽ tách sang storage abstraction ở sprint sau.
 3. Nếu cần rút ngắn thời gian, có thể chạy song song nhóm task T2.2/T2.3/T2.4 sau khi T2.1 ổn định vì chúng chia sẻ retain nền nhưng ít phụ thuộc trực tiếp vào nhau.
-4. Trong Sprint 6, file `data/longmemeval_s_distilled_small.json` là dataset bắt buộc cho vòng test nhanh đầu tiên; chỉ mở rộng sang subset lớn hơn sau khi harness đã ổn định.
+4. Trong Sprint 6, file `data/longmemeval_s_distilled_small.json` là dataset bắt buộc cho vòng test nhanh đầu tiên; chỉ mở rộng sang subset lớn hơn sau khi T6.1-T6.2 và harness ở T6.3 đã ổn định.
+
+## Audit Addendum - Backfill Sprint 1->5 (Mandatory Before Full Evaluation)
+
+Kết luận audit: Sprint 1->5 có nhiều phần được triển khai theo baseline/minimal để gate Docker và smoke contract. Trước khi claim "Full CogMem", bắt buộc hoàn tất các task backfill sau.
+
+1. Backfill Task B1 - Config Contract Parity (retain/runtime/retrieval)
+- Phạm vi: mở rộng `cogmem_api/config.py` để hỗ trợ đầy đủ các biến cấu hình cần cho retain prompt path và runtime tương đương luồng HINDSIGHT (LLM base URL, timeout tổng, timeout retain/reflect, extraction mode, retain max completion tokens, embeddings/reranker provider knobs cần thiết cho recall chất lượng).
+- Output: cập nhật `cogmem_api/config.py`, cập nhật `.env.example`, `logs/task_611_summary.md`, `tests/artifacts/test_task611_config_contract.py`.
+- Verification:
+	- Drift Check: bảng map ENV HINDSIGHT -> ENV COGMEM cho các trường giữ lại theo Idea.
+	- Behavioral Testing: parse env matrix và assert fallback/default đúng.
+	- Isolation Check: không import `hindsight_api`.
+
+2. Backfill Task B2 - Retain LLM Path + Prompt Parity
+- Phạm vi: thay baseline seeded/fallback extraction bằng LLM-driven extraction path với 4 mode prompt (concise/custom/verbatim/verbose), giữ domain CogMem 6 networks và không đưa observation/consolidation chủ động trở lại.
+- Output: cập nhật `cogmem_api/engine/retain/fact_extraction.py`, bổ sung module LLM cần thiết trong `cogmem_api/engine/*`, `logs/task_612_summary.md`, `tests/artifacts/test_task612_retain_prompt_parity.py`.
+- Verification:
+	- Drift Check: map prompt constants và extraction flow từ `hindsight_api/engine/retain/fact_extraction.py`.
+	- Behavioral Testing: chạy retain với mock LLM cho đủ mode + schema parse + transition/action-effect metadata.
+	- Isolation Check: grep import chain chỉ còn `cogmem_api`.
+
+3. Backfill Task B3 - Runtime API Completeness (No Smoke-Only Buffer)
+- Phạm vi: thay endpoint retain/recall kiểu in-memory smoke bằng API gọi trực tiếp memory engine thật (retain_batch/recall stack), giữ health/version endpoint và contract Docker.
+- Output: cập nhật `cogmem_api/api/http.py`, `cogmem_api/engine/memory_engine.py`, `logs/task_613_summary.md`, `tests/artifacts/test_task613_runtime_api_e2e.py`.
+- Verification:
+	- Drift Check: đối chiếu route contract với `hindsight_api/api/http.py`, lược bỏ đúng các phần ngoài phạm vi Idea.
+	- Behavioral Testing: retain -> DB -> recall roundtrip trên fixture DB.
+	- Isolation Check: không có runtime path gọi package HINDSIGHT.
+
+4. Backfill Task B4 - Retrieval Quality Parity (Reranker/Embeddings)
+- Phạm vi: thay `RRFPassthroughCrossEncoder` bằng tùy chọn reranker thật theo config và đảm bảo pipeline recall dùng embedding/reranking providers hợp lệ để không suy giảm chất lượng retrieval.
+- Output: cập nhật `cogmem_api/engine/cross_encoder.py`, các module search liên quan, `logs/task_614_summary.md`, `tests/artifacts/test_task614_retrieval_quality_contract.py`.
+- Verification:
+	- Drift Check: giữ orchestrator retrieval và RRF logic; chỉ thay adapter baseline.
+	- Behavioral Testing: benchmark mini-case cho reranking reorder có ý nghĩa.
+	- Isolation Check: không import `hindsight_api`.
+
+5. Backfill Task B5 - Docker Run Contract Parity
+- Phạm vi: cập nhật `scripts/docker` và runbook để phản ánh đầy đủ config tối thiểu cần cho retain LLM thực chiến (base_url/model/timeouts/retain knobs), tương thích cả embedded pg0 và external PostgreSQL.
+- Output: cập nhật `scripts/docker`, `README.md`, `docker/test-image.sh`, `logs/task_615_summary.md`, `tests/artifacts/test_task615_docker_runtime_contract.py`.
+- Verification:
+	- Drift Check: map tham số với `scripts/run_hindsight.ps1` theo namespace CogMem.
+	- Behavioral Testing: smoke retain/recall thật qua container với LLM endpoint cấu hình được.
+	- Isolation Check: script không gọi image/package HINDSIGHT.
+
+6. Gate Rule
+- Chỉ được bắt đầu evaluation E1-E7/E8 khi B1-B5 đều pass và có artifact tương ứng.

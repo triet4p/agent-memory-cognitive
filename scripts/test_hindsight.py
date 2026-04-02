@@ -120,4 +120,4 @@ def analyze_hindsight_cost(sample_index=0):
     print("="*60)
 
 if __name__ == "__main__":
-    analyze_hindsight_cost(4) # Chạy cho sample đầu tiên
+    analyze_hindsight_cost(5) # Chạy cho sample đầu tiên
