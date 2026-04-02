@@ -6,11 +6,13 @@ import contextvars
 import os
 import re
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
 
 from cogmem_api import config
+from cogmem_api.engine.llm_wrapper import LLMConfig
 from cogmem_api.pg0 import EmbeddedPostgres, parse_pg0_url
 from .db_utils import acquire_with_retry
 
@@ -120,6 +122,11 @@ class MemoryEngine:
         self._pool_min_size = pool_min_size if pool_min_size is not None else config.DB_POOL_MIN_SIZE
         self._pool_max_size = pool_max_size if pool_max_size is not None else config.DB_POOL_MAX_SIZE
         self._pool: asyncpg.Pool | None = None
+        self._runtime_config = config._get_raw_config()
+        self._engine_config = config.get_config()
+        self._cross_encoder: Any = None
+        self._embeddings_model: Any = None
+        self._entity_resolver: Any = None
         self._initialized = False
 
     @property
@@ -161,7 +168,11 @@ class MemoryEngine:
     async def close(self) -> None:
         """Close connection pool if initialized."""
         if self._pool is not None:
-            await self._pool.close()
+            close = getattr(self._pool, "close", None)
+            if callable(close):
+                maybe_awaitable = close()
+                if hasattr(maybe_awaitable, "__await__"):
+                    await maybe_awaitable
             self._pool = None
 
         if self._pg0 is not None:
@@ -211,3 +222,276 @@ class MemoryEngine:
             health["status"] = "unhealthy"
             health["reason"] = f"database check failed: {exc}"
             return health
+
+    @staticmethod
+    def _format_date(dt: datetime) -> str:
+        return dt.astimezone(UTC).strftime("%Y-%m-%d")
+
+    def _build_retain_llm_config(self) -> LLMConfig | None:
+        if not self._runtime_config.llm_base_url:
+            return None
+        return LLMConfig(
+            provider=self._runtime_config.llm_provider,
+            model=self._runtime_config.llm_model,
+            api_key=self._runtime_config.llm_api_key,
+            base_url=self._runtime_config.llm_base_url,
+            timeout=self._runtime_config.retain_llm_timeout,
+        )
+
+    async def retain_batch_async(
+        self,
+        bank_id: str,
+        contents: list[dict[str, Any]],
+        *,
+        document_id: str | None = None,
+        fact_type_override: str | None = None,
+        confidence_score: float | None = None,
+        document_tags: list[str] | None = None,
+        return_usage: bool = False,
+        operation_id: str | None = None,
+    ):
+        from cogmem_api.engine.retain.orchestrator import retain_batch
+
+        if not self._initialized:
+            raise RuntimeError("MemoryEngine is not initialized. Call initialize() before retain.")
+        if self._pool is None:
+            raise RuntimeError("MemoryEngine is not connected. Configure a database URL before retain.")
+
+        unit_ids, usage = await retain_batch(
+            pool=self._pool,
+            embeddings_model=self._embeddings_model,
+            llm_config=self._build_retain_llm_config(),
+            entity_resolver=self._entity_resolver,
+            format_date_fn=self._format_date,
+            bank_id=bank_id,
+            contents_dicts=contents,
+            config=self._engine_config,
+            document_id=document_id,
+            is_first_batch=True,
+            fact_type_override=fact_type_override,
+            confidence_score=confidence_score,
+            document_tags=document_tags,
+            operation_id=operation_id,
+            schema=self.database_schema,
+        )
+        if return_usage:
+            return unit_ids, usage
+        return unit_ids
+
+    async def retain_async(
+        self,
+        bank_id: str,
+        content: str,
+        *,
+        context: str = "",
+        event_date: datetime | str | None = None,
+        document_id: str | None = None,
+        fact_type_override: str | None = None,
+        confidence_score: float | None = None,
+    ) -> list[str]:
+        payload: dict[str, Any] = {"content": content, "context": context}
+        if event_date is not None:
+            payload["event_date"] = event_date
+        if document_id is not None:
+            payload["document_id"] = document_id
+
+        result = await self.retain_batch_async(
+            bank_id=bank_id,
+            contents=[payload],
+            document_id=document_id,
+            fact_type_override=fact_type_override,
+            confidence_score=confidence_score,
+        )
+        return result[0] if result else []
+
+    async def _fallback_recall_from_conn(
+        self,
+        bank_id: str,
+        query: str,
+        fact_types: list[str],
+        max_tokens: int,
+        limit: int,
+    ) -> list[dict[str, Any]]:
+        if self._pool is None:
+            raise RuntimeError("MemoryEngine is not connected. Configure a database URL before recall.")
+
+        async with acquire_with_retry(self._pool) as conn:
+            if hasattr(conn, "recall_memory_units"):
+                rows = await conn.recall_memory_units(
+                    bank_id=bank_id,
+                    query=query,
+                    fact_types=fact_types,
+                    limit=limit,
+                )
+            else:
+                rows = await conn.fetch(
+                    f"""
+                    SELECT
+                        id::text AS id,
+                        text,
+                        fact_type,
+                        raw_snippet,
+                        occurred_start,
+                        mentioned_at,
+                        event_date
+                    FROM {fq_table("memory_units")}
+                    WHERE bank_id = $1
+                      AND fact_type = ANY($2)
+                    ORDER BY event_date DESC
+                    LIMIT $3
+                    """,
+                    bank_id,
+                    fact_types,
+                    max(limit * 4, 20),
+                )
+
+        normalized_rows: list[dict[str, Any]] = [dict(row) for row in rows]
+        query_terms = {token for token in re.findall(r"[a-z0-9]+", query.lower()) if token}
+
+        def lexical_score(text: str) -> float:
+            if not query_terms:
+                return 0.0
+            terms = {token for token in re.findall(r"[a-z0-9]+", text.lower()) if token}
+            if not terms:
+                return 0.0
+            return float(len(query_terms.intersection(terms)))
+
+        scored = sorted(normalized_rows, key=lambda item: lexical_score(str(item.get("text") or "")), reverse=True)
+
+        selected: list[dict[str, Any]] = []
+        used_tokens = 0
+        for row in scored:
+            text = str(row.get("text") or "")
+            estimated = max(1, len(text.split()))
+            if max_tokens > 0 and used_tokens + estimated > max_tokens:
+                break
+
+            selected.append(
+                {
+                    "id": str(row.get("id") or ""),
+                    "text": text,
+                    "fact_type": str(row.get("fact_type") or "world"),
+                    "raw_snippet": row.get("raw_snippet"),
+                    "score": lexical_score(text),
+                }
+            )
+            used_tokens += estimated
+            if len(selected) >= limit:
+                break
+
+        return selected
+
+    async def recall_async(
+        self,
+        bank_id: str,
+        query: str,
+        *,
+        budget: str = "mid",
+        max_tokens: int = 4096,
+        enable_trace: bool = False,
+        fact_types: list[str] | None = None,
+        question_date: datetime | None = None,
+    ) -> dict[str, Any]:
+        from cogmem_api.engine.retain import embedding_utils
+        from cogmem_api.engine.retain.types import COGMEM_FACT_TYPES
+        from cogmem_api.engine.search.reranking import CrossEncoderReranker, apply_combined_scoring
+        from cogmem_api.engine.search.retrieval import fuse_parallel_results, retrieve_all_fact_types_parallel
+
+        if not self._initialized:
+            raise RuntimeError("MemoryEngine is not initialized. Call initialize() before recall.")
+        if self._pool is None:
+            raise RuntimeError("MemoryEngine is not connected. Configure a database URL before recall.")
+
+        allowed_types = set(COGMEM_FACT_TYPES)
+        effective_types = [ft for ft in (fact_types or list(COGMEM_FACT_TYPES)) if ft in allowed_types]
+        if not effective_types:
+            return {"results": [], "trace": {"reason": "no_valid_fact_types"} if enable_trace else None}
+
+        budget_mapping = {"low": 100, "mid": 300, "high": 1000}
+        thinking_budget = budget_mapping.get(str(budget).lower(), 300)
+
+        try:
+            query_embedding = await embedding_utils.generate_embeddings_batch(
+                embeddings_model=self._embeddings_model,
+                texts=[query],
+            )
+            query_embedding_str = str(query_embedding[0]) if query_embedding else "[]"
+
+            retrieval_result = await retrieve_all_fact_types_parallel(
+                pool=self._pool,
+                query_text=query,
+                query_embedding_str=query_embedding_str,
+                bank_id=bank_id,
+                fact_types=effective_types,
+                thinking_budget=thinking_budget,
+                question_date=question_date,
+            )
+
+            merged_by_id: dict[str, Any] = {}
+            for ft in effective_types:
+                parallel = retrieval_result.results_by_fact_type.get(ft)
+                if parallel is None:
+                    continue
+                fused = fuse_parallel_results(
+                    parallel_result=parallel,
+                    query_type=retrieval_result.query_type,
+                    rrf_weights=retrieval_result.rrf_weights,
+                )
+                for candidate in fused:
+                    existing = merged_by_id.get(candidate.id)
+                    if existing is None or candidate.rrf_score > existing.rrf_score:
+                        merged_by_id[candidate.id] = candidate
+
+            merged_candidates = sorted(merged_by_id.values(), key=lambda item: item.rrf_score, reverse=True)
+
+            reranked_results: list[dict[str, Any]] = []
+            if merged_candidates:
+                candidate_limit = min(len(merged_candidates), self._engine_config.reranker_max_candidates)
+                top_candidates = merged_candidates[:candidate_limit]
+
+                if self._cross_encoder is None:
+                    self._cross_encoder = CrossEncoderReranker()
+
+                await self._cross_encoder.ensure_initialized()
+                scored = await self._cross_encoder.rerank(query=query, candidates=top_candidates)
+                apply_combined_scoring(scored_results=scored, now=datetime.now(UTC))
+                scored.sort(key=lambda item: item.combined_score, reverse=True)
+
+                used_tokens = 0
+                for scored_result in scored:
+                    text = scored_result.retrieval.text
+                    estimated = max(1, len(text.split()))
+                    if max_tokens > 0 and used_tokens + estimated > max_tokens:
+                        break
+
+                    reranked_results.append(
+                        {
+                            "id": scored_result.id,
+                            "text": text,
+                            "fact_type": scored_result.retrieval.fact_type,
+                            "raw_snippet": scored_result.retrieval.raw_snippet,
+                            "score": float(scored_result.combined_score),
+                        }
+                    )
+                    used_tokens += estimated
+
+            trace = None
+            if enable_trace:
+                trace = {
+                    "query_type": retrieval_result.query_type,
+                    "rrf_weights": retrieval_result.rrf_weights,
+                    "fact_types": effective_types,
+                    "timings": retrieval_result.timings,
+                }
+
+            return {"results": reranked_results, "trace": trace}
+        except Exception:
+            fallback = await self._fallback_recall_from_conn(
+                bank_id=bank_id,
+                query=query,
+                fact_types=effective_types,
+                max_tokens=max_tokens,
+                limit=max(thinking_budget // 10, 10),
+            )
+            trace = {"fallback": "lexical_db_scan"} if enable_trace else None
+            return {"results": fallback, "trace": trace}
