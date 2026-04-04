@@ -17,7 +17,7 @@ def assert_plan_removed_legacy_chain(plan_text: str) -> None:
     forbidden_snippets = [
         "Atomic Task T6.4",
         "T6.1 -> T6.2 -> T6.3 -> T6.4",
-        "E8 Hierarchical KG được triển khai trong Sprint 8",
+        "Sprint 8 - Tutorial Framework Bootstrap",
     ]
     hits = [snippet for snippet in forbidden_snippets if snippet in plan_text]
     assert not hits, f"Legacy plan snippets still present: {hits}"
@@ -25,19 +25,19 @@ def assert_plan_removed_legacy_chain(plan_text: str) -> None:
 
 def assert_plan_contains_new_sprints(plan_text: str) -> None:
     required_snippets = [
-        "Atomic Task T7.1",
-        "Atomic Task T7.2",
-        "Atomic Task T7.3",
-        "Atomic Task T8.1",
-        "Atomic Task T8.2",
-        "Atomic Task T9.1",
-        "Atomic Task T9.2",
-        "Atomic Task T10.1",
-        "Atomic Task T10.2",
-        "Tutorial Framework Bootstrap",
-        "Tutorial Non-Core Coverage",
-        "function/property-level",
-        "bao phủ cả module lõi và module hỗ trợ",
+        "## PLAN - CogMem Migration (Unified, Full Trace)",
+        "3. Quyết định phạm vi đang khóa:",
+        "## Phase A - Delete-first",
+        "## Phase B - Coverage Closure (C1-C4 -> FULL)",
+        "## Phase C - Tutorial (unlock sau S15 PASS)",
+        "### Sprint S11 - Delete hindsight_api only",
+        "### Sprint S12 - Close C1 to FULL",
+        "### Sprint S13 - Close C3 to FULL",
+        "### Sprint S14 - Close C4 to FULL",
+        "### Sprint S15 - Full Gate trước tutorial",
+        "### Sprint S16 - Tutorial Framework",
+        "docs/hindsight_removal_playbook.md",
+        "C1-C4 đều FULL",
     ]
     missing = [snippet for snippet in required_snippets if snippet not in plan_text]
     assert not missing, f"Missing new roadmap snippets: {missing}"
@@ -45,8 +45,8 @@ def assert_plan_contains_new_sprints(plan_text: str) -> None:
 
 def assert_execution_order_updated(plan_text: str) -> None:
     required = [
-        "T6.1 -> T6.2 -> T6.3 -> T7.1 -> T7.2 -> T7.3",
-        "-> T8.1 -> T8.2 -> T9.1 -> T9.2 -> T10.1 -> T10.2 -> EvalTrack",
+        "S11 -> S12 -> S13 -> S14 -> S15 -> S16 -> S17 -> S18",
+        "Không vào S16 nếu S15 chưa PASS",
     ]
     missing = [snippet for snippet in required if snippet not in plan_text]
     assert not missing, f"Canonical order is not updated: {missing}"
