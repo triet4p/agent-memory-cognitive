@@ -13,17 +13,16 @@ def assert_required_outputs(repo_root: Path) -> None:
     assert not missing, f"Missing task705 outputs: {missing}"
 
 
-def assert_c1_full_in_matrix(repo_root: Path) -> None:
-    matrix_text = (repo_root / "docs" / "migration_idea_coverage_matrix.md").read_text(encoding="utf-8")
+def assert_c1_evidence_in_task_summary(repo_root: Path) -> None:
+    summary_text = (repo_root / "logs" / "task_705_summary.md").read_text(encoding="utf-8")
 
     required_snippets = [
-        "| C1 - 6 networks + 7 edge types |",
-        "| `FULL` |",
-        "Observation/consolidation đã loại bỏ khỏi đường chạy CogMem | `FULL`",
-        "Đồng bộ link-type cho causal traversal | `FULL`",
+        "Dọn observation branch trong search",
+        "Đồng bộ causal contract ở retrieval readers",
+        "Tạo gate test mới `tests/artifacts/test_task705_c1_full_gate.py`",
     ]
-    missing = [snippet for snippet in required_snippets if snippet not in matrix_text]
-    assert not missing, f"Coverage matrix missing C1 full evidence snippets: {missing}"
+    missing = [snippet for snippet in required_snippets if snippet not in summary_text]
+    assert not missing, f"Task705 summary missing C1 closure evidence snippets: {missing}"
 
 
 def assert_no_observation_branch(repo_root: Path) -> None:
@@ -74,7 +73,7 @@ def assert_causal_link_contract(repo_root: Path) -> None:
 def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     assert_required_outputs(repo_root)
-    assert_c1_full_in_matrix(repo_root)
+    assert_c1_evidence_in_task_summary(repo_root)
     assert_no_observation_branch(repo_root)
     assert_causal_link_contract(repo_root)
 

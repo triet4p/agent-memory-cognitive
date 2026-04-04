@@ -13,15 +13,18 @@ def assert_required_outputs(repo_root: Path) -> None:
     assert not missing, f"Missing task707 outputs: {missing}"
 
 
-def assert_coverage_docs_read_only(repo_root: Path) -> None:
+def assert_coverage_docs_alignment(repo_root: Path) -> None:
     matrix_text = (repo_root / "docs" / "migration_idea_coverage_matrix.md").read_text(encoding="utf-8")
 
-    forbidden_snippets = [
+    required_snippets = [
+        "| C4 - Adaptive query routing | Dynamic RRF theo query type, ưu tiên đúng network theo loại câu hỏi | `FULL` |",
         "_resolve_planning_intention_ids",
         "_apply_query_type_evidence_priority",
+        "_filter_prospective_results",
+        "ml.link_type IN ('temporal', 'causal')",
     ]
-    violations = [snippet for snippet in forbidden_snippets if snippet in matrix_text]
-    assert not violations, f"Coverage matrix should remain read-only in this task: {violations}"
+    missing = [snippet for snippet in required_snippets if snippet not in matrix_text]
+    assert not missing, f"Coverage matrix missing C4 alignment snippets: {missing}"
 
 
 def assert_prospective_fact_type_routing() -> None:
@@ -106,7 +109,7 @@ def main() -> None:
         sys.path.insert(0, repo_root_str)
 
     assert_required_outputs(repo_root)
-    assert_coverage_docs_read_only(repo_root)
+    assert_coverage_docs_alignment(repo_root)
     assert_prospective_fact_type_routing()
     assert_query_type_evidence_priority_boosts()
     assert_prospective_planning_filter()

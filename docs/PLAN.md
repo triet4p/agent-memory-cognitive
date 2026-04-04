@@ -311,13 +311,13 @@ Rủi ro và fallback:
 ## Phase B - Coverage Closure (C1-C4 -> FULL)
 ### Sprint S12 - Close C1 to FULL
 Mục tiêu sprint:
-1. Đóng toàn bộ gap C1 trong coverage matrix.
+1. Đóng toàn bộ gap C1 ở code/runtime và gate test.
 
 Phụ thuộc:
 1. S11 PASS.
 
 Inputs bắt buộc:
-1. `docs/migration_idea_coverage_matrix.md` (trạng thái C1 = PARTIAL)
+1. `docs/migration_idea_coverage_matrix.md` (read-only, chỉ dùng tham chiếu hiện trạng)
 2. Báo cáo readiness và playbook xóa từ Sprint 7
 
 Atomic tasks:
@@ -327,30 +327,27 @@ Atomic tasks:
 2. S12.2 Đồng bộ causal link contract:
 	- Writer đang tạo `link_type='causal'` phải khớp reader filters trong retrieval.
 	- Loại alias cũ gây mismatch khi truy vấn.
-3. S12.3 Cập nhật matrix + gate test:
-	- Cập nhật bằng chứng function/property.
-	- Đổi trạng thái C1 sang FULL khi đủ điều kiện.
+3. S12.3 Gate test + evidence log:
+	- Ghi bằng chứng function/property vào artifact của task.
+	- Chốt C1 hoàn tất khi gate test pass theo criteria.
 
 File tác động dự kiến:
 1. `cogmem_api/engine/search/link_expansion_retrieval.py`
 2. `cogmem_api/engine/search/retrieval.py`
-3. `docs/migration_idea_coverage_matrix.md`
-4. `tests/artifacts/test_task705_c1_full_gate.py`
+3. `tests/artifacts/test_task705_c1_full_gate.py`
 
 Outputs bắt buộc:
-1. `docs/migration_idea_coverage_matrix.md`
-2. `logs/task_705_summary.md`
-3. `tests/artifacts/test_task705_c1_full_gate.py`
-4. Danh sách bằng chứng function/property cho C1 được cập nhật trong matrix
+1. `logs/task_705_summary.md`
+2. `tests/artifacts/test_task705_c1_full_gate.py`
+3. Danh sách bằng chứng function/property cho C1 trong task summary
 
 Verification (gợi ý lệnh):
 1. `uv run python tests/artifacts/test_task705_c1_full_gate.py`
 2. `rg -n "observation" cogmem_api/engine/search`
 3. `rg -n "causes|caused_by|enables|prevents|\bcausal\b" cogmem_api/engine/search`
-4. `uv run python tests/artifacts/test_task701_idea_coverage_matrix.py`
 
 Exit gate:
-1. C1 trong matrix = FULL, có evidence đủ mức function/property.
+1. Gate test C1 pass, có evidence đủ mức function/property trong artifact.
 2. Không còn nhánh retrieval nào gọi semantics observation ngoài phạm vi.
 
 Rủi ro và fallback:
@@ -365,7 +362,7 @@ Phụ thuộc:
 1. S12 PASS.
 
 Inputs bắt buộc:
-1. `docs/migration_idea_coverage_matrix.md` (trạng thái C3 = PARTIAL)
+1. `docs/migration_idea_coverage_matrix.md` (read-only, chỉ dùng tham chiếu hiện trạng)
 2. Kết quả test C1 gate đã PASS
 
 Atomic tasks:
@@ -381,14 +378,12 @@ File tác động dự kiến:
 1. `cogmem_api/config.py`
 2. `cogmem_api/engine/search/graph_retrieval.py`
 3. `cogmem_api/engine/search/retrieval.py`
-4. `docs/migration_idea_coverage_matrix.md`
-5. `tests/artifacts/test_task706_c3_sum_default_gate.py`
+4. `tests/artifacts/test_task706_c3_sum_default_gate.py`
 
 Outputs bắt buộc:
-1. `docs/migration_idea_coverage_matrix.md`
-2. `logs/task_706_summary.md`
-3. `tests/artifacts/test_task706_c3_sum_default_gate.py`
-4. Biên bản quyết định policy mặc định và lý do kỹ thuật
+1. `logs/task_706_summary.md`
+2. `tests/artifacts/test_task706_c3_sum_default_gate.py`
+3. Biên bản quyết định policy mặc định và lý do kỹ thuật
 
 Verification (gợi ý lệnh):
 1. `uv run python tests/artifacts/test_task706_c3_sum_default_gate.py`
@@ -396,7 +391,7 @@ Verification (gợi ý lệnh):
 3. `uv run python tests/artifacts/test_task302_sum_activation.py`
 
 Exit gate:
-1. C3 trong matrix = FULL.
+1. Gate test C3 pass và có evidence hành vi SUM + guards trong artifact.
 2. Đường chạy mặc định của runtime thực sự dùng SUM + guards (không chỉ tồn tại trong code).
 
 Rủi ro và fallback:
@@ -405,13 +400,13 @@ Rủi ro và fallback:
 
 ### Sprint S14 - Close C4 to FULL
 Mục tiêu sprint:
-1. Hoàn tất adaptive routing đúng semantics prospective/causal theo matrix.
+1. Hoàn tất adaptive routing đúng semantics prospective/causal theo criteria kỹ thuật.
 
 Phụ thuộc:
 1. S13 PASS.
 
 Inputs bắt buộc:
-1. `docs/migration_idea_coverage_matrix.md` (trạng thái C4 = PARTIAL)
+1. `docs/migration_idea_coverage_matrix.md` (read-only, chỉ dùng tham chiếu hiện trạng)
 2. Kết quả test C3 gate PASS
 
 Atomic tasks:
@@ -419,21 +414,19 @@ Atomic tasks:
 	- Query prospective phải ràng buộc `intention.status=planning`.
 2. S14.2 Ưu tiên evidence theo intent:
 	- Causal/prospective cần cơ chế ưu tiên Action-Effect/Transition phù hợp.
-3. S14.3 Cập nhật matrix + gate test:
-	- Đổi C4 sang FULL khi pass criteria.
+3. S14.3 Gate test + evidence log:
+	- Chốt C4 hoàn tất khi pass criteria bằng test contract.
 
 File tác động dự kiến:
 1. `cogmem_api/engine/query_analyzer.py`
 2. `cogmem_api/engine/search/retrieval.py`
 3. `cogmem_api/engine/search/fusion.py`
-4. `docs/migration_idea_coverage_matrix.md`
-5. `tests/artifacts/test_task707_c4_adaptive_full_gate.py`
+4. `tests/artifacts/test_task707_c4_adaptive_full_gate.py`
 
 Outputs bắt buộc:
-1. `docs/migration_idea_coverage_matrix.md`
-2. `logs/task_707_summary.md`
-3. `tests/artifacts/test_task707_c4_adaptive_full_gate.py`
-4. Bộ case verify routing cho causal/prospective
+1. `logs/task_707_summary.md`
+2. `tests/artifacts/test_task707_c4_adaptive_full_gate.py`
+3. Bộ case verify routing cho causal/prospective
 
 Verification (gợi ý lệnh):
 1. `uv run python tests/artifacts/test_task707_c4_adaptive_full_gate.py`
@@ -441,7 +434,7 @@ Verification (gợi ý lệnh):
 3. `uv run python tests/artifacts/test_task303_adaptive_router.py`
 
 Exit gate:
-1. C4 trong matrix = FULL.
+1. Gate test C4 pass, evidence semantics prospective/causal đầy đủ trong artifact.
 2. Query prospective không còn trả về intention ngoài trạng thái planning trong bộ test contract.
 
 Rủi ro và fallback:
@@ -450,25 +443,24 @@ Rủi ro và fallback:
 
 ### Sprint S15 - Full Gate trước tutorial
 Mục tiêu sprint:
-1. Khóa cổng trước tutorial bằng bằng chứng C1-C4 đều FULL.
+1. Khóa cổng trước tutorial bằng bằng chứng gate pack C1-C4 đều PASS.
 
 Phụ thuộc:
 1. S12, S13, S14 đều PASS.
 
 Inputs bắt buộc:
-1. Matrix đã cập nhật sau S12-S14
+1. Task summaries + gate outputs sau S12-S14
 2. Kết quả gate tests 705/706/707
 3. Readiness pack 701/702/703
 
 Atomic tasks:
-1. S15.1 Re-audit matrix toàn diện (C1-C4).
+1. S15.1 Re-audit evidence toàn diện (C1-C4) từ logs/tests artifacts.
 2. S15.2 Xuất chứng chỉ mở tutorial.
 3. S15.3 Chạy regression batch readiness + coverage.
 
 File tác động dự kiến:
-1. `docs/migration_idea_coverage_matrix.md`
-2. `reports/pre_tutorial_full_gate.md`
-3. `tests/artifacts/test_task708_pre_tutorial_full_gate.py`
+1. `reports/pre_tutorial_full_gate.md`
+2. `tests/artifacts/test_task708_pre_tutorial_full_gate.py`
 
 Outputs bắt buộc:
 1. `reports/pre_tutorial_full_gate.md`
@@ -477,20 +469,19 @@ Outputs bắt buộc:
 4. Checklist pass/fail cho từng contribution C1-C4
 
 Verification (gợi ý lệnh):
-1. `uv run python tests/artifacts/test_task701_idea_coverage_matrix.py`
-2. `uv run python tests/artifacts/test_task702_hindsight_removal_gate.py`
-3. `uv run python tests/artifacts/test_task703_removal_playbook_contract.py`
-4. `uv run python tests/artifacts/test_task705_c1_full_gate.py`
-5. `uv run python tests/artifacts/test_task706_c3_sum_default_gate.py`
-6. `uv run python tests/artifacts/test_task707_c4_adaptive_full_gate.py`
-7. `uv run python tests/artifacts/test_task708_pre_tutorial_full_gate.py`
+1. `uv run python tests/artifacts/test_task702_hindsight_removal_gate.py`
+2. `uv run python tests/artifacts/test_task703_removal_playbook_contract.py`
+3. `uv run python tests/artifacts/test_task705_c1_full_gate.py`
+4. `uv run python tests/artifacts/test_task706_c3_sum_default_gate.py`
+5. `uv run python tests/artifacts/test_task707_c4_adaptive_full_gate.py`
+6. `uv run python tests/artifacts/test_task708_pre_tutorial_full_gate.py`
 
 Exit gate:
-1. `pre_tutorial_full_gate` xác nhận C1-C4 đều FULL.
+1. `pre_tutorial_full_gate` xác nhận gate pack C1-C4 đều PASS.
 2. Chỉ khi đó mới unlock tutorial phase.
 
 Rủi ro và fallback:
-1. Rủi ro: matrix ghi FULL nhưng evidence chưa đủ truy vết.
+1. Rủi ro: evidence gate pass nhưng truy vết chưa đủ rõ trong logs/artifacts.
 2. Fallback: giữ trạng thái PARTIAL và mở sub-task bổ sung evidence, không unlock tutorial sớm.
 
 ## Phase C - Tutorial (unlock sau S15 PASS)
@@ -505,7 +496,7 @@ Phụ thuộc:
 Inputs bắt buộc:
 1. `docs/PLAN.md` (pha tutorial)
 2. Cấu trúc code hiện tại của `cogmem_api/`
-3. Danh mục module từ phase lịch sử và matrix
+3. Danh mục module từ phase lịch sử và artifacts đã hoàn tất
 
 Atomic tasks:
 1. S16.1 Scaffold thư mục tutorial:

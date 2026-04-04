@@ -20,7 +20,8 @@ def assert_matrix_sections(text: str) -> None:
         "### C3 - Episodic Buffer SUM + Cycle Guards",
         "### C4 - Adaptive Query Routing",
         "### C5 - Hierarchical Knowledge Graph",
-        "## Backlog Handover to T7.2",
+        "## Sprint 16 Readiness Decision",
+        "## Post-S16 Backlog (không chặn)",
     ]
     missing = [snippet for snippet in required if snippet not in text]
     assert not missing, f"Coverage matrix missing sections: {missing}"
@@ -29,14 +30,18 @@ def assert_matrix_sections(text: str) -> None:
 def assert_expected_statuses(text: str) -> None:
     required = [
         "C1 - 6 networks + 7 edge types",
-        "`PARTIAL`",
+        "| C1 - 6 networks + 7 edge types | Có graph nhận thức đầy đủ + transition typing | `FULL` |",
         "C2 - Lossless metadata",
-        "`FULL`",
+        "| C2 - Lossless metadata | Lưu và dùng `raw_snippet` end-to-end | `FULL` |",
         "C3 - SUM + cycle guards",
+        "| C3 - SUM + cycle guards | Episodic buffer SUM, có 3 guard và được áp dụng ở đường chạy retrieval chính | `FULL` |",
         "C4 - Adaptive query routing",
+        "| C4 - Adaptive query routing | Dynamic RRF theo query type, ưu tiên đúng network theo loại câu hỏi | `FULL` |",
         "C5 - Hierarchical Knowledge Graph",
+        "| C5 - Hierarchical KG | Abstract/Basic/Specific levels | `MISSING` |",
         "`MISSING`",
-        "Tổng quan: `PARTIAL`",
+        "Tổng quan coverage theo Idea: `PARTIAL` (do C5 còn `MISSING`).",
+        "**Kết luận:** `READY` để vào Sprint 16.",
     ]
     missing = [snippet for snippet in required if snippet not in text]
     assert not missing, f"Coverage matrix status contract missing: {missing}"
@@ -49,7 +54,9 @@ def assert_symbol_evidence(text: str) -> None:
         "BFSGraphRetriever._retrieve_with_conn",
         "classify_query_type",
         "retrieve_all_fact_types_parallel",
-        "DEFAULT_GRAPH_RETRIEVER = \"link_expansion\"",
+        "DEFAULT_GRAPH_RETRIEVER = \"bfs\"",
+        "_resolve_planning_intention_ids",
+        "_filter_prospective_results",
     ]
     missing = [symbol for symbol in required_symbols if symbol not in text]
     assert not missing, f"Coverage matrix missing symbol-level evidence: {missing}"
