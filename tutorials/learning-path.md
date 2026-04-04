@@ -20,6 +20,7 @@ Scope hiện tại là scaffold S16.1, sẽ tiếp tục mở rộng trong S17-S
 
 3. Layer 2 - Module catalog
    - Doc [tutorials/module-map.md](module-map.md), mục `Layer 2 - Module Catalog`.
+   - Doc [tutorials/modules/README.md](modules/README.md), danh mục module dossiers của S17.2.
    - Mục tiêu: xác định module ownership, dependency direction, và boundary sử dụng.
 
 4. Layer 3 - Function inventory seed
