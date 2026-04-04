@@ -15,6 +15,7 @@ Scope hiện tại là scaffold S16.1, sẽ tiếp tục mở rộng trong S17-S
 
 2. Layer 1 - End-to-end flow map
    - Doc [tutorials/module-map.md](module-map.md), mục `Layer 1 - End-to-end Flows`.
+   - Doc [tutorials/flows/retain-recall-reflect-response.md](flows/retain-recall-reflect-response.md), flow module-level chính của hệ thống.
    - Mục tiêu: nắm đường chạy chính từ request vào đến response ra.
 
 3. Layer 2 - Module catalog

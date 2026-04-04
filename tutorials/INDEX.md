@@ -7,13 +7,15 @@ Chỉ mục này là điểm vào duy nhất cho hệ thống tài liệu tutori
 1. Framework overview: tutorials/README.md
 2. Learning path: tutorials/learning-path.md
 3. Module map (4 layers): tutorials/module-map.md
-4. Template chuẩn: tutorials/templates/function-property-template.md
+4. Flow retain-recall-reflect-response: tutorials/flows/retain-recall-reflect-response.md
+5. Template chuẩn: tutorials/templates/function-property-template.md
 
 ## Trình tự đọc khuyến nghị
 1. tutorials/README.md
 2. tutorials/module-map.md
-3. tutorials/learning-path.md
-4. tutorials/templates/function-property-template.md
+3. tutorials/flows/retain-recall-reflect-response.md
+4. tutorials/learning-path.md
+5. tutorials/templates/function-property-template.md
 
 ## Ghi chú tiến độ Sprint S16
 1. S16.1: Hoàn tất scaffold module-map và learning-path.
