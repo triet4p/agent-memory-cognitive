@@ -27,6 +27,11 @@ $logLevel = Get-EnvOrDefault -Name "COGMEM_API_LOG_LEVEL" -Default "info"
 $schema = Get-EnvOrDefault -Name "COGMEM_API_DATABASE_SCHEMA" -Default "public"
 $pg0VolumeDir = Get-EnvOrDefault -Name "COGMEM_PG0_VOLUME_DIR" -Default (Join-Path $HOME ".cogmem-docker")
 $externalDatabaseUrl = Get-EnvOrDefault -Name "COGMEM_EXTERNAL_DATABASE_URL" -Default ""
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$composeFile = Get-EnvOrDefault -Name "COGMEM_DOCKER_COMPOSE_FILE" -Default (Join-Path $repoRoot "docker/docker-compose/external-pg/docker-compose.yaml")
+$composeEnvFile = Get-EnvOrDefault -Name "COGMEM_DOCKER_ENV_FILE" -Default (Join-Path $repoRoot ".env")
+$dockerIncludeLocalModels = Get-EnvOrDefault -Name "COGMEM_DOCKER_INCLUDE_LOCAL_MODELS" -Default "true"
+$dockerPreloadMlModels = Get-EnvOrDefault -Name "COGMEM_DOCKER_PRELOAD_ML_MODELS" -Default "false"
 
 # Backfill B5: minimal LLM + retain runtime contract.
 $llmProvider = Get-EnvOrDefault -Name "COGMEM_API_LLM_PROVIDER" -Default "openai"
@@ -62,26 +67,63 @@ if (-not [string]::IsNullOrWhiteSpace($llmBaseUrl)) {
 
 switch ($Mode) {
     "embedded" {
+        & docker build `
+            -f (Join-Path $repoRoot "docker/standalone/Dockerfile") `
+            --build-arg "INCLUDE_LOCAL_MODELS=$dockerIncludeLocalModels" `
+            --build-arg "PRELOAD_ML_MODELS=$dockerPreloadMlModels" `
+            -t $image `
+            $repoRoot
+
         New-Item -ItemType Directory -Path $pg0VolumeDir -Force | Out-Null
         $dockerArgs += @("-e", "COGMEM_API_DATABASE_URL=pg0")
         $dockerArgs += @("-v", (($pg0VolumeDir) + ":/home/cogmem/.pg0"))
-    }
-    "external" {
-        if ([string]::IsNullOrWhiteSpace($externalDatabaseUrl)) {
-            throw "COGMEM_EXTERNAL_DATABASE_URL is required for external mode."
+
+        Write-Host "Starting CogMem container"
+        Write-Host "  Mode: $Mode"
+        Write-Host "  Image: $image"
+        Write-Host "  Port: $port"
+        Write-Host "  LLM provider/model: $llmProvider/$llmModel"
+        if (-not [string]::IsNullOrWhiteSpace($llmBaseUrl)) {
+            Write-Host "  LLM base URL: $llmBaseUrl"
         }
 
-        $dockerArgs += @("-e", "COGMEM_API_DATABASE_URL=$externalDatabaseUrl")
+        & docker run @dockerArgs $image
+        exit $LASTEXITCODE
+    }
+    "external" {
+        if (-not [string]::IsNullOrWhiteSpace($externalDatabaseUrl)) {
+            & docker build `
+                -f (Join-Path $repoRoot "docker/standalone/Dockerfile") `
+                --build-arg "INCLUDE_LOCAL_MODELS=$dockerIncludeLocalModels" `
+                --build-arg "PRELOAD_ML_MODELS=$dockerPreloadMlModels" `
+                -t $image `
+                $repoRoot
+
+            $dockerArgs += @("-e", "COGMEM_API_DATABASE_URL=$externalDatabaseUrl")
+
+            Write-Host "Starting CogMem container"
+            Write-Host "  Mode: $Mode (legacy external URL)"
+            Write-Host "  Image: $image"
+            Write-Host "  Port: $port"
+            Write-Host "  LLM provider/model: $llmProvider/$llmModel"
+            if (-not [string]::IsNullOrWhiteSpace($llmBaseUrl)) {
+                Write-Host "  LLM base URL: $llmBaseUrl"
+            }
+
+            & docker run @dockerArgs $image
+            exit $LASTEXITCODE
+        }
+
+        if (-not (Test-Path -LiteralPath $composeEnvFile)) {
+            throw "Env file not found: $composeEnvFile. Copy .env.example to .env first."
+        }
+
+        Write-Host "Starting CogMem stack with docker compose"
+        Write-Host "  Mode: $Mode (compose unified app+db)"
+        Write-Host "  Compose file: $composeFile"
+        Write-Host "  Env file: $composeEnvFile"
+
+        & docker compose --env-file $composeEnvFile -f $composeFile up --build
+        exit $LASTEXITCODE
     }
 }
-
-Write-Host "Starting CogMem container"
-Write-Host "  Mode: $Mode"
-Write-Host "  Image: $image"
-Write-Host "  Port: $port"
-Write-Host "  LLM provider/model: $llmProvider/$llmModel"
-if (-not [string]::IsNullOrWhiteSpace($llmBaseUrl)) {
-    Write-Host "  LLM base URL: $llmBaseUrl"
-}
-
-& docker run @dockerArgs $image

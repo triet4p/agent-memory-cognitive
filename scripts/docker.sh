@@ -15,6 +15,11 @@ LOG_LEVEL="${COGMEM_API_LOG_LEVEL:-info}"
 SCHEMA="${COGMEM_API_DATABASE_SCHEMA:-public}"
 PG0_VOLUME_DIR="${COGMEM_PG0_VOLUME_DIR:-${HOME}/.cogmem-docker}"
 EXTERNAL_DATABASE_URL="${COGMEM_EXTERNAL_DATABASE_URL:-}"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_FILE="${COGMEM_DOCKER_COMPOSE_FILE:-${REPO_ROOT}/docker/docker-compose/external-pg/docker-compose.yaml}"
+COMPOSE_ENV_FILE="${COGMEM_DOCKER_ENV_FILE:-${REPO_ROOT}/.env}"
+DOCKER_INCLUDE_LOCAL_MODELS="${COGMEM_DOCKER_INCLUDE_LOCAL_MODELS:-true}"
+DOCKER_PRELOAD_ML_MODELS="${COGMEM_DOCKER_PRELOAD_ML_MODELS:-false}"
 
 # Backfill B5: minimal LLM + retain runtime contract.
 LLM_PROVIDER="${COGMEM_API_LLM_PROVIDER:-openai}"
@@ -50,32 +55,70 @@ fi
 
 case "${MODE}" in
     embedded)
+        docker build \
+            -f "${REPO_ROOT}/docker/standalone/Dockerfile" \
+            --build-arg "INCLUDE_LOCAL_MODELS=${DOCKER_INCLUDE_LOCAL_MODELS}" \
+            --build-arg "PRELOAD_ML_MODELS=${DOCKER_PRELOAD_ML_MODELS}" \
+            -t "${IMAGE}" \
+            "${REPO_ROOT}"
+
         mkdir -p "${PG0_VOLUME_DIR}"
         DOCKER_ARGS+=(
             -e "COGMEM_API_DATABASE_URL=pg0"
             -v "${PG0_VOLUME_DIR}:/home/cogmem/.pg0"
         )
+
+        echo "Starting CogMem container"
+        echo "  Mode: ${MODE}"
+        echo "  Image: ${IMAGE}"
+        echo "  Port: ${PORT}"
+        echo "  LLM provider/model: ${LLM_PROVIDER}/${LLM_MODEL}"
+        if [ -n "${LLM_BASE_URL}" ]; then
+            echo "  LLM base URL: ${LLM_BASE_URL}"
+        fi
+
+        exec docker run "${DOCKER_ARGS[@]}" "${IMAGE}"
         ;;
     external)
-        if [ -z "${EXTERNAL_DATABASE_URL}" ]; then
-            echo "Error: COGMEM_EXTERNAL_DATABASE_URL is required for external mode."
+        if [ -n "${EXTERNAL_DATABASE_URL}" ]; then
+            docker build \
+                -f "${REPO_ROOT}/docker/standalone/Dockerfile" \
+                --build-arg "INCLUDE_LOCAL_MODELS=${DOCKER_INCLUDE_LOCAL_MODELS}" \
+                --build-arg "PRELOAD_ML_MODELS=${DOCKER_PRELOAD_ML_MODELS}" \
+                -t "${IMAGE}" \
+                "${REPO_ROOT}"
+
+            DOCKER_ARGS+=( -e "COGMEM_API_DATABASE_URL=${EXTERNAL_DATABASE_URL}" )
+
+            echo "Starting CogMem container"
+            echo "  Mode: ${MODE} (legacy external URL)"
+            echo "  Image: ${IMAGE}"
+            echo "  Port: ${PORT}"
+            echo "  LLM provider/model: ${LLM_PROVIDER}/${LLM_MODEL}"
+            if [ -n "${LLM_BASE_URL}" ]; then
+                echo "  LLM base URL: ${LLM_BASE_URL}"
+            fi
+
+            exec docker run "${DOCKER_ARGS[@]}" "${IMAGE}"
+        fi
+
+        if [ ! -f "${COMPOSE_ENV_FILE}" ]; then
+            echo "Error: ${COMPOSE_ENV_FILE} not found. Copy .env.example to .env first."
             exit 2
         fi
-        DOCKER_ARGS+=( -e "COGMEM_API_DATABASE_URL=${EXTERNAL_DATABASE_URL}" )
+
+        echo "Starting CogMem stack with docker compose"
+        echo "  Mode: ${MODE} (compose unified app+db)"
+        echo "  Compose file: ${COMPOSE_FILE}"
+        echo "  Env file: ${COMPOSE_ENV_FILE}"
+
+        exec docker compose \
+            --env-file "${COMPOSE_ENV_FILE}" \
+            -f "${COMPOSE_FILE}" \
+            up --build
         ;;
     *)
         echo "Error: unknown mode '${MODE}'. Use embedded or external."
         exit 2
         ;;
 esac
-
-echo "Starting CogMem container"
-echo "  Mode: ${MODE}"
-echo "  Image: ${IMAGE}"
-echo "  Port: ${PORT}"
-echo "  LLM provider/model: ${LLM_PROVIDER}/${LLM_MODEL}"
-if [ -n "${LLM_BASE_URL}" ]; then
-    echo "  LLM base URL: ${LLM_BASE_URL}"
-fi
-
-exec docker run "${DOCKER_ARGS[@]}" "${IMAGE}"

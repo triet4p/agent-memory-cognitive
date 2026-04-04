@@ -21,6 +21,9 @@ dependencies = [
 embedded-db = [
     "pg0-embedded>=0.11.0",
 ]
+local-ml = [
+    "sentence-transformers>=3.0.0",
+]
 
 [project.scripts]
 cogmem-api = "cogmem_api.main:main"

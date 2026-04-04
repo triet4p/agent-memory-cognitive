@@ -42,7 +42,10 @@ def assert_dockerfile_contract(repo_root: Path) -> None:
     dockerfile = (repo_root / "docker" / "standalone" / "Dockerfile").read_text(encoding="utf-8")
     required_snippets = [
         "FROM python:3.13-slim",
+        "ARG INCLUDE_LOCAL_MODELS=true",
+        "ARG PRELOAD_ML_MODELS=false",
         "uv sync --frozen --extra embedded-db",
+        "--extra local-ml",
         'COGMEM_API_COMMAND="python -m cogmem_api.main"',
         "COPY docker/standalone/start-all.sh /app/start-all.sh",
         "EXPOSE 8888",

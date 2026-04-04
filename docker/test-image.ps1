@@ -30,6 +30,7 @@ $healthUrl = Get-EnvOrDefault -Name "COGMEM_API_HEALTH_URL" -Default "http://loc
 $smokeBaseUrl = Get-EnvOrDefault -Name "COGMEM_SMOKE_BASE_URL" -Default "http://localhost:8888"
 $smokeDatabaseUrl = Get-EnvOrDefault -Name "COGMEM_SMOKE_DATABASE_URL" -Default "pg0"
 $smokePg0VolumeDir = Get-EnvOrDefault -Name "COGMEM_SMOKE_PG0_VOLUME_DIR" -Default (Join-Path $HOME ".cogmem-docker-smoke")
+$smokeRequireNonDeterministic = Get-EnvOrDefault -Name "COGMEM_SMOKE_REQUIRE_NON_DETERMINISTIC" -Default "true"
 
 # Backfill B5: pass through LLM + retain knobs for real retain runtime.
 $llmProvider = Get-EnvOrDefault -Name "COGMEM_API_LLM_PROVIDER" -Default "openai"
@@ -41,6 +42,16 @@ $retainLlmTimeout = Get-EnvOrDefault -Name "COGMEM_API_RETAIN_LLM_TIMEOUT" -Defa
 $reflectLlmTimeout = Get-EnvOrDefault -Name "COGMEM_API_REFLECT_LLM_TIMEOUT" -Default "120"
 $retainMaxCompletionTokens = Get-EnvOrDefault -Name "COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS" -Default "64000"
 $retainExtractionMode = Get-EnvOrDefault -Name "COGMEM_API_RETAIN_EXTRACTION_MODE" -Default "concise"
+$embeddingsProvider = Get-EnvOrDefault -Name "COGMEM_API_EMBEDDINGS_PROVIDER" -Default "local"
+$embeddingsLocalModel = Get-EnvOrDefault -Name "COGMEM_API_EMBEDDINGS_LOCAL_MODEL" -Default "BAAI/bge-small-en-v1.5"
+$embeddingsOpenAiModel = Get-EnvOrDefault -Name "COGMEM_API_EMBEDDINGS_OPENAI_MODEL" -Default "text-embedding-3-small"
+$embeddingsOpenAiBaseUrl = Get-EnvOrDefault -Name "COGMEM_API_EMBEDDINGS_OPENAI_BASE_URL" -Default ""
+$embeddingsOpenAiApiKey = Get-EnvOrDefault -Name "COGMEM_API_EMBEDDINGS_OPENAI_API_KEY" -Default ""
+$rerankerProvider = Get-EnvOrDefault -Name "COGMEM_API_RERANKER_PROVIDER" -Default "rrf"
+$rerankerLocalModel = Get-EnvOrDefault -Name "COGMEM_API_RERANKER_LOCAL_MODEL" -Default "cross-encoder/ms-marco-MiniLM-L-6-v2"
+$rerankerTeiUrl = Get-EnvOrDefault -Name "COGMEM_API_RERANKER_TEI_URL" -Default ""
+$rerankerTeiBatchSize = Get-EnvOrDefault -Name "COGMEM_API_RERANKER_TEI_BATCH_SIZE" -Default "128"
+$rerankerMaxCandidates = Get-EnvOrDefault -Name "COGMEM_API_RERANKER_MAX_CANDIDATES" -Default "300"
 
 $cleanupContainer = {
     param([string]$Name)
@@ -56,6 +67,7 @@ Write-Host "  Health URL: $healthUrl"
 Write-Host "  Timeout: ${timeout}s"
 Write-Host "  Database mode: $smokeDatabaseUrl"
 Write-Host "  LLM provider/model: $llmProvider/$llmModel"
+Write-Host "  Embeddings provider: $embeddingsProvider"
 if (-not [string]::IsNullOrWhiteSpace($llmBaseUrl)) {
     Write-Host "  LLM base URL: $llmBaseUrl"
 }
@@ -72,11 +84,30 @@ $dockerRunArgs = @(
     "-e", "COGMEM_API_RETAIN_LLM_TIMEOUT=$retainLlmTimeout",
     "-e", "COGMEM_API_REFLECT_LLM_TIMEOUT=$reflectLlmTimeout",
     "-e", "COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS=$retainMaxCompletionTokens",
-    "-e", "COGMEM_API_RETAIN_EXTRACTION_MODE=$retainExtractionMode"
+    "-e", "COGMEM_API_RETAIN_EXTRACTION_MODE=$retainExtractionMode",
+    "-e", "COGMEM_API_EMBEDDINGS_PROVIDER=$embeddingsProvider",
+    "-e", "COGMEM_API_EMBEDDINGS_LOCAL_MODEL=$embeddingsLocalModel",
+    "-e", "COGMEM_API_EMBEDDINGS_OPENAI_MODEL=$embeddingsOpenAiModel",
+    "-e", "COGMEM_API_RERANKER_PROVIDER=$rerankerProvider",
+    "-e", "COGMEM_API_RERANKER_LOCAL_MODEL=$rerankerLocalModel",
+    "-e", "COGMEM_API_RERANKER_TEI_BATCH_SIZE=$rerankerTeiBatchSize",
+    "-e", "COGMEM_API_RERANKER_MAX_CANDIDATES=$rerankerMaxCandidates"
 )
 
 if (-not [string]::IsNullOrWhiteSpace($llmBaseUrl)) {
     $dockerRunArgs += @("-e", "COGMEM_API_LLM_BASE_URL=$llmBaseUrl")
+}
+
+if (-not [string]::IsNullOrWhiteSpace($embeddingsOpenAiBaseUrl)) {
+    $dockerRunArgs += @("-e", "COGMEM_API_EMBEDDINGS_OPENAI_BASE_URL=$embeddingsOpenAiBaseUrl")
+}
+
+if (-not [string]::IsNullOrWhiteSpace($embeddingsOpenAiApiKey)) {
+    $dockerRunArgs += @("-e", "COGMEM_API_EMBEDDINGS_OPENAI_API_KEY=$embeddingsOpenAiApiKey")
+}
+
+if (-not [string]::IsNullOrWhiteSpace($rerankerTeiUrl)) {
+    $dockerRunArgs += @("-e", "COGMEM_API_RERANKER_TEI_URL=$rerankerTeiUrl")
 }
 
 if ($smokeDatabaseUrl.StartsWith("pg0")) {
@@ -123,6 +154,13 @@ try {
 
     Write-Host "Running retain/recall smoke checks..."
     & (Join-Path $repoRoot "scripts/smoke-test-cogmem.ps1") $smokeBaseUrl
+
+    if ($smokeRequireNonDeterministic -eq "true" -and $embeddingsProvider -eq "local") {
+        $containerLogs = (& docker logs $containerName 2>&1 | Out-String)
+        if ($containerLogs -match "Falling back to deterministic embeddings") {
+            throw "FAIL: local embeddings requested but runtime fell back to deterministic embeddings"
+        }
+    }
 
     Write-Host ""
     Write-Host "=== Container Logs (last 50 lines) ==="

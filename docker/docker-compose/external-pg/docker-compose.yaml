@@ -3,7 +3,7 @@
 
 services:
   db:
-    image: pgvector/pgvector:pg${COGMEM_DB_VERSION:-18}
+    image: ${COGMEM_DB_IMAGE:-pgvector/pgvector:pg18}
     container_name: cogmem-db
     restart: always
     environment:
@@ -24,25 +24,34 @@ services:
     build:
       context: ../../..
       dockerfile: docker/standalone/Dockerfile
+      args:
+        INCLUDE_LOCAL_MODELS: ${COGMEM_DOCKER_INCLUDE_LOCAL_MODELS:-true}
+        PRELOAD_ML_MODELS: ${COGMEM_DOCKER_PRELOAD_ML_MODELS:-false}
+        TORCH_CPU_VERSION: ${COGMEM_DOCKER_TORCH_CPU_VERSION:-2.11.0}
+        ST_VERSION: ${COGMEM_DOCKER_ST_VERSION:-5.3.0}
     image: cogmem:local
     container_name: cogmem-app
     restart: always
+    env_file:
+      - ../../../.env
     ports:
       - "8888:8888"
     environment:
       COGMEM_API_DATABASE_URL: postgresql://${COGMEM_DB_USER:-cogmem_user}:${COGMEM_DB_PASSWORD:?Please set COGMEM_DB_PASSWORD in your .env}@db:5432/${COGMEM_DB_NAME:-cogmem_db}
-      COGMEM_API_DATABASE_SCHEMA: ${COGMEM_API_DATABASE_SCHEMA:-public}
       COGMEM_API_HOST: 0.0.0.0
       COGMEM_API_PORT: 8888
-      COGMEM_API_LOG_LEVEL: ${COGMEM_API_LOG_LEVEL:-info}
-      COGMEM_API_LLM_PROVIDER: ${COGMEM_API_LLM_PROVIDER:-openai}
-      COGMEM_API_LLM_MODEL: ${COGMEM_API_LLM_MODEL:-gpt-4o-mini}
-      COGMEM_API_LLM_API_KEY: ${COGMEM_API_LLM_API_KEY:-dummy}
+      COGMEM_WAIT_FOR_DEPS: true
+      HUGGINGFACE_HUB_TOKEN: ${HF_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy
     networks:
       - cogmem-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8888/health > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
 networks:
   cogmem-net:

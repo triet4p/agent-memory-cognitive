@@ -14,3 +14,5 @@ data/
 final_stats_*.json
 
 hindsight_api/*
+
+.env
