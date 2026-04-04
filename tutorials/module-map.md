@@ -55,6 +55,17 @@ Tài liệu này cung cấp bản đồ top-down để đọc codebase theo th�
 | `cogmem_api/engine/search/` | Retrieval stack (graph, temporal, fusion, rerank) | embeddings, cross-encoder |
 | `cogmem_api/engine/reflect/` | Reflect agent và prompt/tooling | llm wrapper, response models |
 
+### L2.1 Module dossier mapping (S17.3 gate)
+| Module catalog group | Dossier tham chiếu |
+|---|---|
+| `cogmem_api/__init__.py`, `cogmem_api/main.py`, `cogmem_api/server.py`, `cogmem_api/api/__init__.py`, `cogmem_api/api/http.py` | `tutorials/modules/runtime-and-api.md` |
+| `cogmem_api/config.py`, `cogmem_api/models.py`, `cogmem_api/pg0.py` | `tutorials/modules/config-and-schema.md` |
+| `cogmem_api/engine/__init__.py`, `cogmem_api/engine/memory_engine.py`, `cogmem_api/engine/db_utils.py`, `cogmem_api/engine/response_models.py` | `tutorials/modules/engine-core-services.md` |
+| `cogmem_api/engine/llm_wrapper.py`, `cogmem_api/engine/embeddings.py`, `cogmem_api/engine/cross_encoder.py` | `tutorials/modules/adapters-llm-embeddings-reranker.md` |
+| `cogmem_api/engine/retain/` | `tutorials/modules/retain-pipeline.md` |
+| `cogmem_api/engine/query_analyzer.py`, `cogmem_api/engine/search/` | `tutorials/modules/search-pipeline.md` |
+| `cogmem_api/engine/reflect/` | `tutorials/modules/reflect-pipeline.md` |
+
 ## Layer 3 - Function Inventory Seed
 Mục này là seed để Sprint S17-S18 bổ sung inventory đầy đủ public/private theo từng module.
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -35,6 +36,16 @@ def _assert_contains_in_order(text: str, chunks: list[str]) -> None:
         cursor = idx
 
 
+def _extract_heading_section(text: str, heading: str) -> str:
+    start = text.find(heading)
+    assert start != -1, f"Missing heading section: {heading}"
+    section_start = start + len(heading)
+    next_heading = text.find("\n## ", section_start)
+    if next_heading == -1:
+        return text[section_start:].strip()
+    return text[section_start:next_heading].strip()
+
+
 def assert_flow_doc_contract(flow_text: str) -> None:
     for heading in REQUIRED_HEADINGS:
         assert heading in flow_text, f"Missing heading in flow doc: {heading}"
@@ -61,6 +72,20 @@ def assert_module_dossier_contract(dossier_text: str, dossier_path: str) -> None
         assert heading in dossier_text, f"Missing heading {heading} in {dossier_path}"
     _assert_contains_in_order(dossier_text, REQUIRED_HEADINGS)
 
+    inventory_section = _extract_heading_section(dossier_text, "## Function inventory (public/private)")
+    has_public = "Public functions" in inventory_section
+    has_private = "Private/internal" in inventory_section or "Private functions" in inventory_section
+    assert has_public and has_private, f"Function inventory must include public/private in {dossier_path}"
+
+    verify_section = _extract_heading_section(dossier_text, "## Verify commands")
+    has_command_marker = bool(re.search(r"(uv run python|Select-String|Get-ChildItem|rg -n)", verify_section))
+    assert has_command_marker, f"Verify commands section missing runnable commands in {dossier_path}"
+
+
+def collect_module_map_markers(module_map_text: str) -> set[str]:
+    markers = set(re.findall(r"`(cogmem_api/[^`]+)`", module_map_text))
+    return {marker for marker in markers if not marker.startswith("cogmem_api/alembic/versions/")}
+
 
 def collect_cogmem_modules(repo_root: Path) -> list[str]:
     module_paths: list[str] = []
@@ -80,16 +105,19 @@ def main() -> None:
     flow_doc = repo_root / "tutorials" / "flows" / "retain-recall-reflect-response.md"
     index_doc = repo_root / "tutorials" / "INDEX.md"
     learning_path_doc = repo_root / "tutorials" / "learning-path.md"
+    module_map_doc = repo_root / "tutorials" / "module-map.md"
     modules_index_doc = repo_root / "tutorials" / "modules" / "README.md"
 
     assert flow_doc.exists(), "Missing tutorials/flows/retain-recall-reflect-response.md"
     assert index_doc.exists(), "Missing tutorials/INDEX.md"
     assert learning_path_doc.exists(), "Missing tutorials/learning-path.md"
+    assert module_map_doc.exists(), "Missing tutorials/module-map.md"
     assert modules_index_doc.exists(), "Missing tutorials/modules/README.md"
 
     flow_text = flow_doc.read_text(encoding="utf-8")
     index_text = index_doc.read_text(encoding="utf-8")
     learning_path_text = learning_path_doc.read_text(encoding="utf-8")
+    module_map_text = module_map_doc.read_text(encoding="utf-8")
     modules_index_text = modules_index_doc.read_text(encoding="utf-8")
 
     assert_flow_doc_contract(flow_text)
@@ -109,10 +137,14 @@ def main() -> None:
         dossier_texts.append(text)
 
     merged_dossiers = "\n".join(dossier_texts)
+
+    for marker in collect_module_map_markers(module_map_text):
+        assert marker in merged_dossiers, f"Module-map marker not mapped in dossiers: {marker}"
+
     for module_path in collect_cogmem_modules(repo_root):
         assert module_path in merged_dossiers, f"Module not mapped in S17.2 dossiers: {module_path}"
 
-    print("Task 717 tutorial core checks passed (S17.1 + S17.2 scope).")
+    print("Task 717 tutorial core checks passed (S17.1 + S17.2 + S17.3 scope).")
 
 
 if __name__ == "__main__":
