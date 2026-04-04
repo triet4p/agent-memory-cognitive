@@ -89,9 +89,18 @@ def format_entity_summaries_for_prompt(entities: dict) -> str:
 
     summaries = []
     for name, state in entities.items():
-        # Get summary from observations (summary is stored as single observation)
-        if state.observations:
-            summary_text = state.observations[0].text
+        # Support both object-style and dict-style entity states.
+        observations = state.get("observations") if isinstance(state, dict) else getattr(state, "observations", None)
+        if not observations:
+            continue
+
+        first_observation = observations[0]
+        summary_text = (
+            first_observation.get("text")
+            if isinstance(first_observation, dict)
+            else getattr(first_observation, "text", None)
+        )
+        if summary_text:
             summaries.append(f"## {name}\n{summary_text}")
 
     if not summaries:
