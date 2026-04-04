@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TypedDict
+from typing import Any, TypedDict
 
 
 COGMEM_FACT_TYPES: tuple[str, ...] = (
@@ -15,6 +15,18 @@ COGMEM_FACT_TYPES: tuple[str, ...] = (
     "intention",
     "action_effect",
 )
+
+ALLOWED_INTENTION_STATUSES: set[str] = {"planning", "fulfilled", "abandoned"}
+
+# Typed transition edge rules from CogMem design.
+# Value is (source_fact_type, target_fact_type).
+TRANSITION_EDGE_RULES: dict[str, tuple[str, str]] = {
+    "fulfilled_by": ("intention", "experience"),
+    "triggered": ("experience", "intention"),
+    "enabled_by": ("intention", "intention"),
+    "revised_to": ("opinion", "opinion"),
+    "contradicted_by": ("world", "world"),
+}
 
 
 def coerce_fact_type(raw: str | None) -> str:
@@ -30,6 +42,49 @@ def coerce_fact_type(raw: str | None) -> str:
     if lowered == "observation":
         return "world"
     return "world"
+
+
+def clamp_relation_strength(value: Any, default: float = 1.0) -> float:
+    """Clamp relation strength to [0.0, 1.0] with defensive parsing."""
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        numeric = default
+    return max(0.0, min(1.0, numeric))
+
+
+def normalize_intention_status(value: Any) -> str | None:
+    """Normalize intention status to CogMem-supported values."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    if not normalized:
+        return None
+    if normalized in ALLOWED_INTENTION_STATUSES:
+        return normalized
+    return None
+
+
+def _normalize_bool(value: Any, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "y", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "n", "off"}:
+            return False
+        return default
+    return bool(value) if value is not None else default
+
+
+def sanitize_raw_snippet(raw_snippet: str | None, fact_text: str) -> str:
+    """Keep a non-empty lossless raw snippet for storage and downstream synthesis."""
+    if isinstance(raw_snippet, str) and raw_snippet.strip():
+        return raw_snippet
+    return fact_text
 
 
 class RetainFactSeed(TypedDict, total=False):
@@ -139,6 +194,71 @@ class TransitionRelation:
     strength: float = 1.0
 
 
+def _build_edge_intent_payload(
+    causal_relations: list[CausalRelation],
+    action_effect_relations: list[ActionEffectRelation],
+    transition_relations: list[TransitionRelation],
+) -> dict[str, list[dict[str, Any]]]:
+    return {
+        "causal": [
+            {
+                "target_fact_index": relation.target_fact_index,
+                "relation_type": str(relation.relation_type or "caused_by").strip().lower() or "caused_by",
+                "strength": clamp_relation_strength(relation.strength),
+            }
+            for relation in causal_relations
+        ],
+        "action_effect": [
+            {
+                "target_fact_index": relation.target_fact_index,
+                "relation_type": "a_o_causal",
+                "strength": clamp_relation_strength(relation.strength),
+            }
+            for relation in action_effect_relations
+        ],
+        "transition": [
+            {
+                "target_fact_index": relation.target_fact_index,
+                "transition_type": str(relation.transition_type or "").strip().lower(),
+                "strength": clamp_relation_strength(relation.strength),
+            }
+            for relation in transition_relations
+        ],
+    }
+
+
+def normalize_fact_metadata(
+    metadata: dict[str, object],
+    *,
+    fact_type: str,
+    raw_snippet: str,
+    causal_relations: list[CausalRelation],
+    action_effect_relations: list[ActionEffectRelation],
+    transition_relations: list[TransitionRelation],
+) -> dict[str, object]:
+    """Normalize metadata payload for stable retain behavior across ingestion paths."""
+    normalized = dict(metadata)
+
+    normalized["edge_intent"] = _build_edge_intent_payload(
+        causal_relations=causal_relations,
+        action_effect_relations=action_effect_relations,
+        transition_relations=transition_relations,
+    )
+
+    # Keep trace-level signal that raw verbatim context exists in storage path.
+    normalized["raw_snippet_present"] = bool(raw_snippet.strip())
+
+    if fact_type == "intention":
+        status = normalize_intention_status(normalized.get("intention_status"))
+        normalized["intention_status"] = status or "planning"
+
+    if fact_type == "action_effect":
+        normalized["confidence"] = clamp_relation_strength(normalized.get("confidence"), default=0.85)
+        normalized["devalue_sensitive"] = _normalize_bool(normalized.get("devalue_sensitive"), default=True)
+
+    return normalized
+
+
 @dataclass(slots=True)
 class ExtractedFact:
     """Fact emitted by extraction step before embeddings/storage."""
@@ -182,21 +302,59 @@ class ProcessedFact:
 
     @staticmethod
     def from_extracted_fact(extracted_fact: ExtractedFact, embedding: list[float]) -> "ProcessedFact":
+        normalized_fact_type = coerce_fact_type(extracted_fact.fact_type)
+        normalized_raw_snippet = sanitize_raw_snippet(extracted_fact.raw_snippet, extracted_fact.fact_text)
+
+        normalized_causal_relations = [
+            CausalRelation(
+                target_fact_index=relation.target_fact_index,
+                relation_type=str(relation.relation_type or "caused_by").strip().lower() or "caused_by",
+                strength=clamp_relation_strength(relation.strength),
+            )
+            for relation in extracted_fact.causal_relations
+        ]
+        normalized_action_effect_relations = [
+            ActionEffectRelation(
+                target_fact_index=relation.target_fact_index,
+                relation_type="a_o_causal",
+                strength=clamp_relation_strength(relation.strength),
+            )
+            for relation in extracted_fact.action_effect_relations
+        ]
+        normalized_transition_relations = [
+            TransitionRelation(
+                target_fact_index=relation.target_fact_index,
+                transition_type=str(relation.transition_type or "").strip().lower(),
+                strength=clamp_relation_strength(relation.strength),
+            )
+            for relation in extracted_fact.transition_relations
+            if str(relation.transition_type or "").strip()
+        ]
+
+        normalized_metadata = normalize_fact_metadata(
+            extracted_fact.metadata,
+            fact_type=normalized_fact_type,
+            raw_snippet=normalized_raw_snippet,
+            causal_relations=normalized_causal_relations,
+            action_effect_relations=normalized_action_effect_relations,
+            transition_relations=normalized_transition_relations,
+        )
+
         return ProcessedFact(
             fact_text=extracted_fact.fact_text,
-            fact_type=coerce_fact_type(extracted_fact.fact_type),
+            fact_type=normalized_fact_type,
             embedding=embedding,
             occurred_start=extracted_fact.occurred_start,
             occurred_end=extracted_fact.occurred_end,
             mentioned_at=extracted_fact.mentioned_at,
             context=extracted_fact.context,
-            metadata=extracted_fact.metadata,
+            metadata=normalized_metadata,
             entities=list(extracted_fact.entities),
             content_index=extracted_fact.content_index,
-            causal_relations=list(extracted_fact.causal_relations),
-            action_effect_relations=list(extracted_fact.action_effect_relations),
-            transition_relations=list(extracted_fact.transition_relations),
-            raw_snippet=extracted_fact.raw_snippet,
+            causal_relations=normalized_causal_relations,
+            action_effect_relations=normalized_action_effect_relations,
+            transition_relations=normalized_transition_relations,
+            raw_snippet=normalized_raw_snippet,
         )
 
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from . import link_utils
-from .types import ProcessedFact
+from .types import ProcessedFact, TRANSITION_EDGE_RULES, clamp_relation_strength
 
 
 async def create_temporal_links_batch(conn, bank_id: str, unit_ids: list[str]) -> int:
@@ -25,8 +25,16 @@ async def create_causal_links_batch(conn, unit_ids: list[str], facts: list[Proce
 
     for source_index, fact in enumerate(facts):
         for relation in fact.causal_relations:
+            relation_type = str(relation.relation_type or "caused_by").strip().lower()
+            if relation_type != "caused_by":
+                continue
+
             target_index = relation.target_fact_index
             if target_index < 0 or target_index >= len(unit_ids):
+                continue
+
+            # caused_by intent points to an earlier supporting fact
+            if target_index >= source_index:
                 continue
 
             source_id = unit_ids[source_index]
@@ -34,7 +42,7 @@ async def create_causal_links_batch(conn, unit_ids: list[str], facts: list[Proce
             if source_id == target_id:
                 continue
 
-            links.append((source_id, target_id, "causal", None, None, float(relation.strength)))
+            links.append((source_id, target_id, "causal", None, None, clamp_relation_strength(relation.strength)))
 
     return await link_utils.insert_links(conn, links)
 
@@ -81,12 +89,17 @@ async def create_transition_links_batch(conn, unit_ids: list[str], facts: list[P
 
     for source_index, fact in enumerate(facts):
         source_id = unit_ids[source_index]
+        source_fact_type = fact.fact_type
 
         for relation in fact.transition_relations:
             transition_type = relation.transition_type.strip().lower()
 
             # Abandoned is a status-only lifecycle update (no edge target by design).
             if transition_type == "abandoned":
+                continue
+
+            expected_rule = TRANSITION_EDGE_RULES.get(transition_type)
+            if expected_rule is None:
                 continue
 
             target_index = relation.target_fact_index
@@ -97,6 +110,11 @@ async def create_transition_links_batch(conn, unit_ids: list[str], facts: list[P
             if source_id == target_id:
                 continue
 
+            target_fact_type = facts[target_index].fact_type
+            expected_source, expected_target = expected_rule
+            if source_fact_type != expected_source or target_fact_type != expected_target:
+                continue
+
             links.append(
                 (
                     source_id,
@@ -104,7 +122,7 @@ async def create_transition_links_batch(conn, unit_ids: list[str], facts: list[P
                     "transition",
                     transition_type,
                     None,
-                    float(relation.strength),
+                    clamp_relation_strength(relation.strength),
                 )
             )
 
@@ -127,14 +145,19 @@ async def create_action_effect_links_batch(conn, unit_ids: list[str], facts: lis
         # Primary path: explicit target relations declared by extraction.
         if fact.action_effect_relations:
             for relation in fact.action_effect_relations:
+                relation_type = str(relation.relation_type or "a_o_causal").strip().lower()
+                if relation_type != "a_o_causal":
+                    continue
+
                 target_index = relation.target_fact_index
                 if target_index < 0 or target_index >= len(unit_ids):
                     continue
+
                 target_id = unit_ids[target_index]
                 if source_id == target_id:
                     continue
 
-                links.append((source_id, target_id, "a_o_causal", None, None, float(relation.strength)))
+                links.append((source_id, target_id, "a_o_causal", None, None, clamp_relation_strength(relation.strength)))
             continue
 
         # Fallback path: infer target by shared entities with non-action_effect facts.
