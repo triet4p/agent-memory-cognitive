@@ -1,7 +1,7 @@
 """
 Link Expansion graph retrieval.
 
-Expands from semantic/temporal seeds through three parallel, first-class signals
+Expands from semantic/temporal seeds through four parallel, first-class signals
 stored in memory_links:
 
 1. Entity links  — precomputed co-occurrence graph (created at retain time, bounded to
@@ -12,11 +12,13 @@ stored in memory_links:
                     in both directions since the graph is not symmetric. Score = weight.
 3. Causal links  — explicit causal chains (`link_type='causal'`).
                    Score = weight + 1.0 (boosted as highest-quality signal).
+4. Transition links — explicit lifecycle transitions (`link_type='transition'`).
+                      Score = weight + 0.8 (prioritized for prospective recall).
 
-All three signals are bounded at retain time, so no LATERAL fan-out caps are needed
+All four signals are bounded at retain time, so no LATERAL fan-out caps are needed
 at query time. Each expansion is a simple aggregation over a small result set.
 
-The three expansions are issued as a single CTE query (one roundtrip, one
+The expansions are issued as a single CTE query (one roundtrip, one
 connection) with a `source` discriminator column so the Python merge step can
 apply per-signal score transformations.
 """
@@ -80,10 +82,10 @@ class LinkExpansionRetriever(GraphRetriever):
     """
     Graph retrieval via direct link expansion from seeds.
 
-    Runs three expansions through precomputed memory_links: entity co-occurrence,
-    semantic kNN, and causal chains, all bounded at retain time.
+    Runs four expansions through precomputed memory_links: entity co-occurrence,
+    semantic kNN, causal chains, and transition evidence, all bounded at retain time.
 
-    The three expansions are issued as a single CTE query (one roundtrip, one
+    The expansions are issued as a single CTE query (one roundtrip, one
     connection slot) with a `source` discriminator column. The Python merge step
     applies per-signal score transformations.
     """
@@ -171,13 +173,16 @@ class LinkExpansionRetriever(GraphRetriever):
             timings.pattern_count = len(seed_ids)
 
             query_start = time.time()
-            entity_rows, semantic_rows, causal_rows = await self._expand_combined(conn, seed_ids, fact_type, budget)
+            entity_rows, semantic_rows, causal_rows, transition_rows = await self._expand_combined(
+                conn, seed_ids, fact_type, budget
+            )
 
             timings.edge_load_time = time.time() - query_start
             timings.db_queries = 1
-            timings.edge_count = len(entity_rows) + len(semantic_rows) + len(causal_rows)
+            timings.edge_count = len(entity_rows) + len(semantic_rows) + len(causal_rows) + len(transition_rows)
 
-        # Merge results with additive intra-score: entity + semantic + causal ∈ [0, 3].
+        # Merge results with additive intra-score:
+        # entity + semantic + causal + transition ∈ [0, 4].
         #
         # Entity score: tanh(count × 0.5) maps shared-entity count to [0, 1]:
         #   1 entity → 0.46,  2 → 0.76,  3 → 0.91,  4 → 0.96  (saturates naturally)
@@ -189,6 +194,7 @@ class LinkExpansionRetriever(GraphRetriever):
         entity_scores: dict[str, float] = {}
         semantic_scores: dict[str, float] = {}
         causal_scores: dict[str, float] = {}
+        transition_scores: dict[str, float] = {}
         row_map: dict[str, dict] = {}
 
         for row in entity_rows:
@@ -206,9 +212,17 @@ class LinkExpansionRetriever(GraphRetriever):
             causal_scores[fact_id] = max(causal_scores.get(fact_id, 0.0), row["score"])
             row_map.setdefault(fact_id, dict(row))
 
-        all_ids = set(entity_scores) | set(semantic_scores) | set(causal_scores)
+        for row in transition_rows:
+            fact_id = str(row["id"])
+            transition_scores[fact_id] = max(transition_scores.get(fact_id, 0.0), row["score"])
+            row_map.setdefault(fact_id, dict(row))
+
+        all_ids = set(entity_scores) | set(semantic_scores) | set(causal_scores) | set(transition_scores)
         score_map = {
-            fid: entity_scores.get(fid, 0.0) + semantic_scores.get(fid, 0.0) + causal_scores.get(fid, 0.0)
+            fid: entity_scores.get(fid, 0.0)
+            + semantic_scores.get(fid, 0.0)
+            + causal_scores.get(fid, 0.0)
+            + transition_scores.get(fid, 0.0)
             for fid in all_ids
         }
 
@@ -243,9 +257,9 @@ class LinkExpansionRetriever(GraphRetriever):
         seed_ids: list,
         fact_type: str,
         budget: int,
-    ) -> tuple[list, list, list]:
+    ) -> tuple[list, list, list, list]:
         """
-        Single-roundtrip CTE query combining entity, semantic, and causal expansions.
+        Single-roundtrip CTE query combining entity, semantic, causal, and transition expansions.
 
         Uses a `source` discriminator column so the caller can apply per-signal
         score transformations.  The three CTEs share one connection slot — important
@@ -342,12 +356,30 @@ class LinkExpansionRetriever(GraphRetriever):
                   AND mu.fact_type = $2
                 ORDER BY mu.id, ml.weight DESC
                 LIMIT $3
+            ),
+            transition_expanded AS (
+                -- Lifecycle transition evidence (`link_type='transition'`).
+                SELECT DISTINCT ON (mu.id)
+                    mu.id, mu.text, mu.context, mu.event_date, mu.occurred_start,
+                    mu.occurred_end, mu.mentioned_at,
+                    mu.fact_type, mu.document_id, mu.chunk_id, mu.tags,
+                    ml.weight + 0.8 AS score,
+                    'transition'::text AS source
+                FROM {ml} ml
+                JOIN {mu} mu ON ml.to_unit_id = mu.id
+                WHERE ml.from_unit_id = ANY($1::uuid[])
+                  AND ml.link_type = 'transition'
+                  AND mu.fact_type = $2
+                ORDER BY mu.id, ml.weight DESC
+                LIMIT $3
             )
             SELECT * FROM entity_expanded
             UNION ALL
             SELECT * FROM semantic_expanded
             UNION ALL
             SELECT * FROM causal_expanded
+            UNION ALL
+            SELECT * FROM transition_expanded
             """,
             seed_ids,
             fact_type,
@@ -358,4 +390,5 @@ class LinkExpansionRetriever(GraphRetriever):
         entity_rows = [r for r in all_rows if r["source"] == "entity"]
         semantic_rows = [r for r in all_rows if r["source"] == "semantic"]
         causal_rows = [r for r in all_rows if r["source"] == "causal"]
-        return entity_rows, semantic_rows, causal_rows
+        transition_rows = [r for r in all_rows if r["source"] == "transition"]
+        return entity_rows, semantic_rows, causal_rows, transition_rows

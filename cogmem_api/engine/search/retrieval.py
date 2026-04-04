@@ -32,6 +32,8 @@ from .types import MPFPTimings, MergedCandidate, RetrievalResult
 
 logger = logging.getLogger(__name__)
 
+_PROSPECTIVE_ALLOWED_INTENTION_STATUS = "planning"
+
 
 @dataclass
 class ParallelRetrievalResult:
@@ -70,6 +72,112 @@ class MultiFactTypeRetrievalResult:
     max_conn_wait: float = 0.0
     query_type: QueryType = "semantic"
     rrf_weights: dict[str, float] = field(default_factory=dict)
+
+
+def _select_fact_types_for_query(query_type: QueryType, fact_types: list[str]) -> list[str]:
+    """Apply query-type aware fact-type routing policy."""
+    if query_type == "prospective":
+        return [fact_type for fact_type in fact_types if fact_type == "intention"]
+    return list(fact_types)
+
+
+def _apply_query_type_evidence_priority(
+    candidates: list[MergedCandidate],
+    query_type: QueryType,
+) -> list[MergedCandidate]:
+    """Boost query-type specific evidence after base weighted-RRF fusion."""
+    if query_type not in {"causal", "prospective"}:
+        return candidates
+
+    for candidate in candidates:
+        score = candidate.rrf_score
+        source_ranks = candidate.source_ranks
+        fact_type = candidate.retrieval.fact_type
+
+        if query_type == "causal":
+            # Prefer explicit Action-Effect evidence and graph-backed causal chains.
+            if fact_type == "action_effect":
+                score *= 1.35
+            if "graph_rank" in source_ranks:
+                score *= 1.08
+        elif query_type == "prospective":
+            # Prefer planning intentions surfaced via transition/temporal-aware graph evidence.
+            if fact_type == "intention":
+                score *= 1.20
+            if "graph_rank" in source_ranks:
+                score *= 1.15
+            if "temporal_rank" in source_ranks:
+                score *= 1.05
+
+        candidate.rrf_score = score
+
+    reranked = sorted(candidates, key=lambda item: item.rrf_score, reverse=True)
+    for rank, candidate in enumerate(reranked, start=1):
+        candidate.rrf_rank = rank
+    return reranked
+
+
+def _collect_intention_result_ids(results_by_fact_type: dict[str, ParallelRetrievalResult]) -> list[str]:
+    """Collect unique intention node IDs from all retrieval channels."""
+    candidate_ids: set[str] = set()
+    for result in results_by_fact_type.values():
+        channels = [result.semantic, result.bm25, result.graph, result.temporal or []]
+        for channel_results in channels:
+            for item in channel_results:
+                if item.fact_type == "intention":
+                    candidate_ids.add(item.id)
+    return list(candidate_ids)
+
+
+async def _resolve_planning_intention_ids(pool, bank_id: str, candidate_ids: list[str]) -> set[str]:
+    """Resolve intention IDs whose metadata status is planning."""
+    if not candidate_ids:
+        return set()
+
+    async with acquire_with_retry(pool) as conn:
+        rows = await conn.fetch(
+            f"""
+            SELECT id
+            FROM {fq_table("memory_units")}
+            WHERE bank_id = $1
+              AND id = ANY($2::uuid[])
+              AND fact_type = 'intention'
+              AND COALESCE(metadata->>'intention_status', $3) = $3
+            """,
+            bank_id,
+            candidate_ids,
+            _PROSPECTIVE_ALLOWED_INTENTION_STATUS,
+        )
+    return {str(row["id"]) for row in rows}
+
+
+def _filter_prospective_results(
+    parallel_result: ParallelRetrievalResult,
+    planning_intention_ids: set[str],
+) -> ParallelRetrievalResult:
+    """Keep only planning intention results for prospective routing."""
+
+    def _filter_channel(results: list[RetrievalResult] | None) -> list[RetrievalResult] | None:
+        if results is None:
+            return None
+        return [
+            item
+            for item in results
+            if item.fact_type == "intention" and item.id in planning_intention_ids
+        ]
+
+    return ParallelRetrievalResult(
+        semantic=_filter_channel(parallel_result.semantic) or [],
+        bm25=_filter_channel(parallel_result.bm25) or [],
+        graph=_filter_channel(parallel_result.graph) or [],
+        temporal=_filter_channel(parallel_result.temporal),
+        timings=parallel_result.timings,
+        temporal_constraint=parallel_result.temporal_constraint,
+        query_type=parallel_result.query_type,
+        rrf_weights=parallel_result.rrf_weights,
+        mpfp_timings=parallel_result.mpfp_timings,
+        max_conn_wait=parallel_result.max_conn_wait,
+    )
 
 
 def resolve_query_routing(
@@ -116,12 +224,13 @@ def fuse_parallel_results(
     effective_query_type = query_type or parallel_result.query_type
     effective_weights = rrf_weights or parallel_result.rrf_weights or get_adaptive_rrf_weights(effective_query_type)
 
-    return weighted_reciprocal_rank_fusion(
+    merged = weighted_reciprocal_rank_fusion(
         result_lists=result_lists,
         source_weights=effective_weights,
         source_names=source_names,
         k=k,
     )
+    return _apply_query_type_evidence_priority(merged, effective_query_type)
 
 
 # Default graph retriever instance (can be overridden)
@@ -150,8 +259,12 @@ def get_default_graph_retriever() -> GraphRetriever:
             _default_graph_retriever = LinkExpansionRetriever()
             logger.info("Using LinkExpansion graph retriever")
         else:
-            logger.warning(f"Unknown graph retriever '{retriever_type}', falling back to link_expansion")
-            _default_graph_retriever = LinkExpansionRetriever()
+            logger.warning(f"Unknown graph retriever '{retriever_type}', falling back to BFS")
+            _default_graph_retriever = BFSGraphRetriever(
+                refractory_steps=config.bfs_refractory_steps,
+                firing_quota=config.bfs_firing_quota,
+                activation_saturation=config.bfs_activation_saturation,
+            )
     return _default_graph_retriever
 
 
@@ -641,6 +754,16 @@ async def retrieve_all_fact_types_parallel(
     temporal_extraction_time = time.time() - query_routing_start
     timings["query_routing"] = temporal_extraction_time
 
+    routed_fact_types = _select_fact_types_for_query(routing.query_type, fact_types)
+    if not routed_fact_types:
+        return MultiFactTypeRetrievalResult(
+            results_by_fact_type={},
+            timings={"query_routing": temporal_extraction_time, "total": time.time() - start_time},
+            max_conn_wait=0.0,
+            query_type=routing.query_type,
+            rrf_weights=routing.rrf_weights,
+        )
+
     # Step 2: Run semantic + BM25 + temporal combined in ONE connection!
     # This reduces connection usage from 2 to 1 for these operations
     semantic_bm25_start = time.time()
@@ -656,7 +779,7 @@ async def retrieve_all_fact_types_parallel(
             query_embedding_str,
             query_text,
             bank_id,
-            fact_types,
+            routed_fact_types,
             thinking_budget,
             tags=tags,
             tags_match=tags_match,
@@ -672,7 +795,7 @@ async def retrieve_all_fact_types_parallel(
                 conn,
                 query_embedding_str,
                 bank_id,
-                fact_types,
+                routed_fact_types,
                 tc_start,
                 tc_end,
                 budget=thinking_budget,
@@ -705,7 +828,7 @@ async def retrieve_all_fact_types_parallel(
         return ft, results, time.time() - graph_start, mpfp_timing
 
     # Run graph for all fact types in parallel
-    graph_tasks = [run_graph_for_fact_type(ft) for ft in fact_types]
+    graph_tasks = [run_graph_for_fact_type(ft) for ft in routed_fact_types]
     graph_results_list = await asyncio.gather(*graph_tasks)
 
     # Organize results by fact type
@@ -713,7 +836,7 @@ async def retrieve_all_fact_types_parallel(
     max_conn_wait = conn_wait  # Single connection for semantic+bm25+temporal
     all_mpfp_timings: list[MPFPTimings] = []
 
-    for ft in fact_types:
+    for ft in routed_fact_types:
         # Get semantic + bm25 results for this fact type
         semantic_results, bm25_results = semantic_bm25_results.get(ft, ([], []))
 
@@ -753,6 +876,14 @@ async def retrieve_all_fact_types_parallel(
             mpfp_timings=[mpfp_timing] if mpfp_timing else [],
             max_conn_wait=max_conn_wait,
         )
+
+    if routing.query_type == "prospective":
+        intention_ids = _collect_intention_result_ids(results_by_fact_type)
+        planning_ids = await _resolve_planning_intention_ids(pool, bank_id, intention_ids)
+        results_by_fact_type = {
+            ft: _filter_prospective_results(result, planning_ids)
+            for ft, result in results_by_fact_type.items()
+        }
 
     total_time = time.time() - start_time
     timings["total"] = total_time

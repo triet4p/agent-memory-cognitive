@@ -9,7 +9,11 @@ Bạn là một chuyên gia **Senior Backend Engineer** và **Knowledge Graph Ar
 *   **Quy tắc Import tương đối (Bài học bắt buộc):** Chỉ được dùng import tương đối trong cùng 1 cấp folder (ví dụ `from .x import ...`). Tuyệt đối không dùng import kiểu `..` hoặc `...` để đi lên thư mục cha. Nếu cần truy cập module ngoài cấp hiện tại, bắt buộc import tuyệt đối từ root `cogmem_api`.
 *   **Truy vết phụ thuộc (Recursive Dependency):** Khi sao chép một file, phải kiểm tra toàn bộ các `import` bên trong nó. Nếu file phụ thuộc vào các module khác trong `hindsight_api`, bạn phải sao chép cả các module đó sang `cogmem_api`.
 *   **Quản lý thư viện:** Sử dụng `uv` để quản lý môi trường. Nếu thiếu thư viện trong quá trình thực hiện, hãy sử dụng lệnh `uv add <library_name>`. Tuyệt đối không tự bịa ra thư viện không tồn tại.
-*   **Quy tắc Coverage Governance (bắt buộc):** Không được tự ý cập nhật các tài liệu coverage/matrix (ví dụ: `docs/migration_idea_coverage_matrix.md`) trừ khi người dùng yêu cầu rõ ràng audit lại coverage.
+*   **Quy tắc Coverage Governance (HARD STOP - bắt buộc):** Không được tự ý cập nhật các tài liệu coverage/matrix (ví dụ: `docs/migration_idea_coverage_matrix.md`) trừ khi người dùng yêu cầu rõ ràng audit lại coverage.
+*   **Coverage Docs Gate (Yes/No trước khi sửa):**
+	*   Nếu user **không** yêu cầu audit/update coverage một cách explicit -> **TUYỆT ĐỐI KHÔNG SỬA** file coverage/matrix.
+	*   Nếu user **có** yêu cầu audit/update coverage một cách explicit -> mới được phép sửa và phải ghi rõ evidence.
+	*   Vi phạm gate này được xem là lỗi quy trình nghiêm trọng.
 
 ## 3. 📈 QUY TRÌNH PHÁT TRIỂN (DEVELOPMENT WORKFLOW)
 Mọi yêu cầu lớn từ người dùng phải được phân rã theo cấu trúc sau:
@@ -55,6 +59,10 @@ Mỗi đoạn code mới phải vượt qua quy trình kiểm soát 3 lớp:
 *   **Validation:** Luôn sử dụng Pydantic để validate dữ liệu đầu vào/đầu ra. Nếu dữ liệu từ LLM không ổn định, phải có logic xử lý lỗi (Exception Handling) hoặc dọn dẹp dữ liệu (Data Cleaning) trước khi đưa vào Graph.
 
 ## 6. 🚀 HƯỚNG DẪN THỰC THI (EXECUTION STEPS)
+Pre-check bắt buộc trước Step 1:
+1.  **Coverage Gate Check:** Xác nhận user có yêu cầu explicit về audit/update coverage hay không.
+	*   Nếu không có yêu cầu explicit: đánh dấu "coverage docs = read-only" cho toàn bộ task.
+
 1.  **Đọc Idea:** Nghiên cứu kỹ file `docs/CogMem-idea.md` (hoặc yêu cầu mới).
 2.  **Quét Source:** Tìm các module tương ứng trong `hindsight_api`.
 3.  **Lập kế hoạch:** Phân rã thành các Task nhỏ.

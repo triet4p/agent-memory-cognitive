@@ -83,7 +83,7 @@ DATABASE_SCHEMA = os.getenv(ENV_DATABASE_SCHEMA, DEFAULT_DATABASE_SCHEMA)
 DB_POOL_MIN_SIZE = int(os.getenv(ENV_DB_POOL_MIN_SIZE, str(DEFAULT_DB_POOL_MIN_SIZE)))
 DB_POOL_MAX_SIZE = int(os.getenv(ENV_DB_POOL_MAX_SIZE, str(DEFAULT_DB_POOL_MAX_SIZE)))
 
-DEFAULT_GRAPH_RETRIEVER = "link_expansion"
+DEFAULT_GRAPH_RETRIEVER = "bfs"
 DEFAULT_TEXT_SEARCH_EXTENSION = "native"
 DEFAULT_MPFP_TOP_K_NEIGHBORS = 20
 DEFAULT_RERANKER_PROVIDER = "rrf"
@@ -98,6 +98,7 @@ DEFAULT_EMBEDDINGS_LOCAL_MODEL = "BAAI/bge-small-en-v1.5"
 DEFAULT_EMBEDDINGS_OPENAI_MODEL = "text-embedding-3-small"
 
 ALLOWED_RETAIN_EXTRACTION_MODES = {"concise", "custom", "verbatim", "verbose"}
+ALLOWED_GRAPH_RETRIEVERS = {"bfs", "link_expansion", "mpfp"}
 
 
 def _read_optional_str(env_name: str, default: str | None = None) -> str | None:
@@ -157,6 +158,15 @@ def _read_retain_extraction_mode() -> str:
     if normalized in ALLOWED_RETAIN_EXTRACTION_MODES:
         return normalized
     return DEFAULT_RETAIN_EXTRACTION_MODE
+
+
+def _read_graph_retriever() -> str:
+    retriever = _read_optional_str(ENV_GRAPH_RETRIEVER, DEFAULT_GRAPH_RETRIEVER)
+    assert retriever is not None
+    normalized = retriever.lower()
+    if normalized in ALLOWED_GRAPH_RETRIEVERS:
+        return normalized
+    return DEFAULT_GRAPH_RETRIEVER
 
 
 @dataclass(frozen=True)
@@ -264,7 +274,7 @@ def get_config() -> CogMemConfig:
     if _cached_config is None:
         runtime = _get_raw_config()
         _cached_config = CogMemConfig(
-            graph_retriever=os.getenv(ENV_GRAPH_RETRIEVER, DEFAULT_GRAPH_RETRIEVER),
+            graph_retriever=_read_graph_retriever(),
             text_search_extension=os.getenv(ENV_TEXT_SEARCH_EXTENSION, DEFAULT_TEXT_SEARCH_EXTENSION),
             mpfp_top_k_neighbors=_read_int(ENV_MPFP_TOP_K_NEIGHBORS, DEFAULT_MPFP_TOP_K_NEIGHBORS, minimum=1),
             recall_max_concurrent=runtime.recall_max_concurrent,
