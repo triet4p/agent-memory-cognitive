@@ -485,10 +485,13 @@ Rủi ro và fallback:
 2. Fallback: giữ trạng thái PARTIAL và mở sub-task bổ sung evidence, không unlock tutorial sớm.
 
 ## Phase C - Tutorial (unlock sau S15 PASS)
-### Sprint S16 - Tutorial Framework
+### Sprint S16 - Tutorial Top-down Architecture Baseline
 Mục tiêu sprint:
-1. Tạo bộ khung tutorial có thể mở rộng theo module và theo learning path.
-2. Thiết lập cơ chế kiểm tra coverage để tránh thiếu module.
+1. Thiết lập bộ khung tutorial top-down đi từ toàn cảnh hệ thống đến từng lớp chi tiết.
+2. Khóa bản đồ phụ thuộc để toàn bộ module và hàm đều có vị trí rõ ràng trong learning path.
+
+Top-down level:
+1. Architecture
 
 Phụ thuộc:
 1. S15 PASS (pre-tutorial full gate đã xác nhận C1-C4 FULL).
@@ -499,15 +502,15 @@ Inputs bắt buộc:
 3. Danh mục module từ phase lịch sử và artifacts đã hoàn tất
 
 Atomic tasks:
-1. S16.1 Scaffold thư mục tutorial:
-	- Tạo cấu trúc `tutorials/` theo nhóm core/non-core/capstone.
-	- Tạo index điều hướng và learning path theo thứ tự học.
-2. S16.2 Chuẩn hóa template tutorial:
-	- Mỗi tài liệu có Purpose, Inputs, Outputs, Key functions/properties, Failure modes, Verify commands.
-	- Thống nhất format heading và tiêu chuẩn dẫn chứng code.
-3. S16.3 Coverage checker:
-	- Tạo test artifact kiểm tra các module core và non-core đều xuất hiện trong module-map.
-	- Fail nếu thiếu module hoặc thiếu section bắt buộc.
+1. S16.1 Scaffold kiến trúc tutorial top-down:
+	- Tạo `tutorials/module-map.md` theo các lớp: Layer 0 (System overview), Layer 1 (End-to-end flows), Layer 2 (Module catalog), Layer 3 (Function inventory seed).
+	- Tạo `tutorials/learning-path.md` thể hiện thứ tự đọc từ high-level xuống low-level.
+2. S16.2 Chuẩn hóa template tutorial theo chiều sâu:
+	- Mỗi tài liệu bắt buộc có: Purpose, Inputs, Outputs, Top-down level, Prerequisites, Module responsibility, Function inventory (public/private), Failure modes, Verify commands.
+	- Thống nhất format heading và tiêu chuẩn dẫn chứng code theo file/function.
+3. S16.3 Contract checker cấp architecture:
+	- Tạo test artifact fail-fast nếu thiếu layer trong module-map hoặc thiếu section bắt buộc trong template.
+	- Fail nếu tutorial roadmap còn dùng cách chia nhóm cũ theo nhãn lịch sử.
 
 File tác động dự kiến:
 1. `tutorials/README.md`
@@ -528,106 +531,109 @@ Verification (gợi ý lệnh):
 2. `Get-ChildItem -Recurse tutorials`
 
 Exit gate:
-1. Framework tutorial tồn tại đầy đủ và coverage checker PASS.
-2. Có learning path rõ cho cả core và non-core.
+1. Framework tutorial tồn tại đầy đủ, module-map đủ 4 layer top-down và contract checker PASS.
+2. Learning path thể hiện rõ thứ tự Architecture -> Module -> Function.
 
 Rủi ro và fallback:
 1. Rủi ro: thiếu module trong map do quét thủ công.
 2. Fallback: dùng script checker fail-fast và cập nhật map trước khi qua S17.
 
-### Sprint S17 - Tutorial Core
+### Sprint S17 - Tutorial Module-by-Module Decomposition
 Mục tiêu sprint:
-1. Viết tutorial chi tiết cho các module core, đủ để người mới có thể đọc code và chạy verify độc lập.
+1. Viết tutorial module-level theo thứ tự top-down, từ flow tổng quan xuống từng module cụ thể.
+2. Đảm bảo mỗi module có bản đồ phụ thuộc và danh mục hàm public/private để chuẩn bị cho deep dive function-level.
+
+Top-down level:
+1. Module
 
 Phụ thuộc:
 1. S16 PASS.
 
 Inputs bắt buộc:
 1. Template tutorial đã khóa ở S16
-2. Danh mục module core trong `tutorials/module-map.md`
+2. Danh mục module trong `tutorials/module-map.md`
 
 Atomic tasks:
-1. S17.1 Core foundation docs:
-	- Viết tutorial cho `config`, `models`, `memory_engine`.
-	- Chỉ rõ function/property trọng yếu và quan hệ giữa các lớp.
-2. S17.2 Core pipeline docs:
-	- Viết tutorial cho `retain`, `search`, `reflect`, `api`.
-	- Mô tả luồng retain -> recall -> response theo function-level.
-3. S17.3 Verify contract cho core tutorial:
-	- Mỗi tài liệu phải có verify commands tối thiểu.
-	- Bổ sung test artifact kiểm tra section bắt buộc và độ phủ module core.
+1. S17.1 Viết tutorial theo flow chính của hệ thống:
+	- Tài liệu hóa luồng retain -> recall -> reflect -> response với call graph theo module.
+	- Mỗi bước chỉ rõ file nguồn và entry points.
+2. S17.2 Viết module dossiers:
+	- Mỗi module trong `cogmem_api` có mục riêng gồm trách nhiệm, inbound/outbound dependencies, data contracts, error boundaries.
+	- Mỗi module bắt buộc có Function inventory (public/private) trước khi sang S18.
+3. S17.3 Verify contract cho module-level tutorial:
+	- Mỗi tài liệu phải có verify commands tối thiểu và section bắt buộc theo template S16.
+	- Test artifact fail nếu thiếu module hoặc thiếu function inventory.
 
 File tác động dự kiến:
-1. `tutorials/core/config-and-models.md`
-2. `tutorials/core/memory-engine.md`
-3. `tutorials/core/retain-pipeline.md`
-4. `tutorials/core/search-pipeline.md`
-5. `tutorials/core/reflect-pipeline.md`
-6. `tutorials/core/api-flow.md`
+1. `tutorials/flows/retain-recall-reflect-response.md`
+2. `tutorials/modules/*.md`
+3. `tutorials/module-map.md`
 7. `logs/task_717_summary.md`
 8. `tests/artifacts/test_task717_tutorial_core.py`
 
 Outputs bắt buộc:
-1. Bộ tutorial core hoàn chỉnh theo template
+1. Bộ tutorial module-level hoàn chỉnh theo template top-down
 2. `logs/task_717_summary.md`
 3. `tests/artifacts/test_task717_tutorial_core.py`
 
 Verification (gợi ý lệnh):
 1. `uv run python tests/artifacts/test_task717_tutorial_core.py`
-2. `Select-String -Path tutorials/core/*.md -Pattern "## Verify"`
+2. `Select-String -Path tutorials/modules/*.md -Pattern "## Verify|Function inventory \(public/private\)"`
 
 Exit gate:
-1. Toàn bộ module core có tutorial riêng và PASS test contract.
-2. Người đọc có thể thực hiện verify command tối thiểu cho từng tài liệu.
+1. Toàn bộ module trong module-map có tutorial module-level và PASS test contract.
+2. Mỗi module đã có function inventory (public/private) và verify command tối thiểu.
 
 Rủi ro và fallback:
 1. Rủi ro: mô tả sai do lệch so với code hiện tại.
 2. Fallback: rà chéo với module-map + test contract; cập nhật ngay khi phát hiện drift.
 
-### Sprint S18 - Tutorial Non-core + Capstone
+### Sprint S18 - Tutorial Function-by-Function Deep Dive
 Mục tiêu sprint:
-1. Hoàn tất tutorial non-core để hiểu toàn diện codebase.
-2. Cung cấp capstone walkthrough end-to-end và checklist tự học có tiêu chí pass/fail rõ.
+1. Hoàn tất tutorial function-level cho toàn bộ hàm public/private của từng module.
+2. Cung cấp capstone walkthrough end-to-end bám theo function checkpoints và checklist pass/fail có expected outputs.
+
+Top-down level:
+1. Function
 
 Phụ thuộc:
 1. S17 PASS.
 
 Inputs bắt buộc:
-1. Framework/tutorial core đã PASS
-2. Danh mục module non-core (providers, db-utils, scripts, docker, migrations)
+1. Framework tutorial top-down đã PASS
+2. Module dossiers + function inventory từ S17
 
 Atomic tasks:
-1. S18.1 Non-core tutorial set:
-	- Viết tài liệu cho providers, db-utils, scripts vận hành, docker assets, migrations.
-	- Chỉ rõ trách nhiệm từng module và điểm nối với core pipeline.
-2. S18.2 Capstone walkthrough:
-	- Tạo hành trình retain -> recall -> response với chỉ dẫn đọc code theo thứ tự file/function.
-	- Gắn verify commands cho từng checkpoint trong walkthrough.
-3. S18.3 Self-checklist:
-	- Tạo checklist tự học có tiêu chí pass/fail và expected outputs.
-	- Bổ sung test artifact kiểm tra tính toàn vẹn tài liệu capstone.
+1. S18.1 Function inventory hoàn chỉnh:
+	- Liệt kê đầy đủ từng hàm public/private theo module, kèm signature và vị trí file.
+	- Gắn trạng thái coverage để không bỏ sót hàm.
+2. S18.2 Function deep-dive docs:
+	- Mỗi hàm bắt buộc có: purpose, inputs, outputs, side effects, dependency calls, failure modes, pre/post-conditions, verify command.
+	- Bổ sung ví dụ input/output tối thiểu cho nhóm hàm quan trọng.
+3. S18.3 Capstone + self-checklist function-level:
+	- Tạo walkthrough retain -> recall -> response theo checkpoint gắn function IDs cụ thể.
+	- Checklist pass/fail phải ánh xạ tới function checkpoints và expected outputs.
 
 File tác động dự kiến:
-1. `tutorials/supporting/runtime-and-providers.md`
-2. `tutorials/supporting/storage-and-db.md`
-3. `tutorials/supporting/devops-and-migrations.md`
+1. `tutorials/functions/*.md`
 4. `tutorials/capstone/cogmem-codebase-walkthrough.md`
 5. `tutorials/capstone/self-checklist.md`
 6. `logs/task_718_summary.md`
 7. `tests/artifacts/test_task718_tutorial_noncore_capstone.py`
 
 Outputs bắt buộc:
-1. Bộ tutorial non-core + capstone hoàn chỉnh
+1. Bộ tutorial function-level + capstone hoàn chỉnh
 2. `logs/task_718_summary.md`
 3. `tests/artifacts/test_task718_tutorial_noncore_capstone.py`
 
 Verification (gợi ý lệnh):
 1. `uv run python tests/artifacts/test_task718_tutorial_noncore_capstone.py`
-2. `Select-String -Path tutorials/capstone/*.md -Pattern "pass/fail|Verify|Expected"`
+2. `Select-String -Path tutorials/functions/*.md -Pattern "public/private|Failure modes|Verify"`
+3. `Select-String -Path tutorials/capstone/*.md -Pattern "pass/fail|Verify|Expected|checkpoint"`
 
 Exit gate:
-1. Coverage tutorial bao phủ cả core và non-core.
-2. Capstone walkthrough + self-checklist đủ điều kiện dùng làm đường dẫn onboarding chính.
+1. Coverage tutorial bao phủ toàn bộ module và toàn bộ hàm public/private trong phạm vi codebase đã map.
+2. Capstone walkthrough + self-checklist đủ điều kiện dùng làm đường dẫn onboarding chính ở mức function-level.
 
 Rủi ro và fallback:
 1. Rủi ro: tutorial dài nhưng khó thực thi vì thiếu checkpoint verify.
@@ -644,9 +650,9 @@ Rủi ro và fallback:
 | Remaining | S13 | Close C3 | Planned |
 | Remaining | S14 | Close C4 | Planned |
 | Remaining | S15 | Full Gate trước tutorial | Planned |
-| Tutorial | S16 | Tutorial framework | Locked |
-| Tutorial | S17 | Tutorial core | Locked |
-| Tutorial | S18 | Tutorial non-core + capstone | Locked |
+| Tutorial | S16 | Tutorial top-down architecture baseline | Locked |
+| Tutorial | S17 | Tutorial module-by-module decomposition | Locked |
+| Tutorial | S18 | Tutorial function-by-function deep dive | Locked |
 
 ---
 
