@@ -43,7 +43,11 @@ def assert_env_contract_documented(repo_root: Path) -> None:
         "COGMEM_API_RETAIN_LLM_TIMEOUT",
         "COGMEM_API_REFLECT_LLM_TIMEOUT",
         "COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS",
+        "COGMEM_API_RETAIN_CHUNK_SIZE",
+        "COGMEM_API_RETAIN_EXTRACT_CAUSAL_LINKS",
         "COGMEM_API_RETAIN_EXTRACTION_MODE",
+        "COGMEM_API_RETAIN_MISSION",
+        "COGMEM_API_RETAIN_CUSTOM_INSTRUCTIONS",
         "COGMEM_API_EMBEDDINGS_PROVIDER",
         "COGMEM_API_EMBEDDINGS_OPENAI_MODEL",
         "COGMEM_API_RERANKER_PROVIDER",
@@ -82,7 +86,11 @@ def run_behavioral_matrix() -> None:
         "COGMEM_API_RETAIN_LLM_TIMEOUT",
         "COGMEM_API_REFLECT_LLM_TIMEOUT",
         "COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS",
+        "COGMEM_API_RETAIN_CHUNK_SIZE",
+        "COGMEM_API_RETAIN_EXTRACT_CAUSAL_LINKS",
         "COGMEM_API_RETAIN_EXTRACTION_MODE",
+        "COGMEM_API_RETAIN_MISSION",
+        "COGMEM_API_RETAIN_CUSTOM_INSTRUCTIONS",
         "COGMEM_API_RECALL_MAX_CONCURRENT",
         "COGMEM_API_DB_POOL_MIN_SIZE",
         "COGMEM_API_DB_POOL_MAX_SIZE",
@@ -118,7 +126,11 @@ def run_behavioral_matrix() -> None:
         assert runtime.retain_llm_timeout == 120.0
         assert runtime.reflect_llm_timeout == 120.0
         assert runtime.retain_max_completion_tokens == 64000
+        assert runtime.retain_chunk_size == 3000
+        assert runtime.retain_extract_causal_links is True
         assert runtime.retain_extraction_mode == "concise"
+        assert runtime.retain_mission is None
+        assert runtime.retain_custom_instructions is None
         assert runtime.recall_max_concurrent == 32
 
         assert engine.embeddings_provider == "local"
@@ -131,7 +143,11 @@ def run_behavioral_matrix() -> None:
         os.environ["COGMEM_API_RETAIN_LLM_TIMEOUT"] = "150"
         os.environ["COGMEM_API_REFLECT_LLM_TIMEOUT"] = "80"
         os.environ["COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS"] = "12000"
+        os.environ["COGMEM_API_RETAIN_CHUNK_SIZE"] = "2500"
+        os.environ["COGMEM_API_RETAIN_EXTRACT_CAUSAL_LINKS"] = "false"
         os.environ["COGMEM_API_RETAIN_EXTRACTION_MODE"] = "VERBOSE"
+        os.environ["COGMEM_API_RETAIN_MISSION"] = "Keep durable memory"
+        os.environ["COGMEM_API_RETAIN_CUSTOM_INSTRUCTIONS"] = "Custom contract"
         os.environ["COGMEM_API_RECALL_MAX_CONCURRENT"] = "8"
         os.environ["COGMEM_API_EMBEDDINGS_PROVIDER"] = "openai"
         os.environ["COGMEM_API_EMBEDDINGS_OPENAI_MODEL"] = "text-embedding-3-large"
@@ -152,7 +168,11 @@ def run_behavioral_matrix() -> None:
         assert runtime.retain_llm_timeout == 150.0
         assert runtime.reflect_llm_timeout == 80.0
         assert runtime.retain_max_completion_tokens == 12000
+        assert runtime.retain_chunk_size == 2500
+        assert runtime.retain_extract_causal_links is False
         assert runtime.retain_extraction_mode == "verbose"
+        assert runtime.retain_mission == "Keep durable memory"
+        assert runtime.retain_custom_instructions == "Custom contract"
         assert runtime.recall_max_concurrent == 8
 
         assert engine.embeddings_provider == "openai"
@@ -170,7 +190,11 @@ def run_behavioral_matrix() -> None:
         os.environ["COGMEM_API_RETAIN_LLM_TIMEOUT"] = "-50"
         os.environ["COGMEM_API_REFLECT_LLM_TIMEOUT"] = ""
         os.environ["COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS"] = "0"
+        os.environ["COGMEM_API_RETAIN_CHUNK_SIZE"] = "-10"
+        os.environ["COGMEM_API_RETAIN_EXTRACT_CAUSAL_LINKS"] = "invalid-bool"
         os.environ["COGMEM_API_RETAIN_EXTRACTION_MODE"] = "invalid-mode"
+        os.environ["COGMEM_API_RETAIN_MISSION"] = ""
+        os.environ["COGMEM_API_RETAIN_CUSTOM_INSTRUCTIONS"] = ""
         os.environ["COGMEM_API_RECALL_MAX_CONCURRENT"] = "bad"
         os.environ["COGMEM_API_RERANKER_TEI_BATCH_SIZE"] = "not-int"
         os.environ["COGMEM_API_RERANKER_MAX_CANDIDATES"] = "-1"
@@ -183,7 +207,11 @@ def run_behavioral_matrix() -> None:
         assert runtime.retain_llm_timeout == 0.1
         assert runtime.reflect_llm_timeout == 120.0
         assert runtime.retain_max_completion_tokens == 1
+        assert runtime.retain_chunk_size == 1
+        assert runtime.retain_extract_causal_links is True
         assert runtime.retain_extraction_mode == "concise"
+        assert runtime.retain_mission is None
+        assert runtime.retain_custom_instructions is None
         assert runtime.recall_max_concurrent == 32
         assert engine.reranker_tei_batch_size == 128
         assert engine.reranker_max_candidates == 1

@@ -466,6 +466,7 @@ def _normalize_llm_facts(
     chunk_index: int,
     mode: str,
     chunk_text: str,
+    extract_causal_links: bool,
 ) -> list[ExtractedFact]:
     normalized: list[ExtractedFact] = []
 
@@ -552,6 +553,8 @@ def _normalize_llm_facts(
         if fact_kind == "event" and occurred_end is None:
             occurred_end = occurred_start
 
+        causal_relations = _extract_causal_relations(payload.get("causal_relations")) if extract_causal_links else []
+
         normalized.append(
             ExtractedFact(
                 fact_text=fact_text,
@@ -564,7 +567,7 @@ def _normalize_llm_facts(
                 metadata=fact_metadata,
                 content_index=content_index,
                 chunk_index=chunk_index,
-                causal_relations=_extract_causal_relations(payload.get("causal_relations")),
+                causal_relations=causal_relations,
                 action_effect_relations=action_effect_relations,
                 transition_relations=_extract_transition_relations(payload.get("transition_relations")),
                 raw_snippet=content.content,
@@ -589,6 +592,7 @@ async def _extract_facts_with_llm(
     prompt, mode = _build_prompt(config)
     max_tokens = int(getattr(config, "retain_max_completion_tokens", 64000) or 64000)
     chunk_size = int(getattr(config, "retain_chunk_size", 3000) or 3000)
+    extract_causal_links = bool(getattr(config, "retain_extract_causal_links", True))
     content_chunks = _chunk_content(content.content, chunk_size)
 
     extracted: list[ExtractedFact] = []
@@ -618,6 +622,7 @@ async def _extract_facts_with_llm(
             chunk_index=chunk_idx,
             mode=mode,
             chunk_text=chunk_text,
+            extract_causal_links=extract_causal_links,
         )
         extracted.extend(parsed_facts)
 
@@ -633,7 +638,11 @@ async def _extract_facts_with_llm(
     return extracted, chunks, usage
 
 
-def _extract_seeded_facts(content: RetainContent, content_index: int) -> tuple[list[ExtractedFact], ChunkMetadata]:
+def _extract_seeded_facts(
+    content: RetainContent,
+    content_index: int,
+    extract_causal_links: bool,
+) -> tuple[list[ExtractedFact], ChunkMetadata]:
     extracted: list[ExtractedFact] = []
     fact_count = 0
 
@@ -692,6 +701,8 @@ def _extract_seeded_facts(content: RetainContent, content_index: int) -> tuple[l
         if not payload_entities:
             payload_entities = _extract_entities_from_text(fact_text)
 
+        causal_relations = _extract_causal_relations(payload.get("causal_relations")) if extract_causal_links else []
+
         extracted.append(
             ExtractedFact(
                 fact_text=fact_text,
@@ -704,7 +715,7 @@ def _extract_seeded_facts(content: RetainContent, content_index: int) -> tuple[l
                 metadata=fact_metadata,
                 content_index=content_index,
                 chunk_index=content_index,
-                causal_relations=_extract_causal_relations(payload.get("causal_relations")),
+                causal_relations=causal_relations,
                 action_effect_relations=action_effect_relations,
                 transition_relations=_extract_transition_relations(payload.get("transition_relations")),
                 raw_snippet=content.content,
@@ -782,10 +793,15 @@ async def extract_facts_from_contents(
     extracted: list[ExtractedFact] = []
     chunks: list[ChunkMetadata] = []
     usage = TokenUsage()
+    extract_causal_links = bool(getattr(config, "retain_extract_causal_links", True))
 
     for content_index, content in enumerate(contents):
         if content.facts:
-            seeded_facts, seeded_chunk = _extract_seeded_facts(content, content_index)
+            seeded_facts, seeded_chunk = _extract_seeded_facts(
+                content,
+                content_index,
+                extract_causal_links=extract_causal_links,
+            )
             extracted.extend(seeded_facts)
             chunks.append(seeded_chunk)
             continue
