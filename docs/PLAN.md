@@ -691,3 +691,201 @@ Hard rules:
 11. tests/artifacts/test_task701_idea_coverage_matrix.py
 12. tests/artifacts/test_task702_hindsight_removal_gate.py
 13. tests/artifacts/test_task703_removal_playbook_contract.py
+
+---
+
+## 9) Addendum - Phase D Manual Tutorial Full-Coverage (post S18)
+
+Mục tiêu addendum:
+1. Chuyển tutorial từ machine-generated sang manual-first cho toàn bộ file code trong scope runtime + tooling.
+2. Mỗi file code phải có tài liệu giải thích thủ công ở mức symbol-by-symbol (biến, thuộc tính, hàm, class).
+3. Mỗi tài liệu file phải có phần quan hệ chéo: inbound callers, outbound dependencies, side effects runtime.
+4. Có thứ tự đọc bao phủ toàn bộ file trong scope, không bỏ sót.
+
+Phạm vi khóa cho Phase D:
+1. Bao gồm: `cogmem_api/**`, `scripts/**`, `docker/**`.
+2. Bao gồm extension: `.py`, `.sh`, `.ps1`.
+3. Không bao gồm `tests/artifacts/**` trong mandatory tutorial scope (tests vẫn là gate/verification artifacts).
+4. Bộ docs auto hiện có trong `tutorials/functions/` giữ vai trò checklist/inventory, không phải canonical explanation.
+
+### Sprint S19.0 - Scope lock + manifest gate
+Mục tiêu sprint:
+1. Tạo source-of-truth manifest liệt kê toàn bộ file code trong scope Phase D.
+2. Khóa rule include/exclude để không có file bị bỏ sót âm thầm.
+
+Outputs bắt buộc:
+1. `tutorials/per-file/INDEX.md`
+2. `tutorials/per-file/file-manifest.md`
+3. `logs/task_721_summary.md`
+4. `tests/artifacts/test_task721_file_manifest_gate.py`
+
+Exit gate:
+1. Manifest có đầy đủ tất cả file `.py/.sh/.ps1` trong scope.
+2. Mỗi file có trạng thái coverage (`not-started|in-progress|done`).
+
+### Sprint S19.1 - Bootstrap/runtime/manual docs
+Mục tiêu sprint:
+1. Hoàn tất manual docs cho bootstrap/runtime group để làm điểm tựa dependency cho các sprint sau.
+
+File scope bắt buộc:
+1. `cogmem_api/__init__.py`
+2. `cogmem_api/main.py`
+3. `cogmem_api/server.py`
+4. `cogmem_api/config.py`
+5. `cogmem_api/pg0.py`
+
+Outputs bắt buộc:
+1. `tutorials/per-file/bootstrap--*.md` (1 file tutorial cho mỗi file code trong scope sprint)
+2. `logs/task_722_summary.md`
+3. `tests/artifacts/test_task722_manual_bootstrap_coverage.py`
+
+### Sprint S19.2 - API/schema/manual docs
+Mục tiêu sprint:
+1. Hoàn tất manual docs cho lớp API + schema + migration.
+
+File scope bắt buộc:
+1. `cogmem_api/api/__init__.py`
+2. `cogmem_api/api/http.py`
+3. `cogmem_api/models.py`
+4. `cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py`
+
+Outputs bắt buộc:
+1. `tutorials/per-file/api--*.md`
+2. `tutorials/per-file/schema--*.md`
+3. `logs/task_723_summary.md`
+4. `tests/artifacts/test_task723_manual_api_schema_coverage.py`
+
+### Sprint S19.3 - Engine core/manual docs
+Mục tiêu sprint:
+1. Hoàn tất manual docs cho engine core services và runtime state management.
+
+File scope bắt buộc:
+1. `cogmem_api/engine/__init__.py`
+2. `cogmem_api/engine/memory_engine.py`
+3. `cogmem_api/engine/db_utils.py`
+4. `cogmem_api/engine/embeddings.py`
+5. `cogmem_api/engine/cross_encoder.py`
+6. `cogmem_api/engine/llm_wrapper.py`
+7. `cogmem_api/engine/response_models.py`
+
+Outputs bắt buộc:
+1. `tutorials/per-file/engine-core--*.md`
+2. `logs/task_724_summary.md`
+3. `tests/artifacts/test_task724_manual_engine_core_coverage.py`
+
+### Sprint S19.4 - Retain stack/manual docs
+Mục tiêu sprint:
+1. Hoàn tất manual docs cho toàn bộ retain stack.
+
+File scope bắt buộc:
+1. `cogmem_api/engine/retain/__init__.py`
+2. `cogmem_api/engine/retain/types.py`
+3. `cogmem_api/engine/retain/orchestrator.py`
+4. `cogmem_api/engine/retain/fact_extraction.py`
+5. `cogmem_api/engine/retain/fact_storage.py`
+6. `cogmem_api/engine/retain/entity_processing.py`
+7. `cogmem_api/engine/retain/link_creation.py`
+8. `cogmem_api/engine/retain/link_utils.py`
+9. `cogmem_api/engine/retain/embedding_processing.py`
+10. `cogmem_api/engine/retain/embedding_utils.py`
+11. `cogmem_api/engine/retain/chunk_storage.py`
+
+Outputs bắt buộc:
+1. `tutorials/per-file/retain--*.md`
+2. `logs/task_725_summary.md`
+3. `tests/artifacts/test_task725_manual_retain_coverage.py`
+
+### Sprint S19.5 - Search/query/manual docs
+Mục tiêu sprint:
+1. Hoàn tất manual docs cho query analyzer + toàn bộ search stack.
+
+File scope bắt buộc:
+1. `cogmem_api/engine/query_analyzer.py`
+2. `cogmem_api/engine/search/__init__.py`
+3. `cogmem_api/engine/search/types.py`
+4. `cogmem_api/engine/search/retrieval.py`
+5. `cogmem_api/engine/search/fusion.py`
+6. `cogmem_api/engine/search/reranking.py`
+7. `cogmem_api/engine/search/graph_retrieval.py`
+8. `cogmem_api/engine/search/link_expansion_retrieval.py`
+9. `cogmem_api/engine/search/mpfp_retrieval.py`
+10. `cogmem_api/engine/search/tags.py`
+11. `cogmem_api/engine/search/temporal_extraction.py`
+12. `cogmem_api/engine/search/trace.py`
+13. `cogmem_api/engine/search/tracer.py`
+14. `cogmem_api/engine/search/think_utils.py`
+
+Outputs bắt buộc:
+1. `tutorials/per-file/search--*.md`
+2. `logs/task_726_summary.md`
+3. `tests/artifacts/test_task726_manual_search_coverage.py`
+
+### Sprint S19.6 - Reflect + scripts + docker/manual docs
+Mục tiêu sprint:
+1. Hoàn tất manual docs cho reflect stack và toàn bộ scripts/docker code files trong scope.
+
+File scope bắt buộc:
+1. `cogmem_api/engine/reflect/__init__.py`
+2. `cogmem_api/engine/reflect/agent.py`
+3. `cogmem_api/engine/reflect/models.py`
+4. `cogmem_api/engine/reflect/prompts.py`
+5. `cogmem_api/engine/reflect/tools.py`
+6. `scripts/**/*.py`
+7. `scripts/**/*.sh`
+8. `scripts/**/*.ps1`
+9. `docker/**/*.sh`
+10. `docker/**/*.ps1`
+
+Outputs bắt buộc:
+1. `tutorials/per-file/reflect--*.md`
+2. `tutorials/per-file/tooling--*.md`
+3. `tutorials/per-file/docker--*.md`
+4. `logs/task_727_summary.md`
+5. `tests/artifacts/test_task727_manual_reflect_tooling_coverage.py`
+
+### Sprint S19.7 - Canonical reading order all files
+Mục tiêu sprint:
+1. Xuất thứ tự đọc bao phủ 100% file code scope Phase D.
+2. Có hai lộ trình: onboarding path và debug-first path.
+
+Outputs bắt buộc:
+1. `tutorials/per-file/READING-ORDER.md`
+2. Cập nhật `tutorials/INDEX.md`
+3. Cập nhật `tutorials/learning-path.md`
+4. `logs/task_728_summary.md`
+5. `tests/artifacts/test_task728_reading_order_full_scope.py`
+
+### Sprint S19.8 - Final gate manual tutorial completeness
+Mục tiêu sprint:
+1. Đóng cổng chất lượng manual docs cho toàn bộ scope.
+
+Gate checklist bắt buộc:
+1. Mỗi file code trong manifest có đúng 1 tutorial manual tương ứng.
+2. Mỗi tutorial file có đủ các section:
+	- Purpose
+	- Symbol-by-symbol explanation
+	- Cross-file dependencies (inbound/outbound)
+	- Runtime implications/side effects
+	- Failure modes
+	- Verify commands
+3. `tutorials/functions/` chỉ đóng vai trò inventory/checklist, không là canonical explanation.
+
+Outputs bắt buộc:
+1. `reports/manual_tutorial_full_gate.md`
+2. `logs/task_729_summary.md`
+3. `tests/artifacts/test_task729_manual_full_gate.py`
+
+Exit gate Phase D:
+1. Manual tutorial coverage 100% file scope (`cogmem_api + scripts + docker`, `.py/.sh/.ps1`).
+2. Reading order full-scope được publish và pass gate tests.
+3. Regression tutorial pack (716/717/718/719/720 + 721-729) PASS.
+
+---
+
+## 10) Canonical execution order extension (post S18)
+Sau khi hoàn tất S18:
+S19.0 -> S19.1 -> S19.2 -> S19.3 -> S19.4 -> S19.5 -> S19.6 -> S19.7 -> S19.8
+
+Hard rules extension:
+1. Không được claim xong Phase D nếu còn bất kỳ file code nào trong manifest chưa có manual tutorial.
+2. Không dùng auto-generation để thay thế giải thích thủ công cho canonical docs.
