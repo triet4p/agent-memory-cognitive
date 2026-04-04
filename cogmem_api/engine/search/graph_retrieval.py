@@ -56,7 +56,7 @@ class GraphRetriever(ABC):
             pool: Database connection pool
             query_embedding_str: Query embedding as string (for finding entry points)
             bank_id: Memory bank identifier
-            fact_type: Fact type to filter ('world', 'experience', 'opinion', 'observation')
+            fact_type: Fact type to filter (CogMem fact networks)
             budget: Maximum number of nodes to explore/return
             query_text: Original query text (optional, for some strategies)
             semantic_seeds: Pre-computed semantic entry points (from semantic retrieval)
@@ -139,7 +139,7 @@ class BFSGraphRetriever(GraphRetriever):
         Algorithm:
         1. Find entry points (top semantic matches above threshold)
         2. BFS traversal: visit neighbors, propagate decaying activation
-        3. Boost causal links (causes, enables, prevents)
+        3. Boost causal links (`link_type='causal'`)
         4. Return visited nodes up to budget
 
         Note: BFS finds its own entry points via embedding search.
@@ -306,10 +306,8 @@ class BFSGraphRetriever(GraphRetriever):
                     link_type = n["link_type"]
                     base_weight = n["weight"]
 
-                    if link_type in ("causes", "caused_by"):
+                    if link_type == "causal":
                         causal_boost = 2.0
-                    elif link_type in ("enables", "prevents"):
-                        causal_boost = 1.5
                     else:
                         causal_boost = 1.0
 

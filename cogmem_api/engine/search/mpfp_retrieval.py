@@ -128,8 +128,7 @@ class MPFPConfig:
         default_factory=lambda: [
             ["semantic", "semantic"],  # topic expansion
             ["entity", "temporal"],  # entity timeline
-            ["semantic", "causes"],  # reasoning chains (forward)
-            ["semantic", "caused_by"],  # reasoning chains (backward)
+            ["semantic", "causal"],  # reasoning chains
             ["entity", "semantic"],  # entity context
         ]
     )
@@ -188,7 +187,7 @@ async def load_all_edges_for_frontier(
             WITH frontier(node_id) AS (SELECT unnest($1::uuid[]))
             SELECT f.node_id as from_unit_id, lt.link_type, edges.to_unit_id, edges.weight
             FROM frontier f
-            CROSS JOIN (VALUES ('semantic'), ('temporal'), ('entity'), ('causes'), ('caused_by')) AS lt(link_type)
+            CROSS JOIN (VALUES ('semantic'), ('temporal'), ('entity'), ('causal')) AS lt(link_type)
             CROSS JOIN LATERAL (
                 SELECT ml.to_unit_id, ml.weight
                 FROM {fq_table("memory_links")} ml

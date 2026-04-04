@@ -180,8 +180,8 @@ async def retrieve_semantic_bm25_combined(
     of forcing a full sequential scan (which the previous window-function approach
     caused by using PARTITION BY inside ROW_NUMBER()).
 
-    Requires partial HNSW indexes per fact_type (idx_mu_emb_world,
-    idx_mu_emb_observation, idx_mu_emb_experience), created automatically by
+    Requires partial HNSW indexes per fact_type (e.g., idx_mu_emb_world,
+    idx_mu_emb_experience, idx_mu_emb_intention), created automatically by
     Alembic migration a3b4c5d6e7f8_add_partial_hnsw_indexes.py.
 
     HNSW is approximate — semantic arms over-fetch by 5x (min 100) and trim to
@@ -521,7 +521,7 @@ async def retrieve_temporal_combined(
                     SELECT ml.to_unit_id, ml.weight, ml.link_type
                     FROM {fq_table("memory_links")} ml
                     WHERE ml.from_unit_id = src.from_unit_id
-                      AND ml.link_type IN ('temporal', 'causes', 'caused_by', 'enables', 'prevents')
+                                            AND ml.link_type IN ('temporal', 'causal')
                       AND ml.weight >= 0.1
                     ORDER BY ml.weight DESC
                     LIMIT $5
@@ -567,10 +567,8 @@ async def retrieve_temporal_combined(
                     neighbor_temporal_proximity = 0.3
 
                 link_type = n["link_type"]
-                if link_type in ("causes", "caused_by"):
+                if link_type == "causal":
                     causal_boost = 2.0
-                elif link_type in ("enables", "prevents"):
-                    causal_boost = 1.5
                 else:
                     causal_boost = 1.0
 
