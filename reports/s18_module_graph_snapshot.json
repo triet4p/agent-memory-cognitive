@@ -1,0 +1,1255 @@
+[
+  {
+    "module": "cogmem_api/__init__.py",
+    "imports": [
+      "cogmem_api.engine.memory_engine"
+    ],
+    "classes": [],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/api/__init__.py",
+    "imports": [
+      "cogmem_api",
+      "cogmem_api.api.http",
+      "fastapi"
+    ],
+    "classes": [],
+    "functions": [
+      "create_app"
+    ]
+  },
+  {
+    "module": "cogmem_api/api/http.py",
+    "imports": [
+      "__future__",
+      "cogmem_api",
+      "contextlib",
+      "datetime",
+      "fastapi",
+      "fastapi.responses",
+      "pydantic",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "HealthResponse",
+        "methods": []
+      },
+      {
+        "name": "VersionResponse",
+        "methods": []
+      },
+      {
+        "name": "EntityInput",
+        "methods": []
+      },
+      {
+        "name": "RetainItem",
+        "methods": []
+      },
+      {
+        "name": "RetainRequest",
+        "methods": []
+      },
+      {
+        "name": "RetainResponse",
+        "methods": []
+      },
+      {
+        "name": "RecallRequest",
+        "methods": []
+      },
+      {
+        "name": "RecallResult",
+        "methods": []
+      },
+      {
+        "name": "RecallResponse",
+        "methods": []
+      }
+    ],
+    "functions": [
+      "_parse_query_timestamp",
+      "_build_retain_payload",
+      "create_app"
+    ]
+  },
+  {
+    "module": "cogmem_api/config.py",
+    "imports": [
+      "__future__",
+      "dataclasses",
+      "os"
+    ],
+    "classes": [
+      {
+        "name": "CogMemRuntimeConfig",
+        "methods": []
+      },
+      {
+        "name": "CogMemConfig",
+        "methods": []
+      }
+    ],
+    "functions": [
+      "_read_optional_str",
+      "_read_int",
+      "_read_float",
+      "_read_bool",
+      "_read_retain_extraction_mode",
+      "_read_graph_retriever",
+      "_get_raw_config",
+      "get_config"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/__init__.py",
+    "imports": [
+      "memory_engine",
+      "reflect",
+      "retain"
+    ],
+    "classes": [],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/cross_encoder.py",
+    "imports": [
+      "__future__",
+      "abc",
+      "asyncio",
+      "cogmem_api.config",
+      "concurrent.futures",
+      "httpx",
+      "importlib",
+      "logging",
+      "warnings"
+    ],
+    "classes": [
+      {
+        "name": "CrossEncoderModel",
+        "methods": [
+          "provider_name",
+          "initialize",
+          "predict"
+        ]
+      },
+      {
+        "name": "LocalSTCrossEncoder",
+        "methods": [
+          "__init__",
+          "provider_name",
+          "initialize",
+          "_predict_sync",
+          "predict"
+        ]
+      },
+      {
+        "name": "RemoteTEICrossEncoder",
+        "methods": [
+          "__init__",
+          "provider_name",
+          "initialize",
+          "_rerank_batch",
+          "predict"
+        ]
+      },
+      {
+        "name": "RRFPassthroughCrossEncoder",
+        "methods": [
+          "provider_name",
+          "initialize",
+          "predict"
+        ]
+      }
+    ],
+    "functions": [
+      "create_cross_encoder_from_env"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/db_utils.py",
+    "imports": [
+      "__future__",
+      "asyncio",
+      "asyncpg",
+      "contextlib",
+      "logging"
+    ],
+    "classes": [],
+    "functions": [
+      "retry_with_backoff",
+      "acquire_with_retry"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/embeddings.py",
+    "imports": [
+      "__future__",
+      "abc",
+      "cogmem_api.config",
+      "hashlib",
+      "importlib",
+      "logging",
+      "math"
+    ],
+    "classes": [
+      {
+        "name": "Embeddings",
+        "methods": [
+          "provider_name",
+          "dimension",
+          "initialize",
+          "encode"
+        ]
+      },
+      {
+        "name": "DeterministicEmbeddings",
+        "methods": [
+          "__init__",
+          "provider_name",
+          "dimension",
+          "initialize",
+          "_embed_one",
+          "encode"
+        ]
+      },
+      {
+        "name": "LocalSTEmbeddings",
+        "methods": [
+          "__init__",
+          "provider_name",
+          "dimension",
+          "initialize",
+          "encode"
+        ]
+      },
+      {
+        "name": "OpenAIEmbeddings",
+        "methods": [
+          "__init__",
+          "provider_name",
+          "dimension",
+          "initialize",
+          "encode"
+        ]
+      }
+    ],
+    "functions": [
+      "create_embeddings_from_env"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/llm_wrapper.py",
+    "imports": [
+      "__future__",
+      "dataclasses",
+      "httpx",
+      "json",
+      "re",
+      "response_models",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "OutputTooLongError",
+        "methods": []
+      },
+      {
+        "name": "LLMConfig",
+        "methods": [
+          "call",
+          "_post_chat_completions"
+        ]
+      }
+    ],
+    "functions": [
+      "sanitize_llm_output",
+      "parse_llm_json"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/memory_engine.py",
+    "imports": [
+      "__future__",
+      "asyncpg",
+      "cogmem_api",
+      "cogmem_api.engine.llm_wrapper",
+      "cogmem_api.models",
+      "cogmem_api.pg0",
+      "contextlib",
+      "contextvars",
+      "datetime",
+      "db_utils",
+      "embeddings",
+      "logging",
+      "os",
+      "re",
+      "sqlalchemy",
+      "sqlalchemy.ext.asyncio",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "UnqualifiedTableError",
+        "methods": []
+      },
+      {
+        "name": "MemoryEngine",
+        "methods": [
+          "__init__",
+          "initialized",
+          "pool",
+          "initialize",
+          "_bootstrap_schema_objects",
+          "_initialize_embeddings_model",
+          "close",
+          "execute",
+          "health_check",
+          "_format_date",
+          "_build_retain_llm_config",
+          "retain_batch_async",
+          "retain_async",
+          "_fallback_recall_from_conn",
+          "recall_async"
+        ]
+      }
+    ],
+    "functions": [
+      "get_current_schema",
+      "set_schema_context",
+      "fq_table",
+      "validate_sql_schema"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/query_analyzer.py",
+    "imports": [
+      "abc",
+      "datetime",
+      "logging",
+      "pydantic",
+      "re",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "TemporalConstraint",
+        "methods": [
+          "__str__"
+        ]
+      },
+      {
+        "name": "QueryAnalysis",
+        "methods": []
+      },
+      {
+        "name": "QueryAnalyzer",
+        "methods": [
+          "load",
+          "analyze"
+        ]
+      },
+      {
+        "name": "DateparserQueryAnalyzer",
+        "methods": [
+          "__init__",
+          "load",
+          "analyze",
+          "_extract_period"
+        ]
+      },
+      {
+        "name": "TransformerQueryAnalyzer",
+        "methods": [
+          "__init__",
+          "load",
+          "_load_model",
+          "_extract_with_rules",
+          "analyze",
+          "_no_grad",
+          "_parse_generated_output"
+        ]
+      }
+    ],
+    "functions": [
+      "get_adaptive_rrf_weights",
+      "classify_query_type",
+      "build_query_analysis"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/reflect/__init__.py",
+    "imports": [
+      "agent",
+      "models",
+      "prompts",
+      "tools"
+    ],
+    "classes": [],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/reflect/agent.py",
+    "imports": [
+      "__future__",
+      "collections.abc",
+      "models",
+      "prompts",
+      "tools",
+      "typing"
+    ],
+    "classes": [],
+    "functions": [
+      "_default_markdown_answer",
+      "synthesize_lazy_reflect"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/reflect/models.py",
+    "imports": [
+      "__future__",
+      "datetime",
+      "pydantic",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "ReflectEvidence",
+        "methods": [
+          "_validate_text",
+          "_normalize_raw_snippet"
+        ]
+      },
+      {
+        "name": "ReflectSynthesisResult",
+        "methods": []
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/reflect/prompts.py",
+    "imports": [
+      "__future__",
+      "models",
+      "typing"
+    ],
+    "classes": [],
+    "functions": [
+      "_truncate",
+      "build_lazy_synthesis_prompt"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/reflect/tools.py",
+    "imports": [
+      "__future__",
+      "cogmem_api.engine.search.types",
+      "collections",
+      "datetime",
+      "models",
+      "typing"
+    ],
+    "classes": [],
+    "functions": [
+      "_coerce_score",
+      "_coerce_datetime",
+      "_normalize_payload",
+      "to_reflect_evidence",
+      "prepare_lazy_evidence",
+      "group_evidence_by_network"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/response_models.py",
+    "imports": [
+      "__future__",
+      "dataclasses",
+      "datetime"
+    ],
+    "classes": [
+      {
+        "name": "DispositionTraits",
+        "methods": [
+          "__post_init__"
+        ]
+      },
+      {
+        "name": "MemoryFact",
+        "methods": []
+      },
+      {
+        "name": "TokenUsage",
+        "methods": [
+          "__add__"
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/retain/__init__.py",
+    "imports": [
+      "orchestrator",
+      "types"
+    ],
+    "classes": [],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/retain/chunk_storage.py",
+    "imports": [
+      "__future__",
+      "types"
+    ],
+    "classes": [],
+    "functions": [
+      "store_chunks_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/embedding_processing.py",
+    "imports": [
+      "__future__",
+      "datetime",
+      "types"
+    ],
+    "classes": [],
+    "functions": [
+      "augment_texts_with_dates",
+      "generate_embeddings_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/embedding_utils.py",
+    "imports": [
+      "__future__",
+      "cogmem_api.config",
+      "collections.abc",
+      "hashlib",
+      "math"
+    ],
+    "classes": [],
+    "functions": [
+      "_deterministic_embedding",
+      "generate_embeddings_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/entity_processing.py",
+    "imports": [
+      "__future__",
+      "types",
+      "uuid"
+    ],
+    "classes": [],
+    "functions": [
+      "_normalize_entity_name",
+      "_resolve_entity_id",
+      "process_entities_batch",
+      "insert_entity_links_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/fact_extraction.py",
+    "imports": [
+      "__future__",
+      "cogmem_api.engine.llm_wrapper",
+      "cogmem_api.engine.response_models",
+      "datetime",
+      "re",
+      "types",
+      "typing"
+    ],
+    "classes": [],
+    "functions": [
+      "_safe_datetime",
+      "_parse_datetime",
+      "_extract_entities",
+      "_extract_entities_from_text",
+      "_first_non_empty",
+      "_normalized_optional_text",
+      "_infer_fact_type",
+      "_extract_causal_relations",
+      "_extract_action_effect_relations",
+      "_parse_action_effect_triplet",
+      "_extract_transition_relations",
+      "_fallback_fact_splits",
+      "_chunk_content",
+      "_build_prompt",
+      "_build_user_message",
+      "_call_llm_chunk",
+      "_normalize_llm_facts",
+      "_extract_facts_with_llm",
+      "_extract_seeded_facts",
+      "_extract_fallback_facts",
+      "extract_facts_from_contents"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/fact_storage.py",
+    "imports": [
+      "__future__",
+      "cogmem_api.engine.memory_engine",
+      "datetime",
+      "json",
+      "types"
+    ],
+    "classes": [],
+    "functions": [
+      "_event_date_for_fact",
+      "_prepare_fact_for_storage",
+      "ensure_bank_exists",
+      "insert_facts_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/link_creation.py",
+    "imports": [
+      "__future__",
+      "types"
+    ],
+    "classes": [],
+    "functions": [
+      "create_temporal_links_batch",
+      "create_semantic_links_batch",
+      "create_causal_links_batch",
+      "create_habit_sr_links_batch",
+      "create_transition_links_batch",
+      "create_action_effect_links_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/link_utils.py",
+    "imports": [
+      "__future__",
+      "cogmem_api.engine.memory_engine",
+      "datetime",
+      "math"
+    ],
+    "classes": [],
+    "functions": [
+      "cosine_similarity",
+      "build_temporal_links",
+      "build_semantic_links",
+      "insert_links",
+      "fetch_event_dates"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/orchestrator.py",
+    "imports": [
+      "__future__",
+      "asyncpg",
+      "cogmem_api.engine.db_utils",
+      "cogmem_api.engine.response_models",
+      "collections.abc",
+      "contextlib",
+      "datetime",
+      "types",
+      "typing"
+    ],
+    "classes": [],
+    "functions": [
+      "utcnow",
+      "parse_datetime_flexible",
+      "_maybe_transaction",
+      "_map_results_to_contents",
+      "retain_batch"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/retain/types.py",
+    "imports": [
+      "__future__",
+      "dataclasses",
+      "datetime",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "RetainFactSeed",
+        "methods": []
+      },
+      {
+        "name": "RetainContentDict",
+        "methods": []
+      },
+      {
+        "name": "RetainContent",
+        "methods": [
+          "from_dict"
+        ]
+      },
+      {
+        "name": "ChunkMetadata",
+        "methods": []
+      },
+      {
+        "name": "CausalRelation",
+        "methods": []
+      },
+      {
+        "name": "ActionEffectRelation",
+        "methods": []
+      },
+      {
+        "name": "TransitionRelation",
+        "methods": []
+      },
+      {
+        "name": "ExtractedFact",
+        "methods": []
+      },
+      {
+        "name": "ProcessedFact",
+        "methods": [
+          "from_extracted_fact"
+        ]
+      },
+      {
+        "name": "EntityLink",
+        "methods": []
+      }
+    ],
+    "functions": [
+      "coerce_fact_type",
+      "clamp_relation_strength",
+      "normalize_intention_status",
+      "_normalize_bool",
+      "sanitize_raw_snippet",
+      "_build_edge_intent_payload",
+      "normalize_fact_metadata"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/__init__.py",
+    "imports": [
+      "graph_retrieval",
+      "mpfp_retrieval",
+      "reranking",
+      "retrieval"
+    ],
+    "classes": [],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/search/fusion.py",
+    "imports": [
+      "types",
+      "typing"
+    ],
+    "classes": [],
+    "functions": [
+      "weighted_reciprocal_rank_fusion",
+      "reciprocal_rank_fusion",
+      "normalize_scores_on_deltas"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/graph_retrieval.py",
+    "imports": [
+      "abc",
+      "cogmem_api.engine.db_utils",
+      "cogmem_api.engine.memory_engine",
+      "collections",
+      "logging",
+      "tags",
+      "types"
+    ],
+    "classes": [
+      {
+        "name": "GraphRetriever",
+        "methods": [
+          "name",
+          "retrieve"
+        ]
+      },
+      {
+        "name": "BFSGraphRetriever",
+        "methods": [
+          "__init__",
+          "name",
+          "retrieve",
+          "_retrieve_with_conn"
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/search/link_expansion_retrieval.py",
+    "imports": [
+      "cogmem_api.engine.db_utils",
+      "cogmem_api.engine.memory_engine",
+      "graph_retrieval",
+      "logging",
+      "math",
+      "tags",
+      "time",
+      "types"
+    ],
+    "classes": [
+      {
+        "name": "LinkExpansionRetriever",
+        "methods": [
+          "__init__",
+          "name",
+          "retrieve",
+          "_expand_combined"
+        ]
+      }
+    ],
+    "functions": [
+      "_find_semantic_seeds"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/mpfp_retrieval.py",
+    "imports": [
+      "asyncio",
+      "cogmem_api.engine.db_utils",
+      "cogmem_api.engine.memory_engine",
+      "collections",
+      "dataclasses",
+      "graph_retrieval",
+      "logging",
+      "tags",
+      "types"
+    ],
+    "classes": [
+      {
+        "name": "EdgeTarget",
+        "methods": []
+      },
+      {
+        "name": "EdgeCache",
+        "methods": [
+          "get_neighbors",
+          "get_normalized_neighbors",
+          "is_fully_loaded",
+          "get_uncached",
+          "add_all_edges"
+        ]
+      },
+      {
+        "name": "PatternResult",
+        "methods": []
+      },
+      {
+        "name": "MPFPConfig",
+        "methods": []
+      },
+      {
+        "name": "SeedNode",
+        "methods": []
+      },
+      {
+        "name": "PatternState",
+        "methods": []
+      },
+      {
+        "name": "MPFPGraphRetriever",
+        "methods": [
+          "__init__",
+          "name",
+          "retrieve",
+          "_convert_seeds",
+          "_find_semantic_seeds"
+        ]
+      }
+    ],
+    "functions": [
+      "load_all_edges_for_frontier",
+      "_init_pattern_state",
+      "_execute_hop",
+      "_finalize_pattern",
+      "mpfp_traverse_hop_synchronized",
+      "mpfp_traverse_async",
+      "rrf_fusion",
+      "fetch_memory_units_by_ids"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/reranking.py",
+    "imports": [
+      "datetime",
+      "math",
+      "types"
+    ],
+    "classes": [
+      {
+        "name": "CrossEncoderReranker",
+        "methods": [
+          "__init__",
+          "ensure_initialized",
+          "rerank"
+        ]
+      }
+    ],
+    "functions": [
+      "apply_combined_scoring"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/retrieval.py",
+    "imports": [
+      "asyncio",
+      "cogmem_api.config",
+      "cogmem_api.engine.db_utils",
+      "cogmem_api.engine.memory_engine",
+      "cogmem_api.engine.query_analyzer",
+      "dataclasses",
+      "datetime",
+      "fusion",
+      "graph_retrieval",
+      "link_expansion_retrieval",
+      "logging",
+      "mpfp_retrieval",
+      "tags",
+      "types",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "ParallelRetrievalResult",
+        "methods": []
+      },
+      {
+        "name": "QueryRoutingDecision",
+        "methods": []
+      },
+      {
+        "name": "MultiFactTypeRetrievalResult",
+        "methods": []
+      }
+    ],
+    "functions": [
+      "_select_fact_types_for_query",
+      "_apply_query_type_evidence_priority",
+      "_collect_intention_result_ids",
+      "_resolve_planning_intention_ids",
+      "_filter_prospective_results",
+      "resolve_query_routing",
+      "fuse_parallel_results",
+      "get_default_graph_retriever",
+      "set_default_graph_retriever",
+      "retrieve_semantic_bm25_combined",
+      "retrieve_temporal_combined",
+      "retrieve_all_fact_types_parallel"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/tags.py",
+    "imports": [
+      "__future__",
+      "pydantic",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "TagGroupLeaf",
+        "methods": []
+      },
+      {
+        "name": "TagGroupAnd",
+        "methods": []
+      },
+      {
+        "name": "TagGroupOr",
+        "methods": []
+      },
+      {
+        "name": "TagGroupNot",
+        "methods": []
+      }
+    ],
+    "functions": [
+      "_parse_tags_match",
+      "build_tags_where_clause",
+      "build_tags_where_clause_simple",
+      "filter_results_by_tags",
+      "_build_group_clause",
+      "build_tag_groups_where_clause",
+      "_match_group",
+      "filter_results_by_tag_groups"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/temporal_extraction.py",
+    "imports": [
+      "cogmem_api.engine.query_analyzer",
+      "datetime",
+      "logging"
+    ],
+    "classes": [],
+    "functions": [
+      "get_default_analyzer",
+      "extract_temporal_constraint"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/think_utils.py",
+    "imports": [
+      "cogmem_api.engine.response_models",
+      "datetime",
+      "logging"
+    ],
+    "classes": [],
+    "functions": [
+      "describe_trait_level",
+      "build_disposition_description",
+      "format_facts_for_prompt",
+      "format_entity_summaries_for_prompt",
+      "build_think_prompt",
+      "get_system_message",
+      "reflect"
+    ]
+  },
+  {
+    "module": "cogmem_api/engine/search/trace.py",
+    "imports": [
+      "datetime",
+      "pydantic",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "TemporalConstraint",
+        "methods": []
+      },
+      {
+        "name": "QueryInfo",
+        "methods": []
+      },
+      {
+        "name": "EntryPoint",
+        "methods": []
+      },
+      {
+        "name": "WeightComponents",
+        "methods": []
+      },
+      {
+        "name": "LinkInfo",
+        "methods": []
+      },
+      {
+        "name": "NodeVisit",
+        "methods": []
+      },
+      {
+        "name": "PruningDecision",
+        "methods": []
+      },
+      {
+        "name": "SearchPhaseMetrics",
+        "methods": []
+      },
+      {
+        "name": "RetrievalResult",
+        "methods": []
+      },
+      {
+        "name": "RetrievalMethodResults",
+        "methods": []
+      },
+      {
+        "name": "RRFMergeResult",
+        "methods": []
+      },
+      {
+        "name": "RerankedResult",
+        "methods": []
+      },
+      {
+        "name": "SearchSummary",
+        "methods": []
+      },
+      {
+        "name": "SearchTrace",
+        "methods": [
+          "to_json",
+          "to_dict",
+          "get_visit_by_node_id",
+          "get_search_path_to_node",
+          "get_nodes_by_link_type",
+          "get_entry_point_nodes"
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/search/tracer.py",
+    "imports": [
+      "datetime",
+      "time",
+      "trace",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "SearchTracer",
+        "methods": [
+          "__init__",
+          "start",
+          "record_query_embedding",
+          "record_temporal_constraint",
+          "add_entry_point",
+          "visit_node",
+          "add_neighbor_link",
+          "prune_node",
+          "add_phase_metric",
+          "add_retrieval_results",
+          "add_rrf_merged",
+          "add_reranked",
+          "finalize"
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/engine/search/types.py",
+    "imports": [
+      "dataclasses",
+      "datetime",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "MPFPTimings",
+        "methods": []
+      },
+      {
+        "name": "RetrievalResult",
+        "methods": [
+          "from_db_row"
+        ]
+      },
+      {
+        "name": "MergedCandidate",
+        "methods": [
+          "id"
+        ]
+      },
+      {
+        "name": "ScoredResult",
+        "methods": [
+          "id",
+          "retrieval",
+          "to_dict"
+        ]
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/main.py",
+    "imports": [
+      "__future__",
+      "argparse",
+      "cogmem_api.config",
+      "uvicorn"
+    ],
+    "classes": [],
+    "functions": [
+      "build_parser",
+      "main"
+    ]
+  },
+  {
+    "module": "cogmem_api/models.py",
+    "imports": [
+      "config",
+      "dataclasses",
+      "datetime",
+      "pgvector.sqlalchemy",
+      "sqlalchemy",
+      "sqlalchemy.dialects.postgresql",
+      "sqlalchemy.ext.asyncio",
+      "sqlalchemy.orm",
+      "uuid"
+    ],
+    "classes": [
+      {
+        "name": "RequestContext",
+        "methods": []
+      },
+      {
+        "name": "Base",
+        "methods": []
+      },
+      {
+        "name": "Document",
+        "methods": []
+      },
+      {
+        "name": "MemoryUnit",
+        "methods": []
+      },
+      {
+        "name": "Entity",
+        "methods": []
+      },
+      {
+        "name": "UnitEntity",
+        "methods": []
+      },
+      {
+        "name": "EntityCooccurrence",
+        "methods": []
+      },
+      {
+        "name": "MemoryLink",
+        "methods": []
+      },
+      {
+        "name": "Bank",
+        "methods": []
+      }
+    ],
+    "functions": []
+  },
+  {
+    "module": "cogmem_api/pg0.py",
+    "imports": [
+      "__future__",
+      "asyncio",
+      "logging",
+      "typing"
+    ],
+    "classes": [
+      {
+        "name": "EmbeddedPostgres",
+        "methods": [
+          "__init__",
+          "_get_pg0",
+          "start",
+          "stop",
+          "get_uri",
+          "is_running",
+          "ensure_running"
+        ]
+      }
+    ],
+    "functions": [
+      "parse_pg0_url"
+    ]
+  },
+  {
+    "module": "cogmem_api/server.py",
+    "imports": [
+      "__future__",
+      "cogmem_api",
+      "cogmem_api.api",
+      "cogmem_api.config",
+      "logging"
+    ],
+    "classes": [],
+    "functions": []
+  }
+]

@@ -1,0 +1,192 @@
+[
+  {
+    "module": "cogmem_api/api/__init__.py",
+    "doc": "tutorials/functions/cogmem_api_api___init__.md",
+    "function_count": 1
+  },
+  {
+    "module": "cogmem_api/api/http.py",
+    "doc": "tutorials/functions/cogmem_api_api_http.md",
+    "function_count": 3
+  },
+  {
+    "module": "cogmem_api/config.py",
+    "doc": "tutorials/functions/cogmem_api_config.md",
+    "function_count": 8
+  },
+  {
+    "module": "cogmem_api/engine/cross_encoder.py",
+    "doc": "tutorials/functions/cogmem_api_engine_cross_encoder.md",
+    "function_count": 17
+  },
+  {
+    "module": "cogmem_api/engine/db_utils.py",
+    "doc": "tutorials/functions/cogmem_api_engine_db_utils.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/embeddings.py",
+    "doc": "tutorials/functions/cogmem_api_engine_embeddings.md",
+    "function_count": 21
+  },
+  {
+    "module": "cogmem_api/engine/llm_wrapper.py",
+    "doc": "tutorials/functions/cogmem_api_engine_llm_wrapper.md",
+    "function_count": 4
+  },
+  {
+    "module": "cogmem_api/engine/memory_engine.py",
+    "doc": "tutorials/functions/cogmem_api_engine_memory_engine.md",
+    "function_count": 19
+  },
+  {
+    "module": "cogmem_api/engine/query_analyzer.py",
+    "doc": "tutorials/functions/cogmem_api_engine_query_analyzer.md",
+    "function_count": 17
+  },
+  {
+    "module": "cogmem_api/engine/reflect/agent.py",
+    "doc": "tutorials/functions/cogmem_api_engine_reflect_agent.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/reflect/models.py",
+    "doc": "tutorials/functions/cogmem_api_engine_reflect_models.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/reflect/prompts.py",
+    "doc": "tutorials/functions/cogmem_api_engine_reflect_prompts.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/reflect/tools.py",
+    "doc": "tutorials/functions/cogmem_api_engine_reflect_tools.md",
+    "function_count": 6
+  },
+  {
+    "module": "cogmem_api/engine/response_models.py",
+    "doc": "tutorials/functions/cogmem_api_engine_response_models.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/retain/chunk_storage.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_chunk_storage.md",
+    "function_count": 1
+  },
+  {
+    "module": "cogmem_api/engine/retain/embedding_processing.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_embedding_processing.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/retain/embedding_utils.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_embedding_utils.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/retain/entity_processing.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_entity_processing.md",
+    "function_count": 4
+  },
+  {
+    "module": "cogmem_api/engine/retain/fact_extraction.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_fact_extraction.md",
+    "function_count": 21
+  },
+  {
+    "module": "cogmem_api/engine/retain/fact_storage.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_fact_storage.md",
+    "function_count": 4
+  },
+  {
+    "module": "cogmem_api/engine/retain/link_creation.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_link_creation.md",
+    "function_count": 6
+  },
+  {
+    "module": "cogmem_api/engine/retain/link_utils.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_link_utils.md",
+    "function_count": 5
+  },
+  {
+    "module": "cogmem_api/engine/retain/orchestrator.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_orchestrator.md",
+    "function_count": 5
+  },
+  {
+    "module": "cogmem_api/engine/retain/types.py",
+    "doc": "tutorials/functions/cogmem_api_engine_retain_types.md",
+    "function_count": 9
+  },
+  {
+    "module": "cogmem_api/engine/search/fusion.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_fusion.md",
+    "function_count": 3
+  },
+  {
+    "module": "cogmem_api/engine/search/graph_retrieval.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_graph_retrieval.md",
+    "function_count": 6
+  },
+  {
+    "module": "cogmem_api/engine/search/link_expansion_retrieval.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_link_expansion_retrieval.md",
+    "function_count": 5
+  },
+  {
+    "module": "cogmem_api/engine/search/mpfp_retrieval.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_mpfp_retrieval.md",
+    "function_count": 18
+  },
+  {
+    "module": "cogmem_api/engine/search/reranking.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_reranking.md",
+    "function_count": 4
+  },
+  {
+    "module": "cogmem_api/engine/search/retrieval.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_retrieval.md",
+    "function_count": 12
+  },
+  {
+    "module": "cogmem_api/engine/search/tags.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_tags.md",
+    "function_count": 8
+  },
+  {
+    "module": "cogmem_api/engine/search/temporal_extraction.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_temporal_extraction.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/engine/search/think_utils.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_think_utils.md",
+    "function_count": 7
+  },
+  {
+    "module": "cogmem_api/engine/search/trace.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_trace.md",
+    "function_count": 6
+  },
+  {
+    "module": "cogmem_api/engine/search/tracer.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_tracer.md",
+    "function_count": 13
+  },
+  {
+    "module": "cogmem_api/engine/search/types.py",
+    "doc": "tutorials/functions/cogmem_api_engine_search_types.md",
+    "function_count": 5
+  },
+  {
+    "module": "cogmem_api/main.py",
+    "doc": "tutorials/functions/cogmem_api_main.md",
+    "function_count": 2
+  },
+  {
+    "module": "cogmem_api/pg0.py",
+    "doc": "tutorials/functions/cogmem_api_pg0.md",
+    "function_count": 8
+  }
+]
