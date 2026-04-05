@@ -8,6 +8,8 @@ Scope hiện tại đã hoàn tất nền S16/S17 và bổ sung inventory đầy
 1. Chỉ mục tổng hợp: tutorials/INDEX.md
 2. Framework và quy chuẩn: tutorials/README.md
 3. Hướng dẫn đọc code thủ công: tutorials/manual-code-reading-guide.md
+4. Phase D per-file index: tutorials/per-file/INDEX.md
+5. Phase D canonical reading order: tutorials/per-file/READING-ORDER.md
 
 ## Thứ tự đọc đề xuất
 1. Manual-first walkthrough
@@ -42,6 +44,12 @@ Scope hiện tại đã hoàn tất nền S16/S17 và bổ sung inventory đầy
    - Dùng tutorials/templates/function-property-template.md làm khung mặc định.
    - Bảo đảm đủ các heading bắt buộc: Purpose, Inputs, Outputs, Top-down level, Prerequisites, Module responsibility, Function inventory (public/private), Failure modes, Verify commands.
 
+8. Phase D canonical per-file reading
+   - Doc [tutorials/per-file/READING-ORDER.md](per-file/READING-ORDER.md).
+   - Mục tiêu: đọc theo catalog ID để bao phủ 100% file code scope Phase D.
+   - Khi onboarding: áp dụng `ONBOARDING_IDS` theo thứ tự tuyệt đối.
+   - Khi debug production: áp dụng `DEBUG_FIRST_IDS` để khoanh vùng nhanh.
+
 ## Checklist hoàn tất S16.1
 1. Có đủ 2 tài liệu scaffold: `tutorials/module-map.md` và `tutorials/learning-path.md`.
 2. Learning path thể hiện rõ trình tự Architecture -> Module -> Function.
@@ -61,3 +69,4 @@ Scope hiện tại đã hoàn tất nền S16/S17 và bổ sung inventory đầy
 1. `uv run python tests/artifacts/test_task716_tutorial_framework.py`
 2. `uv run python tests/artifacts/test_task718_function_inventory.py`
 3. `uv run python tests/artifacts/test_task719_function_deep_dive.py`
+4. `uv run python tests/artifacts/test_task728_reading_order_full_scope.py`
