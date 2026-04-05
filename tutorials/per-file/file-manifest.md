@@ -14,11 +14,11 @@
 
 | # | File Path | Extension | Coverage Status | Tutorial Doc |
 |---|---|---|---|---|
-| 1 | cogmem_api/__init__.py | .py | not-started | TBD |
+| 1 | cogmem_api/__init__.py | .py | done | tutorials/per-file/bootstrap--cogmem-api-init.md |
 | 2 | cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py | .py | not-started | TBD |
 | 3 | cogmem_api/api/__init__.py | .py | not-started | TBD |
 | 4 | cogmem_api/api/http.py | .py | not-started | TBD |
-| 5 | cogmem_api/config.py | .py | not-started | TBD |
+| 5 | cogmem_api/config.py | .py | done | tutorials/per-file/bootstrap--cogmem-api-config.md |
 | 6 | cogmem_api/engine/__init__.py | .py | not-started | TBD |
 | 7 | cogmem_api/engine/cross_encoder.py | .py | not-started | TBD |
 | 8 | cogmem_api/engine/db_utils.py | .py | not-started | TBD |
@@ -56,10 +56,10 @@
 | 40 | cogmem_api/engine/search/trace.py | .py | not-started | TBD |
 | 41 | cogmem_api/engine/search/tracer.py | .py | not-started | TBD |
 | 42 | cogmem_api/engine/search/types.py | .py | not-started | TBD |
-| 43 | cogmem_api/main.py | .py | not-started | TBD |
+| 43 | cogmem_api/main.py | .py | done | tutorials/per-file/bootstrap--cogmem-api-main.md |
 | 44 | cogmem_api/models.py | .py | not-started | TBD |
-| 45 | cogmem_api/pg0.py | .py | not-started | TBD |
-| 46 | cogmem_api/server.py | .py | not-started | TBD |
+| 45 | cogmem_api/pg0.py | .py | done | tutorials/per-file/bootstrap--cogmem-api-pg0.md |
+| 46 | cogmem_api/server.py | .py | done | tutorials/per-file/bootstrap--cogmem-api-server.md |
 | 47 | docker/standalone/start-all.sh | .sh | not-started | TBD |
 | 48 | docker/test-image.ps1 | .ps1 | not-started | TBD |
 | 49 | docker/test-image.sh | .sh | not-started | TBD |
