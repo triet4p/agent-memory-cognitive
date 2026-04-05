@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/reranking.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py)
 
 ## Purpose (Mục đích)
 - Rerank kết quả sau RRF bằng cross-encoder.
 - Tính combined score dựa trên cross-encoder score và các boost recency hoặc temporal.
 
 ## Source File
-- cogmem_api/engine/search/reranking.py
+- [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py)
 
 ## Symbol-by-symbol explanation
 ### _RECENCY_ALPHA, _TEMPORAL_ALPHA

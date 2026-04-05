@@ -1,4 +1,4 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/__init__.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/__init__.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa public surface của package engine.
@@ -6,7 +6,7 @@
 - Ẩn chi tiết cấu trúc thư mục con retain/reflect/memory_engine.
 
 ## Source File
-- cogmem_api/engine/__init__.py
+- [cogmem_api/engine/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/__init__.py)
 
 ## Symbol-by-symbol explanation
 ### MemoryEngine
@@ -38,9 +38,9 @@
 - Các module runtime có thể import trực tiếp từ cogmem_api.engine thay vì truy cập sâu.
 
 ### Outbound dependencies
-- cogmem_api/engine/memory_engine.py
-- cogmem_api/engine/retain/__init__.py
-- cogmem_api/engine/reflect/__init__.py
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py)
+- [cogmem_api/engine/retain/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/__init__.py)
+- [cogmem_api/engine/reflect/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/__init__.py)
 
 ## Runtime implications/side effects
 - Import cogmem_api.engine sẽ kéo theo import chuỗi các module được re-export.

@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/link_expansion_retrieval.py
+# Function Deep Dive - [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,11 +28,11 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _find_semantic_seeds | private | async _find_semantic_seeds(conn, query_embedding_str: str, bank_id: str, fact_type: str, limit: int=20, threshold: float=0.3, tags: list[str] \| None=None, tags_match: TagsMatch='any', tag_groups: list[TagGroup] \| None=None) -> list[RetrievalResult] | cogmem_api/engine/search/link_expansion_retrieval.py:39 | documented |
-| LinkExpansionRetriever | __init__ | private | __init__(self, causal_weight_threshold: float=0.3) | cogmem_api/engine/search/link_expansion_retrieval.py:93 | documented |
-| LinkExpansionRetriever | name | public | name(self) -> str | cogmem_api/engine/search/link_expansion_retrieval.py:104 | documented |
-| LinkExpansionRetriever | retrieve | public | async retrieve(self, pool, query_embedding_str: str, bank_id: str, fact_type: str, budget: int, query_text: str \| None=None, semantic_seeds: list[RetrievalResult] \| None=None, temporal_seeds: list[RetrievalResult] \| None=None, adjacency=None, tags: list[str] \| None=None, tags_match: TagsMatch='any', tag_groups: list[TagGroup] \| None=None) -> tuple[list[RetrievalResult], MPFPTimings \| None] | cogmem_api/engine/search/link_expansion_retrieval.py:107 | documented |
-| LinkExpansionRetriever | _expand_combined | private | async _expand_combined(self, conn, seed_ids: list, fact_type: str, budget: int) -> tuple[list, list, list, list] | cogmem_api/engine/search/link_expansion_retrieval.py:254 | documented |
+| (module) | _find_semantic_seeds | private | async _find_semantic_seeds(conn, query_embedding_str: str, bank_id: str, fact_type: str, limit: int=20, threshold: float=0.3, tags: list[str] \| None=None, tags_match: TagsMatch='any', tag_groups: list[TagGroup] \| None=None) -> list[RetrievalResult] | [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py):39 | documented |
+| LinkExpansionRetriever | __init__ | private | __init__(self, causal_weight_threshold: float=0.3) | [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py):93 | documented |
+| LinkExpansionRetriever | name | public | name(self) -> str | [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py):104 | documented |
+| LinkExpansionRetriever | retrieve | public | async retrieve(self, pool, query_embedding_str: str, bank_id: str, fact_type: str, budget: int, query_text: str \| None=None, semantic_seeds: list[RetrievalResult] \| None=None, temporal_seeds: list[RetrievalResult] \| None=None, adjacency=None, tags: list[str] \| None=None, tags_match: TagsMatch='any', tag_groups: list[TagGroup] \| None=None) -> tuple[list[RetrievalResult], MPFPTimings \| None] | [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py):107 | documented |
+| LinkExpansionRetriever | _expand_combined | private | async _expand_combined(self, conn, seed_ids: list, fact_type: str, budget: int) -> tuple[list, list, list, list] | [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py):254 | documented |
 
 ### Function: (module)._find_semantic_seeds
 - Signature: `async _find_semantic_seeds(conn, query_embedding_str: str, bank_id: str, fact_type: str, limit: int=20, threshold: float=0.3, tags: list[str] | None=None, tags_match: TagsMatch='any', tag_groups: list[TagGroup] | None=None) -> list[RetrievalResult]`

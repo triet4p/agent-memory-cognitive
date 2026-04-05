@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/embedding_processing.py
+# Function Deep Dive - [cogmem_api/engine/retain/embedding_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_processing.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | augment_texts_with_dates | public | augment_texts_with_dates(facts: list[ExtractedFact], format_date_fn) -> list[str] | cogmem_api/engine/retain/embedding_processing.py:11 | documented |
-| (module) | generate_embeddings_batch | public | async generate_embeddings_batch(embeddings_model, texts: list[str]) -> list[list[float]] | cogmem_api/engine/retain/embedding_processing.py:28 | documented |
+| (module) | augment_texts_with_dates | public | augment_texts_with_dates(facts: list[ExtractedFact], format_date_fn) -> list[str] | [cogmem_api/engine/retain/embedding_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_processing.py):11 | documented |
+| (module) | generate_embeddings_batch | public | async generate_embeddings_batch(embeddings_model, texts: list[str]) -> list[list[float]] | [cogmem_api/engine/retain/embedding_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_processing.py):28 | documented |
 
 ### Function: (module).augment_texts_with_dates
 - Signature: `augment_texts_with_dates(facts: list[ExtractedFact], format_date_fn) -> list[str]`

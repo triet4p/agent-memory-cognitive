@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/tags.py
+# Function Deep Dive - [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,14 +28,14 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _parse_tags_match | private | _parse_tags_match(match: TagsMatch) -> tuple[str, bool] | cogmem_api/engine/search/tags.py:24 | documented |
-| (module) | build_tags_where_clause | public | build_tags_where_clause(tags: list[str] \| None, param_offset: int=1, table_alias: str='', match: TagsMatch='any') -> tuple[str, list, int] | cogmem_api/engine/search/tags.py:46 | documented |
-| (module) | build_tags_where_clause_simple | public | build_tags_where_clause_simple(tags: list[str] \| None, param_num: int, table_alias: str='', match: TagsMatch='any') -> str | cogmem_api/engine/search/tags.py:93 | documented |
-| (module) | filter_results_by_tags | public | filter_results_by_tags(results: list, tags: list[str] \| None, match: TagsMatch='any') -> list | cogmem_api/engine/search/tags.py:128 | documented |
-| (module) | _build_group_clause | private | _build_group_clause(group: TagGroup, param_offset: int, table_alias: str) -> tuple[str, list, int] | cogmem_api/engine/search/tags.py:231 | documented |
-| (module) | build_tag_groups_where_clause | public | build_tag_groups_where_clause(tag_groups: list[TagGroup] \| None, param_offset: int, table_alias: str='') -> tuple[str, list, int] | cogmem_api/engine/search/tags.py:282 | documented |
-| (module) | _match_group | private | _match_group(result: object, group: TagGroup) -> bool | cogmem_api/engine/search/tags.py:330 | documented |
-| (module) | filter_results_by_tag_groups | public | filter_results_by_tag_groups(results: list, tag_groups: list[TagGroup] \| None) -> list | cogmem_api/engine/search/tags.py:370 | documented |
+| (module) | _parse_tags_match | private | _parse_tags_match(match: TagsMatch) -> tuple[str, bool] | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):24 | documented |
+| (module) | build_tags_where_clause | public | build_tags_where_clause(tags: list[str] \| None, param_offset: int=1, table_alias: str='', match: TagsMatch='any') -> tuple[str, list, int] | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):46 | documented |
+| (module) | build_tags_where_clause_simple | public | build_tags_where_clause_simple(tags: list[str] \| None, param_num: int, table_alias: str='', match: TagsMatch='any') -> str | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):93 | documented |
+| (module) | filter_results_by_tags | public | filter_results_by_tags(results: list, tags: list[str] \| None, match: TagsMatch='any') -> list | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):128 | documented |
+| (module) | _build_group_clause | private | _build_group_clause(group: TagGroup, param_offset: int, table_alias: str) -> tuple[str, list, int] | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):231 | documented |
+| (module) | build_tag_groups_where_clause | public | build_tag_groups_where_clause(tag_groups: list[TagGroup] \| None, param_offset: int, table_alias: str='') -> tuple[str, list, int] | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):282 | documented |
+| (module) | _match_group | private | _match_group(result: object, group: TagGroup) -> bool | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):330 | documented |
+| (module) | filter_results_by_tag_groups | public | filter_results_by_tag_groups(results: list, tag_groups: list[TagGroup] \| None) -> list | [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py):370 | documented |
 
 ### Function: (module)._parse_tags_match
 - Signature: `_parse_tags_match(match: TagsMatch) -> tuple[str, bool]`

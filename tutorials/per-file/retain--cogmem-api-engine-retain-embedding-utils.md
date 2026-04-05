@@ -1,11 +1,11 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/embedding_utils.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/embedding_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_utils.py)
 
 ## Purpose (Mục đích)
 - Cung cấp helper sinh embeddings cho retain pipeline.
 - Hỗ trợ deterministic fallback khi không có model encoder khả dụng.
 
 ## Source File
-- cogmem_api/engine/retain/embedding_utils.py
+- [cogmem_api/engine/retain/embedding_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_utils.py)
 
 ## Symbol-by-symbol explanation
 ### _deterministic_embedding(text, dimension)
@@ -21,7 +21,7 @@
 - memory_engine fallback lexical/retain paths gián tiếp phụ thuộc hàm này qua orchestrator.
 
 ### Outbound dependencies
-- cogmem_api/config.py (EMBEDDING_DIMENSION).
+- [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py) (EMBEDDING_DIMENSION).
 - hashlib/math và typing Sequence.
 
 ## Runtime implications/side effects

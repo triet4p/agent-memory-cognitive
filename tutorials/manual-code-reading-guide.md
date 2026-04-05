@@ -330,8 +330,8 @@ Tài liệu này không theo kiểu liệt kê máy móc. Mục tiêu là giúp 
 - Vai trò: normalize candidates thành evidence dùng được cho reflect.
 
 ## Verify commands
-1. uv run python tests/artifacts/test_task716_tutorial_framework.py
-2. uv run python tests/artifacts/test_task717_tutorial_core.py
-3. uv run python tests/artifacts/test_task718_function_inventory.py
-4. uv run python tests/artifacts/test_task719_function_deep_dive.py
-5. uv run python -c "import json;print(len(json.load(open('tutorials/functions/function-inventory.json','r',encoding='utf-8'))))"
+1. uv run python [tests/artifacts/test_task716_tutorial_framework.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/tests/artifacts/test_task716_tutorial_framework.py)
+2. uv run python [tests/artifacts/test_task717_tutorial_core.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/tests/artifacts/test_task717_tutorial_core.py)
+3. uv run python [tests/artifacts/test_task718_function_inventory.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/tests/artifacts/test_task718_function_inventory.py)
+4. uv run python [tests/artifacts/test_task719_function_deep_dive.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/tests/artifacts/test_task719_function_deep_dive.py)
+5. uv run python -c "import json;print(len(json.load(open('[tutorials/functions/function-inventory.json](functions/function-inventory.json)','r',encoding='utf-8'))))"

@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/chunk_storage.py
+# Function Deep Dive - [cogmem_api/engine/retain/chunk_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/chunk_storage.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,7 +28,7 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | store_chunks_batch | public | async store_chunks_batch(conn, bank_id: str, document_id: str, chunks: list[ChunkMetadata]) -> dict[int, str] | cogmem_api/engine/retain/chunk_storage.py:8 | documented |
+| (module) | store_chunks_batch | public | async store_chunks_batch(conn, bank_id: str, document_id: str, chunks: list[ChunkMetadata]) -> dict[int, str] | [cogmem_api/engine/retain/chunk_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/chunk_storage.py):8 | documented |
 
 ### Function: (module).store_chunks_batch
 - Signature: `async store_chunks_batch(conn, bank_id: str, document_id: str, chunks: list[ChunkMetadata]) -> dict[int, str]`

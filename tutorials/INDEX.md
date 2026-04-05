@@ -4,32 +4,32 @@
 Chỉ mục này là điểm vào duy nhất cho hệ thống tài liệu tutorial top-down.
 
 ## Danh mục hiện có
-1. Framework overview: tutorials/README.md
-2. Manual code reading guide (ưu tiên đọc): tutorials/manual-code-reading-guide.md
-3. Learning path: tutorials/learning-path.md
-4. Module map (4 layers): tutorials/module-map.md
-5. Flow retain-recall-reflect-response: tutorials/flows/retain-recall-reflect-response.md
-6. Module dossiers index: tutorials/modules/README.md
-7. Function inventory (S18.1): tutorials/functions/function-inventory.md
-8. Function inventory data (machine-readable): tutorials/functions/function-inventory.json
-9. Function deep-dive index (S18.2): tutorials/functions/README.md
-10. Function deep-dive map data: tutorials/functions/function-doc-index.json
-11. Template chuẩn: tutorials/templates/function-property-template.md
-12. Phase D per-file index: tutorials/per-file/INDEX.md
-13. Phase D canonical reading order (S19.7): tutorials/per-file/READING-ORDER.md
+1. Framework overview: [tutorials/README.md](README.md)
+2. Manual code reading guide (ưu tiên đọc): [tutorials/manual-code-reading-guide.md](manual-code-reading-guide.md)
+3. Learning path: [tutorials/learning-path.md](learning-path.md)
+4. Module map (4 layers): [tutorials/module-map.md](module-map.md)
+5. Flow retain-recall-reflect-response: [tutorials/flows/retain-recall-reflect-response.md](flows/retain-recall-reflect-response.md)
+6. Module dossiers index: [tutorials/modules/README.md](modules/README.md)
+7. Function inventory (S18.1): [tutorials/functions/function-inventory.md](functions/function-inventory.md)
+8. Function inventory data (machine-readable): [tutorials/functions/function-inventory.json](functions/function-inventory.json)
+9. Function deep-dive index (S18.2): [tutorials/functions/README.md](functions/README.md)
+10. Function deep-dive map data: [tutorials/functions/function-doc-index.json](functions/function-doc-index.json)
+11. Template chuẩn: [tutorials/templates/function-property-template.md](templates/function-property-template.md)
+12. Phase D per-file index: [tutorials/per-file/INDEX.md](per-file/INDEX.md)
+13. Phase D canonical reading order (S19.7): [tutorials/per-file/READING-ORDER.md](per-file/READING-ORDER.md)
 
 ## Trình tự đọc khuyến nghị
-1. tutorials/README.md
-2. tutorials/manual-code-reading-guide.md
-3. tutorials/learning-path.md
-4. tutorials/per-file/INDEX.md
-5. tutorials/per-file/READING-ORDER.md
-6. tutorials/module-map.md
-7. tutorials/flows/retain-recall-reflect-response.md
-8. tutorials/modules/README.md
-9. tutorials/functions/function-inventory.md
-10. tutorials/functions/README.md
-11. tutorials/templates/function-property-template.md
+1. [tutorials/README.md](README.md)
+2. [tutorials/manual-code-reading-guide.md](manual-code-reading-guide.md)
+3. [tutorials/learning-path.md](learning-path.md)
+4. [tutorials/per-file/INDEX.md](per-file/INDEX.md)
+5. [tutorials/per-file/READING-ORDER.md](per-file/READING-ORDER.md)
+6. [tutorials/module-map.md](module-map.md)
+7. [tutorials/flows/retain-recall-reflect-response.md](flows/retain-recall-reflect-response.md)
+8. [tutorials/modules/README.md](modules/README.md)
+9. [tutorials/functions/function-inventory.md](functions/function-inventory.md)
+10. [tutorials/functions/README.md](functions/README.md)
+11. [tutorials/templates/function-property-template.md](templates/function-property-template.md)
 
 ## Ghi chú tiến độ Sprint S16
 1. S16.1: Hoàn tất scaffold module-map và learning-path.

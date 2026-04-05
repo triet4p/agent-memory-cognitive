@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/orchestrator.py
+# Function Deep Dive - [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,11 +28,11 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | utcnow | public | utcnow() -> datetime | cogmem_api/engine/retain/orchestrator.py:18 | documented |
-| (module) | parse_datetime_flexible | public | parse_datetime_flexible(value: Any) -> datetime | cogmem_api/engine/retain/orchestrator.py:23 | documented |
-| (module) | _maybe_transaction | private | async _maybe_transaction(conn) | cogmem_api/engine/retain/orchestrator.py:34 | documented |
-| (module) | _map_results_to_contents | private | _map_results_to_contents(contents: list[RetainContent], extracted_fact_count_by_content: dict[int, int], unit_ids: list[str]) -> list[list[str]] | cogmem_api/engine/retain/orchestrator.py:45 | documented |
-| (module) | retain_batch | public | async retain_batch(pool, embeddings_model, llm_config, entity_resolver, format_date_fn, bank_id: str, contents_dicts: list[RetainContentDict], config, document_id: str \| None=None, is_first_batch: bool=True, fact_type_override: str \| None=None, confidence_score: float \| None=None, document_tags: list[str] \| None=None, operation_id: str \| None=None, schema: str \| None=None, outbox_callback: Callable[['asyncpg.Connection'], Awaitable[None]] \| None=None) -> tuple[list[list[str]], TokenUsage] | cogmem_api/engine/retain/orchestrator.py:56 | documented |
+| (module) | utcnow | public | utcnow() -> datetime | [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py):18 | documented |
+| (module) | parse_datetime_flexible | public | parse_datetime_flexible(value: Any) -> datetime | [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py):23 | documented |
+| (module) | _maybe_transaction | private | async _maybe_transaction(conn) | [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py):34 | documented |
+| (module) | _map_results_to_contents | private | _map_results_to_contents(contents: list[RetainContent], extracted_fact_count_by_content: dict[int, int], unit_ids: list[str]) -> list[list[str]] | [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py):45 | documented |
+| (module) | retain_batch | public | async retain_batch(pool, embeddings_model, llm_config, entity_resolver, format_date_fn, bank_id: str, contents_dicts: list[RetainContentDict], config, document_id: str \| None=None, is_first_batch: bool=True, fact_type_override: str \| None=None, confidence_score: float \| None=None, document_tags: list[str] \| None=None, operation_id: str \| None=None, schema: str \| None=None, outbox_callback: Callable[['asyncpg.Connection'], Awaitable[None]] \| None=None) -> tuple[list[list[str]], TokenUsage] | [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py):56 | documented |
 
 ### Function: (module).utcnow
 - Signature: `utcnow() -> datetime`

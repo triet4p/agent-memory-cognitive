@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/tracer.py
+# Function Deep Dive - [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,19 +28,19 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| SearchTracer | __init__ | private | __init__(self, query: str, budget: int, max_tokens: int, tags: list[str] \| None=None, tags_match: str \| None=None) | cogmem_api/engine/search/tracer.py:49 | documented |
-| SearchTracer | start | public | start(self) | cogmem_api/engine/search/tracer.py:98 | documented |
-| SearchTracer | record_query_embedding | public | record_query_embedding(self, embedding: list[float]) | cogmem_api/engine/search/tracer.py:102 | documented |
-| SearchTracer | record_temporal_constraint | public | record_temporal_constraint(self, start: datetime \| None, end: datetime \| None) | cogmem_api/engine/search/tracer.py:106 | documented |
-| SearchTracer | add_entry_point | public | add_entry_point(self, node_id: str, text: str, similarity: float, rank: int) | cogmem_api/engine/search/tracer.py:111 | documented |
-| SearchTracer | visit_node | public | visit_node(self, node_id: str, text: str, context: str, event_date: datetime \| None, is_entry_point: bool, parent_node_id: str \| None, link_type: Literal['temporal', 'semantic', 'entity'] \| None, link_weight: float \| None, activation: float, semantic_similarity: float, recency: float, frequency: float, final_weight: float) | cogmem_api/engine/search/tracer.py:133 | documented |
-| SearchTracer | add_neighbor_link | public | add_neighbor_link(self, from_node_id: str, to_node_id: str, link_type: Literal['temporal', 'semantic', 'entity'], link_weight: float, entity_id: str \| None, new_activation: float \| None, followed: bool, prune_reason: str \| None=None, is_supplementary: bool=False) | cogmem_api/engine/search/tracer.py:214 | documented |
-| SearchTracer | prune_node | public | prune_node(self, node_id: str, reason: Literal['already_visited', 'activation_too_low', 'budget_exhausted'], activation: float) | cogmem_api/engine/search/tracer.py:264 | documented |
-| SearchTracer | add_phase_metric | public | add_phase_metric(self, phase_name: str, duration_seconds: float, details: dict[str, Any] \| None=None) | cogmem_api/engine/search/tracer.py:287 | documented |
-| SearchTracer | add_retrieval_results | public | add_retrieval_results(self, method_name: Literal['semantic', 'bm25', 'graph', 'temporal'], results: list[tuple], duration_seconds: float, score_field: str, metadata: dict[str, Any] \| None=None, fact_type: str \| None=None) | cogmem_api/engine/search/tracer.py:304 | documented |
-| SearchTracer | add_rrf_merged | public | add_rrf_merged(self, merged_results: list[tuple]) | cogmem_api/engine/search/tracer.py:352 | documented |
-| SearchTracer | add_reranked | public | add_reranked(self, reranked_results: list[dict[str, Any]], rrf_merged: list) | cogmem_api/engine/search/tracer.py:371 | documented |
-| SearchTracer | finalize | public | finalize(self, final_results: list[dict[str, Any]]) -> SearchTrace | cogmem_api/engine/search/tracer.py:418 | documented |
+| SearchTracer | __init__ | private | __init__(self, query: str, budget: int, max_tokens: int, tags: list[str] \| None=None, tags_match: str \| None=None) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):49 | documented |
+| SearchTracer | start | public | start(self) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):98 | documented |
+| SearchTracer | record_query_embedding | public | record_query_embedding(self, embedding: list[float]) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):102 | documented |
+| SearchTracer | record_temporal_constraint | public | record_temporal_constraint(self, start: datetime \| None, end: datetime \| None) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):106 | documented |
+| SearchTracer | add_entry_point | public | add_entry_point(self, node_id: str, text: str, similarity: float, rank: int) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):111 | documented |
+| SearchTracer | visit_node | public | visit_node(self, node_id: str, text: str, context: str, event_date: datetime \| None, is_entry_point: bool, parent_node_id: str \| None, link_type: Literal['temporal', 'semantic', 'entity'] \| None, link_weight: float \| None, activation: float, semantic_similarity: float, recency: float, frequency: float, final_weight: float) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):133 | documented |
+| SearchTracer | add_neighbor_link | public | add_neighbor_link(self, from_node_id: str, to_node_id: str, link_type: Literal['temporal', 'semantic', 'entity'], link_weight: float, entity_id: str \| None, new_activation: float \| None, followed: bool, prune_reason: str \| None=None, is_supplementary: bool=False) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):214 | documented |
+| SearchTracer | prune_node | public | prune_node(self, node_id: str, reason: Literal['already_visited', 'activation_too_low', 'budget_exhausted'], activation: float) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):264 | documented |
+| SearchTracer | add_phase_metric | public | add_phase_metric(self, phase_name: str, duration_seconds: float, details: dict[str, Any] \| None=None) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):287 | documented |
+| SearchTracer | add_retrieval_results | public | add_retrieval_results(self, method_name: Literal['semantic', 'bm25', 'graph', 'temporal'], results: list[tuple], duration_seconds: float, score_field: str, metadata: dict[str, Any] \| None=None, fact_type: str \| None=None) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):304 | documented |
+| SearchTracer | add_rrf_merged | public | add_rrf_merged(self, merged_results: list[tuple]) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):352 | documented |
+| SearchTracer | add_reranked | public | add_reranked(self, reranked_results: list[dict[str, Any]], rrf_merged: list) | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):371 | documented |
+| SearchTracer | finalize | public | finalize(self, final_results: list[dict[str, Any]]) -> SearchTrace | [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py):418 | documented |
 
 ### Function: SearchTracer.__init__
 - Signature: `__init__(self, query: str, budget: int, max_tokens: int, tags: list[str] | None=None, tags_match: str | None=None)`

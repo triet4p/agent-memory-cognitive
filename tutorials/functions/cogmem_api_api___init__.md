@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/api/__init__.py
+# Function Deep Dive - [cogmem_api/api/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/__init__.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm API layer và payload normalization.
@@ -28,7 +28,7 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | create_app | public | create_app(memory: MemoryEngine, http_api_enabled: bool=True, initialize_memory: bool=True) -> FastAPI | cogmem_api/api/__init__.py:9 | documented |
+| (module) | create_app | public | create_app(memory: MemoryEngine, http_api_enabled: bool=True, initialize_memory: bool=True) -> FastAPI | [cogmem_api/api/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/__init__.py):9 | documented |
 
 ### Function: (module).create_app
 - Signature: `create_app(memory: MemoryEngine, http_api_enabled: bool=True, initialize_memory: bool=True) -> FastAPI`

@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/types.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa kiểu dữ liệu typed cho recall pipeline.
 - Thay thế cấu trúc Dict tự do bằng dataclass rõ nghĩa cho retrieval, merge và rerank.
 
 ## Source File
-- cogmem_api/engine/search/types.py
+- [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py)
 
 ## Symbol-by-symbol explanation
 ### MPFPTimings

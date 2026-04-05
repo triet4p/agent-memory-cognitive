@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/cross_encoder.py
+# Function Deep Dive - [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,23 +28,23 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | create_cross_encoder_from_env | public | create_cross_encoder_from_env() -> CrossEncoderModel | cogmem_api/engine/cross_encoder.py:191 | documented |
-| CrossEncoderModel | provider_name | public | provider_name(self) -> str | cogmem_api/engine/cross_encoder.py:24 | documented |
-| CrossEncoderModel | initialize | public | async initialize(self) -> None | cogmem_api/engine/cross_encoder.py:28 | documented |
-| CrossEncoderModel | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | cogmem_api/engine/cross_encoder.py:32 | documented |
-| LocalSTCrossEncoder | __init__ | private | __init__(self, model_name: str, max_concurrent: int=4) | cogmem_api/engine/cross_encoder.py:41 | documented |
-| LocalSTCrossEncoder | provider_name | public | provider_name(self) -> str | cogmem_api/engine/cross_encoder.py:47 | documented |
-| LocalSTCrossEncoder | initialize | public | async initialize(self) -> None | cogmem_api/engine/cross_encoder.py:50 | documented |
-| LocalSTCrossEncoder | _predict_sync | private | _predict_sync(self, pairs: list[tuple[str, str]]) -> list[float] | cogmem_api/engine/cross_encoder.py:77 | documented |
-| LocalSTCrossEncoder | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | cogmem_api/engine/cross_encoder.py:85 | documented |
-| RRFPassthroughCrossEncoder | provider_name | public | provider_name(self) -> str | cogmem_api/engine/cross_encoder.py:181 | documented |
-| RRFPassthroughCrossEncoder | initialize | public | async initialize(self) -> None | cogmem_api/engine/cross_encoder.py:184 | documented |
-| RRFPassthroughCrossEncoder | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | cogmem_api/engine/cross_encoder.py:187 | documented |
-| RemoteTEICrossEncoder | __init__ | private | __init__(self, base_url: str, timeout: float=30.0, batch_size: int=128, max_concurrent: int=8) | cogmem_api/engine/cross_encoder.py:100 | documented |
-| RemoteTEICrossEncoder | provider_name | public | provider_name(self) -> str | cogmem_api/engine/cross_encoder.py:111 | documented |
-| RemoteTEICrossEncoder | initialize | public | async initialize(self) -> None | cogmem_api/engine/cross_encoder.py:114 | documented |
-| RemoteTEICrossEncoder | _rerank_batch | private | async _rerank_batch(self, query: str, texts: list[str]) -> list[tuple[int, float]] | cogmem_api/engine/cross_encoder.py:123 | documented |
-| RemoteTEICrossEncoder | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | cogmem_api/engine/cross_encoder.py:142 | documented |
+| (module) | create_cross_encoder_from_env | public | create_cross_encoder_from_env() -> CrossEncoderModel | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):191 | documented |
+| CrossEncoderModel | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):24 | documented |
+| CrossEncoderModel | initialize | public | async initialize(self) -> None | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):28 | documented |
+| CrossEncoderModel | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):32 | documented |
+| LocalSTCrossEncoder | __init__ | private | __init__(self, model_name: str, max_concurrent: int=4) | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):41 | documented |
+| LocalSTCrossEncoder | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):47 | documented |
+| LocalSTCrossEncoder | initialize | public | async initialize(self) -> None | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):50 | documented |
+| LocalSTCrossEncoder | _predict_sync | private | _predict_sync(self, pairs: list[tuple[str, str]]) -> list[float] | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):77 | documented |
+| LocalSTCrossEncoder | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):85 | documented |
+| RRFPassthroughCrossEncoder | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):181 | documented |
+| RRFPassthroughCrossEncoder | initialize | public | async initialize(self) -> None | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):184 | documented |
+| RRFPassthroughCrossEncoder | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):187 | documented |
+| RemoteTEICrossEncoder | __init__ | private | __init__(self, base_url: str, timeout: float=30.0, batch_size: int=128, max_concurrent: int=8) | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):100 | documented |
+| RemoteTEICrossEncoder | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):111 | documented |
+| RemoteTEICrossEncoder | initialize | public | async initialize(self) -> None | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):114 | documented |
+| RemoteTEICrossEncoder | _rerank_batch | private | async _rerank_batch(self, query: str, texts: list[str]) -> list[tuple[int, float]] | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):123 | documented |
+| RemoteTEICrossEncoder | predict | public | async predict(self, pairs: list[tuple[str, str]]) -> list[float] | [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py):142 | documented |
 
 ### Function: (module).create_cross_encoder_from_env
 - Signature: `create_cross_encoder_from_env() -> CrossEncoderModel`

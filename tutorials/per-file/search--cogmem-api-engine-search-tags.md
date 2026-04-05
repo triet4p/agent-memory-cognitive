@@ -1,4 +1,4 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/tags.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py)
 
 ## Purpose (Mục đích)
 - Cung cấp tiện ích lọc kết quả recall theo tags.
@@ -6,7 +6,7 @@
 - Hỗ trợ điều kiện compound với and hoặc or hoặc not qua TagGroup.
 
 ## Source File
-- cogmem_api/engine/search/tags.py
+- [cogmem_api/engine/search/tags.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tags.py)
 
 ## Symbol-by-symbol explanation
 ### TagsMatch và _parse_tags_match

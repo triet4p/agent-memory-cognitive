@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/entity_processing.py
+# Function Deep Dive - [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,10 +28,10 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _normalize_entity_name | private | _normalize_entity_name(entity: str) -> str | cogmem_api/engine/retain/entity_processing.py:11 | documented |
-| (module) | _resolve_entity_id | private | _resolve_entity_id(bank_id: str, entity_name: str) -> str | cogmem_api/engine/retain/entity_processing.py:15 | documented |
-| (module) | process_entities_batch | public | async process_entities_batch(entity_resolver, conn, bank_id: str, unit_ids: list[str], facts: list[ProcessedFact], log_buffer: list[str] \| None=None, user_entities_per_content: dict[int, list[dict]] \| None=None, entity_labels: list \| None=None) -> list[EntityLink] | cogmem_api/engine/retain/entity_processing.py:21 | documented |
-| (module) | insert_entity_links_batch | public | async insert_entity_links_batch(conn, entity_links: list[EntityLink]) -> None | cogmem_api/engine/retain/entity_processing.py:73 | documented |
+| (module) | _normalize_entity_name | private | _normalize_entity_name(entity: str) -> str | [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py):11 | documented |
+| (module) | _resolve_entity_id | private | _resolve_entity_id(bank_id: str, entity_name: str) -> str | [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py):15 | documented |
+| (module) | process_entities_batch | public | async process_entities_batch(entity_resolver, conn, bank_id: str, unit_ids: list[str], facts: list[ProcessedFact], log_buffer: list[str] \| None=None, user_entities_per_content: dict[int, list[dict]] \| None=None, entity_labels: list \| None=None) -> list[EntityLink] | [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py):21 | documented |
+| (module) | insert_entity_links_batch | public | async insert_entity_links_batch(conn, entity_links: list[EntityLink]) -> None | [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py):73 | documented |
 
 ### Function: (module)._normalize_entity_name
 - Signature: `_normalize_entity_name(entity: str) -> str`

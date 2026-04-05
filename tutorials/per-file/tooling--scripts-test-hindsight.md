@@ -1,18 +1,18 @@
-# S19.6 Manual Tutorial - scripts/test_hindsight.py
+# S19.6 Manual Tutorial - [scripts/test_hindsight.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/test_hindsight.py)
 
 ## Purpose
 - Script đo chi phí vận hành Hindsight baseline trên một sample LongMemEval.
 - Theo dõi thời gian retain theo session và thống kê graph cuối cùng.
 
 ## Source File
-- scripts/test_hindsight.py
+- [scripts/test_hindsight.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/test_hindsight.py)
 
 ## Symbol-by-symbol explanation
 ### BASE_URL, BANK_ID_PREFIX
 - Cấu hình endpoint Hindsight API và prefix bank id cho phiên đo.
 
 ### analyze_hindsight_cost(sample_index=0)
-- Đọc data/longmemeval_s_distilled_small.json, lấy sample theo index.
+- Đọc [data/longmemeval_s_distilled_small.json](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/longmemeval_s_distilled_small.json), lấy sample theo index.
 - Reset/tạo bank trên Hindsight API.
 - Lặp qua từng session, dựng transcript, gọi /memories (async=False) để retain.
 - Ghi metric mỗi session: duration, total_nodes, total_links.
@@ -26,7 +26,7 @@
 - Thường chạy thủ công để benchmark baseline, không có module nội bộ nào import trực tiếp.
 
 ### Outbound dependencies
-- data/longmemeval_s_distilled_small.json.
+- [data/longmemeval_s_distilled_small.json.](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/longmemeval_s_distilled_small.json)
 - Hindsight API endpoints: DELETE/PUT/POST/GET trên /v1/default/banks/*.
 - requests, json, pathlib, time.
 

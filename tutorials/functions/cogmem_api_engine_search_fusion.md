@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/fusion.py
+# Function Deep Dive - [cogmem_api/engine/search/fusion.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/fusion.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,9 +28,9 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | weighted_reciprocal_rank_fusion | public | weighted_reciprocal_rank_fusion(result_lists: list[list[RetrievalResult]], source_weights: dict[str, float] \| None=None, k: int=60, source_names: list[str] \| None=None) -> list[MergedCandidate] | cogmem_api/engine/search/fusion.py:10 | documented |
-| (module) | reciprocal_rank_fusion | public | reciprocal_rank_fusion(result_lists: list[list[RetrievalResult]], k: int=60) -> list[MergedCandidate] | cogmem_api/engine/search/fusion.py:85 | documented |
-| (module) | normalize_scores_on_deltas | public | normalize_scores_on_deltas(results: list[dict[str, Any]], score_keys: list[str]) -> list[dict[str, Any]] | cogmem_api/engine/search/fusion.py:109 | documented |
+| (module) | weighted_reciprocal_rank_fusion | public | weighted_reciprocal_rank_fusion(result_lists: list[list[RetrievalResult]], source_weights: dict[str, float] \| None=None, k: int=60, source_names: list[str] \| None=None) -> list[MergedCandidate] | [cogmem_api/engine/search/fusion.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/fusion.py):10 | documented |
+| (module) | reciprocal_rank_fusion | public | reciprocal_rank_fusion(result_lists: list[list[RetrievalResult]], k: int=60) -> list[MergedCandidate] | [cogmem_api/engine/search/fusion.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/fusion.py):85 | documented |
+| (module) | normalize_scores_on_deltas | public | normalize_scores_on_deltas(results: list[dict[str, Any]], score_keys: list[str]) -> list[dict[str, Any]] | [cogmem_api/engine/search/fusion.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/fusion.py):109 | documented |
 
 ### Function: (module).weighted_reciprocal_rank_fusion
 - Signature: `weighted_reciprocal_rank_fusion(result_lists: list[list[RetrievalResult]], source_weights: dict[str, float] | None=None, k: int=60, source_names: list[str] | None=None) -> list[MergedCandidate]`

@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - docker/standalone/start-all.sh
+# S19.6 Manual Tutorial - [docker/standalone/start-all.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/standalone/start-all.sh)
 
 ## Purpose
 - Entry script trong container standalone để khởi chạy CogMem API và chờ readiness.
 - Hỗ trợ tùy chọn chờ dependency DB trước khi start API.
 
 ## Source File
-- docker/standalone/start-all.sh
+- [docker/standalone/start-all.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/standalone/start-all.sh)
 
 ## Symbol-by-symbol explanation
 ### API_COMMAND, API_HEALTH_URL, API_STARTUP_WAIT_SECONDS

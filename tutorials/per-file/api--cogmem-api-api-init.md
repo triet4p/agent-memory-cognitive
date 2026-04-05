@@ -1,4 +1,4 @@
-# S19.2 Manual Tutorial - cogmem_api/api/__init__.py
+# S19.2 Manual Tutorial - [cogmem_api/api/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/__init__.py)
 
 ## Purpose (Mục đích)
 - Cung cấp API factory thống nhất cho runtime CogMem.
@@ -6,7 +6,7 @@
 - Trả về FastAPI app tối thiểu khi HTTP API bị tắt.
 
 ## Source File
-- cogmem_api/api/__init__.py
+- [cogmem_api/api/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/__init__.py)
 
 ## Symbol-by-symbol explanation
 ### FastAPI
@@ -32,7 +32,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/server.py gọi create_app để dựng app ASGI dùng cho runtime.
+- [cogmem_api/server.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/server.py) gọi create_app để dựng app ASGI dùng cho runtime.
 
 ### Outbound dependencies
 - cogmem_api.api.http.create_app: app factory đầy đủ có lifespan và routes.

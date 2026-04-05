@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/__init__.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/__init__.py)
 
 ## Purpose (Mục đích)
 - Tạo public API cho search package.
 - Re-export graph retrievers, reranker và helper quản lý default graph retriever.
 
 ## Source File
-- cogmem_api/engine/search/__init__.py
+- [cogmem_api/engine/search/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/__init__.py)
 
 ## Symbol-by-symbol explanation
 ### GraphRetriever, BFSGraphRetriever, MPFPGraphRetriever

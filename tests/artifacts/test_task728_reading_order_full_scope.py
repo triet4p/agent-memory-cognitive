@@ -7,6 +7,15 @@ from pathlib import Path
 CATALOG_ROW_RE = re.compile(r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$")
 MANIFEST_ROW_RE = re.compile(r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$")
 IDS_LINE_RE = re.compile(r"^(?:[-*]\s*)?(ONBOARDING_IDS|DEBUG_FIRST_IDS):\s*(.+)$", re.MULTILINE)
+LINK_CELL_RE = re.compile(r"^\[([^\]]+)\]\([^\)]+\)$")
+
+
+def _normalize_cell(value: str) -> str:
+    raw = value.strip()
+    match = LINK_CELL_RE.match(raw)
+    if match:
+        return match.group(1).strip()
+    return raw
 
 
 def _parse_ids(raw: str) -> list[int]:
@@ -21,9 +30,9 @@ def _load_manifest_mapping(manifest_text: str) -> dict[int, tuple[str, str]]:
             continue
 
         row_id = int(match.group(1))
-        source_file = match.group(2).strip()
-        status = match.group(4).strip()
-        tutorial_doc = match.group(5).strip()
+        source_file = _normalize_cell(match.group(2))
+        status = _normalize_cell(match.group(4))
+        tutorial_doc = _normalize_cell(match.group(5))
 
         assert status == "done", f"Manifest row {row_id} is not done: {status}"
         mapping[row_id] = (source_file, tutorial_doc)
@@ -39,8 +48,8 @@ def _load_catalog_mapping(reading_order_text: str) -> dict[int, tuple[str, str]]
             continue
 
         row_id = int(match.group(1))
-        source_file = match.group(2).strip()
-        tutorial_doc = match.group(3).strip()
+        source_file = _normalize_cell(match.group(2))
+        tutorial_doc = _normalize_cell(match.group(3))
         mapping[row_id] = (source_file, tutorial_doc)
 
     return mapping

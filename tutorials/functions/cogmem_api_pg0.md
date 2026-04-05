@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/pg0.py
+# Function Deep Dive - [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,14 +28,14 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | parse_pg0_url | public | parse_pg0_url(db_url: str) -> tuple[bool, str \| None, int \| None] | cogmem_api/pg0.py:115 | documented |
-| EmbeddedPostgres | __init__ | private | __init__(self, port: int \| None=None, username: str=DEFAULT_USERNAME, password: str=DEFAULT_PASSWORD, database: str=DEFAULT_DATABASE, name: str=DEFAULT_INSTANCE_NAME, **kwargs) | cogmem_api/pg0.py:21 | documented |
-| EmbeddedPostgres | _get_pg0 | private | _get_pg0(self) -> Pg0 | cogmem_api/pg0.py:37 | documented |
-| EmbeddedPostgres | start | public | async start(self, max_retries: int=5, retry_delay: float=4.0) -> str | cogmem_api/pg0.py:57 | documented |
-| EmbeddedPostgres | stop | public | async stop(self) -> None | cogmem_api/pg0.py:80 | documented |
-| EmbeddedPostgres | get_uri | public | async get_uri(self) -> str | cogmem_api/pg0.py:91 | documented |
-| EmbeddedPostgres | is_running | public | async is_running(self) -> bool | cogmem_api/pg0.py:98 | documented |
-| EmbeddedPostgres | ensure_running | public | async ensure_running(self) -> str | cogmem_api/pg0.py:108 | documented |
+| (module) | parse_pg0_url | public | parse_pg0_url(db_url: str) -> tuple[bool, str \| None, int \| None] | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):115 | documented |
+| EmbeddedPostgres | __init__ | private | __init__(self, port: int \| None=None, username: str=DEFAULT_USERNAME, password: str=DEFAULT_PASSWORD, database: str=DEFAULT_DATABASE, name: str=DEFAULT_INSTANCE_NAME, **kwargs) | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):21 | documented |
+| EmbeddedPostgres | _get_pg0 | private | _get_pg0(self) -> Pg0 | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):37 | documented |
+| EmbeddedPostgres | start | public | async start(self, max_retries: int=5, retry_delay: float=4.0) -> str | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):57 | documented |
+| EmbeddedPostgres | stop | public | async stop(self) -> None | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):80 | documented |
+| EmbeddedPostgres | get_uri | public | async get_uri(self) -> str | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):91 | documented |
+| EmbeddedPostgres | is_running | public | async is_running(self) -> bool | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):98 | documented |
+| EmbeddedPostgres | ensure_running | public | async ensure_running(self) -> str | [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py):108 | documented |
 
 ### Function: (module).parse_pg0_url
 - Signature: `parse_pg0_url(db_url: str) -> tuple[bool, str | None, int | None]`

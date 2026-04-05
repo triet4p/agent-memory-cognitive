@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/fact_storage.py
+# Function Deep Dive - [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,10 +28,10 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _event_date_for_fact | private | _event_date_for_fact(fact: ProcessedFact) -> datetime | cogmem_api/engine/retain/fact_storage.py:14 | documented |
-| (module) | _prepare_fact_for_storage | private | _prepare_fact_for_storage(fact: ProcessedFact) -> ProcessedFact | cogmem_api/engine/retain/fact_storage.py:18 | documented |
-| (module) | ensure_bank_exists | public | async ensure_bank_exists(conn, bank_id: str) -> None | cogmem_api/engine/retain/fact_storage.py:36 | documented |
-| (module) | insert_facts_batch | public | async insert_facts_batch(conn, bank_id: str, facts: list[ProcessedFact], document_id: str \| None=None) -> list[str] | cogmem_api/engine/retain/fact_storage.py:54 | documented |
+| (module) | _event_date_for_fact | private | _event_date_for_fact(fact: ProcessedFact) -> datetime | [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py):14 | documented |
+| (module) | _prepare_fact_for_storage | private | _prepare_fact_for_storage(fact: ProcessedFact) -> ProcessedFact | [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py):18 | documented |
+| (module) | ensure_bank_exists | public | async ensure_bank_exists(conn, bank_id: str) -> None | [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py):36 | documented |
+| (module) | insert_facts_batch | public | async insert_facts_batch(conn, bank_id: str, facts: list[ProcessedFact], document_id: str \| None=None) -> list[str] | [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py):54 | documented |
 
 ### Function: (module)._event_date_for_fact
 - Signature: `_event_date_for_fact(fact: ProcessedFact) -> datetime`

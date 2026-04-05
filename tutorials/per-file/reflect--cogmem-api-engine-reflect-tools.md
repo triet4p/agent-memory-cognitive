@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - cogmem_api/engine/reflect/tools.py
+# S19.6 Manual Tutorial - [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py)
 
 ## Purpose
 - Chuyển đổi output retrieval/search thành ReflectEvidence hợp lệ cho reflect synthesis.
 - Deduplicate, xếp hạng, và nhóm evidence theo network.
 
 ## Source File
-- cogmem_api/engine/reflect/tools.py
+- [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py)
 
 ## Symbol-by-symbol explanation
 ### _SUPPORTED_FACT_TYPES
@@ -39,12 +39,12 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/reflect/agent.py gọi prepare_lazy_evidence.
-- cogmem_api/engine/reflect/__init__.py export toàn bộ helper chính.
+- [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py) gọi prepare_lazy_evidence.
+- [cogmem_api/engine/reflect/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/__init__.py) export toàn bộ helper chính.
 
 ### Outbound dependencies
-- cogmem_api/engine/reflect/models.py: ReflectEvidence.
-- cogmem_api/engine/search/types.py: RetrievalResult, MergedCandidate.
+- [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py): ReflectEvidence.
+- [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py): RetrievalResult, MergedCandidate.
 - collections.defaultdict để group theo network.
 
 ## Runtime implications/side effects

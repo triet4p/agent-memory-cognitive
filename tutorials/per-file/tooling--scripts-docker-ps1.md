@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/docker.ps1
+# S19.6 Manual Tutorial - [scripts/docker.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/docker.ps1)
 
 ## Purpose
-- Wrapper PowerShell tương đương scripts/docker.sh để build/chạy CogMem Docker theo mode embedded/external.
+- Wrapper PowerShell tương đương [scripts/docker.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/docker.sh) để build/chạy CogMem Docker theo mode embedded/external.
 - Chuẩn hóa cấu hình runtime qua biến môi trường trên Windows.
 
 ## Source File
-- scripts/docker.ps1
+- [scripts/docker.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/docker.ps1)
 
 ## Symbol-by-symbol explanation
 ### param([ValidateSet("embedded", "external")] $Mode)
@@ -22,7 +22,7 @@
 
 ### switch ($Mode)
 - embedded:
-  - build image từ docker/standalone/Dockerfile
+  - build image từ [docker/standalone/Dockerfile](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/standalone/Dockerfile)
   - tạo volume pg0
   - chạy docker run.
 - external:
@@ -37,8 +37,8 @@
 - Người vận hành local trên Windows gọi script để khởi chạy container.
 
 ### Outbound dependencies
-- docker/standalone/Dockerfile
-- docker/docker-compose/external-pg/docker-compose.yaml
+- [docker/standalone/Dockerfile](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/standalone/Dockerfile)
+- [docker/docker-compose/external-pg/docker-compose.yaml](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/docker-compose/external-pg/docker-compose.yaml)
 - .env (khi chạy compose)
 - Docker CLI / Docker Compose
 

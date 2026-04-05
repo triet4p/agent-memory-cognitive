@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/orchestrator.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py)
 
 ## Purpose (Mục đích)
 - Điều phối end-to-end retain pipeline theo batch.
@@ -6,7 +6,7 @@
 - Trả kết quả unit_ids theo từng nội dung đầu vào.
 
 ## Source File
-- cogmem_api/engine/retain/orchestrator.py
+- [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py)
 
 ## Symbol-by-symbol explanation
 ### utcnow()
@@ -42,7 +42,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/memory_engine.py gọi retain_batch trong retain_batch_async.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py) gọi retain_batch trong retain_batch_async.
 
 ### Outbound dependencies
 - fact_extraction, embedding_processing, fact_storage, entity_processing, link_creation, chunk_storage.

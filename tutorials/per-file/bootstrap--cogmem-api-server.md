@@ -1,4 +1,4 @@
-# S19.1 Manual Tutorial - cogmem_api/server.py
+# S19.1 Manual Tutorial - [cogmem_api/server.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/server.py)
 
 ## Purpose (Mục đích)
 - Tạo ASGI app object ở cấp module để uvicorn import và chạy trực tiếp.
@@ -6,7 +6,7 @@
 - Gắn HTTP routes thông qua create_app.
 
 ## Source File
-- cogmem_api/server.py
+- [cogmem_api/server.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/server.py)
 
 ## Symbol-by-symbol explanation
 ### _config

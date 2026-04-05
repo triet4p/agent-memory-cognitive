@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/memory_engine.py
+# Function Deep Dive - [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm điều phối retain/recall/runtime lifecycle của MemoryEngine.
@@ -28,25 +28,25 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | get_current_schema | public | get_current_schema() -> str | cogmem_api/engine/memory_engine.py:50 | documented |
-| (module) | set_schema_context | public | set_schema_context(schema: str) | cogmem_api/engine/memory_engine.py:57 | documented |
-| (module) | fq_table | public | fq_table(table_name: str) -> str | cogmem_api/engine/memory_engine.py:67 | documented |
-| (module) | validate_sql_schema | public | validate_sql_schema(sql: str) -> None | cogmem_api/engine/memory_engine.py:73 | documented |
-| MemoryEngine | __init__ | private | __init__(self, db_url: str \| None=None, database_schema: str \| None=None, pool_min_size: int \| None=None, pool_max_size: int \| None=None) | cogmem_api/engine/memory_engine.py:107 | documented |
-| MemoryEngine | initialized | public | initialized(self) -> bool | cogmem_api/engine/memory_engine.py:139 | documented |
-| MemoryEngine | pool | public | pool(self) -> asyncpg.Pool \| None | cogmem_api/engine/memory_engine.py:143 | documented |
-| MemoryEngine | initialize | public | async initialize(self) -> None | cogmem_api/engine/memory_engine.py:146 | documented |
-| MemoryEngine | _bootstrap_schema_objects | private | async _bootstrap_schema_objects(self) -> None | cogmem_api/engine/memory_engine.py:178 | documented |
-| MemoryEngine | _initialize_embeddings_model | private | async _initialize_embeddings_model(self) -> None | cogmem_api/engine/memory_engine.py:201 | documented |
-| MemoryEngine | close | public | async close(self) -> None | cogmem_api/engine/memory_engine.py:220 | documented |
-| MemoryEngine | execute | public | async execute(self, sql: str, *args: Any) -> str | cogmem_api/engine/memory_engine.py:236 | documented |
-| MemoryEngine | health_check | public | async health_check(self) -> dict[str, Any] | cogmem_api/engine/memory_engine.py:245 | documented |
-| MemoryEngine | _format_date | private | _format_date(dt: datetime) -> str | cogmem_api/engine/memory_engine.py:279 | documented |
-| MemoryEngine | _build_retain_llm_config | private | _build_retain_llm_config(self) -> LLMConfig \| None | cogmem_api/engine/memory_engine.py:282 | documented |
-| MemoryEngine | retain_batch_async | public | async retain_batch_async(self, bank_id: str, contents: list[dict[str, Any]], *, document_id: str \| None=None, fact_type_override: str \| None=None, confidence_score: float \| None=None, document_tags: list[str] \| None=None, return_usage: bool=False, operation_id: str \| None=None) | cogmem_api/engine/memory_engine.py:293 | documented |
-| MemoryEngine | retain_async | public | async retain_async(self, bank_id: str, content: str, *, context: str='', event_date: datetime \| str \| None=None, document_id: str \| None=None, fact_type_override: str \| None=None, confidence_score: float \| None=None) -> list[str] | cogmem_api/engine/memory_engine.py:333 | documented |
-| MemoryEngine | _fallback_recall_from_conn | private | async _fallback_recall_from_conn(self, bank_id: str, query: str, fact_types: list[str], max_tokens: int, limit: int) -> list[dict[str, Any]] | cogmem_api/engine/memory_engine.py:359 | documented |
-| MemoryEngine | recall_async | public | async recall_async(self, bank_id: str, query: str, *, budget: str='mid', max_tokens: int=4096, enable_trace: bool=False, fact_types: list[str] \| None=None, question_date: datetime \| None=None) -> dict[str, Any] | cogmem_api/engine/memory_engine.py:436 | documented |
+| (module) | get_current_schema | public | get_current_schema() -> str | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):50 | documented |
+| (module) | set_schema_context | public | set_schema_context(schema: str) | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):57 | documented |
+| (module) | fq_table | public | fq_table(table_name: str) -> str | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):67 | documented |
+| (module) | validate_sql_schema | public | validate_sql_schema(sql: str) -> None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):73 | documented |
+| MemoryEngine | __init__ | private | __init__(self, db_url: str \| None=None, database_schema: str \| None=None, pool_min_size: int \| None=None, pool_max_size: int \| None=None) | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):107 | documented |
+| MemoryEngine | initialized | public | initialized(self) -> bool | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):139 | documented |
+| MemoryEngine | pool | public | pool(self) -> asyncpg.Pool \| None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):143 | documented |
+| MemoryEngine | initialize | public | async initialize(self) -> None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):146 | documented |
+| MemoryEngine | _bootstrap_schema_objects | private | async _bootstrap_schema_objects(self) -> None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):178 | documented |
+| MemoryEngine | _initialize_embeddings_model | private | async _initialize_embeddings_model(self) -> None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):201 | documented |
+| MemoryEngine | close | public | async close(self) -> None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):220 | documented |
+| MemoryEngine | execute | public | async execute(self, sql: str, *args: Any) -> str | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):236 | documented |
+| MemoryEngine | health_check | public | async health_check(self) -> dict[str, Any] | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):245 | documented |
+| MemoryEngine | _format_date | private | _format_date(dt: datetime) -> str | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):279 | documented |
+| MemoryEngine | _build_retain_llm_config | private | _build_retain_llm_config(self) -> LLMConfig \| None | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):282 | documented |
+| MemoryEngine | retain_batch_async | public | async retain_batch_async(self, bank_id: str, contents: list[dict[str, Any]], *, document_id: str \| None=None, fact_type_override: str \| None=None, confidence_score: float \| None=None, document_tags: list[str] \| None=None, return_usage: bool=False, operation_id: str \| None=None) | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):293 | documented |
+| MemoryEngine | retain_async | public | async retain_async(self, bank_id: str, content: str, *, context: str='', event_date: datetime \| str \| None=None, document_id: str \| None=None, fact_type_override: str \| None=None, confidence_score: float \| None=None) -> list[str] | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):333 | documented |
+| MemoryEngine | _fallback_recall_from_conn | private | async _fallback_recall_from_conn(self, bank_id: str, query: str, fact_types: list[str], max_tokens: int, limit: int) -> list[dict[str, Any]] | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):359 | documented |
+| MemoryEngine | recall_async | public | async recall_async(self, bank_id: str, query: str, *, budget: str='mid', max_tokens: int=4096, enable_trace: bool=False, fact_types: list[str] \| None=None, question_date: datetime \| None=None) -> dict[str, Any] | [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py):436 | documented |
 
 ### Function: (module).get_current_schema
 - Signature: `get_current_schema() -> str`

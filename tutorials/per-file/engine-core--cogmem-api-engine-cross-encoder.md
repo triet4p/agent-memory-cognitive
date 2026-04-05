@@ -1,4 +1,4 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/cross_encoder.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa abstraction reranker cross-encoder cho search pipeline.
@@ -6,7 +6,7 @@
 - Tạo factory theo cấu hình để chọn provider phù hợp runtime.
 
 ## Source File
-- cogmem_api/engine/cross_encoder.py
+- [cogmem_api/engine/cross_encoder.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/cross_encoder.py)
 
 ## Symbol-by-symbol explanation
 ### CrossEncoderModel (ABC)
@@ -45,7 +45,7 @@
 - Pipeline reranking trong engine/search gọi factory hoặc provider methods để chấm điểm candidate.
 
 ### Outbound dependencies
-- cogmem_api/config.py qua get_config().
+- [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py) qua get_config().
 - sentence_transformers (tùy chọn), httpx, asyncio, ThreadPoolExecutor.
 
 ## Runtime implications/side effects

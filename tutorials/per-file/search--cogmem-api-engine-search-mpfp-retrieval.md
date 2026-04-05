@@ -1,4 +1,4 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/mpfp_retrieval.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/mpfp_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/mpfp_retrieval.py)
 
 ## Purpose (Mục đích)
 - Triển khai Meta-Path Forward Push cho graph retrieval bán tuyến tính.
@@ -6,7 +6,7 @@
 - Chạy nhiều meta-path song song và hợp nhất bằng RRF.
 
 ## Source File
-- cogmem_api/engine/search/mpfp_retrieval.py
+- [cogmem_api/engine/search/mpfp_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/mpfp_retrieval.py)
 
 ## Symbol-by-symbol explanation
 ### EdgeTarget, EdgeCache, PatternResult, MPFPConfig, SeedNode, PatternState

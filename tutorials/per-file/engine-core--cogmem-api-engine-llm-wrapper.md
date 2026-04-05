@@ -1,4 +1,4 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/llm_wrapper.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py)
 
 ## Purpose (Mục đích)
 - Cung cấp wrapper gọi LLM theo chuẩn OpenAI-compatible cho retain/search.
@@ -6,7 +6,7 @@
 - Xử lý an toàn dữ liệu output khi có control characters hoặc fenced block.
 
 ## Source File
-- cogmem_api/engine/llm_wrapper.py
+- [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py)
 
 ## Symbol-by-symbol explanation
 ### sanitize_llm_output(text)
@@ -44,11 +44,11 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/memory_engine.py tạo LLMConfig cho retain path.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py) tạo LLMConfig cho retain path.
 - Các helper retain/search có thể gọi LLMConfig.call để lấy structured output.
 
 ### Outbound dependencies
-- cogmem_api/engine/response_models.py: TokenUsage.
+- [cogmem_api/engine/response_models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/response_models.py): TokenUsage.
 - httpx cho HTTP client, json/re cho parsing và cleanup.
 
 ## Runtime implications/side effects

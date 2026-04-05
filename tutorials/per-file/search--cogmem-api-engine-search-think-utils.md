@@ -1,4 +1,4 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/think_utils.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py)
 
 ## Purpose (Mục đích)
 - Cung cấp utility cho bước think hoặc reflect dựa trên facts đã recall.
@@ -6,7 +6,7 @@
 - Cung cấp hàm reflect độc lập phục vụ test hoặc integration nhẹ.
 
 ## Source File
-- cogmem_api/engine/search/think_utils.py
+- [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py)
 
 ## Symbol-by-symbol explanation
 ### describe_trait_level

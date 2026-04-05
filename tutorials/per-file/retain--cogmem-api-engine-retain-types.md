@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/types.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa toàn bộ kiểu dữ liệu và hàm chuẩn hóa cho retain pipeline.
@@ -6,7 +6,7 @@
 - Cung cấp dataclass cho dữ liệu trước và sau bước embedding/storage.
 
 ## Source File
-- cogmem_api/engine/retain/types.py
+- [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py)
 
 ## Symbol-by-symbol explanation
 ### COGMEM_FACT_TYPES

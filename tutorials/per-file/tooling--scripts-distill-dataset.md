@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/distill_dataset.py
+# S19.6 Manual Tutorial - [scripts/distill_dataset.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/distill_dataset.py)
 
 ## Purpose
 - Chưng cất (distill) dữ liệu LongMemEval và LoCoMo thành tập khó, nhỏ hơn, phục vụ eval nhanh nhưng vẫn giữ case khó.
 - Bổ sung heuristic ưu tiên prospective/abstention/knowledge-update/temporal/multi-session.
 
 ## Source File
-- scripts/distill_dataset.py
+- [scripts/distill_dataset.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/distill_dataset.py)
 
 ## Symbol-by-symbol explanation
 ### parse_locomo_evidence(ev_str)
@@ -41,17 +41,17 @@
 ### main()
 - Điều phối toàn bộ pipeline distill cho LongMemEval và LoCoMo.
 - Ghi các file đầu ra:
-  - data/longmemeval_s_distilled.json
-  - data/longmemeval_s_distilled_small.json
-  - data/locomo_distilled.json
+  - [data/longmemeval_s_distilled.json](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/longmemeval_s_distilled.json)
+  - [data/longmemeval_s_distilled_small.json](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/longmemeval_s_distilled_small.json)
+  - [data/locomo_distilled.json](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/locomo_distilled.json)
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Chạy CLI trực tiếp bởi người vận hành để tạo dataset distilled.
 
 ### Outbound dependencies
-- data/LongMemEval/longmemeval_s_cleaned.json (input)
-- data/LoCoMo/locomo10.json (input)
+- [data/LongMemEval/longmemeval_s_cleaned.json](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/LongMemEval/longmemeval_s_cleaned.json) (input)
+- [data/LoCoMo/locomo10.json](https://github.com/triet4p/agent-memory-cognitive/blob/master/data/LoCoMo/locomo10.json) (input)
 - random, re, json, pathlib, collections.
 
 ## Runtime implications/side effects

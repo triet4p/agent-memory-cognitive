@@ -1,4 +1,4 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/embeddings.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa abstraction embeddings dùng chung cho retain/recall.
@@ -6,7 +6,7 @@
 - Chọn provider theo cấu hình môi trường qua get_config().
 
 ## Source File
-- cogmem_api/engine/embeddings.py
+- [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py)
 
 ## Symbol-by-symbol explanation
 ### Embeddings (ABC)
@@ -40,11 +40,11 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/memory_engine.py gọi create_embeddings_from_env() và khởi tạo model.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py) gọi create_embeddings_from_env() và khởi tạo model.
 - retain/search pipeline dùng embeddings model để sinh query/content vectors.
 
 ### Outbound dependencies
-- cogmem_api/config.py: EMBEDDING_DIMENSION và get_config().
+- [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py): EMBEDDING_DIMENSION và get_config().
 - sentence_transformers (tùy chọn), openai (tùy chọn), hashlib/math.
 
 ## Runtime implications/side effects

@@ -9,6 +9,15 @@ ALLOWED_STATUSES = {"not-started", "in-progress", "done"}
 ROW_PATTERN = re.compile(
     r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*(\.[a-z0-9]+)\s*\|\s*(not-started|in-progress|done)\s*\|\s*([^|]+?)\s*\|$"
 )
+LINK_CELL_PATTERN = re.compile(r"^\[([^\]]+)\]\([^\)]+\)$")
+
+
+def _normalize_cell(value: str) -> str:
+    raw = value.strip()
+    match = LINK_CELL_PATTERN.match(raw)
+    if match:
+        return match.group(1).strip()
+    return raw
 
 
 def _collect_scope_files(repo_root: Path) -> list[str]:
@@ -29,7 +38,7 @@ def _parse_manifest_rows(manifest_text: str) -> list[tuple[int, str, str, str]]:
         if not match:
             continue
         index = int(match.group(1))
-        file_path = match.group(2)
+        file_path = _normalize_cell(match.group(2))
         extension = match.group(3)
         status = match.group(4)
         rows.append((index, file_path, extension, status))

@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/api/http.py
+# Function Deep Dive - [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm API layer và payload normalization.
@@ -28,9 +28,9 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _parse_query_timestamp | private | _parse_query_timestamp(value: str \| None) -> datetime \| None | cogmem_api/api/http.py:97 | documented |
-| (module) | _build_retain_payload | private | _build_retain_payload(item: RetainItem) -> dict[str, Any] \| None | cogmem_api/api/http.py:106 | documented |
-| (module) | create_app | public | create_app(memory: MemoryEngine, initialize_memory: bool=True) -> FastAPI | cogmem_api/api/http.py:131 | documented |
+| (module) | _parse_query_timestamp | private | _parse_query_timestamp(value: str \| None) -> datetime \| None | [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py):97 | documented |
+| (module) | _build_retain_payload | private | _build_retain_payload(item: RetainItem) -> dict[str, Any] \| None | [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py):106 | documented |
+| (module) | create_app | public | create_app(memory: MemoryEngine, initialize_memory: bool=True) -> FastAPI | [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py):131 | documented |
 
 ### Function: (module)._parse_query_timestamp
 - Signature: `_parse_query_timestamp(value: str | None) -> datetime | None`

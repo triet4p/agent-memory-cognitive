@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/types.py
+# Function Deep Dive - [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,15 +28,15 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | coerce_fact_type | public | coerce_fact_type(raw: str \| None) -> str | cogmem_api/engine/retain/types.py:32 | documented |
-| (module) | clamp_relation_strength | public | clamp_relation_strength(value: Any, default: float=1.0) -> float | cogmem_api/engine/retain/types.py:47 | documented |
-| (module) | normalize_intention_status | public | normalize_intention_status(value: Any) -> str \| None | cogmem_api/engine/retain/types.py:56 | documented |
-| (module) | _normalize_bool | private | _normalize_bool(value: Any, default: bool) -> bool | cogmem_api/engine/retain/types.py:70 | documented |
-| (module) | sanitize_raw_snippet | public | sanitize_raw_snippet(raw_snippet: str \| None, fact_text: str) -> str | cogmem_api/engine/retain/types.py:83 | documented |
-| (module) | _build_edge_intent_payload | private | _build_edge_intent_payload(causal_relations: list[CausalRelation], action_effect_relations: list[ActionEffectRelation], transition_relations: list[TransitionRelation]) -> dict[str, list[dict[str, Any]]] | cogmem_api/engine/retain/types.py:197 | documented |
-| (module) | normalize_fact_metadata | public | normalize_fact_metadata(metadata: dict[str, object], *, fact_type: str, raw_snippet: str, causal_relations: list[CausalRelation], action_effect_relations: list[ActionEffectRelation], transition_relations: list[TransitionRelation]) -> dict[str, object] | cogmem_api/engine/retain/types.py:230 | documented |
-| ProcessedFact | from_extracted_fact | public | from_extracted_fact(extracted_fact: ExtractedFact, embedding: list[float]) -> 'ProcessedFact' | cogmem_api/engine/retain/types.py:304 | documented |
-| RetainContent | from_dict | public | from_dict(payload: RetainContentDict) -> 'RetainContent' | cogmem_api/engine/retain/types.py:134 | documented |
+| (module) | coerce_fact_type | public | coerce_fact_type(raw: str \| None) -> str | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):32 | documented |
+| (module) | clamp_relation_strength | public | clamp_relation_strength(value: Any, default: float=1.0) -> float | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):47 | documented |
+| (module) | normalize_intention_status | public | normalize_intention_status(value: Any) -> str \| None | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):56 | documented |
+| (module) | _normalize_bool | private | _normalize_bool(value: Any, default: bool) -> bool | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):70 | documented |
+| (module) | sanitize_raw_snippet | public | sanitize_raw_snippet(raw_snippet: str \| None, fact_text: str) -> str | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):83 | documented |
+| (module) | _build_edge_intent_payload | private | _build_edge_intent_payload(causal_relations: list[CausalRelation], action_effect_relations: list[ActionEffectRelation], transition_relations: list[TransitionRelation]) -> dict[str, list[dict[str, Any]]] | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):197 | documented |
+| (module) | normalize_fact_metadata | public | normalize_fact_metadata(metadata: dict[str, object], *, fact_type: str, raw_snippet: str, causal_relations: list[CausalRelation], action_effect_relations: list[ActionEffectRelation], transition_relations: list[TransitionRelation]) -> dict[str, object] | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):230 | documented |
+| ProcessedFact | from_extracted_fact | public | from_extracted_fact(extracted_fact: ExtractedFact, embedding: list[float]) -> 'ProcessedFact' | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):304 | documented |
+| RetainContent | from_dict | public | from_dict(payload: RetainContentDict) -> 'RetainContent' | [cogmem_api/engine/retain/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/types.py):134 | documented |
 
 ### Function: (module).coerce_fact_type
 - Signature: `coerce_fact_type(raw: str | None) -> str`

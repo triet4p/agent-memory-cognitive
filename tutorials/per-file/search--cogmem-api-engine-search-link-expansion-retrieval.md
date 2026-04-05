@@ -1,4 +1,4 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/link_expansion_retrieval.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py)
 
 ## Purpose (Mục đích)
 - Triển khai graph retrieval kiểu mở rộng liên kết từ seed nodes.
@@ -6,7 +6,7 @@
 - Tối ưu truy vấn bằng một roundtrip CTE cho nhiều nguồn signal.
 
 ## Source File
-- cogmem_api/engine/search/link_expansion_retrieval.py
+- [cogmem_api/engine/search/link_expansion_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/link_expansion_retrieval.py)
 
 ## Symbol-by-symbol explanation
 ### _find_semantic_seeds

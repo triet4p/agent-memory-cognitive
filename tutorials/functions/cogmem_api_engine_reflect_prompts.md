@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/reflect/prompts.py
+# Function Deep Dive - [cogmem_api/engine/reflect/prompts.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/prompts.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm lazy synthesis và chuẩn hóa evidence cho bước phản hồi.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _truncate | private | _truncate(text: str, limit: int) -> str | cogmem_api/engine/reflect/prompts.py:16 | documented |
-| (module) | build_lazy_synthesis_prompt | public | build_lazy_synthesis_prompt(question: str, evidences: list[ReflectEvidence], bank_profile: dict[str, Any] \| None=None, max_snippet_chars: int=280) -> str | cogmem_api/engine/reflect/prompts.py:23 | documented |
+| (module) | _truncate | private | _truncate(text: str, limit: int) -> str | [cogmem_api/engine/reflect/prompts.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/prompts.py):16 | documented |
+| (module) | build_lazy_synthesis_prompt | public | build_lazy_synthesis_prompt(question: str, evidences: list[ReflectEvidence], bank_profile: dict[str, Any] \| None=None, max_snippet_chars: int=280) -> str | [cogmem_api/engine/reflect/prompts.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/prompts.py):23 | documented |
 
 ### Function: (module)._truncate
 - Signature: `_truncate(text: str, limit: int) -> str`

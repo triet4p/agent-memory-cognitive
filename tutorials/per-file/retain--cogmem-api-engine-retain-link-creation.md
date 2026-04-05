@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/link_creation.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py)
 
 ## Purpose (Mục đích)
 - Điều phối tạo các loại links trong retain pipeline.
@@ -6,7 +6,7 @@
 - Áp dụng guard ngữ nghĩa cho typed transition và causal relation.
 
 ## Source File
-- cogmem_api/engine/retain/link_creation.py
+- [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py)
 
 ## Symbol-by-symbol explanation
 ### create_temporal_links_batch(conn, bank_id, unit_ids)

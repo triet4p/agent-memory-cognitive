@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/config.py
+# Function Deep Dive - [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,14 +28,14 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _read_optional_str | private | _read_optional_str(env_name: str, default: str \| None=None) -> str \| None | cogmem_api/config.py:104 | documented |
-| (module) | _read_int | private | _read_int(env_name: str, default: int, minimum: int \| None=None) -> int | cogmem_api/config.py:114 | documented |
-| (module) | _read_float | private | _read_float(env_name: str, default: float, minimum: float \| None=None) -> float | cogmem_api/config.py:128 | documented |
-| (module) | _read_bool | private | _read_bool(env_name: str, default: bool) -> bool | cogmem_api/config.py:142 | documented |
-| (module) | _read_retain_extraction_mode | private | _read_retain_extraction_mode() -> str | cogmem_api/config.py:154 | documented |
-| (module) | _read_graph_retriever | private | _read_graph_retriever() -> str | cogmem_api/config.py:163 | documented |
-| (module) | _get_raw_config | private | _get_raw_config() -> CogMemRuntimeConfig | cogmem_api/config.py:236 | documented |
-| (module) | get_config | public | get_config() -> CogMemConfig | cogmem_api/config.py:271 | documented |
+| (module) | _read_optional_str | private | _read_optional_str(env_name: str, default: str \| None=None) -> str \| None | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):104 | documented |
+| (module) | _read_int | private | _read_int(env_name: str, default: int, minimum: int \| None=None) -> int | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):114 | documented |
+| (module) | _read_float | private | _read_float(env_name: str, default: float, minimum: float \| None=None) -> float | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):128 | documented |
+| (module) | _read_bool | private | _read_bool(env_name: str, default: bool) -> bool | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):142 | documented |
+| (module) | _read_retain_extraction_mode | private | _read_retain_extraction_mode() -> str | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):154 | documented |
+| (module) | _read_graph_retriever | private | _read_graph_retriever() -> str | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):163 | documented |
+| (module) | _get_raw_config | private | _get_raw_config() -> CogMemRuntimeConfig | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):236 | documented |
+| (module) | get_config | public | get_config() -> CogMemConfig | [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py):271 | documented |
 
 ### Function: (module)._read_optional_str
 - Signature: `_read_optional_str(env_name: str, default: str | None=None) -> str | None`

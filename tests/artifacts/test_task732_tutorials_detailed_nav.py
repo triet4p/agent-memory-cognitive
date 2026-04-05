@@ -5,6 +5,17 @@ import re
 from pathlib import Path
 
 
+LINK_CELL_RE = re.compile(r"^\[([^\]]+)\]\([^\)]+\)$")
+
+
+def _normalize_cell(value: str) -> str:
+    raw = value.strip()
+    match = LINK_CELL_RE.match(raw)
+    if match:
+        return match.group(1).strip()
+    return raw
+
+
 def _load_manifest_docs(manifest_text: str) -> list[str]:
     row_re = re.compile(r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*(\.[a-z0-9]+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|$")
     docs: list[str] = []
@@ -12,7 +23,7 @@ def _load_manifest_docs(manifest_text: str) -> list[str]:
         match = row_re.match(line)
         if not match:
             continue
-        doc_path = match.group(5).strip()
+        doc_path = _normalize_cell(match.group(5))
         if doc_path.startswith("tutorials/"):
             doc_path = doc_path[len("tutorials/"):]
         docs.append(doc_path)

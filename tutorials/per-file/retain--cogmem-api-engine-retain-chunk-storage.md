@@ -1,11 +1,11 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/chunk_storage.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/chunk_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/chunk_storage.py)
 
 ## Purpose (Mục đích)
 - Hỗ trợ lưu chunk metadata cho retain pipeline.
 - Trả mapping chunk_index -> chunk_id để nối lại với facts.
 
 ## Source File
-- cogmem_api/engine/retain/chunk_storage.py
+- [cogmem_api/engine/retain/chunk_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/chunk_storage.py)
 
 ## Symbol-by-symbol explanation
 ### store_chunks_batch(conn, bank_id, document_id, chunks)

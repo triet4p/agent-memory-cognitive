@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/entity_processing.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py)
 
 ## Purpose (Mục đích)
 - Xử lý entity theo batch trong retain pipeline.
@@ -6,7 +6,7 @@
 - Lưu unit-entity association và memory_links kiểu entity.
 
 ## Source File
-- cogmem_api/engine/retain/entity_processing.py
+- [cogmem_api/engine/retain/entity_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/entity_processing.py)
 
 ## Symbol-by-symbol explanation
 ### _normalize_entity_name(entity)

@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/tracer.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py)
 
 ## Purpose (Mục đích)
 - Thu thập trace chi tiết cho toàn bộ vòng đời search.
 - Ghi nhận retrieval outputs, RRF merge, rerank và legacy graph visits.
 
 ## Source File
-- cogmem_api/engine/search/tracer.py
+- [cogmem_api/engine/search/tracer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/tracer.py)
 
 ## Symbol-by-symbol explanation
 ### SearchTracer.__init__

@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - docker/test-image.sh
+# S19.6 Manual Tutorial - [docker/test-image.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/test-image.sh)
 
 ## Purpose
 - Smoke test end-to-end cho Docker image CogMem trên shell.
 - Kiểm tra chuỗi: start container -> health pass -> retain/recall smoke -> validate embeddings mode.
 
 ## Source File
-- docker/test-image.sh
+- [docker/test-image.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/test-image.sh)
 
 ## Symbol-by-symbol explanation
 ### Input/config variables
@@ -29,7 +29,7 @@
 - Nếu container thoát sớm, in logs và fail ngay.
 
 ### Smoke + deterministic guard
-- Gọi scripts/smoke-test-cogmem.sh để test retain/recall.
+- Gọi [scripts/smoke-test-cogmem.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.sh) để test retain/recall.
 - Nếu yêu cầu non-deterministic embeddings và provider=local, fail khi phát hiện log fallback deterministic.
 
 ### Symbol inventory bổ sung (full names)
@@ -40,7 +40,7 @@
 - Người vận hành gọi trực tiếp script để test image sau build.
 
 ### Outbound dependencies
-- scripts/smoke-test-cogmem.sh
+- [scripts/smoke-test-cogmem.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.sh)
 - Docker CLI, curl
 - CogMem API endpoint /health
 

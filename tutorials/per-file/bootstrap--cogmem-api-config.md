@@ -1,4 +1,4 @@
-# S19.1 Manual Tutorial - cogmem_api/config.py
+# S19.1 Manual Tutorial - [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py)
 
 ## Purpose (Mục đích)
 - Tập trung toàn bộ contract cấu hình runtime cho CogMem.
@@ -6,7 +6,7 @@
 - Cung cấp 2 lớp config: raw runtime config và engine config có cache.
 
 ## Source File
-- cogmem_api/config.py
+- [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py)
 
 ## Symbol-by-symbol explanation
 ### Nhóm ENV_* constants

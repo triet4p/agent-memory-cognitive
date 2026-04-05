@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - cogmem_api/engine/reflect/agent.py
+# S19.6 Manual Tutorial - [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py)
 
 ## Purpose
 - Thực thi lazy reflect synthesis: tổng hợp câu trả lời sau retrieval, không chạy consolidation chủ động.
 - Chuẩn hóa output reflect thành ReflectSynthesisResult với metadata evidence.
 
 ## Source File
-- cogmem_api/engine/reflect/agent.py
+- [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py)
 
 ## Symbol-by-symbol explanation
 ### _default_markdown_answer(question, evidence_lines)
@@ -21,13 +21,13 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/reflect/__init__.py export synthesize_lazy_reflect.
-- cogmem_api/engine/memory_engine.py (luồng recall/reflect) là caller chính khi cần tổng hợp phản hồi.
+- [cogmem_api/engine/reflect/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/__init__.py) export synthesize_lazy_reflect.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py) (luồng recall/reflect) là caller chính khi cần tổng hợp phản hồi.
 
 ### Outbound dependencies
-- cogmem_api/engine/reflect/tools.py: prepare_lazy_evidence.
-- cogmem_api/engine/reflect/prompts.py: build_lazy_synthesis_prompt.
-- cogmem_api/engine/reflect/models.py: ReflectSynthesisResult.
+- [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py): prepare_lazy_evidence.
+- [cogmem_api/engine/reflect/prompts.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/prompts.py): build_lazy_synthesis_prompt.
+- [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py): ReflectSynthesisResult.
 - Optional dependency: callback llm_generate do caller cung cấp.
 
 ## Runtime implications/side effects

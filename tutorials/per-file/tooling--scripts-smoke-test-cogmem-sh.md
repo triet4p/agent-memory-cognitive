@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/smoke-test-cogmem.sh
+# S19.6 Manual Tutorial - [scripts/smoke-test-cogmem.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.sh)
 
 ## Purpose
 - Smoke test retain/recall cho CogMem API trên môi trường shell (Linux/macOS/WSL).
 - Cung cấp kiểm tra nhanh sau khi container/API đã chạy.
 
 ## Source File
-- scripts/smoke-test-cogmem.sh
+- [scripts/smoke-test-cogmem.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.sh)
 
 ## Symbol-by-symbol explanation
 ### BASE_URL, BANK_ID
@@ -28,7 +28,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- docker/test-image.sh gọi script này sau khi health check pass.
+- [docker/test-image.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/test-image.sh) gọi script này sau khi health check pass.
 - Người vận hành có thể gọi trực tiếp để smoke local API.
 
 ### Outbound dependencies

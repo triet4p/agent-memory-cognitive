@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/run_hindsight.ps1
+# S19.6 Manual Tutorial - [scripts/run_hindsight.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/run_hindsight.ps1)
 
 ## Purpose
 - Khởi chạy container Hindsight baseline với cấu hình LLM qua ngrok để benchmark/so sánh.
 - Cung cấp command mẫu 1 bước cho môi trường Windows.
 
 ## Source File
-- scripts/run_hindsight.ps1
+- [scripts/run_hindsight.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/run_hindsight.ps1)
 
 ## Symbol-by-symbol explanation
 ### $NGROK_URL

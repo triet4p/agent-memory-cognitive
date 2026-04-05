@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/fusion.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/fusion.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/fusion.py)
 
 ## Purpose (Mục đích)
 - Gộp kết quả từ nhiều retrieval channels bằng Reciprocal Rank Fusion.
 - Hỗ trợ weighted RRF cho adaptive routing theo query type.
 
 ## Source File
-- cogmem_api/engine/search/fusion.py
+- [cogmem_api/engine/search/fusion.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/fusion.py)
 
 ## Symbol-by-symbol explanation
 ### weighted_reciprocal_rank_fusion

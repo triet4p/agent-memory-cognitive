@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/temporal_extraction.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/temporal_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/temporal_extraction.py)
 
 ## Purpose (Mục đích)
 - Trích xuất temporal constraint từ query tự nhiên.
 - Cung cấp analyzer mặc định theo lazy initialization.
 
 ## Source File
-- cogmem_api/engine/search/temporal_extraction.py
+- [cogmem_api/engine/search/temporal_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/temporal_extraction.py)
 
 ## Symbol-by-symbol explanation
 ### _default_analyzer và get_default_analyzer

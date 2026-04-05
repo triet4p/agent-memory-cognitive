@@ -1,4 +1,4 @@
-# S19.1 Manual Tutorial - cogmem_api/pg0.py
+# S19.1 Manual Tutorial - [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py)
 
 ## Purpose (Mục đích)
 - Cung cấp lớp adapter quản lý PostgreSQL nhúng (pg0-embedded) cho môi trường local/dev.
@@ -6,7 +6,7 @@
 - Parse DB URL dạng pg0 để tách instance name và port.
 
 ## Source File
-- cogmem_api/pg0.py
+- [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py)
 
 ## Symbol-by-symbol explanation
 ### logger

@@ -5,25 +5,25 @@
 - Xác nhận manual tutorial coverage đạt 100% cho file code trong `cogmem_api + scripts + docker` với extension `.py/.sh/.ps1`.
 
 ## Inputs đã dùng
-1. tutorials/per-file/file-manifest.md
-2. tutorials/per-file/READING-ORDER.md
-3. tutorials/per-file/INDEX.md
-4. tutorials/INDEX.md
-5. tutorials/learning-path.md
-6. tests/artifacts/test_task716_tutorial_framework.py
-7. tests/artifacts/test_task717_tutorial_core.py
-8. tests/artifacts/test_task718_function_inventory.py
-9. tests/artifacts/test_task719_function_deep_dive.py
-10. tests/artifacts/test_task720_manual_reading_guide.py
-11. tests/artifacts/test_task721_file_manifest_gate.py
-12. tests/artifacts/test_task722_manual_bootstrap_coverage.py
-13. tests/artifacts/test_task723_manual_api_schema_coverage.py
-14. tests/artifacts/test_task724_manual_engine_core_coverage.py
-15. tests/artifacts/test_task725_manual_retain_coverage.py
-16. tests/artifacts/test_task726_manual_search_coverage.py
-17. tests/artifacts/test_task727_manual_reflect_tooling_coverage.py
-18. tests/artifacts/test_task728_reading_order_full_scope.py
-19. tests/artifacts/test_task729_manual_full_gate.py
+1. [tutorials/per-file/file-manifest.md](../tutorials/per-file/file-manifest.md)
+2. [tutorials/per-file/READING-ORDER.md](../tutorials/per-file/READING-ORDER.md)
+3. [tutorials/per-file/INDEX.md](../tutorials/per-file/INDEX.md)
+4. [tutorials/INDEX.md](../tutorials/INDEX.md)
+5. [tutorials/learning-path.md](../tutorials/learning-path.md)
+6. [tests/artifacts/test_task716_tutorial_framework.py](../tests/artifacts/test_task716_tutorial_framework.py)
+7. [tests/artifacts/test_task717_tutorial_core.py](../tests/artifacts/test_task717_tutorial_core.py)
+8. [tests/artifacts/test_task718_function_inventory.py](../tests/artifacts/test_task718_function_inventory.py)
+9. [tests/artifacts/test_task719_function_deep_dive.py](../tests/artifacts/test_task719_function_deep_dive.py)
+10. [tests/artifacts/test_task720_manual_reading_guide.py](../tests/artifacts/test_task720_manual_reading_guide.py)
+11. [tests/artifacts/test_task721_file_manifest_gate.py](../tests/artifacts/test_task721_file_manifest_gate.py)
+12. [tests/artifacts/test_task722_manual_bootstrap_coverage.py](../tests/artifacts/test_task722_manual_bootstrap_coverage.py)
+13. [tests/artifacts/test_task723_manual_api_schema_coverage.py](../tests/artifacts/test_task723_manual_api_schema_coverage.py)
+14. [tests/artifacts/test_task724_manual_engine_core_coverage.py](../tests/artifacts/test_task724_manual_engine_core_coverage.py)
+15. [tests/artifacts/test_task725_manual_retain_coverage.py](../tests/artifacts/test_task725_manual_retain_coverage.py)
+16. [tests/artifacts/test_task726_manual_search_coverage.py](../tests/artifacts/test_task726_manual_search_coverage.py)
+17. [tests/artifacts/test_task727_manual_reflect_tooling_coverage.py](../tests/artifacts/test_task727_manual_reflect_tooling_coverage.py)
+18. [tests/artifacts/test_task728_reading_order_full_scope.py](../tests/artifacts/test_task728_reading_order_full_scope.py)
+19. [tests/artifacts/test_task729_manual_full_gate.py](../tests/artifacts/test_task729_manual_full_gate.py)
 
 ## Checklist S19.8
 

@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/reranking.py
+# Function Deep Dive - [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,10 +28,10 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | apply_combined_scoring | public | apply_combined_scoring(scored_results: list[ScoredResult], now: datetime, recency_alpha: float=_RECENCY_ALPHA, temporal_alpha: float=_TEMPORAL_ALPHA) -> None | cogmem_api/engine/search/reranking.py:19 | documented |
-| CrossEncoderReranker | __init__ | private | __init__(self, cross_encoder=None) | cogmem_api/engine/search/reranking.py:81 | documented |
-| CrossEncoderReranker | ensure_initialized | public | async ensure_initialized(self) | cogmem_api/engine/search/reranking.py:96 | documented |
-| CrossEncoderReranker | rerank | public | async rerank(self, query: str, candidates: list[MergedCandidate]) -> list[ScoredResult] | cogmem_api/engine/search/reranking.py:104 | documented |
+| (module) | apply_combined_scoring | public | apply_combined_scoring(scored_results: list[ScoredResult], now: datetime, recency_alpha: float=_RECENCY_ALPHA, temporal_alpha: float=_TEMPORAL_ALPHA) -> None | [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py):19 | documented |
+| CrossEncoderReranker | __init__ | private | __init__(self, cross_encoder=None) | [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py):81 | documented |
+| CrossEncoderReranker | ensure_initialized | public | async ensure_initialized(self) | [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py):96 | documented |
+| CrossEncoderReranker | rerank | public | async rerank(self, query: str, candidates: list[MergedCandidate]) -> list[ScoredResult] | [cogmem_api/engine/search/reranking.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/reranking.py):104 | documented |
 
 ### Function: (module).apply_combined_scoring
 - Signature: `apply_combined_scoring(scored_results: list[ScoredResult], now: datetime, recency_alpha: float=_RECENCY_ALPHA, temporal_alpha: float=_TEMPORAL_ALPHA) -> None`

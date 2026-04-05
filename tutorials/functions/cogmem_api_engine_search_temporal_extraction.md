@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/temporal_extraction.py
+# Function Deep Dive - [cogmem_api/engine/search/temporal_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/temporal_extraction.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | get_default_analyzer | public | get_default_analyzer() -> QueryAnalyzer | cogmem_api/engine/search/temporal_extraction.py:19 | documented |
-| (module) | extract_temporal_constraint | public | extract_temporal_constraint(query: str, reference_date: datetime \| None=None, analyzer: QueryAnalyzer \| None=None) -> tuple[datetime, datetime] \| None | cogmem_api/engine/search/temporal_extraction.py:34 | documented |
+| (module) | get_default_analyzer | public | get_default_analyzer() -> QueryAnalyzer | [cogmem_api/engine/search/temporal_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/temporal_extraction.py):19 | documented |
+| (module) | extract_temporal_constraint | public | extract_temporal_constraint(query: str, reference_date: datetime \| None=None, analyzer: QueryAnalyzer \| None=None) -> tuple[datetime, datetime] \| None | [cogmem_api/engine/search/temporal_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/temporal_extraction.py):34 | documented |
 
 ### Function: (module).get_default_analyzer
 - Signature: `get_default_analyzer() -> QueryAnalyzer`

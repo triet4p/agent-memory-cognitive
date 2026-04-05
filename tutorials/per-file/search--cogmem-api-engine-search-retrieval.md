@@ -1,4 +1,4 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/retrieval.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/retrieval.py)
 
 ## Purpose (Mục đích)
 - Điều phối retrieval 4-kênh: semantic, BM25, graph, temporal.
@@ -6,7 +6,7 @@
 - Gộp retrieval đa fact type với truy vấn DB tối ưu theo batch.
 
 ## Source File
-- cogmem_api/engine/search/retrieval.py
+- [cogmem_api/engine/search/retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/retrieval.py)
 
 ## Symbol-by-symbol explanation
 ### ParallelRetrievalResult, QueryRoutingDecision, MultiFactTypeRetrievalResult

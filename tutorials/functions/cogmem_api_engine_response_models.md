@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/response_models.py
+# Function Deep Dive - [cogmem_api/engine/response_models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/response_models.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| DispositionTraits | __post_init__ | private | __post_init__(self) -> None | cogmem_api/engine/response_models.py:17 | documented |
-| TokenUsage | __add__ | private | __add__(self, other: 'TokenUsage') -> 'TokenUsage' | cogmem_api/engine/response_models.py:45 | documented |
+| DispositionTraits | __post_init__ | private | __post_init__(self) -> None | [cogmem_api/engine/response_models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/response_models.py):17 | documented |
+| TokenUsage | __add__ | private | __add__(self, other: 'TokenUsage') -> 'TokenUsage' | [cogmem_api/engine/response_models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/response_models.py):45 | documented |
 
 ### Function: DispositionTraits.__post_init__
 - Signature: `__post_init__(self) -> None`

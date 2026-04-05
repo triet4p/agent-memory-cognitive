@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/graph_retrieval.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/graph_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/graph_retrieval.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa abstraction cho graph retrieval strategy.
 - Cung cấp implementation BFS spreading activation có guard chống vòng lặp.
 
 ## Source File
-- cogmem_api/engine/search/graph_retrieval.py
+- [cogmem_api/engine/search/graph_retrieval.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/graph_retrieval.py)
 
 ## Symbol-by-symbol explanation
 ### GraphRetriever

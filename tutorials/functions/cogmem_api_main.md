@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/main.py
+# Function Deep Dive - [cogmem_api/main.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/main.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | build_parser | public | build_parser() -> argparse.ArgumentParser | cogmem_api/main.py:17 | documented |
-| (module) | main | public | main() -> None | cogmem_api/main.py:59 | documented |
+| (module) | build_parser | public | build_parser() -> argparse.ArgumentParser | [cogmem_api/main.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/main.py):17 | documented |
+| (module) | main | public | main() -> None | [cogmem_api/main.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/main.py):59 | documented |
 
 ### Function: (module).build_parser
 - Signature: `build_parser() -> argparse.ArgumentParser`

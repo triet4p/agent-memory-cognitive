@@ -1,4 +1,4 @@
-# S19.1 Manual Tutorial - cogmem_api/__init__.py
+# S19.1 Manual Tutorial - [cogmem_api/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/__init__.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa bề mặt package tối thiểu cho CogMem API.
@@ -6,7 +6,7 @@
 - Cố định phiên bản package ở mức runtime metadata.
 
 ## Source File
-- cogmem_api/__init__.py
+- [cogmem_api/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/__init__.py)
 
 ## Symbol-by-symbol explanation
 ### Module docstring
@@ -27,10 +27,10 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/server.py import MemoryEngine từ package root.
+- [cogmem_api/server.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/server.py) import MemoryEngine từ package root.
 
 ### Outbound dependencies
-- cogmem_api/engine/memory_engine.py: nguồn định nghĩa lớp MemoryEngine.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py): nguồn định nghĩa lớp MemoryEngine.
 
 ## Runtime implications/side effects
 - Import cogmem_api sẽ trigger import dây chuyền tới memory_engine.

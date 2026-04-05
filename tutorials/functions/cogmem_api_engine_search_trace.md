@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/trace.py
+# Function Deep Dive - [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,12 +28,12 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| SearchTrace | to_json | public | to_json(self, **kwargs) -> str | cogmem_api/engine/search/trace.py:221 | documented |
-| SearchTrace | to_dict | public | to_dict(self) -> dict | cogmem_api/engine/search/trace.py:225 | documented |
-| SearchTrace | get_visit_by_node_id | public | get_visit_by_node_id(self, node_id: str) -> NodeVisit \| None | cogmem_api/engine/search/trace.py:229 | documented |
-| SearchTrace | get_search_path_to_node | public | get_search_path_to_node(self, node_id: str) -> list[NodeVisit] | cogmem_api/engine/search/trace.py:236 | documented |
-| SearchTrace | get_nodes_by_link_type | public | get_nodes_by_link_type(self, link_type: Literal['temporal', 'semantic', 'entity']) -> list[NodeVisit] | cogmem_api/engine/search/trace.py:250 | documented |
-| SearchTrace | get_entry_point_nodes | public | get_entry_point_nodes(self) -> list[NodeVisit] | cogmem_api/engine/search/trace.py:254 | documented |
+| SearchTrace | to_json | public | to_json(self, **kwargs) -> str | [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py):221 | documented |
+| SearchTrace | to_dict | public | to_dict(self) -> dict | [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py):225 | documented |
+| SearchTrace | get_visit_by_node_id | public | get_visit_by_node_id(self, node_id: str) -> NodeVisit \| None | [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py):229 | documented |
+| SearchTrace | get_search_path_to_node | public | get_search_path_to_node(self, node_id: str) -> list[NodeVisit] | [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py):236 | documented |
+| SearchTrace | get_nodes_by_link_type | public | get_nodes_by_link_type(self, link_type: Literal['temporal', 'semantic', 'entity']) -> list[NodeVisit] | [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py):250 | documented |
+| SearchTrace | get_entry_point_nodes | public | get_entry_point_nodes(self) -> list[NodeVisit] | [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py):254 | documented |
 
 ### Function: SearchTrace.to_json
 - Signature: `to_json(self, **kwargs) -> str`

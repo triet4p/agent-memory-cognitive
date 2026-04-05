@@ -1,11 +1,11 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/response_models.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/response_models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/response_models.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa các dataclass cốt lõi dùng chung cho think/reflect/LLM metrics.
 - Chuẩn hóa shape dữ liệu giữa các module engine.
 
 ## Source File
-- cogmem_api/engine/response_models.py
+- [cogmem_api/engine/response_models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/response_models.py)
 
 ## Symbol-by-symbol explanation
 ### DispositionTraits
@@ -24,7 +24,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/llm_wrapper.py dùng TokenUsage để đóng gói metrics usage.
+- [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py) dùng TokenUsage để đóng gói metrics usage.
 - Các pipeline think/reflect có thể dùng DispositionTraits và MemoryFact để chuẩn hóa dữ liệu.
 
 ### Outbound dependencies

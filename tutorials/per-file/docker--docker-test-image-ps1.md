@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - docker/test-image.ps1
+# S19.6 Manual Tutorial - [docker/test-image.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/test-image.ps1)
 
 ## Purpose
 - Smoke test Docker image CogMem trên Windows/PowerShell.
 - Xác thực chuỗi health + retain/recall smoke + guard deterministic embeddings.
 
 ## Source File
-- docker/test-image.ps1
+- [docker/test-image.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/test-image.ps1)
 
 ## Symbol-by-symbol explanation
 ### param([string]$Image)
@@ -29,7 +29,7 @@
 - Nếu container chết sớm thì in log và fail ngay.
 
 ### Smoke execution
-- Gọi scripts/smoke-test-cogmem.ps1 để kiểm tra retain/recall.
+- Gọi [scripts/smoke-test-cogmem.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.ps1) để kiểm tra retain/recall.
 - Nếu bật yêu cầu non-deterministic local embeddings, scan logs để chặn fallback deterministic.
 
 ### finally block
@@ -43,7 +43,7 @@
 - Người vận hành chạy trực tiếp script này để test image trên Windows.
 
 ### Outbound dependencies
-- scripts/smoke-test-cogmem.ps1
+- [scripts/smoke-test-cogmem.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.ps1)
 - Docker CLI
 - CogMem API /health
 

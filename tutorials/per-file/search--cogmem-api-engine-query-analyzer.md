@@ -1,4 +1,4 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/query_analyzer.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/query_analyzer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/query_analyzer.py)
 
 ## Purpose (Mục đích)
 - Phân tích query tự nhiên để suy ra loại intent và ràng buộc thời gian.
@@ -6,7 +6,7 @@
 - Cung cấp hai implementation analyzer: Dateparser và Transformer.
 
 ## Source File
-- cogmem_api/engine/query_analyzer.py
+- [cogmem_api/engine/query_analyzer.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/query_analyzer.py)
 
 ## Symbol-by-symbol explanation
 ### QueryType

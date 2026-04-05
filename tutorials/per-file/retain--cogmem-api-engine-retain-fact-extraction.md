@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/fact_extraction.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/fact_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_extraction.py)
 
 ## Purpose (Mục đích)
 - Trích xuất facts từ nội dung đầu vào cho retain pipeline.
@@ -6,7 +6,7 @@
 - Chuẩn hóa entities, relations (causal/action_effect/transition) và metadata liên quan.
 
 ## Source File
-- cogmem_api/engine/retain/fact_extraction.py
+- [cogmem_api/engine/retain/fact_extraction.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_extraction.py)
 
 ## Symbol-by-symbol explanation
 ### _HABIT_PATTERNS, _ACTION_EFFECT_PATTERNS

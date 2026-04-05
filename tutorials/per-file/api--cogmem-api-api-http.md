@@ -1,4 +1,4 @@
-# S19.2 Manual Tutorial - cogmem_api/api/http.py
+# S19.2 Manual Tutorial - [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py)
 
 ## Purpose (Mục đích)
 - Cài đặt FastAPI application factory cho runtime CogMem.
@@ -6,7 +6,7 @@
 - Chuẩn hóa chuyển đổi payload HTTP thành contract gọi MemoryEngine.
 
 ## Source File
-- cogmem_api/api/http.py
+- [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py)
 
 ## Symbol-by-symbol explanation
 ### HealthResponse

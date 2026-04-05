@@ -1,4 +1,4 @@
-# S19.2 Manual Tutorial - cogmem_api/models.py
+# S19.2 Manual Tutorial - [cogmem_api/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/models.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa toàn bộ schema ORM cho CogMem bằng SQLAlchemy.
@@ -6,7 +6,7 @@
 - Cung cấp lớp context dùng cho xác thực/ủy quyền theo request.
 
 ## Source File
-- cogmem_api/models.py
+- [cogmem_api/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/models.py)
 
 ## Symbol-by-symbol explanation
 ### RequestContext (dataclass)
@@ -73,7 +73,7 @@
 - Migration Alembic đồng bộ ràng buộc với schema ORM.
 
 ### Outbound dependencies
-- cogmem_api/config.py cung cấp EMBEDDING_DIMENSION cho Vector.
+- [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py) cung cấp EMBEDDING_DIMENSION cho Vector.
 - SQLAlchemy, pgvector, PostgreSQL JSONB/TIMESTAMP/UUID là nền tảng schema.
 
 ## Runtime implications/side effects

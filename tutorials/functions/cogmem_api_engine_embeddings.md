@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/embeddings.py
+# Function Deep Dive - [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,27 +28,27 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | create_embeddings_from_env | public | create_embeddings_from_env() -> Embeddings | cogmem_api/engine/embeddings.py:179 | documented |
-| DeterministicEmbeddings | __init__ | private | __init__(self, dimension: int=EMBEDDING_DIMENSION) | cogmem_api/engine/embeddings.py:44 | documented |
-| DeterministicEmbeddings | provider_name | public | provider_name(self) -> str | cogmem_api/engine/embeddings.py:48 | documented |
-| DeterministicEmbeddings | dimension | public | dimension(self) -> int | cogmem_api/engine/embeddings.py:52 | documented |
-| DeterministicEmbeddings | initialize | public | async initialize(self) -> None | cogmem_api/engine/embeddings.py:55 | documented |
-| DeterministicEmbeddings | _embed_one | private | _embed_one(self, text: str) -> list[float] | cogmem_api/engine/embeddings.py:58 | documented |
-| DeterministicEmbeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | cogmem_api/engine/embeddings.py:74 | documented |
-| Embeddings | provider_name | public | provider_name(self) -> str | cogmem_api/engine/embeddings.py:21 | documented |
-| Embeddings | dimension | public | dimension(self) -> int | cogmem_api/engine/embeddings.py:26 | documented |
-| Embeddings | initialize | public | async initialize(self) -> None | cogmem_api/engine/embeddings.py:30 | documented |
-| Embeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | cogmem_api/engine/embeddings.py:34 | documented |
-| LocalSTEmbeddings | __init__ | private | __init__(self, model_name: str) | cogmem_api/engine/embeddings.py:81 | documented |
-| LocalSTEmbeddings | provider_name | public | provider_name(self) -> str | cogmem_api/engine/embeddings.py:87 | documented |
-| LocalSTEmbeddings | dimension | public | dimension(self) -> int | cogmem_api/engine/embeddings.py:91 | documented |
-| LocalSTEmbeddings | initialize | public | async initialize(self) -> None | cogmem_api/engine/embeddings.py:96 | documented |
-| LocalSTEmbeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | cogmem_api/engine/embeddings.py:112 | documented |
-| OpenAIEmbeddings | __init__ | private | __init__(self, api_key: str, model: str, base_url: str \| None=None) | cogmem_api/engine/embeddings.py:128 | documented |
-| OpenAIEmbeddings | provider_name | public | provider_name(self) -> str | cogmem_api/engine/embeddings.py:136 | documented |
-| OpenAIEmbeddings | dimension | public | dimension(self) -> int | cogmem_api/engine/embeddings.py:140 | documented |
-| OpenAIEmbeddings | initialize | public | async initialize(self) -> None | cogmem_api/engine/embeddings.py:145 | documented |
-| OpenAIEmbeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | cogmem_api/engine/embeddings.py:168 | documented |
+| (module) | create_embeddings_from_env | public | create_embeddings_from_env() -> Embeddings | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):179 | documented |
+| DeterministicEmbeddings | __init__ | private | __init__(self, dimension: int=EMBEDDING_DIMENSION) | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):44 | documented |
+| DeterministicEmbeddings | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):48 | documented |
+| DeterministicEmbeddings | dimension | public | dimension(self) -> int | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):52 | documented |
+| DeterministicEmbeddings | initialize | public | async initialize(self) -> None | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):55 | documented |
+| DeterministicEmbeddings | _embed_one | private | _embed_one(self, text: str) -> list[float] | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):58 | documented |
+| DeterministicEmbeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):74 | documented |
+| Embeddings | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):21 | documented |
+| Embeddings | dimension | public | dimension(self) -> int | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):26 | documented |
+| Embeddings | initialize | public | async initialize(self) -> None | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):30 | documented |
+| Embeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):34 | documented |
+| LocalSTEmbeddings | __init__ | private | __init__(self, model_name: str) | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):81 | documented |
+| LocalSTEmbeddings | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):87 | documented |
+| LocalSTEmbeddings | dimension | public | dimension(self) -> int | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):91 | documented |
+| LocalSTEmbeddings | initialize | public | async initialize(self) -> None | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):96 | documented |
+| LocalSTEmbeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):112 | documented |
+| OpenAIEmbeddings | __init__ | private | __init__(self, api_key: str, model: str, base_url: str \| None=None) | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):128 | documented |
+| OpenAIEmbeddings | provider_name | public | provider_name(self) -> str | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):136 | documented |
+| OpenAIEmbeddings | dimension | public | dimension(self) -> int | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):140 | documented |
+| OpenAIEmbeddings | initialize | public | async initialize(self) -> None | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):145 | documented |
+| OpenAIEmbeddings | encode | public | encode(self, texts: list[str]) -> list[list[float]] | [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py):168 | documented |
 
 ### Function: (module).create_embeddings_from_env
 - Signature: `create_embeddings_from_env() -> Embeddings`

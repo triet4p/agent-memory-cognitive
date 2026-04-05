@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/llm_wrapper.py
+# Function Deep Dive - [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,10 +28,10 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | sanitize_llm_output | public | sanitize_llm_output(text: str \| None) -> str \| None | cogmem_api/engine/llm_wrapper.py:15 | documented |
-| (module) | parse_llm_json | public | parse_llm_json(raw: str) -> Any | cogmem_api/engine/llm_wrapper.py:29 | documented |
-| LLMConfig | call | public | async call(self, messages: list[dict[str, str]], response_format: type \| None=None, scope: str \| None=None, temperature: float=0.1, max_completion_tokens: int \| None=None, return_usage: bool=False, skip_validation: bool=False, **_: Any) -> Any | cogmem_api/engine/llm_wrapper.py:56 | documented |
-| LLMConfig | _post_chat_completions | private | async _post_chat_completions(self, payload: dict[str, Any]) -> dict[str, Any] | cogmem_api/engine/llm_wrapper.py:120 | documented |
+| (module) | sanitize_llm_output | public | sanitize_llm_output(text: str \| None) -> str \| None | [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py):15 | documented |
+| (module) | parse_llm_json | public | parse_llm_json(raw: str) -> Any | [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py):29 | documented |
+| LLMConfig | call | public | async call(self, messages: list[dict[str, str]], response_format: type \| None=None, scope: str \| None=None, temperature: float=0.1, max_completion_tokens: int \| None=None, return_usage: bool=False, skip_validation: bool=False, **_: Any) -> Any | [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py):56 | documented |
+| LLMConfig | _post_chat_completions | private | async _post_chat_completions(self, payload: dict[str, Any]) -> dict[str, Any] | [cogmem_api/engine/llm_wrapper.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/llm_wrapper.py):120 | documented |
 
 ### Function: (module).sanitize_llm_output
 - Signature: `sanitize_llm_output(text: str | None) -> str | None`

@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/docker.sh
+# S19.6 Manual Tutorial - [scripts/docker.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/docker.sh)
 
 ## Purpose
 - Wrapper shell để build/chạy CogMem Docker theo hai mode: embedded (pg0) hoặc external (compose/external URL).
 - Chuẩn hóa truyền ENV runtime (LLM, schema, timeout, retain knobs) cho container.
 
 ## Source File
-- scripts/docker.sh
+- [scripts/docker.sh](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/docker.sh)
 
 ## Symbol-by-symbol explanation
 ### Mode/config variables
@@ -21,7 +21,7 @@
 
 ### case "${MODE}"
 - embedded:
-  - build image bằng docker/standalone/Dockerfile
+  - build image bằng [docker/standalone/Dockerfile](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/standalone/Dockerfile)
   - mount volume pg0
   - chạy `docker run` trực tiếp.
 - external:
@@ -39,8 +39,8 @@
 - docs/runbook có thể dùng script này làm command chuẩn.
 
 ### Outbound dependencies
-- docker/standalone/Dockerfile.
-- docker/docker-compose/external-pg/docker-compose.yaml.
+- [docker/standalone/Dockerfile.](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/standalone/Dockerfile)
+- [docker/docker-compose/external-pg/docker-compose.yaml.](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/docker-compose/external-pg/docker-compose.yaml)
 - .env khi chạy compose external mode.
 - Docker CLI và Docker Compose.
 

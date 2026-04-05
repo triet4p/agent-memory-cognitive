@@ -1,11 +1,11 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/db_utils.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/db_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/db_utils.py)
 
 ## Purpose (Mục đích)
 - Cung cấp helper retry với exponential backoff cho thao tác DB.
 - Chuẩn hóa acquire/release kết nối pool theo async context manager.
 
 ## Source File
-- cogmem_api/engine/db_utils.py
+- [cogmem_api/engine/db_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/db_utils.py)
 
 ## Symbol-by-symbol explanation
 ### DEFAULT_MAX_RETRIES, DEFAULT_BASE_DELAY, DEFAULT_MAX_DELAY
@@ -25,7 +25,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/memory_engine.py dùng acquire_with_retry cho execute/health/recall fallback.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py) dùng acquire_with_retry cho execute/health/recall fallback.
 
 ### Outbound dependencies
 - asyncpg.Pool cho acquire/release.

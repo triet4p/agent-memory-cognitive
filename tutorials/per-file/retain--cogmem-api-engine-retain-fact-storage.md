@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/fact_storage.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py)
 
 ## Purpose (Mục đích)
 - Ghi ProcessedFact xuống DB theo schema an toàn.
@@ -6,7 +6,7 @@
 - Chuẩn hóa fact_type, raw_snippet và metadata trước khi persist.
 
 ## Source File
-- cogmem_api/engine/retain/fact_storage.py
+- [cogmem_api/engine/retain/fact_storage.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/fact_storage.py)
 
 ## Symbol-by-symbol explanation
 ### _DEFAULT_DISPOSITION

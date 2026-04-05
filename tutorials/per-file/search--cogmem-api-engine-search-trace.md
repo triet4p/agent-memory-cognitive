@@ -1,11 +1,11 @@
-# S19.5 Manual Tutorial - cogmem_api/engine/search/trace.py
+# S19.5 Manual Tutorial - [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa toàn bộ schema trace phục vụ debug và visualization cho search.
 - Lưu cả kiến trúc mới 4-way retrieval lẫn trường legacy cho graph traversal.
 
 ## Source File
-- cogmem_api/engine/search/trace.py
+- [cogmem_api/engine/search/trace.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/trace.py)
 
 ## Symbol-by-symbol explanation
 ### TemporalConstraint, QueryInfo, EntryPoint

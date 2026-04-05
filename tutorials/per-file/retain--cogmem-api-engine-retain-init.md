@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/__init__.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/__init__.py)
 
 ## Purpose (Mục đích)
 - Định nghĩa public surface cho retain pipeline của CogMem.
@@ -6,7 +6,7 @@
 - Gom các module con để caller import theo một điểm duy nhất.
 
 ## Source File
-- cogmem_api/engine/retain/__init__.py
+- [cogmem_api/engine/retain/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/__init__.py)
 
 ## Symbol-by-symbol explanation
 ### chunk_storage, embedding_processing, entity_processing, fact_extraction, fact_storage, link_creation
@@ -23,7 +23,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/memory_engine.py gọi retain_batch qua orchestrator.
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py) gọi retain_batch qua orchestrator.
 
 ### Outbound dependencies
 - Toàn bộ module con trong thư mục retain và file types.py.

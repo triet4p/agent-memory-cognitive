@@ -1,4 +1,4 @@
-# S19.3 Manual Tutorial - cogmem_api/engine/memory_engine.py
+# S19.3 Manual Tutorial - [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py)
 
 ## Purpose (Mục đích)
 - Cung cấp lớp runtime trung tâm để quản lý DB pool, retain, recall và health check.
@@ -6,7 +6,7 @@
 - Điều phối embedded PostgreSQL (pg0), embeddings provider và các luồng search/rerank.
 
 ## Source File
-- cogmem_api/engine/memory_engine.py
+- [cogmem_api/engine/memory_engine.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/memory_engine.py)
 
 ## Symbol-by-symbol explanation
 ### _current_schema
@@ -108,16 +108,16 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/server.py giữ instance MemoryEngine ở cấp module.
-- cogmem_api/api/http.py gọi retain_batch_async/recall_async/health_check.
+- [cogmem_api/server.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/server.py) giữ instance MemoryEngine ở cấp module.
+- [cogmem_api/api/http.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/api/http.py) gọi retain_batch_async/recall_async/health_check.
 
 ### Outbound dependencies
-- cogmem_api/config.py: ENV/runtime config.
-- cogmem_api/models.py: Base.metadata cho bootstrap schema.
-- cogmem_api/pg0.py: embedded PostgreSQL lifecycle.
-- cogmem_api/engine/db_utils.py: acquire_with_retry.
-- cogmem_api/engine/embeddings.py: provider + fallback.
-- cogmem_api/engine/retain/orchestrator.py và engine/search/*: retain/recall pipeline.
+- [cogmem_api/config.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/config.py): ENV/runtime config.
+- [cogmem_api/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/models.py): Base.metadata cho bootstrap schema.
+- [cogmem_api/pg0.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/pg0.py): embedded PostgreSQL lifecycle.
+- [cogmem_api/engine/db_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/db_utils.py): acquire_with_retry.
+- [cogmem_api/engine/embeddings.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/embeddings.py): provider + fallback.
+- [cogmem_api/engine/retain/orchestrator.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/orchestrator.py) và engine/search/*: retain/recall pipeline.
 
 ## Runtime implications/side effects
 - initialize() có side effect lớn: có thể khởi động pg0, tạo schema, tạo extension và tạo bảng.

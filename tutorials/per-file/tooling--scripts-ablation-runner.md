@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/ablation_runner.py
+# S19.6 Manual Tutorial - [scripts/ablation_runner.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/ablation_runner.py)
 
 ## Purpose
 - Chạy ablation suite cho CogMem bằng cách lặp profile (E1..E7) và pipeline (recall/full).
 - Tổng hợp kết quả, ghi file JSON report và in summary nhanh trên console.
 
 ## Source File
-- scripts/ablation_runner.py
+- [scripts/ablation_runner.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/ablation_runner.py)
 
 ## Symbol-by-symbol explanation
 ### JsonDict
@@ -29,15 +29,15 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- Người vận hành gọi trực tiếp qua CLI: uv run python scripts/ablation_runner.py ...
+- Người vận hành gọi trực tiếp qua CLI: uv run python [scripts/ablation_runner.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/ablation_runner.py) ...
 
 ### Outbound dependencies
-- scripts/eval_cogmem.py: ABLATION_PROFILES, resolve_api_base_url, run_pipeline.
+- [scripts/eval_cogmem.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/eval_cogmem.py): ABLATION_PROFILES, resolve_api_base_url, run_pipeline.
 - pathlib.Path, json, uuid, time.
 
 ## Runtime implications/side effects
 - Sinh nhiều bank_id nên có thể tạo tải đáng kể lên API nếu chạy full profiles x both pipelines.
-- Ghi report JSON vào logs/eval (mặc định), phục vụ so sánh profile.
+- Ghi report JSON vào [logs/eval](https://github.com/triet4p/agent-memory-cognitive/blob/master/logs/eval) (mặc định), phục vụ so sánh profile.
 
 ## Failure modes
 - profile không hợp lệ sẽ raise ValueError.

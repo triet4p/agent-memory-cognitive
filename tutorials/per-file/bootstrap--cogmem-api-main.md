@@ -1,4 +1,4 @@
-# S19.1 Manual Tutorial - cogmem_api/main.py
+# S19.1 Manual Tutorial - [cogmem_api/main.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/main.py)
 
 ## Purpose (Mục đích)
 - Cung cấp entrypoint CLI để chạy CogMem API bằng uvicorn.
@@ -6,7 +6,7 @@
 - Chuẩn hóa cách khởi chạy app theo module cogmem_api.server:app.
 
 ## Source File
-- cogmem_api/main.py
+- [cogmem_api/main.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/main.py)
 
 ## Symbol-by-symbol explanation
 ### DEFAULT_HOST
@@ -39,7 +39,7 @@
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Người vận hành chạy trực tiếp module main như CLI entrypoint.
-- cogmem_api/server.py có nhánh __main__ gọi lại main() để đồng nhất cách startup.
+- [cogmem_api/server.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/server.py) có nhánh __main__ gọi lại main() để đồng nhất cách startup.
 
 ### Outbound dependencies
 - cogmem_api.config._get_raw_config: cung cấp default runtime config.

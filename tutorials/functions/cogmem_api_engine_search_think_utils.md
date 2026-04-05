@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/think_utils.py
+# Function Deep Dive - [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,13 +28,13 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | describe_trait_level | public | describe_trait_level(value: int) -> str | cogmem_api/engine/search/think_utils.py:13 | documented |
-| (module) | build_disposition_description | public | build_disposition_description(disposition: DispositionTraits) -> str | cogmem_api/engine/search/think_utils.py:19 | documented |
-| (module) | format_facts_for_prompt | public | format_facts_for_prompt(facts: list[MemoryFact]) -> str | cogmem_api/engine/search/think_utils.py:51 | documented |
-| (module) | format_entity_summaries_for_prompt | public | format_entity_summaries_for_prompt(entities: dict) -> str | cogmem_api/engine/search/think_utils.py:78 | documented |
-| (module) | build_think_prompt | public | build_think_prompt(agent_facts_text: str, world_facts_text: str, query: str, name: str, disposition: DispositionTraits, background: str, context: str \| None=None, entity_summaries_text: str \| None=None) -> str | cogmem_api/engine/search/think_utils.py:112 | documented |
-| (module) | get_system_message | public | get_system_message(disposition: DispositionTraits) -> str | cogmem_api/engine/search/think_utils.py:173 | documented |
-| (module) | reflect | public | async reflect(llm_config, query: str, experience_facts: list[str]=None, world_facts: list[str]=None, name: str='Assistant', disposition: DispositionTraits=None, background: str='', context: str=None) -> str | cogmem_api/engine/search/think_utils.py:203 | documented |
+| (module) | describe_trait_level | public | describe_trait_level(value: int) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):13 | documented |
+| (module) | build_disposition_description | public | build_disposition_description(disposition: DispositionTraits) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):19 | documented |
+| (module) | format_facts_for_prompt | public | format_facts_for_prompt(facts: list[MemoryFact]) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):51 | documented |
+| (module) | format_entity_summaries_for_prompt | public | format_entity_summaries_for_prompt(entities: dict) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):78 | documented |
+| (module) | build_think_prompt | public | build_think_prompt(agent_facts_text: str, world_facts_text: str, query: str, name: str, disposition: DispositionTraits, background: str, context: str \| None=None, entity_summaries_text: str \| None=None) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):112 | documented |
+| (module) | get_system_message | public | get_system_message(disposition: DispositionTraits) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):173 | documented |
+| (module) | reflect | public | async reflect(llm_config, query: str, experience_facts: list[str]=None, world_facts: list[str]=None, name: str='Assistant', disposition: DispositionTraits=None, background: str='', context: str=None) -> str | [cogmem_api/engine/search/think_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/think_utils.py):203 | documented |
 
 ### Function: (module).describe_trait_level
 - Signature: `describe_trait_level(value: int) -> str`

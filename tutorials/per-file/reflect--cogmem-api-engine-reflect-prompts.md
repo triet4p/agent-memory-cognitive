@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - cogmem_api/engine/reflect/prompts.py
+# S19.6 Manual Tutorial - [cogmem_api/engine/reflect/prompts.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/prompts.py)
 
 ## Purpose
 - Xây prompt reflect theo hướng evidence-grounded, tránh bịa thông tin.
 - Chuẩn hóa format prompt để dùng ổn định trong lazy synthesis.
 
 ## Source File
-- cogmem_api/engine/reflect/prompts.py
+- [cogmem_api/engine/reflect/prompts.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/prompts.py)
 
 ## Symbol-by-symbol explanation
 ### SYSTEM_PROMPT
@@ -22,11 +22,11 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/reflect/agent.py gọi để dựng prompt trước khi gọi llm_generate.
-- cogmem_api/engine/reflect/__init__.py export SYSTEM_PROMPT và builder.
+- [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py) gọi để dựng prompt trước khi gọi llm_generate.
+- [cogmem_api/engine/reflect/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/__init__.py) export SYSTEM_PROMPT và builder.
 
 ### Outbound dependencies
-- cogmem_api/engine/reflect/models.py: ReflectEvidence.
+- [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py): ReflectEvidence.
 - typing.Any cho bank_profile.
 
 ## Runtime implications/side effects

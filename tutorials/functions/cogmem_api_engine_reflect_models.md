@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/reflect/models.py
+# Function Deep Dive - [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm lazy synthesis và chuẩn hóa evidence cho bước phản hồi.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| ReflectEvidence | _validate_text | private | _validate_text(cls, value: str) -> str | cogmem_api/engine/reflect/models.py:26 | documented |
-| ReflectEvidence | _normalize_raw_snippet | private | _normalize_raw_snippet(cls, value: str \| None) -> str \| None | cogmem_api/engine/reflect/models.py:34 | documented |
+| ReflectEvidence | _validate_text | private | _validate_text(cls, value: str) -> str | [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py):26 | documented |
+| ReflectEvidence | _normalize_raw_snippet | private | _normalize_raw_snippet(cls, value: str \| None) -> str \| None | [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py):34 | documented |
 
 ### Function: ReflectEvidence._validate_text
 - Signature: `_validate_text(cls, value: str) -> str`

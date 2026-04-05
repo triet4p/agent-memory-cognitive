@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/search/types.py
+# Function Deep Dive - [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm retrieval, fusion, reranking và routing của recall pipeline.
@@ -28,11 +28,11 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| MergedCandidate | id | public | id(self) -> str | cogmem_api/engine/search/types.py:100 | documented |
-| RetrievalResult | from_db_row | public | from_db_row(cls, row: dict[str, Any]) -> 'RetrievalResult' | cogmem_api/engine/search/types.py:60 | documented |
-| ScoredResult | id | public | id(self) -> str | cogmem_api/engine/search/types.py:130 | documented |
-| ScoredResult | retrieval | public | retrieval(self) -> RetrievalResult | cogmem_api/engine/search/types.py:135 | documented |
-| ScoredResult | to_dict | public | to_dict(self) -> dict[str, Any] | cogmem_api/engine/search/types.py:139 | documented |
+| MergedCandidate | id | public | id(self) -> str | [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py):100 | documented |
+| RetrievalResult | from_db_row | public | from_db_row(cls, row: dict[str, Any]) -> 'RetrievalResult' | [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py):60 | documented |
+| ScoredResult | id | public | id(self) -> str | [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py):130 | documented |
+| ScoredResult | retrieval | public | retrieval(self) -> RetrievalResult | [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py):135 | documented |
+| ScoredResult | to_dict | public | to_dict(self) -> dict[str, Any] | [cogmem_api/engine/search/types.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/search/types.py):139 | documented |
 
 ### Function: MergedCandidate.id
 - Signature: `id(self) -> str`

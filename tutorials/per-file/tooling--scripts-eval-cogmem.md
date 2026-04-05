@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/eval_cogmem.py
+# S19.6 Manual Tutorial - [scripts/eval_cogmem.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/eval_cogmem.py)
 
 ## Purpose
 - Cung cấp harness đánh giá T6.3 cho CogMem: recall-only và full end-to-end có chấm điểm bằng judge LLM.
 - Hỗ trợ ablation profiles E1..E7 để so sánh đóng góp của network và thuật toán retrieval.
 
 ## Source File
-- scripts/eval_cogmem.py
+- [scripts/eval_cogmem.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/eval_cogmem.py)
 
 ## Symbol-by-symbol explanation
 ### EvalLLMConfig
@@ -79,7 +79,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- scripts/ablation_runner.py gọi run_pipeline, ABLATION_PROFILES và resolve_api_base_url.
+- [scripts/ablation_runner.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/ablation_runner.py) gọi run_pipeline, ABLATION_PROFILES và resolve_api_base_url.
 - Người vận hành gọi trực tiếp script để benchmark từng profile.
 
 ### Outbound dependencies
@@ -90,7 +90,7 @@
 ## Runtime implications/side effects
 - Có thể tạo nhiều request và tốn chi phí LLM (đặc biệt pipeline full).
 - Nếu skip_retain=False, script sẽ ghi dữ liệu vào bank tương ứng.
-- File kết quả eval được ghi vào logs/eval (mặc định).
+- File kết quả eval được ghi vào [logs/eval](https://github.com/triet4p/agent-memory-cognitive/blob/master/logs/eval) (mặc định).
 
 ## Failure modes
 - API unavailable/timeout gây thất bại toàn pipeline.

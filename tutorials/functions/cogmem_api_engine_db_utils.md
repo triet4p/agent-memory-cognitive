@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/db_utils.py
+# Function Deep Dive - [cogmem_api/engine/db_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/db_utils.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm trong module và contract input/output ở mức function-level.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | retry_with_backoff | public | async retry_with_backoff(func, max_retries: int=DEFAULT_MAX_RETRIES, base_delay: float=DEFAULT_BASE_DELAY, max_delay: float=DEFAULT_MAX_DELAY, retryable_exceptions: tuple[type[BaseException], ...]=RETRYABLE_EXCEPTIONS) | cogmem_api/engine/db_utils.py:28 | documented |
-| (module) | acquire_with_retry | public | async acquire_with_retry(pool: asyncpg.Pool, max_retries: int=DEFAULT_MAX_RETRIES) | cogmem_api/engine/db_utils.py:62 | documented |
+| (module) | retry_with_backoff | public | async retry_with_backoff(func, max_retries: int=DEFAULT_MAX_RETRIES, base_delay: float=DEFAULT_BASE_DELAY, max_delay: float=DEFAULT_MAX_DELAY, retryable_exceptions: tuple[type[BaseException], ...]=RETRYABLE_EXCEPTIONS) | [cogmem_api/engine/db_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/db_utils.py):28 | documented |
+| (module) | acquire_with_retry | public | async acquire_with_retry(pool: asyncpg.Pool, max_retries: int=DEFAULT_MAX_RETRIES) | [cogmem_api/engine/db_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/db_utils.py):62 | documented |
 
 ### Function: (module).retry_with_backoff
 - Signature: `async retry_with_backoff(func, max_retries: int=DEFAULT_MAX_RETRIES, base_delay: float=DEFAULT_BASE_DELAY, max_delay: float=DEFAULT_MAX_DELAY, retryable_exceptions: tuple[type[BaseException], ...]=RETRYABLE_EXCEPTIONS)`

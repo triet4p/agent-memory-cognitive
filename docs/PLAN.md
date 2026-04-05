@@ -13,15 +13,15 @@ Mục tiêu điều phối:
 ---
 
 ## 2) Trạng thái hiện tại (baseline)
-1. Coverage matrix hiện tại tại docs/migration_idea_coverage_matrix.md:
+1. Coverage matrix hiện tại tại [docs/migration_idea_coverage_matrix.md](migration_idea_coverage_matrix.md):
 - C1: PARTIAL
 - C2: FULL
 - C3: PARTIAL
 - C4: PARTIAL
 - C5: MISSING (deferred)
 2. Readiness đã có:
-- reports/hindsight_removal_readiness.md
-- docs/hindsight_removal_playbook.md
+- [reports/hindsight_removal_readiness.md](../reports/hindsight_removal_readiness.md)
+- [docs/hindsight_removal_playbook.md](hindsight_removal_playbook.md)
 3. Quyết định phạm vi đang khóa:
 - Delete scope đợt tới: chỉ xóa thư mục hindsight_api.
 - Full gate trước tutorial: bắt buộc C1-C4 = FULL.
@@ -36,10 +36,10 @@ Mục tiêu điều phối:
 2. T0.2: convention artifact + test path.
 
 Artifacts chính:
-- logs/task_001_summary.md
-- logs/task_002_summary.md
-- tests/artifacts/test_task001_inventory.py
-- tests/artifacts/test_task002_artifact_conventions.py
+- [logs/task_001_summary.md](../logs/task_001_summary.md)
+- [logs/task_002_summary.md](../logs/task_002_summary.md)
+- [tests/artifacts/test_task001_inventory.py](../tests/artifacts/test_task001_inventory.py)
+- [tests/artifacts/test_task002_artifact_conventions.py](../tests/artifacts/test_task002_artifact_conventions.py)
 
 ### 3.2 Sprint 1 - Nền tảng schema/engine
 Mục tiêu sprint:
@@ -670,7 +670,7 @@ Hard rules:
 ---
 
 ## 7) Verification standard (mọi sprint)
-1. Drift Check: đối chiếu docs/CogMem-Idea.md và coverage matrix.
+1. Drift Check: đối chiếu [docs/CogMem-Idea.md](CogMem-Idea.md) và coverage matrix.
 2. Behavioral Testing: mỗi sprint có artifact test chạy độc lập.
 3. Isolation Check: không có import runtime trái phạm vi trong cogmem_api.
 4. Sprint Gate: sprint sau chỉ bắt đầu khi sprint trước PASS exit gate.
@@ -678,19 +678,19 @@ Hard rules:
 ---
 
 ## 8) Relevant files
-1. docs/migration_idea_coverage_matrix.md
-2. reports/hindsight_removal_readiness.md
-3. docs/hindsight_removal_playbook.md
-4. docs/CogMem-Idea.md
+1. [docs/migration_idea_coverage_matrix.md](migration_idea_coverage_matrix.md)
+2. [reports/hindsight_removal_readiness.md](../reports/hindsight_removal_readiness.md)
+3. [docs/hindsight_removal_playbook.md](hindsight_removal_playbook.md)
+4. [docs/CogMem-Idea.md](CogMem-Idea.md)
 5. pyproject.toml
-6. cogmem_api/engine/search/link_expansion_retrieval.py
-7. cogmem_api/engine/search/retrieval.py
-8. cogmem_api/engine/search/graph_retrieval.py
-9. cogmem_api/config.py
-10. cogmem_api/engine/query_analyzer.py
-11. tests/artifacts/test_task701_idea_coverage_matrix.py
-12. tests/artifacts/test_task702_hindsight_removal_gate.py
-13. tests/artifacts/test_task703_removal_playbook_contract.py
+6. [cogmem_api/engine/search/link_expansion_retrieval.py](../cogmem_api/engine/search/link_expansion_retrieval.py)
+7. [cogmem_api/engine/search/retrieval.py](../cogmem_api/engine/search/retrieval.py)
+8. [cogmem_api/engine/search/graph_retrieval.py](../cogmem_api/engine/search/graph_retrieval.py)
+9. [cogmem_api/config.py](../cogmem_api/config.py)
+10. [cogmem_api/engine/query_analyzer.py](../cogmem_api/engine/query_analyzer.py)
+11. [tests/artifacts/test_task701_idea_coverage_matrix.py](../tests/artifacts/test_task701_idea_coverage_matrix.py)
+12. [tests/artifacts/test_task702_hindsight_removal_gate.py](../tests/artifacts/test_task702_hindsight_removal_gate.py)
+13. [tests/artifacts/test_task703_removal_playbook_contract.py](../tests/artifacts/test_task703_removal_playbook_contract.py)
 
 ---
 

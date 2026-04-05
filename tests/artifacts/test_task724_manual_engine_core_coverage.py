@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -23,6 +24,19 @@ REQUIRED_DOC_SECTIONS = [
     "## Verify commands",
 ]
 
+ROW_RE = re.compile(
+    r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*(\.[a-z0-9]+)\s*\|\s*(not-started|in-progress|done)\s*\|\s*([^|]+?)\s*\|$"
+)
+LINK_CELL_RE = re.compile(r"^\[([^\]]+)\]\([^\)]+\)$")
+
+
+def _normalize_cell(value: str) -> str:
+    raw = value.strip()
+    match = LINK_CELL_RE.match(raw)
+    if match:
+        return match.group(1).strip()
+    return raw
+
 
 def _assert_doc_contract(repo_root: Path, source_file: str, doc_file: str) -> None:
     doc_path = repo_root / doc_file
@@ -41,12 +55,22 @@ def _assert_manifest_updates(repo_root: Path) -> None:
     assert manifest_path.exists(), "Missing tutorials/per-file/file-manifest.md"
 
     manifest_text = manifest_path.read_text(encoding="utf-8")
+    mapping: dict[str, tuple[str, str, str]] = {}
+    for line in manifest_text.splitlines():
+        match = ROW_RE.match(line)
+        if not match:
+            continue
+        source = _normalize_cell(match.group(2))
+        extension = match.group(3).strip()
+        status = match.group(4).strip()
+        doc = _normalize_cell(match.group(5))
+        mapping[source] = (extension, status, doc)
 
     for source_file, doc_file in REQUIRED_MANUAL_DOCS.items():
-        expected_row_fragment = f"| {source_file} | .py | done | {doc_file} |"
-        assert expected_row_fragment in manifest_text, (
+        assert source_file in mapping, f"Manifest row missing source file: {source_file}"
+        assert mapping[source_file] == (".py", "done", doc_file), (
             "Manifest row mismatch for S19.3 scope: "
-            f"expected fragment '{expected_row_fragment}'"
+            f"expected ('.py', 'done', '{doc_file}'), got {mapping[source_file]}"
         )
 
 

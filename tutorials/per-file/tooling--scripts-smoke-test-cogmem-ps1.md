@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - scripts/smoke-test-cogmem.ps1
+# S19.6 Manual Tutorial - [scripts/smoke-test-cogmem.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.ps1)
 
 ## Purpose
 - Smoke test retain/recall cho CogMem API bằng PowerShell.
 - Kiểm chứng nhanh hợp đồng API cơ bản sau khi khởi chạy dịch vụ.
 
 ## Source File
-- scripts/smoke-test-cogmem.ps1
+- [scripts/smoke-test-cogmem.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/scripts/smoke-test-cogmem.ps1)
 
 ## Symbol-by-symbol explanation
 ### param($BaseUrl)
@@ -30,7 +30,7 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- docker/test-image.ps1 gọi script này sau khi health check pass.
+- [docker/test-image.ps1](https://github.com/triet4p/agent-memory-cognitive/blob/master/docker/test-image.ps1) gọi script này sau khi health check pass.
 - Người vận hành có thể gọi trực tiếp khi debug local.
 
 ### Outbound dependencies

@@ -1,11 +1,11 @@
-# S19.6 Manual Tutorial - cogmem_api/engine/reflect/models.py
+# S19.6 Manual Tutorial - [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py)
 
 ## Purpose
 - Định nghĩa kiểu dữ liệu chuẩn cho bằng chứng reflect và kết quả tổng hợp reflect.
 - Cung cấp validation dữ liệu bằng Pydantic để giữ output nhất quán.
 
 ## Source File
-- cogmem_api/engine/reflect/models.py
+- [cogmem_api/engine/reflect/models.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/models.py)
 
 ## Symbol-by-symbol explanation
 ### ReflectNetwork
@@ -27,9 +27,9 @@
 
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
-- cogmem_api/engine/reflect/tools.py tạo ReflectEvidence.
-- cogmem_api/engine/reflect/agent.py trả ReflectSynthesisResult.
-- cogmem_api/engine/reflect/__init__.py export cả hai model.
+- [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py) tạo ReflectEvidence.
+- [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py) trả ReflectSynthesisResult.
+- [cogmem_api/engine/reflect/__init__.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/__init__.py) export cả hai model.
 
 ### Outbound dependencies
 - pydantic.BaseModel, Field, field_validator.

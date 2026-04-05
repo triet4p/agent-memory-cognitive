@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/embedding_processing.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/embedding_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_processing.py)
 
 ## Purpose (Mục đích)
 - Điều phối tiền xử lý text trước khi sinh embedding.
@@ -6,7 +6,7 @@
 - Ủy quyền sinh embedding batch cho embedding_utils.
 
 ## Source File
-- cogmem_api/engine/retain/embedding_processing.py
+- [cogmem_api/engine/retain/embedding_processing.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_processing.py)
 
 ## Symbol-by-symbol explanation
 ### augment_texts_with_dates(facts, format_date_fn)

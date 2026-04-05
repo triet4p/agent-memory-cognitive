@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/reflect/agent.py
+# Function Deep Dive - [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm lazy synthesis và chuẩn hóa evidence cho bước phản hồi.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _default_markdown_answer | private | _default_markdown_answer(question: str, evidence_lines: list[str]) -> str | cogmem_api/engine/reflect/agent.py:13 | documented |
-| (module) | synthesize_lazy_reflect | public | synthesize_lazy_reflect(question: str, retrieved_items: list[Any], llm_generate: Callable[[str], str] \| None=None, bank_profile: dict[str, Any] \| None=None, max_evidence: int=8, include_prompt: bool=False) -> ReflectSynthesisResult | cogmem_api/engine/reflect/agent.py:30 | documented |
+| (module) | _default_markdown_answer | private | _default_markdown_answer(question: str, evidence_lines: list[str]) -> str | [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py):13 | documented |
+| (module) | synthesize_lazy_reflect | public | synthesize_lazy_reflect(question: str, retrieved_items: list[Any], llm_generate: Callable[[str], str] \| None=None, bank_profile: dict[str, Any] \| None=None, max_evidence: int=8, include_prompt: bool=False) -> ReflectSynthesisResult | [cogmem_api/engine/reflect/agent.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/agent.py):30 | documented |
 
 ### Function: (module)._default_markdown_answer
 - Signature: `_default_markdown_answer(question: str, evidence_lines: list[str]) -> str`

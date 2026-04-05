@@ -1,4 +1,4 @@
-# S19.2 Manual Tutorial - cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py
+# S19.2 Manual Tutorial - [cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py)
 
 ## Purpose (Mục đích)
 - Áp dụng mở rộng schema T1.2 cho CogMem theo contribution C1.
@@ -6,7 +6,7 @@
 - Mở rộng memory_links với transition_type và bộ ràng buộc transition.
 
 ## Source File
-- cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py
+- [cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/alembic/versions/20260330_0001_t1_2_schema_extensions.py)
 
 ## Symbol-by-symbol explanation
 ### revision, down_revision, branch_labels, depends_on
@@ -46,7 +46,7 @@
 ### Outbound dependencies
 - Alembic op API: add_column, drop_constraint, create_check_constraint, create_index, drop_index.
 - SQLAlchemy sa.Column/sa.Text để mô tả kiểu cột.
-- Tương thích mục tiêu với ORM constraints trong cogmem_api/models.py.
+- Tương thích mục tiêu với ORM constraints trong [cogmem_api/models.py.](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/models.py)
 
 ## Runtime implications/side effects
 - Sau upgrade, dữ liệu mới có thể lưu raw_snippet để phục vụ recall chi tiết.

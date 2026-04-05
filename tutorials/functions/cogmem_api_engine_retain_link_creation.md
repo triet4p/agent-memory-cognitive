@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/link_creation.py
+# Function Deep Dive - [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,12 +28,12 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | create_temporal_links_batch | public | async create_temporal_links_batch(conn, bank_id: str, unit_ids: list[str]) -> int | cogmem_api/engine/retain/link_creation.py:9 | documented |
-| (module) | create_semantic_links_batch | public | async create_semantic_links_batch(conn, bank_id: str, unit_ids: list[str], embeddings: list[list[float]]) -> int | cogmem_api/engine/retain/link_creation.py:16 | documented |
-| (module) | create_causal_links_batch | public | async create_causal_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | cogmem_api/engine/retain/link_creation.py:22 | documented |
-| (module) | create_habit_sr_links_batch | public | async create_habit_sr_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | cogmem_api/engine/retain/link_creation.py:50 | documented |
-| (module) | create_transition_links_batch | public | async create_transition_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | cogmem_api/engine/retain/link_creation.py:83 | documented |
-| (module) | create_action_effect_links_batch | public | async create_action_effect_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | cogmem_api/engine/retain/link_creation.py:132 | documented |
+| (module) | create_temporal_links_batch | public | async create_temporal_links_batch(conn, bank_id: str, unit_ids: list[str]) -> int | [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py):9 | documented |
+| (module) | create_semantic_links_batch | public | async create_semantic_links_batch(conn, bank_id: str, unit_ids: list[str], embeddings: list[list[float]]) -> int | [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py):16 | documented |
+| (module) | create_causal_links_batch | public | async create_causal_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py):22 | documented |
+| (module) | create_habit_sr_links_batch | public | async create_habit_sr_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py):50 | documented |
+| (module) | create_transition_links_batch | public | async create_transition_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py):83 | documented |
+| (module) | create_action_effect_links_batch | public | async create_action_effect_links_batch(conn, unit_ids: list[str], facts: list[ProcessedFact]) -> int | [cogmem_api/engine/retain/link_creation.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_creation.py):132 | documented |
 
 ### Function: (module).create_temporal_links_batch
 - Signature: `async create_temporal_links_batch(conn, bank_id: str, unit_ids: list[str]) -> int`

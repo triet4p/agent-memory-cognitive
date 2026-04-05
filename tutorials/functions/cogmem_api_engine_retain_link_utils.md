@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/link_utils.py
+# Function Deep Dive - [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,11 +28,11 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | cosine_similarity | public | cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float | cogmem_api/engine/retain/link_utils.py:17 | documented |
-| (module) | build_temporal_links | public | build_temporal_links(unit_dates: dict[str, datetime], window_hours: int=24) -> list[LinkRecord] | cogmem_api/engine/retain/link_utils.py:30 | documented |
-| (module) | build_semantic_links | public | build_semantic_links(unit_ids: list[str], embeddings: list[list[float]], threshold: float=0.75) -> list[LinkRecord] | cogmem_api/engine/retain/link_utils.py:52 | documented |
-| (module) | insert_links | public | async insert_links(conn, links: list[LinkRecord]) -> int | cogmem_api/engine/retain/link_utils.py:69 | documented |
-| (module) | fetch_event_dates | public | async fetch_event_dates(conn, unit_ids: list[str]) -> dict[str, datetime] | cogmem_api/engine/retain/link_utils.py:102 | documented |
+| (module) | cosine_similarity | public | cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float | [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py):17 | documented |
+| (module) | build_temporal_links | public | build_temporal_links(unit_dates: dict[str, datetime], window_hours: int=24) -> list[LinkRecord] | [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py):30 | documented |
+| (module) | build_semantic_links | public | build_semantic_links(unit_ids: list[str], embeddings: list[list[float]], threshold: float=0.75) -> list[LinkRecord] | [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py):52 | documented |
+| (module) | insert_links | public | async insert_links(conn, links: list[LinkRecord]) -> int | [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py):69 | documented |
+| (module) | fetch_event_dates | public | async fetch_event_dates(conn, unit_ids: list[str]) -> dict[str, datetime] | [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py):102 | documented |
 
 ### Function: (module).cosine_similarity
 - Signature: `cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float`

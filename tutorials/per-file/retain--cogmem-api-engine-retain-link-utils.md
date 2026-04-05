@@ -1,4 +1,4 @@
-# S19.4 Manual Tutorial - cogmem_api/engine/retain/link_utils.py
+# S19.4 Manual Tutorial - [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py)
 
 ## Purpose (Mục đích)
 - Cung cấp hàm tiện ích để build và persist links cho retain pipeline.
@@ -6,7 +6,7 @@
 - Hỗ trợ insert links qua hook hoặc SQL fallback.
 
 ## Source File
-- cogmem_api/engine/retain/link_utils.py
+- [cogmem_api/engine/retain/link_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/link_utils.py)
 
 ## Symbol-by-symbol explanation
 ### LinkRecord

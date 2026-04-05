@@ -7,6 +7,7 @@ from pathlib import Path
 MANIFEST_ROW_RE = re.compile(
     r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*(\.[a-z0-9]+)\s*\|\s*(not-started|in-progress|done)\s*\|\s*([^|]+?)\s*\|$"
 )
+LINK_CELL_RE = re.compile(r"^\[([^\]]+)\]\([^\)]+\)$")
 
 REQUIRED_DOC_SECTIONS = [
     "## Purpose",
@@ -28,13 +29,21 @@ def _parse_manifest_rows(manifest_text: str) -> list[tuple[int, str, str, str, s
         rows.append(
             (
                 int(match.group(1)),
-                match.group(2).strip(),
+                _normalize_cell(match.group(2)),
                 match.group(3).strip(),
                 match.group(4).strip(),
-                match.group(5).strip(),
+                _normalize_cell(match.group(5)),
             )
         )
     return rows
+
+
+def _normalize_cell(value: str) -> str:
+    raw = value.strip()
+    match = LINK_CELL_RE.match(raw)
+    if match:
+        return match.group(1).strip()
+    return raw
 
 
 def _assert_required_sections(doc_path: Path) -> None:

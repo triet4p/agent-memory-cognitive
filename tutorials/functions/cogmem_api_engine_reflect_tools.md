@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/reflect/tools.py
+# Function Deep Dive - [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm lazy synthesis và chuẩn hóa evidence cho bước phản hồi.
@@ -28,12 +28,12 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _coerce_score | private | _coerce_score(payload: dict[str, Any]) -> float | cogmem_api/engine/reflect/tools.py:16 | documented |
-| (module) | _coerce_datetime | private | _coerce_datetime(payload: dict[str, Any]) -> datetime \| None | cogmem_api/engine/reflect/tools.py:24 | documented |
-| (module) | _normalize_payload | private | _normalize_payload(item: RetrievalResult \| MergedCandidate \| dict[str, Any], source: str \| None) -> dict[str, Any] | cogmem_api/engine/reflect/tools.py:31 | documented |
-| (module) | to_reflect_evidence | public | to_reflect_evidence(item: RetrievalResult \| MergedCandidate \| dict[str, Any], source: str \| None=None) -> ReflectEvidence \| None | cogmem_api/engine/reflect/tools.py:64 | documented |
-| (module) | prepare_lazy_evidence | public | prepare_lazy_evidence(items: list[RetrievalResult \| MergedCandidate \| dict[str, Any]], max_items: int=8) -> list[ReflectEvidence] | cogmem_api/engine/reflect/tools.py:94 | documented |
-| (module) | group_evidence_by_network | public | group_evidence_by_network(evidences: list[ReflectEvidence]) -> dict[str, list[ReflectEvidence]] | cogmem_api/engine/reflect/tools.py:119 | documented |
+| (module) | _coerce_score | private | _coerce_score(payload: dict[str, Any]) -> float | [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py):16 | documented |
+| (module) | _coerce_datetime | private | _coerce_datetime(payload: dict[str, Any]) -> datetime \| None | [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py):24 | documented |
+| (module) | _normalize_payload | private | _normalize_payload(item: RetrievalResult \| MergedCandidate \| dict[str, Any], source: str \| None) -> dict[str, Any] | [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py):31 | documented |
+| (module) | to_reflect_evidence | public | to_reflect_evidence(item: RetrievalResult \| MergedCandidate \| dict[str, Any], source: str \| None=None) -> ReflectEvidence \| None | [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py):64 | documented |
+| (module) | prepare_lazy_evidence | public | prepare_lazy_evidence(items: list[RetrievalResult \| MergedCandidate \| dict[str, Any]], max_items: int=8) -> list[ReflectEvidence] | [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py):94 | documented |
+| (module) | group_evidence_by_network | public | group_evidence_by_network(evidences: list[ReflectEvidence]) -> dict[str, list[ReflectEvidence]] | [cogmem_api/engine/reflect/tools.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/reflect/tools.py):119 | documented |
 
 ### Function: (module)._coerce_score
 - Signature: `_coerce_score(payload: dict[str, Any]) -> float`

@@ -1,4 +1,4 @@
-# Function Deep Dive - cogmem_api/engine/retain/embedding_utils.py
+# Function Deep Dive - [cogmem_api/engine/retain/embedding_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_utils.py)
 
 ## Purpose
 - Mô tả chi tiết các hàm ingestion/retain và chuẩn hóa dữ liệu trước khi ghi graph.
@@ -28,8 +28,8 @@
 ## Function inventory (public/private)
 | Owner | Function | Visibility | Signature | Location | Deep-dive status |
 |---|---|---|---|---|---|
-| (module) | _deterministic_embedding | private | _deterministic_embedding(text: str, dimension: int) -> list[float] | cogmem_api/engine/retain/embedding_utils.py:12 | documented |
-| (module) | generate_embeddings_batch | public | async generate_embeddings_batch(embeddings_model, texts: list[str], dimension: int \| None=None) -> list[list[float]] | cogmem_api/engine/retain/embedding_utils.py:33 | documented |
+| (module) | _deterministic_embedding | private | _deterministic_embedding(text: str, dimension: int) -> list[float] | [cogmem_api/engine/retain/embedding_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_utils.py):12 | documented |
+| (module) | generate_embeddings_batch | public | async generate_embeddings_batch(embeddings_model, texts: list[str], dimension: int \| None=None) -> list[list[float]] | [cogmem_api/engine/retain/embedding_utils.py](https://github.com/triet4p/agent-memory-cognitive/blob/master/cogmem_api/engine/retain/embedding_utils.py):33 | documented |
 
 ### Function: (module)._deterministic_embedding
 - Signature: `_deterministic_embedding(text: str, dimension: int) -> list[float]`
