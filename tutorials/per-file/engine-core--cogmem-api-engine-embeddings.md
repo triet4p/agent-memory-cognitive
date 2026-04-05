@@ -35,6 +35,9 @@
 - Với openai: bắt buộc có API key, nếu thiếu sẽ raise ValueError.
 - Provider không hợp lệ sẽ raise ValueError kèm danh sách hỗ trợ.
 
+### Symbol inventory bổ sung (full names)
+- __init__
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - cogmem_api/engine/memory_engine.py gọi create_embeddings_from_env() và khởi tạo model.
@@ -59,3 +62,4 @@
 uv run python -c "from cogmem_api.engine.embeddings import DeterministicEmbeddings; e=DeterministicEmbeddings(8); print(e.provider_name, e.dimension, len(e.encode(['hello'])[0]))"
 uv run python -c "from cogmem_api.engine.embeddings import create_embeddings_from_env; import cogmem_api.config as c; print(c.get_config().embeddings_provider)"
 ```
+

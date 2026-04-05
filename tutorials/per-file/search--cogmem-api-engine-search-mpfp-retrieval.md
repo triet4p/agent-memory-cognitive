@@ -39,6 +39,9 @@
   - RRF fusion,
   - fetch kết quả và gán activation.
 
+### Symbol inventory bổ sung (full names)
+- get_neighbors, get_normalized_neighbors, is_fully_loaded, get_uncached, add_all_edges, __init__, _convert_seeds, _find_semantic_seeds
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - retrieval.py chọn retriever này khi graph_retriever là mpfp.
@@ -62,3 +65,4 @@
 uv run python -c "from cogmem_api.engine.search.mpfp_retrieval import MPFPGraphRetriever; print(MPFPGraphRetriever().name)"
 uv run python -c "from cogmem_api.engine.search.mpfp_retrieval import MPFPConfig; print(MPFPConfig().top_k_neighbors)"
 ```
+

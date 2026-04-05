@@ -65,6 +65,9 @@
   - rồi LLM extraction,
   - cuối cùng fallback heuristic.
 
+### Symbol inventory bổ sung (full names)
+- _first_non_empty, _normalized_optional_text, _fallback_fact_splits
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - orchestrator.py gọi extract_facts_from_contents cho mọi batch retain.
@@ -87,3 +90,4 @@
 uv run python -c "from cogmem_api.engine.retain.fact_extraction import _infer_fact_type; print(_infer_fact_type('I always check email before standup'))"
 uv run python -c "from cogmem_api.engine.retain.fact_extraction import _parse_action_effect_triplet; print(_parse_action_effect_triplet('If latency is high, switch to int8 so response gets faster'))"
 ```
+

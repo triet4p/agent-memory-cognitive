@@ -22,6 +22,9 @@
 - ensure_initialized bảo đảm model được load một lần.
 - rerank tạo cặp query-doc, thêm date context, gọi predict, chuẩn hóa sigmoid và trả danh sách ScoredResult.
 
+### Symbol inventory bổ sung (full names)
+- UTC, __init__
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - memory_engine.recall_async gọi CrossEncoderReranker để rerank merged candidates.
@@ -41,3 +44,4 @@
 ```powershell
 uv run python -c "import inspect; from cogmem_api.engine.search.reranking import CrossEncoderReranker; print(inspect.iscoroutinefunction(CrossEncoderReranker.rerank))"
 ```
+

@@ -28,6 +28,9 @@
 ### Final wait
 - Khi API healthy, script giữ foreground bằng wait API_PID để container sống theo vòng đời API.
 
+### Symbol inventory bổ sung (full names)
+- api_ready
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Dockerfile standalone dùng script này làm entrypoint/cmd để khởi chạy app.
@@ -51,3 +54,4 @@
 bash -n docker/standalone/start-all.sh
 uv run python -c "from pathlib import Path; print(Path('docker/standalone/start-all.sh').exists())"
 ```
+

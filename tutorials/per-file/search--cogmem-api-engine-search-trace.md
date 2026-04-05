@@ -30,6 +30,9 @@
 - Model gốc bao trùm toàn bộ trace.
 - Hỗ trợ to_json, to_dict và các helper truy vấn theo node, path, link type.
 
+### Symbol inventory bổ sung (full names)
+- get_visit_by_node_id, get_search_path_to_node, get_nodes_by_link_type, get_entry_point_nodes
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - search/tracer.py tạo và điền dữ liệu vào SearchTrace.
@@ -47,3 +50,4 @@
 ```powershell
 uv run python -c "from cogmem_api.engine.search.trace import SearchTrace, QueryInfo, SearchSummary; print(SearchTrace.__name__)"
 ```
+

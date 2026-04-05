@@ -74,6 +74,9 @@
 ### parse_args(), main()
 - Parse CLI, tạo bank_id nếu chưa có, chạy 1 hoặc 2 pipeline và in đường dẫn file kết quả.
 
+### Symbol inventory bổ sung (full names)
+- JsonDict
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - scripts/ablation_runner.py gọi run_pipeline, ABLATION_PROFILES và resolve_api_base_url.
@@ -99,3 +102,4 @@
 uv run python -c "from scripts.eval_cogmem import ABLATION_PROFILES, run_pipeline; print(sorted(ABLATION_PROFILES.keys()), callable(run_pipeline))"
 uv run python scripts/eval_cogmem.py --pipeline recall --profile E1 --fixture short --skip-retain --api-timeout 5 --output-dir logs/eval
 ```
+

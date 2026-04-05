@@ -30,6 +30,9 @@
 - default:
   - mode không hợp lệ => exit 2.
 
+### Symbol inventory bổ sung (full names)
+- IMAGE, PORT, LOG_LEVEL, SCHEMA, REPO_ROOT, COMPOSE_FILE, COMPOSE_ENV_FILE, DOCKER_INCLUDE_LOCAL_MODELS, DOCKER_PRELOAD_ML_MODELS, LLM_PROVIDER, LLM_API_KEY, LLM_MODEL, LLM_TIMEOUT, RETAIN_LLM_TIMEOUT, REFLECT_LLM_TIMEOUT, RETAIN_MAX_COMPLETION_TOKENS, RETAIN_EXTRACTION_MODE
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Người vận hành gọi trực tiếp script này để chạy môi trường local.
@@ -56,3 +59,4 @@
 bash -n scripts/docker.sh
 uv run python -c "from pathlib import Path; print(Path('scripts/docker.sh').exists())"
 ```
+

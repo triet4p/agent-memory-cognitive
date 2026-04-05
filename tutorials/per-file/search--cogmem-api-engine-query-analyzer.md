@@ -42,6 +42,9 @@
   - fallback generation model khi pattern lạ,
   - parse output qua _parse_generated_output.
 
+### Symbol inventory bổ sung (full names)
+- _PROSPECTIVE_PATTERN, _CAUSAL_PATTERN, _PREFERENCE_PATTERN, _MULTI_HOP_PATTERN, _TEMPORAL_HINT_PATTERN, __str__, __init__, _load_model, _no_grad
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - search/retrieval.py dùng resolve_query_routing với analyzer này.
@@ -65,3 +68,4 @@
 uv run python -c "from cogmem_api.engine.query_analyzer import classify_query_type; print(classify_query_type('why did this happen?'))"
 uv run python -c "from cogmem_api.engine.query_analyzer import build_query_analysis; print(build_query_analysis('what is planned next week').query_type)"
 ```
+

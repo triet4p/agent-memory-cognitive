@@ -32,6 +32,9 @@
 - Gọi scripts/smoke-test-cogmem.sh để test retain/recall.
 - Nếu yêu cầu non-deterministic embeddings và provider=local, fail khi phát hiện log fallback deterministic.
 
+### Symbol inventory bổ sung (full names)
+- SCRIPT_DIR, REPO_ROOT, RED, GREEN, YELLOW, NC, TIMEOUT, CONTAINER_NAME, HEALTH_URL, SMOKE_BASE_URL, SMOKE_DATABASE_URL, SMOKE_PG0_VOLUME_DIR, SMOKE_REQUIRE_NON_DETERMINISTIC, LLM_PROVIDER, LLM_BASE_URL, LLM_API_KEY, LLM_MODEL, LLM_TIMEOUT, RETAIN_LLM_TIMEOUT, REFLECT_LLM_TIMEOUT, RETAIN_MAX_COMPLETION_TOKENS, RETAIN_EXTRACTION_MODE, EMBEDDINGS_PROVIDER, EMBEDDINGS_LOCAL_MODEL, EMBEDDINGS_OPENAI_MODEL, EMBEDDINGS_OPENAI_BASE_URL, EMBEDDINGS_OPENAI_API_KEY, RERANKER_PROVIDER, RERANKER_LOCAL_MODEL, RERANKER_TEI_URL, RERANKER_TEI_BATCH_SIZE, RERANKER_MAX_CANDIDATES, start_time, end_time, duration
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Người vận hành gọi trực tiếp script để test image sau build.
@@ -57,3 +60,4 @@
 bash -n docker/test-image.sh
 bash docker/test-image.sh cogmem:local
 ```
+

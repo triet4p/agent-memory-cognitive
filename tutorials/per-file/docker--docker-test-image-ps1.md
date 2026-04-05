@@ -35,6 +35,9 @@
 ### finally block
 - Luôn cleanup container, kể cả khi test fail.
 
+### Symbol inventory bổ sung (full names)
+- $ErrorActionPreference, $value, $scriptDir, $repoRoot, $timeout, $containerName, $healthUrl, $smokeBaseUrl, $smokeDatabaseUrl, $smokePg0VolumeDir, $smokeRequireNonDeterministic, $llmProvider, $llmBaseUrl, $llmApiKey, $llmModel, $llmTimeout, $retainLlmTimeout, $reflectLlmTimeout, $retainMaxCompletionTokens, $retainExtractionMode, $embeddingsProvider, $embeddingsLocalModel, $embeddingsOpenAiModel, $embeddingsOpenAiBaseUrl, $embeddingsOpenAiApiKey, $rerankerProvider, $rerankerLocalModel, $rerankerTeiUrl, $rerankerTeiBatchSize, $rerankerMaxCandidates, $startTime, $healthy, $running, $duration, $containerLogs
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Người vận hành chạy trực tiếp script này để test image trên Windows.
@@ -60,3 +63,4 @@
 pwsh -NoProfile -Command "$null=$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile('docker/test-image.ps1',[ref]$tokens,[ref]$errors) | Out-Null; if($errors.Count -gt 0){$errors | ForEach-Object { $_.ToString() }; exit 1}; 'OK'"
 pwsh -NoProfile -File docker/test-image.ps1 -Image cogmem:local
 ```
+

@@ -23,6 +23,9 @@
 ### Màu output RED/GREEN/NC
 - In trạng thái PASS/FAIL dễ quan sát trên terminal.
 
+### Symbol inventory bổ sung (full names)
+- RETAIN_RESPONSE, SUCCESS, RECALL_RESPONSE, RESULTS_COUNT
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - docker/test-image.sh gọi script này sau khi health check pass.
@@ -45,3 +48,4 @@
 bash -n scripts/smoke-test-cogmem.sh
 bash scripts/smoke-test-cogmem.sh http://localhost:8888
 ```
+

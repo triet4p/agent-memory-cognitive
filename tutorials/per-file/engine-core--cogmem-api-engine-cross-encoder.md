@@ -37,6 +37,9 @@
 - rrf -> RRFPassthroughCrossEncoder.
 - Provider lạ: cảnh báo log và fallback về rrf passthrough.
 
+### Symbol inventory bổ sung (full names)
+- __init__
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Pipeline reranking trong engine/search gọi factory hoặc provider methods để chấm điểm candidate.
@@ -60,3 +63,4 @@
 uv run python -c "from cogmem_api.engine.cross_encoder import RRFPassthroughCrossEncoder; import asyncio; print(asyncio.run(RRFPassthroughCrossEncoder().predict([('q','t')])) )"
 uv run python -c "from cogmem_api.engine.cross_encoder import create_cross_encoder_from_env; print(type(create_cross_encoder_from_env()).__name__)"
 ```
+

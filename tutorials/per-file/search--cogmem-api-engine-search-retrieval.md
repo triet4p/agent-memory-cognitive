@@ -44,6 +44,9 @@
   - graph retrieval song song per fact type,
   - lọc prospective planning intention.
 
+### Symbol inventory bổ sung (full names)
+- _PROSPECTIVE_ALLOWED_INTENTION_STATUS
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - memory_engine.recall_async gọi trực tiếp hàm retrieve_all_fact_types_parallel.
@@ -64,3 +67,4 @@
 uv run python -c "from cogmem_api.engine.search.retrieval import get_default_graph_retriever; print(get_default_graph_retriever().name)"
 uv run python -c "from cogmem_api.engine.search.retrieval import resolve_query_routing; print(resolve_query_routing('what are we planning next').query_type)"
 ```
+

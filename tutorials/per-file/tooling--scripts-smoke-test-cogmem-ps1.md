@@ -25,6 +25,9 @@
 ### PASS output
 - In thông báo PASS khi cả retain và recall đều đạt.
 
+### Symbol inventory bổ sung (full names)
+- $ErrorActionPreference, $retainBody, $retainResponse, $recallBody, $recallResponse, $resultsCount
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - docker/test-image.ps1 gọi script này sau khi health check pass.
@@ -48,3 +51,4 @@
 pwsh -NoProfile -Command "$null=$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile('scripts/smoke-test-cogmem.ps1',[ref]$tokens,[ref]$errors) | Out-Null; if($errors.Count -gt 0){$errors | ForEach-Object { $_.ToString() }; exit 1}; 'OK'"
 pwsh -NoProfile -File scripts/smoke-test-cogmem.ps1 -BaseUrl http://localhost:8888
 ```
+

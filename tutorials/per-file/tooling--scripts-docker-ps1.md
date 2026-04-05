@@ -29,6 +29,9 @@
   - có external URL => chạy docker run trực tiếp với DB ngoài.
   - không có external URL => chạy docker compose với env file.
 
+### Symbol inventory bổ sung (full names)
+- $ErrorActionPreference, $value, $image, $port, $logLevel, $schema, $pg0VolumeDir, $externalDatabaseUrl, $repoRoot, $composeFile, $composeEnvFile, $dockerIncludeLocalModels, $dockerPreloadMlModels, $llmProvider, $llmBaseUrl, $llmApiKey, $llmModel, $llmTimeout, $retainLlmTimeout, $reflectLlmTimeout, $retainMaxCompletionTokens, $retainExtractionMode
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - Người vận hành local trên Windows gọi script để khởi chạy container.
@@ -53,3 +56,4 @@
 pwsh -NoProfile -Command "$null=$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile('scripts/docker.ps1',[ref]$tokens,[ref]$errors) | Out-Null; if($errors.Count -gt 0){$errors | ForEach-Object { $_.ToString() }; exit 1}; 'OK'"
 uv run python -c "from pathlib import Path; print(Path('scripts/docker.ps1').exists())"
 ```
+

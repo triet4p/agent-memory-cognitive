@@ -56,6 +56,9 @@
 - Dataclass dữ liệu sau embedding, sẵn sàng lưu DB.
 - from_extracted_fact() chuẩn hóa fact_type, raw_snippet, relations, metadata.
 
+### Symbol inventory bổ sung (full names)
+- _normalize_bool, _build_edge_intent_payload, EntityLink
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - fact_extraction.py tạo ExtractedFact và relation dataclass.
@@ -80,3 +83,4 @@ uv run python -c "from cogmem_api.engine.retain.types import coerce_fact_type; p
 uv run python -c "from cogmem_api.engine.retain.types import clamp_relation_strength; print(clamp_relation_strength(1.5), clamp_relation_strength(-1))"
 uv run python -c "from cogmem_api.engine.retain.types import RetainContent; print(RetainContent.from_dict({'content':'x','event_date':'2026-04-05T10:00:00Z'}).event_date)"
 ```
+

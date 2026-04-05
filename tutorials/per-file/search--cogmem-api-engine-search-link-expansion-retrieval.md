@@ -25,6 +25,9 @@
 - CTE query gồm entity_expanded, semantic_expanded, causal_expanded, transition_expanded.
 - Trả rows kèm source để merge theo từng loại tín hiệu.
 
+### Symbol inventory bổ sung (full names)
+- __init__
+
 ## Cross-file dependencies (inbound/outbound)
 ### Inbound callers
 - retrieval.py chọn retriever này khi config graph_retriever là link_expansion.
@@ -47,3 +50,4 @@
 ```powershell
 uv run python -c "from cogmem_api.engine.search.link_expansion_retrieval import LinkExpansionRetriever; print(LinkExpansionRetriever().name)"
 ```
+
