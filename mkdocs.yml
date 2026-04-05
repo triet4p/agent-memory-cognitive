@@ -1,0 +1,46 @@
+site_name: CogMem Tutorials App
+site_description: Tutorials app generated from repository tutorials
+site_url: https://triet4p.github.io/agent-memory-cognitive/
+repo_url: https://github.com/triet4p/agent-memory-cognitive
+edit_uri: edit/master/
+
+docs_dir: tutorials
+site_dir: site
+use_directory_urls: true
+
+nav:
+  - Trang chủ: README.md
+  - Chỉ mục tutorials: INDEX.md
+  - Lộ trình học: learning-path.md
+  - Hướng dẫn đọc thủ công: manual-code-reading-guide.md
+  - Module map: module-map.md
+  - End-to-end flow: flows/retain-recall-reflect-response.md
+  - Modules index: modules/README.md
+  - Functions index: functions/README.md
+  - Per-file index: per-file/INDEX.md
+  - Per-file reading order: per-file/READING-ORDER.md
+
+theme:
+  name: material
+  language: vi
+  features:
+    - navigation.top
+    - navigation.sections
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - attr_list
+  - md_in_html
+
+plugins:
+  - search
+
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    not_found: ignore
