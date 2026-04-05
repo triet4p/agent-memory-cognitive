@@ -21,16 +21,24 @@ def main() -> None:
     # mkdocs app contract
     assert "docs_dir: tutorials" in mkdocs_text
     assert "site_dir: site" in mkdocs_text
+    assert "- Dự án tổng quan: project-overview.md" in mkdocs_text
+    assert "- Idea: idea.md" in mkdocs_text
+    assert "- Plan: plan.md" in mkdocs_text
+    assert "- Tutorials:" in mkdocs_text
     assert "Per-file reading order: per-file/READING-ORDER.md" in mkdocs_text
     assert "name: material" in mkdocs_text
+    assert "- include-markdown" in mkdocs_text
 
     # docs requirements contract
     assert "mkdocs" in req_docs_text.lower()
     assert "mkdocs-material" in req_docs_text.lower()
+    assert "mkdocs-include-markdown-plugin" in req_docs_text.lower()
 
     # workflow contract for master branch deploy
     assert "branches:" in workflow_text
     assert "- master" in workflow_text
+    assert "- README.md" in workflow_text
+    assert "- docs/**" in workflow_text
     assert "mkdocs build --config-file mkdocs.yml --site-dir site" in workflow_text
     assert "actions/upload-pages-artifact@v3" in workflow_text
     assert "actions/deploy-pages@v4" in workflow_text

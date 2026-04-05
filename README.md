@@ -1,357 +1,92 @@
-# CogMem: A Cognitively-Grounded Framework for Long-Term Conversational Memory
+# CogMem - Agent Memory Cognitive
 
-Kho mã nguồn phục vụ nghiên cứu và thực nghiệm cho đề tài đồ án theo hướng CogMem (long-term conversational memory), tập trung vào distill benchmark và đánh giá hành vi hệ thống bộ nhớ hội thoại.
+Repository này chứa mã nguồn, tài liệu và artifact migration cho CogMem: hệ thống long-term conversational memory theo hướng cognitively grounded.
 
-## 1. Mục tiêu
+## Mục tiêu chính
+1. Xây dựng và kiểm chứng kiến trúc retain/recall/reflect cho bộ nhớ hội thoại dài hạn.
+2. Distill và đánh giá benchmark (LongMemEval, LoCoMo) theo các năng lực trọng tâm.
+3. Duy trì bộ tutorial chuẩn hóa theo hướng top-down và per-file để onboarding/debug nhanh.
 
-Mục tiêu của repository:
+## 4 mục lớn trên GitHub Pages
+Trang Pages của dự án được tổ chức thành 4 mục lớn:
+1. Dự án tổng quan: README (tài liệu này)
+2. Idea: `docs/CogMem-Idea.md`
+3. Plan: `docs/PLAN.md`
+4. Tutorials: toàn bộ tài liệu cũ trong `tutorials/`
 
-- Tạo tập dữ liệu distilled từ LongMemEval và LoCoMo theo các nhóm năng lực trọng tâm.
-- Xây dựng bộ kiểm thử gọn, đủ khó để đo đóng góp của CogMem V3.
-- Hỗ trợ đánh giá chi phí xử lý/ghi nhớ của baseline HINDSIGHT trên các mẫu đại diện.
+## Tài liệu quan trọng
+1. Idea: [docs/CogMem-Idea.md](docs/CogMem-Idea.md)
+2. Plan: [docs/PLAN.md](docs/PLAN.md)
+3. Tutorials index: [tutorials/INDEX.md](tutorials/INDEX.md)
+4. Per-file reading order: [tutorials/per-file/READING-ORDER.md](tutorials/per-file/READING-ORDER.md)
 
-Các nhóm năng lực chính đang được bao phủ:
-
-- Knowledge Update
-- Multi-session / Multi-hop reasoning
-- Temporal Reasoning
-- Abstention (hallucination control)
-- Prospective / Intention signals
-- Preference / User profile cues
-
-## 2. Tài liệu nền tảng
-
-Các tài liệu chính của đề tài:
-
-- Ý tưởng hệ thống: [docs/CogMem-Idea.md](docs/CogMem-Idea.md)
-- Slide đề cương: [docs/slides/DATN_Proposal.pptx](docs/slides/DATN_Proposal.pptx)
-- Phiếu giao nhiệm vụ đồ án: [docs/PGNV/LeMinhTriet.PGNV-DATN-20252.xlsx](docs/PGNV/LeMinhTriet.PGNV-DATN-20252.xlsx)
-
-## 3. Cấu trúc thư mục
-
+## Cấu trúc repo (rút gọn)
 ```text
 .
-|- data/
-|  |- LongMemEval/
-|  |- LoCoMo/
-|  |- longmemeval_s_distilled.json
-|  `- locomo_distilled.json
+|- cogmem_api/
 |- docs/
-|  |- CogMem-Idea.md
-|  |- slides/
-|  `- PGNV/
+|- tutorials/
+|- tests/artifacts/
 |- scripts/
-|  |- distill_dataset.py
-|  `- test_hindsight.py
-|- src/
+|- docker/
+|- .github/workflows/
 |- pyproject.toml
 `- README.md
 ```
 
-## 4. Yêu cầu môi trường
+## Yêu cầu môi trường
+1. Python >= 3.13
+2. uv (khuyến nghị quản lý môi trường)
 
-- Python >= 3.13
-- uv (khuyến nghị để quản lý môi trường/phụ thuộc)
-
-Phụ thuộc hiện tại (khai báo trong pyproject.toml):
-
-- hindsight-client
-- requests
-
-## 5. Cài đặt
-
+Cài dependencies:
 ```bash
 uv sync
 ```
 
-Kích hoạt môi trường ảo trên Windows (nếu cần):
-
+Kích hoạt môi trường ảo trên Windows:
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-## 6. Chạy Docker (Sprint 5)
-
-Backfill B5 chuẩn hóa contract chạy runtime để retain LLM hoạt động thực chiến. Các biến tối thiểu cần khai báo:
-
-- `COGMEM_API_LLM_PROVIDER`
-- `COGMEM_API_LLM_MODEL`
-- `COGMEM_API_LLM_API_KEY`
-- `COGMEM_API_LLM_BASE_URL` (nếu dùng OpenAI-compatible proxy/local endpoint)
-- `COGMEM_API_LLM_TIMEOUT`
-- `COGMEM_API_RETAIN_LLM_TIMEOUT`
-- `COGMEM_API_REFLECT_LLM_TIMEOUT`
-- `COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS`
-- `COGMEM_API_RETAIN_EXTRACTION_MODE`
-
-Lưu ý Docker local ML:
-
-- Dockerfile cài `torch` theo CPU-only từ index `https://download.pytorch.org/whl/cpu`.
-- Mục tiêu là tránh kéo dependency CUDA không cần thiết, giúp giảm kích thước image.
-- Version được pin qua biến `.env`:
-	- `COGMEM_DOCKER_TORCH_CPU_VERSION` (mặc định `2.11.0`)
-	- `COGMEM_DOCKER_ST_VERSION` (mặc định `5.3.0`)
-
-### 6.1 Standalone với embedded pg0
-
-Build image:
-
+## Chạy API nhanh (local)
 ```bash
-docker build -f docker/standalone/Dockerfile \
-	--build-arg INCLUDE_LOCAL_MODELS=true \
-	--build-arg PRELOAD_ML_MODELS=false \
-	-t cogmem:local .
-```
-
-Run container:
-
-```bash
-docker run --rm -it -p 8888:8888 \
-	-e COGMEM_API_DATABASE_URL=pg0 \
-	-v $HOME/.cogmem-docker:/home/cogmem/.pg0 \
-	cogmem:local
+uv run cogmem-api
 ```
 
 Health check:
-
 ```bash
 curl http://localhost:8888/health
 ```
 
-### 6.2 Docker Compose với external PostgreSQL
-
+## Docker và smoke test
+1. Build image:
 ```bash
-cp .env.example .env
-# cập nhật COGMEM_DB_PASSWORD và các biến LLM nếu cần
-# có thể cấu hình build local models qua:
-# COGMEM_DOCKER_INCLUDE_LOCAL_MODELS=true
-# COGMEM_DOCKER_PRELOAD_ML_MODELS=false
-docker compose --env-file .env -f docker/docker-compose/external-pg/docker-compose.yaml up --build
+docker build -f docker/standalone/Dockerfile -t cogmem:local .
 ```
 
-Lưu ý quan trọng:
-
-- Compose đã đọc trực tiếp biến runtime từ `.env` qua `env_file` trong service `cogmem`.
-- Không cần truyền lại thủ công một loạt `-e ...` khi chạy compose.
-- `--env-file .env` vẫn nên giữ để đảm bảo interpolation `${...}` trong file compose dùng đúng biến.
-
-### 6.2.1 Quy tắc cleanup bắt buộc (sau mỗi lần chạy)
-
-Quy ước vận hành: mỗi lần chạy xong phải dọn stack Docker, bất kể thành công hay thất bại.
-
-PowerShell (Windows):
-
-```powershell
-$compose = "docker/docker-compose/external-pg/docker-compose.yaml"
-$envFile = ".env"
-try {
-	docker compose --env-file $envFile -f $compose up --build -d
-
-	# Ví dụ: chạy eval/smoke ở đây
-	# uv run python scripts/eval_cogmem.py --pipeline both --profile E7 --fixture short --base-url http://localhost:8888
-}
-finally {
-	docker compose --env-file $envFile -f $compose down --volumes --remove-orphans
-}
-```
-
-Bash (Linux/WSL/macOS):
-
-```bash
-COMPOSE_FILE="docker/docker-compose/external-pg/docker-compose.yaml"
-cleanup() {
-	docker compose --env-file .env -f "$COMPOSE_FILE" down --volumes --remove-orphans
-}
-trap cleanup EXIT
-
-docker compose --env-file .env -f "$COMPOSE_FILE" up --build -d
-
-# Ví dụ: chạy eval/smoke ở đây
-# uv run python scripts/eval_cogmem.py --pipeline both --profile E7 --fixture short --base-url http://localhost:8888
-```
-
-### 6.2.2 PostgreSQL version policy
-
-- Mặc định compose dùng image PG18 đã pin version tag qua `COGMEM_DB_IMAGE`.
-- Không tự ý downgrade version để "chạy tạm".
-- Khi cần nâng cấp DB image, cập nhật có chủ đích giá trị `COGMEM_DB_IMAGE` trong `.env`/`.env.example`.
-- Nếu gặp lỗi do volume cũ không tương thích version, cách đúng là dọn volume rồi chạy lại:
-
-```bash
-docker compose --env-file .env -f docker/docker-compose/external-pg/docker-compose.yaml down --volumes --remove-orphans
-docker compose --env-file .env -f docker/docker-compose/external-pg/docker-compose.yaml up --build -d
-```
-
-### 6.3 Smoke test retain/recall qua container
-
-Sau khi container healthy:
-
-```bash
-./scripts/smoke-test-cogmem.sh http://localhost:8888
-```
-
-PowerShell (Windows):
-
-```powershell
-.\scripts\smoke-test-cogmem.ps1 http://localhost:8888
-```
-
-Hoặc chạy end-to-end build + health + retain/recall smoke bằng script:
-
+2. Chạy smoke test end-to-end:
 ```bash
 ./docker/test-image.sh cogmem:local
 ```
 
-PowerShell (Windows):
-
+PowerShell:
 ```powershell
 .\docker\test-image.ps1 -Image cogmem:local
 ```
 
-Script `docker/test-image.sh` và `docker/test-image.ps1` hỗ trợ cả 2 chế độ DB qua `COGMEM_SMOKE_DATABASE_URL`:
+## CI/CD cho Tutorials App
+Workflow deploy Pages: [.github/workflows/tutorials-app-cicd.yml](.github/workflows/tutorials-app-cicd.yml)
 
-- Embedded pg0 (mặc định): `COGMEM_SMOKE_DATABASE_URL=pg0`
-- External PostgreSQL: `COGMEM_SMOKE_DATABASE_URL=postgresql://user:pass@host:5432/dbname`
+Trigger chính:
+1. Push vào branch `master`
+2. Khi thay đổi `README.md`, `docs/**`, `tutorials/**`, `mkdocs.yml`, `requirements-docs.txt`
 
-Mặc định smoke script sẽ fail nếu cấu hình `COGMEM_API_EMBEDDINGS_PROVIDER=local` nhưng runtime log báo fallback sang deterministic embeddings. Có thể tắt guard này bằng `COGMEM_SMOKE_REQUIRE_NON_DETERMINISTIC=false` khi chủ đích test deterministic mode.
-
-### 6.4 Lệnh nhanh bằng scripts/docker (B5)
-
-Linux/WSL (`scripts/docker.sh`) - chế độ embedded pg0:
-
+Build docs local:
 ```bash
-COGMEM_API_LLM_PROVIDER=openai \
-COGMEM_API_LLM_BASE_URL=http://host.docker.internal:11434/v1 \
-COGMEM_API_LLM_API_KEY=ollama \
-COGMEM_API_LLM_MODEL=qwen3:8b \
-COGMEM_DOCKER_INCLUDE_LOCAL_MODELS=true \
-COGMEM_API_RETAIN_EXTRACTION_MODE=concise \
-./scripts/docker.sh embedded
+uv run --with mkdocs --with mkdocs-material --with mkdocs-include-markdown-plugin mkdocs build --config-file mkdocs.yml --site-dir site
 ```
 
-Linux/WSL (`scripts/docker.sh`) - chế độ external (compose unified app+db, khuyến nghị):
-
-```bash
-COGMEM_API_LLM_PROVIDER=openai \
-COGMEM_API_LLM_BASE_URL=http://host.docker.internal:11434/v1 \
-COGMEM_API_LLM_API_KEY=ollama \
-COGMEM_API_LLM_MODEL=qwen3:8b \
-./scripts/docker.sh external
-```
-
-Nếu cần chạy external DB URL theo kiểu single-container cũ, đặt thêm `COGMEM_EXTERNAL_DATABASE_URL`.
-
-PowerShell (`scripts/docker.ps1`) - chế độ embedded pg0:
-
-```powershell
-$env:COGMEM_API_LLM_PROVIDER = "openai"
-$env:COGMEM_API_LLM_BASE_URL = "http://host.docker.internal:11434/v1"
-$env:COGMEM_API_LLM_API_KEY = "ollama"
-$env:COGMEM_API_LLM_MODEL = "qwen3:8b"
-$env:COGMEM_DOCKER_INCLUDE_LOCAL_MODELS = "true"
-$env:COGMEM_API_RETAIN_EXTRACTION_MODE = "concise"
-.\scripts\docker.ps1 -Mode embedded
-```
-
-PowerShell (`scripts/docker.ps1`) - chế độ external (compose unified app+db, khuyến nghị):
-
-```powershell
-$env:COGMEM_API_LLM_PROVIDER = "openai"
-$env:COGMEM_API_LLM_BASE_URL = "http://host.docker.internal:11434/v1"
-$env:COGMEM_API_LLM_API_KEY = "ollama"
-$env:COGMEM_API_LLM_MODEL = "qwen3:8b"
-.\scripts\docker.ps1 -Mode external
-```
-
-Nếu cần chạy external DB URL theo kiểu single-container cũ, đặt thêm biến `$env:COGMEM_EXTERNAL_DATABASE_URL`.
-
-## 7. Distill dữ liệu
-
-Chạy pipeline distill:
-
-```bash
-uv run python -m scripts.distill_dataset
-```
-
-### 7.1 LongMemEval
-
-Heuristic chính:
-
-- Lấy theo quota cho Knowledge Update, Temporal Reasoning, Multi-session.
-- Bổ sung nhóm Abstention qua hậu tố question_id là _abs.
-- Bổ sung nhóm Prospective theo từ khóa ý định tương lai.
-- Giữ thêm nhóm single-session-user và single-session-preference để phủ tín hiệu habit/profile.
-
-### 7.2 LoCoMo
-
-Heuristic chính:
-
-- Lọc hard QA theo khoảng cách bằng chứng và từ khóa nhân quả/thói quen.
-- Giữ toàn bộ QA trong mỗi hội thoại đã lọc.
-- Giảm quy mô ở mức hội thoại (conversation-level sampling), hiện tại khoảng 5 hội thoại đầy đủ.
-
-### 7.3 Tệp đầu ra
-
-- [data/longmemeval_s_distilled.json](data/longmemeval_s_distilled.json)
-- [data/locomo_distilled.json](data/locomo_distilled.json)
-
-## 8. Đánh giá chi phí HINDSIGHT (tùy chọn)
-
-Script [scripts/test_hindsight.py](scripts/test_hindsight.py) dùng để đo chi phí xây dựng memory graph trên mẫu LongMemEval distilled.
-
-Điều kiện trước khi chạy:
-
-- HINDSIGHT API hoạt động tại http://localhost:8888/v1/default
-- Script có thể tạo/xóa bank test và ghi tệp final_stats_*.json
-
-Lệnh chạy:
-
-```bash
-uv run python -m scripts.test_hindsight
-```
-
-## 9. Ghi chú vận hành
-
-- Dữ liệu trong thư mục data là dữ liệu thực nghiệm, nên commit có kiểm soát và backup trước khi chạy distill lại.
-- Pipeline dùng random seed cố định để đảm bảo tái lập kết quả.
-
-## 10. Tiến độ Migration CogMem (đến hết Sprint 5.3)
-
-Trạng thái hiện tại theo [docs/PLAN.md](docs/PLAN.md):
-
-- Sprint 0 hoàn tất: T0.1, T0.2
-- Sprint 1 hoàn tất: T1.1, T1.2, T1.3
-- Sprint 2 hoàn tất: T2.1, T2.2, T2.3, T2.4
-
-Các thành phần đã có trong `cogmem_api` sau Sprint 2:
-
-- Retain baseline pipeline độc lập trong `cogmem_api/engine/retain/`
-- Habit Network + `s_r_link`
-- Intention lifecycle transitions (`fulfilled_by`, `triggered`, `enabled_by`, `abandoned` status-only)
-- Action-Effect parsing (precondition/action/outcome) + `a_o_causal`
-
-Artifact logs hiện có:
-
-- [logs/task_201_summary.md](logs/task_201_summary.md)
-- [logs/task_202_summary.md](logs/task_202_summary.md)
-- [logs/task_203_summary.md](logs/task_203_summary.md)
-- [logs/task_204_summary.md](logs/task_204_summary.md)
-- [logs/task_501_summary.md](logs/task_501_summary.md)
-- [logs/task_502_summary.md](logs/task_502_summary.md)
-- [logs/task_503_summary.md](logs/task_503_summary.md)
-
-Artifact tests cho Sprint 2:
-
-- [tests/artifacts/test_task201_retain_baseline.py](tests/artifacts/test_task201_retain_baseline.py)
-- [tests/artifacts/test_task202_habit_network.py](tests/artifacts/test_task202_habit_network.py)
-- [tests/artifacts/test_task203_intention_lifecycle.py](tests/artifacts/test_task203_intention_lifecycle.py)
-- [tests/artifacts/test_task204_action_effect.py](tests/artifacts/test_task204_action_effect.py)
-
-Lệnh kiểm tra nhanh:
-
-```bash
-uv run python tests/artifacts/test_task201_retain_baseline.py
-uv run python tests/artifacts/test_task202_habit_network.py
-uv run python tests/artifacts/test_task203_intention_lifecycle.py
-uv run python tests/artifacts/test_task204_action_effect.py
-```
+## Ghi chú governance
+1. Không sửa `docs/migration_idea_coverage_matrix.md` nếu chưa có yêu cầu explicit audit/update coverage.
+2. Logs task phải có đủ section: Scope, Outputs Created, Verification Strategy Applied.
+3. Tutorials canonical per-file nằm ở `tutorials/per-file/`; `tutorials/functions/` là inventory/deep-dive function-level hỗ trợ.
