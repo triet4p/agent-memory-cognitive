@@ -3,6 +3,7 @@ $NGROK_URL="https://unvacillating-braden-worriless.ngrok-free.dev/v1"
 
 # 2. Chạy Docker Hindsight
 docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 `
+  --shm-size=2g `
   -e HINDSIGHT_API_LLM_PROVIDER=openai `
   -e HINDSIGHT_API_LLM_BASE_URL=$NGROK_URL `
   -e HINDSIGHT_API_LLM_API_KEY=ollama `
