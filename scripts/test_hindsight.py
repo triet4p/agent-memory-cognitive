@@ -1,123 +1,116 @@
 import time
 import json
 import requests
+import re
 from pathlib import Path
 
-# Cấu hình API - Trỏ trực tiếp vào Docker Hindsight đang chạy trên Windows
 BASE_URL = "http://localhost:8888/v1/default"
 BANK_ID_PREFIX = "hindsight_eval_"
+# Ngưỡng an toàn cho mỗi lần gọi API (nên để 10k-12k để tránh overhead hệ thống)
+MAX_CHUNK_CHARS = 20000 
+
+def split_text_into_sentences(text):
+    """Bẻ văn bản thành các câu dựa trên dấu chấm và khoảng trắng."""
+    # Regex bắt các dấu chấm kết thúc câu nhưng tránh bẻ nhầm các từ viết tắt (e.g., Mr., Dr.)
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    return sentences
 
 def analyze_hindsight_cost(sample_index=0):
-    # 1. Load dữ liệu từ tập distilled (đảm bảo đúng đường dẫn file của bạn)
     data_path = Path("data/longmemeval_s_distilled_small.json")
-    if not data_path.exists():
-        print(f"❌ Không tìm thấy file: {data_path}")
-        return
+    if not data_path.exists(): return
 
     with open(data_path, "r", encoding="utf-8") as f:
         samples = json.load(f)
     
-    # Lấy sample để test
     sample = samples[sample_index]
-    
-    # Lấy ID chính xác (LongMemEval dùng 'question_id')
     q_id = sample.get("question_id") or sample.get("sample_id")
     bank_id = f"{BANK_ID_PREFIX}{q_id.replace('-', '_')}"
-    
-    # Lấy danh sách sessions
     sessions = sample.get("haystack_sessions", [])
     
-    print(f"📊 PHÂN TÍCH CHI PHÍ HINDSIGHT")
-    print(f"🆔 ID: {q_id}")
-    print(f"📝 Số lượng sessions cần xử lý: {len(sessions)}")
-    print(f"❓ Question: {sample.get('question')}")
+    print(f"📊 PHÂN TÍCH CHI PHÍ HINDSIGHT (SENTENCE-LEVEL SMART CHUNKING)")
+    print(f"🆔 ID: {q_id} | Sessions: {len(sessions)}")
     
-    # 2. Reset Bank để đảm bảo kết quả đo lường không bị lẫn
     print(f"\n🛠️  Đang khởi tạo Bank: {bank_id}...")
-    try:
-        requests.delete(f"{BASE_URL}/banks/{bank_id}", timeout=10) # Thêm timeout
-    except requests.exceptions.RequestException as e:
-        print(f"   (Không thể xóa bank cũ, có thể chưa tồn tại: {e})")
+    try: requests.delete(f"{BASE_URL}/banks/{bank_id}", timeout=10)
+    except: pass
+    requests.put(f"{BASE_URL}/banks/{bank_id}", json={"name": "Cost Analysis", "mission": "Baseline"}, timeout=10)
 
-    requests.put(f"{BASE_URL}/banks/{bank_id}", json={
-        "name": "Cost Analysis",
-        "mission": "Evaluating baseline Hindsight overhead"
-    }, timeout=10)
-
-    # 3. Quy trình Retain (Xây dựng Graph)
     session_metrics = []
     start_total = time.time()
     
     print(f"\n--- BẮT ĐẦU XÂY DỰNG GRAPH ---")
     
     for i, session in enumerate(sessions):
-        # LongMemEval session là list các dict {'role':..., 'content':...}
-        transcript = ""
-        for turn in session:
-            role = turn.get('role', 'user')
-            content = turn.get('content', '')
-            transcript += f"{role.upper()}: {content}\n"
-        
-        print(f"🔄 Đang xử lý Session {i+1}/{len(sessions)} ({len(transcript)} ký tự)...", end="", flush=True)
-        
         start_step = time.time()
         
-        # GỌI API RETAIN ĐÃ SỬA URL CHÍNH XÁC
-        try:
-            response = requests.post(
-                f"{BASE_URL}/banks/{bank_id}/memories", # URL CHÍNH XÁC
-                json={
-                    "items": [{"content": transcript}], 
-                    "async": False
-                },
-                timeout=1800 # Chờ tối đa 10 phút cho mỗi session
-            )
-            
-            duration = time.time() - start_step
-            
-            if response.status_code == 200:
-                # Lấy stats hiện tại của Bank
-                stats = requests.get(f"{BASE_URL}/banks/{bank_id}/stats", timeout=10).json()
-                
-                metric = {
-                    "session": i + 1,
-                    "duration": duration,
-                    "nodes": stats['total_nodes'],
-                    "links": stats['total_links']
-                }
-                session_metrics.append(metric)
-                print(f" ✅ {duration:.1f}s (Nodes: {stats['total_nodes']})")
+        # --- LOGIC CHIA NHỎ THÔNG MINH ---
+        final_api_calls = []
+        current_payload = ""
+
+        for turn in session:
+            role = turn.get('role', 'user').upper()
+            content = turn.get('content', '')
+            full_turn_text = f"{role}: {content}\n"
+
+            # Nếu nguyên 1 turn nhỏ hơn giới hạn, gom vào payload hiện tại
+            if len(current_payload) + len(full_turn_text) < MAX_CHUNK_CHARS:
+                current_payload += full_turn_text
             else:
-                print(f" ❌ Lỗi {response.status_code}: {response.text}")
-                
-        except requests.exceptions.RequestException as e:
-            print(f" ❌ Request error: {e}")
-        except json.JSONDecodeError:
-            print(f" ❌ JSON Decode Error: Không thể parse phản hồi từ server.")
+                # Nếu payload hiện tại đã có dữ liệu, chốt nó lại
+                if current_payload:
+                    final_api_calls.append(current_payload)
+                    current_payload = ""
+
+                # Nếu bản thân 1 turn này đã lớn hơn giới hạn -> Phải bẻ theo câu
+                if len(full_turn_text) >= MAX_CHUNK_CHARS:
+                    sentences = split_text_into_sentences(content)
+                    temp_sub_turn = f"{role}: "
+                    
+                    for sent in sentences:
+                        # Nếu thêm 1 câu vào mà vẫn trong giới hạn
+                        if len(temp_sub_turn) + len(sent) < MAX_CHUNK_CHARS:
+                            temp_sub_turn += sent + " "
+                        else:
+                            # Chốt mảnh hiện tại và bắt đầu mảnh mới với Role cũ
+                            final_api_calls.append(temp_sub_turn.strip())
+                            temp_sub_turn = f"{role}: {sent} "
+                    
+                    if len(temp_sub_turn) > len(f"{role}: "):
+                        current_payload = temp_sub_turn # Phần dư của turn dài chuyển sang payload tiếp theo
+                else:
+                    # Turn này to nhưng chưa tới mức vượt giới hạn 1 mình, bắt đầu payload mới
+                    current_payload = full_turn_text
+
+        if current_payload:
+            final_api_calls.append(current_payload)
+
+        # --- THỰC THI GỌI API ---
+        print(f"🔄 Session {i+1}/{len(sessions)} | API Calls: {len(final_api_calls)}...", end="", flush=True)
+        success = True
+
+        for idx, part in enumerate(final_api_calls):
+            try:
+                print(f"\n   📡 API Call {idx+1}/{len(final_api_calls)}...", end="", flush=True)
+                response = requests.post(
+                    f"{BASE_URL}/banks/{bank_id}/memories",
+                    json={"items": [{"content": part}], "async": False},
+                    timeout=5400
+                )
+                if response.status_code != 200:
+                    success = False; break
+            except:
+                success = False; break
+        
+        duration = time.time() - start_step
+        if success:
+            stats = requests.get(f"{BASE_URL}/banks/{bank_id}/stats", timeout=10).json()
+            session_metrics.append({"session": i + 1, "duration": duration, "nodes": stats['total_nodes']})
+            print(f" ✅ {duration:.1f}s (Nodes: {stats['total_nodes']})")
+        else:
+            print(f" ❌ Lỗi xử lý")
             
     total_duration = time.time() - start_total
-
-    # 4. In báo cáo tổng kết
-    print("\n" + "="*60)
-    print(f"🏁 TỔNG KẾT CHI PHÍ XÂY DỰNG GRAPH")
-    print("="*60)
-    print(f"⏱️  Tổng thời gian: {total_duration/60:.2f} phút")
-    print(f"📞 Số lần gọi LLM (Extraction): {len(sessions)}")
-    
-    try:
-        final_stats = requests.get(f"{BASE_URL}/banks/{bank_id}/stats", timeout=10).json()
-        json.dump(final_stats, open(f"final_stats_{bank_id}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-        print(f"\n🕸️  Thông số Graph cuối cùng:")
-        print(f"   - Tổng số Nodes (Facts): {final_stats['total_nodes']}")
-        print(f"   - Tổng số Links: {final_stats['total_links']}")
-        print(f"   - Phân bổ mạng lưới: {json.dumps(final_stats['nodes_by_fact_type'], indent=2)}")
-        
-        avg_time = sum(m['duration'] for m in session_metrics) / len(session_metrics) if session_metrics else 0
-        print(f"\n📈 Hiệu năng trung bình: {avg_time:.2f} giây/session")
-    except Exception as e:
-        print(f"❌ Không thể lấy final stats: {e}")
-
-    print("="*60)
+    print(f"\n🏁 TỔNG KẾT: {total_duration/60:.2f} phút")
 
 if __name__ == "__main__":
-    analyze_hindsight_cost(7) # Chạy cho sample đầu tiên
+    analyze_hindsight_cost(9)

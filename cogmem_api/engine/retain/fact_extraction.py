@@ -56,46 +56,64 @@ _SUPPORTED_TRANSITION_TYPES: set[str] = {
 
 _ALLOWED_MODES: set[str] = {"concise", "custom", "verbatim", "verbose"}
 
-_BASE_PROMPT = """Extract long-term memory facts for CogMem.
+_BASE_PROMPT = """You are a memory extraction assistant. Extract durable facts from conversations for long-term storage.
 
-Return a JSON object with key `facts` containing a list of fact objects.
-Each fact may include keys like:
-- what, when, where, who, why
-- fact_kind (event|conversation)
-- fact_type (world|assistant|experience|opinion|habit|intention|action_effect)
-- occurred_start, occurred_end
-- entities (list of objects with `text` or list of strings)
-- causal_relations (target_index, relation_type, strength)
-- action_effect_relations (target_index, relation_type, strength)
-- transition_relations (target_index, transition_type, strength)
-- precondition, action, outcome, confidence, devalue_sensitive, intention_status
+OUTPUT RULE: Respond ONLY with valid JSON — no prose, no markdown fences.
+Format: {{"facts": [<fact>, ...]}}  or  {{"facts": []}} if nothing to store.
 
-Language rule: output values in the same language as the input text.
-{mission_section}
-{mode_section}
+EVERY fact MUST have these REQUIRED fields:
+- "fact_type": one of: world | experience | opinion | habit | intention | action_effect
+- "what": core statement, specific, under 40 words
+- "entities": named people/places/orgs/tech — e.g. ["Alice","DI"] — use [] if none
+
+OPTIONAL: "when", "who", "why", "fact_kind" (event|conversation), "occurred_start", "occurred_end" (ISO 8601)
+
+FACT TYPE GUIDE:
+1. "world" — objective fact, not time-bound (job, role, skill, location)
+   {{"fact_type":"world","what":"Alice works as ML Engineer at DI","entities":["Alice","DI"]}}
+2. "experience" — past event at a specific time
+   {{"fact_type":"experience","what":"Alice joined DI in April 2024","entities":["Alice","DI"],"when":"April 2024"}}
+3. "opinion" — belief or preference; add "confidence": 0.0-1.0
+   {{"fact_type":"opinion","what":"Alice believes Python is best for ML","entities":["Alice"],"confidence":0.85}}
+4. "habit" — repeating behavior; triggers: always, usually, every day/week, tends to, routine
+   {{"fact_type":"habit","what":"Alice always checks email before standup","entities":["Alice"]}}
+5. "intention" — future plan or goal; add "intention_status": "planning"|"fulfilled"|"abandoned"
+   {{"fact_type":"intention","what":"Alice plans to learn Rust by Q3","entities":["Alice"],"intention_status":"planning"}}
+6. "action_effect" — causal triple; add "precondition", "action", "outcome", "confidence", "devalue_sensitive"(true|false)
+   {{"fact_type":"action_effect","what":"int8 reduced latency","entities":[],"precondition":"Latency>100ms","action":"Switch to int8","outcome":"Latency dropped 75%","confidence":0.92,"devalue_sensitive":true}}
+
+RELATIONS (only when facts in same response are linked):
+- "causal_relations": [{{"target_index":<int>,"relation_type":"caused_by","strength":0.8}}]
+- "action_effect_relations": [{{"target_index":<int>,"relation_type":"a_o_causal","strength":0.9}}]
+- "transition_relations": [{{"target_index":<int>,"transition_type":"fulfilled_by"|"triggered"|"enabled_by"|"revised_to"|"contradicted_by","strength":0.9}}]
+
+RULES: (1) Extract ALL facts in the text. (2) Prefer "experience" over "world" when a time is mentioned. (3) Do NOT invent facts. (4) Match output language to input language.
+{mission_section}{mode_section}"""
+
+_CONCISE_MODE = """
+MODE: concise
+- Extract only durable, memory-worthy facts. Skip greetings, filler, and pleasantries.
+- Target: 1-5 facts per chunk. Keep each "what" short and precise.
 """
 
-_CONCISE_MODE = """Mode: concise
-- Extract only durable, memory-worthy facts.
-- Skip filler and pleasantries.
-- Keep each fact short and precise.
-"""
-
-_CUSTOM_MODE = """Mode: custom
-- Follow custom extraction instructions below strictly.
+_CUSTOM_MODE = """
+MODE: custom — follow these instructions strictly:
 {custom_instructions}
 """
 
-_VERBATIM_MODE = """Mode: verbatim
-- Return exactly one fact object per input chunk.
-- Preserve raw text in storage path; output metadata only.
-- Omit detailed rewriting; focus on entities and temporal metadata.
+_VERBATIM_MODE = """
+MODE: verbatim
+- Return exactly ONE fact object.
+- Do not paraphrase. Use the most informative sentence from the text as "what".
+- Focus on extracting "entities", "when", and "fact_type" accurately.
 """
 
-_VERBOSE_MODE = """Mode: verbose
-- Capture maximal detail for each fact.
-- Include context and motivation in the `why` field.
-- Prefer richer entity extraction.
+_VERBOSE_MODE = """
+MODE: verbose
+- Extract every potentially relevant fact, including context, background, and motivation.
+- Fill the "why" field whenever motivation is stated or clearly implied.
+- Prefer "experience" over "world" when a specific time or event is mentioned.
+- Include supporting detail in "what" (up to 40 words is acceptable).
 """
 
 
@@ -505,6 +523,8 @@ def _normalize_llm_facts(
         intention_status = payload.get("intention_status")
         if intention_status is not None:
             fact_metadata["intention_status"] = str(intention_status)
+        elif fact_type == "intention" and "intention_status" not in fact_metadata:
+            fact_metadata["intention_status"] = "planning"
 
         action_effect_relations = _extract_action_effect_relations(payload.get("action_effect_relations"))
 
