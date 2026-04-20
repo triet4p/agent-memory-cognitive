@@ -4,13 +4,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Operational Rules
 
-All development must follow **AGENTS.md** — read it before starting any task. Key constraints:
+Key constraints (full detail in sections below):
 
 - **No `hindsight_api` imports** anywhere in `cogmem_api/`. Fork/copy logic instead.
 - **Relative imports**: only same-level (`from .x import`). Never `..` or `...` up to parent.
 - **Dependency manager**: always `uv add <lib>` — never invent libraries.
 - **Coverage docs gate**: never edit `docs/migration_idea_coverage_matrix.md` unless the user explicitly requests an audit.
 - **Artifacts required**: after each meaningful task, create `logs/task_<id>_summary.md` and `tests/artifacts/test_<task_name>.py`.
+
+## Coverage Audit Gate (HARD STOP)
+
+Before every task, check explicitly:
+
+- If user did **NOT** request an explicit audit/update of coverage → mark `docs/migration_idea_coverage_matrix.md` as **read-only** for the entire task. Do not touch it.
+- If user **did** request an explicit audit → allowed to edit; must cite evidence for every change.
+- Violating this gate is a critical process error.
+
+## Commit Message Standard
+
+Propose a commit after every meaningful milestone **only when** artifact + test exist for that milestone.
+
+**Subject line** (English, imperative):
+```
+feat|fix|chore|docs|refactor: short message
+```
+Example: `chore: complete sprint-0 artifact baseline checks`
+
+**Description** (English bullet points):
+- What changed
+- Why it changed
+- Verification / test results
+
+Never write a vague description — it must reference the specific files and changes made in that milestone.
+
+## Execution Steps
+
+Pre-check before Step 1: confirm Coverage Gate status (see above).
+
+1. **Read Idea** — study `docs/CogMem-Idea.md` (or the new requirement).
+2. **Scan Source** — find the corresponding modules in `hindsight_api`.
+3. **Plan** — decompose into atomic tasks (one problem per task).
+4. **Implement** — Copy → Modify → `uv add` if needed.
+5. **Create Artifact** — write test + summary log.
+6. **Verify** — report completion and await next instruction.
+7. **Propose Commit** — subject + description in English per the standard above.
 
 ## Commands
 

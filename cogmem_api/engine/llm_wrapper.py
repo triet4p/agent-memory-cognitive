@@ -40,7 +40,11 @@ def parse_llm_json(raw: str) -> Any:
         return json.loads(text)
     except json.JSONDecodeError:
         cleaned = re.sub(r"[\x00-\x1f\x7f]", " ", text)
-        return json.loads(cleaned)
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            from json_repair import repair_json  # fallback for truncated/malformed SLM output
+            return json.loads(repair_json(cleaned))
 
 
 @dataclass(slots=True)
@@ -86,15 +90,14 @@ class LLMConfig:
 
         response_json = await self._post_chat_completions(payload)
         usage_json = response_json.get("usage") or {}
-        usage = TokenUsage(
-            input_tokens=int(usage_json.get("prompt_tokens") or 0),
-            output_tokens=int(usage_json.get("completion_tokens") or 0),
-            total_tokens=int(usage_json.get("total_tokens") or 0),
-        )
+        _inp = int(usage_json.get("prompt_tokens") or 0)
+        _out = int(usage_json.get("completion_tokens") or 0)
+        _total = int(usage_json.get("total_tokens") or 0)
 
         choices = response_json.get("choices") or []
         if not choices:
             parsed: Any = ""
+            content = ""
         else:
             choice = choices[0]
             finish_reason = str(choice.get("finish_reason") or "")
@@ -112,6 +115,17 @@ class LLMConfig:
                     parsed = response_format.model_validate(parsed_json).model_dump()
                 else:
                     parsed = parsed_json
+
+        # When provider returns all-zero usage, estimate from character lengths (÷4 ≈ tokens)
+        if _total == 0 and _inp == 0 and _out == 0:
+            _est_inp = sum(len(m.get("content", "")) for m in messages) // 4
+            _est_out = len(content) // 4
+            _inp, _out, _total = _est_inp, _est_out, _est_inp + _est_out
+        usage = TokenUsage(
+            input_tokens=_inp,
+            output_tokens=_out,
+            total_tokens=_total or (_inp + _out),
+        )
 
         if return_usage:
             return parsed, usage

@@ -29,7 +29,7 @@ if str(_REPO_ROOT) not in sys.path:
 from tests.retain._shared import make_config, resolve_llm  # noqa: E402
 
 DIALOGUE = """\
-USER: Hi! I joined TechVN last week as a Backend Engineer.
+USER: Hi! I'm Bob. I joined TechVN last week as a Backend Engineer.
 ASSISTANT: Welcome to TechVN! What tech stack will you be working with?
 USER: Mainly Python and FastAPI. I plan to learn Kubernetes in Q2 this year.
 ASSISTANT: Great choice. FastAPI works really well for modern backend services.

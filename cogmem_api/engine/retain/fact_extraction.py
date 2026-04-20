@@ -14,7 +14,7 @@ runtime resilience.
 from __future__ import annotations
 
 import re
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from cogmem_api.engine.llm_wrapper import OutputTooLongError, parse_llm_json
@@ -75,12 +75,21 @@ FACT TYPE GUIDE:
    {{"fact_type":"experience","what":"Alice joined DI in April 2024","entities":["Alice","DI"],"when":"April 2024"}}
 3. "opinion" — belief or preference; add "confidence": 0.0-1.0
    {{"fact_type":"opinion","what":"Alice believes Python is best for ML","entities":["Alice"],"confidence":0.85}}
-4. "habit" — repeating behavior; triggers: always, usually, every day/week, tends to, routine
+4. "habit" — repeating behavior; triggers: always, usually, every day/week, every morning, tends to, routine, regular
+   Use "habit" (NOT "world") when the fact describes what someone *regularly does*.
    {{"fact_type":"habit","what":"Alice always checks email before standup","entities":["Alice"]}}
+   {{"fact_type":"habit","what":"Team holds a standup every morning at 9 AM","entities":["Team"]}}
 5. "intention" — future plan or goal; add "intention_status": "planning"|"fulfilled"|"abandoned"
+   - planning: goal is still future ("plan to", "will", "going to", "want to", "intend to")
+   - fulfilled: goal was already completed ("finished", "completed", "achieved", "done", "it worked", "all tests pass")
+   - abandoned: goal was cancelled ("gave up", "decided not to", "dropped", "cancelled")
+   When someone says they "finished" or "achieved" a past goal, use fulfilled — NOT planning.
    {{"fact_type":"intention","what":"Alice plans to learn Rust by Q3","entities":["Alice"],"intention_status":"planning"}}
-6. "action_effect" — causal triple; add "precondition", "action", "outcome", "confidence", "devalue_sensitive"(true|false)
+   {{"fact_type":"intention","what":"Alice planned to learn Rust — she finished it last month","entities":["Alice"],"intention_status":"fulfilled"}}
+6. "action_effect" — causal triple; REQUIRED fields: "precondition", "action", "outcome", "confidence", "devalue_sensitive"(true|false)
+   Each independent cause-effect relationship = ONE separate action_effect fact.
    {{"fact_type":"action_effect","what":"int8 reduced latency","entities":[],"precondition":"Latency>100ms","action":"Switch to int8","outcome":"Latency dropped 75%","confidence":0.92,"devalue_sensitive":true}}
+   {{"fact_type":"action_effect","what":"index eliminated full scan","entities":["orders"],"precondition":"Full table scan on orders","action":"Add composite index","outcome":"Query time cut from 3s to 50ms","confidence":0.95,"devalue_sensitive":false}}
 
 RELATIONS (only when facts in same response are linked):
 - "causal_relations": [{{"target_index":<int>,"relation_type":"caused_by","strength":0.8}}]
@@ -266,6 +275,45 @@ def _extract_action_effect_relations(raw_relations: Any) -> list[ActionEffectRel
         )
 
     return relations
+
+
+_FULFILLED_SIGNALS = frozenset({
+    "finished", "completed", "achieved", "accomplished", "done", "passed",
+    "succeeded", "all tests pass", "all critical", "100%",
+})
+_PAST_INTENTION_MARKERS = frozenset({
+    "planned to", "was planning to", "set a goal to", "set goal to",
+    "intended to", "wanted to", "aimed to", "was going to",
+})
+# Explicit future time markers in what → keep as planning, never override
+_FUTURE_TIME_MARKERS = frozenset({"q1", "q2", "q3", "q4", "next month", "next quarter", "next year", "upcoming"})
+
+
+def _infer_fulfilled_from_context(what: str, chunk_text: str) -> bool:
+    """Return True if context signals a past intention was fulfilled.
+
+    Checks what text AND chunk_text so the heuristic works even when the LLM
+    generates present-tense what text (e.g. "User plans to…" instead of "planned to…").
+    Future-time markers in what (Q2, next quarter…) block the override.
+    """
+    what_lower = what.lower()
+    chunk_lower = chunk_text.lower()
+
+    # Direct completion signal inside the what field
+    if any(s in what_lower for s in _FULFILLED_SIGNALS):
+        return True
+
+    # If what has an explicit future time reference → stay planning
+    if any(m in what_lower for m in _FUTURE_TIME_MARKERS):
+        return False
+
+    # Past-intention marker anywhere (what OR chunk) + completion signal in chunk
+    has_past_marker = (
+        any(m in what_lower for m in _PAST_INTENTION_MARKERS)
+        or any(m in chunk_lower for m in _PAST_INTENTION_MARKERS)
+    )
+    has_completion = any(s in chunk_lower for s in _FULFILLED_SIGNALS)
+    return has_past_marker and has_completion
 
 
 def _parse_action_effect_triplet(text: str) -> tuple[str, str, str] | None:
@@ -477,6 +525,37 @@ async def _call_llm_chunk(
     return facts, usage
 
 
+_TODAY_TIME_KEYWORDS = frozenset(
+    {"today", "now", "current", "this morning", "at this moment", "currently"}
+)
+
+
+def _sanitize_temporal_fact(payload: dict[str, Any]) -> dict[str, Any]:
+    """Clear hallucinated dates from a single fact payload.
+
+    SLMs often fill 'when'/'occurred_start'/'occurred_end' with today's date
+    when no real time context exists.  We detect this and reset those fields.
+    """
+    today_prefix = date.today().isoformat()  # e.g. "2026-04-20"
+    what_lower = str(payload.get("what", "")).lower()
+    has_real_time_context = any(kw in what_lower for kw in _TODAY_TIME_KEYWORDS)
+
+    if not has_real_time_context:
+        for field in ("occurred_start", "occurred_end"):
+            val = str(payload.get(field, ""))
+            if today_prefix in val:
+                payload[field] = None
+
+        when_val = str(payload.get("when", ""))
+        if today_prefix in when_val:
+            payload["when"] = "N/A"
+        # ISO timestamp (has T and :) without real time context → hallucination
+        if "T" in when_val and ":" in when_val:
+            payload["when"] = "N/A"
+
+    return payload
+
+
 def _normalize_llm_facts(
     raw_facts: list[dict[str, Any]],
     content: RetainContent,
@@ -489,6 +568,7 @@ def _normalize_llm_facts(
     normalized: list[ExtractedFact] = []
 
     for payload in raw_facts:
+        payload = _sanitize_temporal_fact(payload)
         if mode == "verbatim":
             fact_text = chunk_text.strip() or content.content.strip()
         else:
@@ -516,6 +596,14 @@ def _normalize_llm_facts(
             raw_fact_type = _infer_fact_type(fact_text)
         fact_type = coerce_fact_type(raw_fact_type)
 
+        # Heuristic override: if LLM returned "world" but text has a strong habit signal,
+        # reclassify as "habit". Routines described as world facts are a common SLM mistake.
+        if fact_type == "world":
+            for pattern in _HABIT_PATTERNS:
+                if re.search(pattern, fact_text.lower()):
+                    fact_type = "habit"
+                    break
+
         fact_metadata = dict(content.metadata)
         if isinstance(payload.get("labels"), dict):
             fact_metadata["labels"] = payload["labels"]
@@ -525,6 +613,11 @@ def _normalize_llm_facts(
             fact_metadata["intention_status"] = str(intention_status)
         elif fact_type == "intention" and "intention_status" not in fact_metadata:
             fact_metadata["intention_status"] = "planning"
+
+        # Heuristic override: if LLM said "planning" but context signals completion
+        if fact_type == "intention" and fact_metadata.get("intention_status") == "planning":
+            if _infer_fulfilled_from_context(fact_text, chunk_text):
+                fact_metadata["intention_status"] = "fulfilled"
 
         action_effect_relations = _extract_action_effect_relations(payload.get("action_effect_relations"))
 
@@ -537,6 +630,14 @@ def _normalize_llm_facts(
                 parsed_triplet = _parse_action_effect_triplet(fact_text)
                 if parsed_triplet is not None:
                     precondition, action, outcome = parsed_triplet
+
+            # Last-resort fallback: derive from what field so required fields are never missing
+            if not precondition:
+                precondition = "N/A"
+            if not action:
+                action = fact_text
+            if not outcome:
+                outcome = "N/A"
 
             if precondition and action and outcome:
                 fact_metadata["precondition"] = precondition

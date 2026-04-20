@@ -18,6 +18,15 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
+# Auto-load .env from repo root so tests work without manual env export
+_dotenv_path = REPO_ROOT / ".env"
+if _dotenv_path.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_dotenv_path, override=False)
+    except ImportError:
+        pass
+
 
 def setup_path() -> None:
     """Insert REPO_ROOT into sys.path so cogmem_api and tests packages resolve."""
