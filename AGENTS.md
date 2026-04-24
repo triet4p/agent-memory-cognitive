@@ -11,6 +11,8 @@ Key constraints (full detail in sections below):
 - **Dependency manager**: always `uv add <lib>` — never invent libraries.
 - **Coverage docs gate**: never edit `docs/migration_idea_coverage_matrix.md` unless the user explicitly requests an audit.
 - **Artifacts required**: after each meaningful task, create `logs/task_<id>_summary.md` and `tests/artifacts/test_<task_name>.py`.
+- **No collateral discards**: never run `git checkout`, `git restore`, or any command that discards changes to files outside the current sprint's explicit scope. If a file was not touched by the sprint task, its working-tree state must be preserved exactly.
+- **data/ directory is read-only at runtime**: never execute any script or command that writes, overwrites, or deletes files under `data/`. Dataset files (e.g. `data/longmemeval_s_distilled_small.json`, `data/locomo_distilled.json`) are pre-generated artifacts — re-running `distill_dataset.py` or any similar script during a sprint is forbidden unless the user explicitly requests it.
 
 ## Coverage Audit Gate (HARD STOP)
 

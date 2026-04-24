@@ -14,18 +14,47 @@ Mục tiêu điều phối:
 
 ## 2) Trạng thái hiện tại (baseline)
 1. Coverage matrix hiện tại tại [docs/migration_idea_coverage_matrix.md](migration_idea_coverage_matrix.md):
-- C1: PARTIAL
-- C2: FULL
-- C3: PARTIAL
-- C4: PARTIAL
+- C1: FULL ✅
+- C2: FULL ✅
+- C3: FULL ✅
+- C4: FULL ✅
 - C5: MISSING (deferred)
 2. Readiness đã có:
 - [reports/hindsight_removal_readiness.md](../reports/hindsight_removal_readiness.md)
 - [docs/hindsight_removal_playbook.md](hindsight_removal_playbook.md)
 3. Quyết định phạm vi đang khóa:
-- Delete scope đợt tới: chỉ xóa thư mục hindsight_api.
-- Full gate trước tutorial: bắt buộc C1-C4 = FULL.
-- C5 để track sau, không chặn tutorial trong vòng này.
+- Delete scope đã hoàn tất ✅
+- C1-C4 coverage FULL ✅
+- Tutorial (S16-S19) hoàn tất ✅
+- C5 để track sau, không chặn eval trong vòng này.
+
+---
+
+## 2.5) 🔄 NEXT IMMEDIATE STEPS — Phase E Eval Readiness (S20-S23)
+
+**Tóm tắt hiện trạng:** Tất cả phase đã hoàn tất qua task 742:
+- ✅ Sprint 0 → Sprint 7 + Backfill B1-B5 (tasks 001-703)
+- ✅ Phase A — Delete hindsight_api (S11, task 704)
+- ✅ Phase B — Coverage Closure C1-C4 (S12-S15, tasks 705-708)
+- ✅ Phase C — Tutorial top-down (S16-S18, tasks 716-718)
+- ✅ Phase D — Per-file manual tutorial (S19.0-S19.8, tasks 721-729)
+- ✅ Post-tutorial audits + retain re-tests (tasks 730-742)
+
+**Tại sao Phase E cần thiết?** [docs/REPORT.md](REPORT.md) (audit 2026-04-24) xác định gaps cụ thể giữa thiết kế và eval implementation:
+1. raw_snippet không được inject vào generation context (eval chỉ dùng text field)
+2. SUM activation không phải default graph retriever (link_expansion là default)
+3. Benchmark integration: hiện tại eval_cogmem.py chỉ có 2-question hardcoded fixture
+4. Eval metrics: không có per-category breakdown, không có Recall@k, judge LLM cùng model với retain LLM
+
+**Next 4 sprints (S20-S23), task numbers bắt đầu từ 743:**
+1. **S20 (tasks 743-745)** — Fix contribution gaps: raw_snippet injection, BFS as default, s_r_link contract
+2. **S21 (tasks 746-748)** — Integrate distilled benchmark into eval pipeline (LongMemEval-S + LoCoMo adapters)
+3. **S22 (tasks 749-752)** — Add proper eval metrics: per-category accuracy, Recall@k, separate judge LLM config
+4. **S23 (tasks 753-755)** — Dry run E1-E7 on benchmark subset để verify pipeline hoạt động trước full run
+
+**Entry gate S20:** C1-C4 FULL coverage verified ✅ → Ready to start now
+
+**Ghi chú đánh số:** Tasks 730-742 trong logs đã dùng cho tutorial convention audit, CI/CD setup, và retain test re-audits (không phải S20-S23). Phase E sẽ bắt đầu từ task 743.
 
 ---
 
@@ -252,8 +281,8 @@ Artifacts chính:
 
 ## 4) Lộ trình còn lại (hợp nhất, có chiều sâu thi công)
 
-## Phase A - Delete-first
-### Sprint S11 - Delete hindsight_api only
+## ✅ Phase A - Delete-first (DONE)
+### Sprint S11 - Delete hindsight_api only ✅
 Mục tiêu sprint:
 1. Xóa thư mục `hindsight_api` theo đúng phạm vi đã khóa (không dọn dependency/script legacy trong sprint này).
 2. Giữ runtime CogMem chạy ổn định sau xóa.
@@ -308,8 +337,8 @@ Rủi ro và fallback:
 3. Rủi ro: script/dev-tooling ngoài `cogmem_api` còn gọi package cũ.
 4. Fallback: ghi nhận vào backlog kỹ thuật riêng, không mở rộng phạm vi sửa trong sprint xóa-first.
 
-## Phase B - Coverage Closure (C1-C4 -> FULL)
-### Sprint S12 - Close C1 to FULL
+## ✅ Phase B - Coverage Closure (C1-C4 -> FULL) (DONE)
+### Sprint S12 - Close C1 to FULL ✅
 Mục tiêu sprint:
 1. Đóng toàn bộ gap C1 ở code/runtime và gate test.
 
@@ -354,7 +383,7 @@ Rủi ro và fallback:
 1. Rủi ro: dọn observation làm lệch recall behavior cũ.
 2. Fallback: giữ nhánh adapter tương thích ngắn hạn có test bao phủ, nhưng mặc định không đi qua observation path.
 
-### Sprint S13 - Close C3 to FULL
+### Sprint S13 - Close C3 to FULL ✅
 Mục tiêu sprint:
 1. Đảm bảo SUM + 3 guards không chỉ tồn tại trong code mà còn là đường chạy mặc định có hiệu lực.
 
@@ -398,7 +427,7 @@ Rủi ro và fallback:
 1. Rủi ro: đổi default policy làm sai lệch latency hoặc chất lượng truy hồi.
 2. Fallback: cho phép cờ cấu hình rollback policy tạm thời, nhưng test gate bắt buộc xác nhận default mới.
 
-### Sprint S14 - Close C4 to FULL
+### Sprint S14 - Close C4 to FULL ✅
 Mục tiêu sprint:
 1. Hoàn tất adaptive routing đúng semantics prospective/causal theo criteria kỹ thuật.
 
@@ -441,7 +470,7 @@ Rủi ro và fallback:
 1. Rủi ro: filter planning quá chặt làm giảm recall một số query thực tế.
 2. Fallback: cho phép threshold/weight theo config, nhưng semantics planning vẫn là mặc định bắt buộc.
 
-### Sprint S15 - Full Gate trước tutorial
+### Sprint S15 - Full Gate trước tutorial ✅
 Mục tiêu sprint:
 1. Khóa cổng trước tutorial bằng bằng chứng gate pack C1-C4 đều PASS.
 
@@ -484,8 +513,8 @@ Rủi ro và fallback:
 1. Rủi ro: evidence gate pass nhưng truy vết chưa đủ rõ trong logs/artifacts.
 2. Fallback: giữ trạng thái PARTIAL và mở sub-task bổ sung evidence, không unlock tutorial sớm.
 
-## Phase C - Tutorial (unlock sau S15 PASS)
-### Sprint S16 - Tutorial Top-down Architecture Baseline
+## ✅ Phase C - Tutorial (DONE)
+### Sprint S16 - Tutorial Top-down Architecture Baseline ✅
 Mục tiêu sprint:
 1. Thiết lập bộ khung tutorial top-down đi từ toàn cảnh hệ thống đến từng lớp chi tiết.
 2. Khóa bản đồ phụ thuộc để toàn bộ module và hàm đều có vị trí rõ ràng trong learning path.
@@ -538,7 +567,7 @@ Rủi ro và fallback:
 1. Rủi ro: thiếu module trong map do quét thủ công.
 2. Fallback: dùng script checker fail-fast và cập nhật map trước khi qua S17.
 
-### Sprint S17 - Tutorial Module-by-Module Decomposition
+### Sprint S17 - Tutorial Module-by-Module Decomposition ✅
 Mục tiêu sprint:
 1. Viết tutorial module-level theo thứ tự top-down, từ flow tổng quan xuống từng module cụ thể.
 2. Đảm bảo mỗi module có bản đồ phụ thuộc và danh mục hàm public/private để chuẩn bị cho deep dive function-level.
@@ -588,7 +617,7 @@ Rủi ro và fallback:
 1. Rủi ro: mô tả sai do lệch so với code hiện tại.
 2. Fallback: rà chéo với module-map + test contract; cập nhật ngay khi phát hiện drift.
 
-### Sprint S18 - Tutorial Function-by-Function Deep Dive
+### Sprint S18 - Tutorial Function-by-Function Deep Dive ✅
 Mục tiêu sprint:
 1. Hoàn tất tutorial function-level cho toàn bộ hàm public/private của từng module.
 2. Cung cấp capstone walkthrough end-to-end bám theo function checkpoints và checklist pass/fail có expected outputs.
@@ -641,31 +670,296 @@ Rủi ro và fallback:
 
 ---
 
+## 🔄 Phase E - Evaluation Readiness (NEXT — unlock sau S15 PASS)
+
+Mục tiêu phase:
+1. Đảm bảo mọi contribution kỹ thuật (C1-C4) thực sự hoạt động đúng trong đường chạy runtime — không chỉ tồn tại trong code.
+2. Xây dựng evaluation pipeline đủ chuẩn để so sánh kết quả với HINDSIGHT published numbers một cách có ý nghĩa.
+
+Căn cứ: [docs/REPORT.md](REPORT.md) (audit 2026-04-24) xác định các gap cụ thể cần đóng trước khi chạy experiments thực sự.
+
+### Sprint S20 - Contribution Gaps Closure 🔄
+
+Mục tiêu sprint:
+1. Đóng các gap còn lại giữa thiết kế và implementation mà S12-S14 chưa bao phủ.
+
+Phụ thuộc:
+1. S15 PASS.
+
+Inputs bắt buộc:
+1. `docs/REPORT.md` — danh sách gap cụ thể từ audit
+2. Coverage matrix C1-C4 FULL từ S15
+
+Atomic tasks:
+1. S20.1 Inject raw_snippet vào generation path:
+	- Gap: `eval_cogmem.py` `_build_generation_prompt()` dùng `result.get('text', '')` — bỏ qua `raw_snippet`.
+	- Fix: thay bằng `result.get('raw_snippet') or result.get('text', '')` trong generation evidence block.
+	- Đảm bảo reflect API cũng inject raw_snippet vào context LLM generation, không chỉ text/narrative_fact.
+	- Output: `logs/task_743_summary.md`, `tests/artifacts/test_task743_raw_snippet_generation.py`.
+	- Verification: fact có số cụ thể (ví dụ "40%", "45ms") phải xuất hiện trong generated answer sau recall.
+
+2. S20.2 Đặt BFS SUM làm default graph retriever:
+	- Gap: `.env` cấu hình `COGMEM_API_GRAPH_RETRIEVER=link_expansion` — SUM + 3 guards không được kích hoạt mặc định.
+	- Fix: đổi default thành `bfs` trong `cogmem_api/config.py` và `.env`.
+	- Ghi rõ lý do kỹ thuật: contribution C3 phải là đường chạy mặc định trong mọi experiment E1-E7, trừ E1 (baseline) tắt explicit.
+	- Output: `logs/task_744_summary.md`, `tests/artifacts/test_task744_bfs_default_gate.py`.
+	- Verification: `get_default_graph_retriever()` trả về `BFSGraphRetriever` khi không có override config.
+
+3. S20.3 Document và gate s_r_link simplification:
+	- Gap: s_r_link được tạo bằng entity overlap thay vì behavioral reinforcement logic từ spec.
+	- Không rewrite toàn bộ — viết rõ trong artifact tại sao entity-overlap là proxy hợp lý cho S-R linking ở cấp NL dialogue.
+	- Thêm gate test kiểm tra s_r_link edge thực sự được tạo giữa habit node và fact node chia sẻ entity.
+	- Output: `logs/task_745_summary.md`, `tests/artifacts/test_task745_sr_link_contract.py`.
+
+File tác động dự kiến:
+1. `scripts/eval_cogmem.py` (raw_snippet injection)
+2. `cogmem_api/engine/reflect/agent.py` (raw_snippet injection)
+3. `cogmem_api/config.py` (default graph retriever)
+4. `.env` (COGMEM_API_GRAPH_RETRIEVER=bfs)
+
+Outputs bắt buộc:
+1. `logs/task_743_summary.md`, `logs/task_744_summary.md`, `logs/task_745_summary.md`
+2. `tests/artifacts/test_task743_raw_snippet_generation.py`
+3. `tests/artifacts/test_task744_bfs_default_gate.py`
+4. `tests/artifacts/test_task745_sr_link_contract.py`
+
+Exit gate:
+1. raw_snippet xuất hiện trong generation context khi fact chứa chi tiết số cụ thể.
+2. Default graph retriever là BFS SUM — xác nhận qua code path, không chỉ config.
+3. s_r_link contract test PASS và có rationale document.
+
+Rủi ro và fallback:
+1. Rủi ro: đổi default BFS làm tăng latency.
+2. Fallback: benchmark latency trước/sau, nếu quá cao cho phép cờ config opt-in/opt-out nhưng ablation E1-E7 bắt buộc dùng BFS.
+
+---
+
+### Sprint S21 - Benchmark Pipeline Integration 🔄
+
+Mục tiêu sprint:
+1. Integrate output của `scripts/distill_dataset.py` vào `eval_cogmem.py` thay cho `SHORT_DIALOGUE_FIXTURE` 2-question hiện tại.
+2. Đảm bảo eval pipeline đọc được cả hai distilled files và xử lý đúng format của từng benchmark.
+
+Bối cảnh:
+- `scripts/distill_dataset.py` đã tồn tại và đã tạo ra:
+  - `data/longmemeval_s_distilled_small.json` — 12 LongMemEval questions, stratified quota, seed=42
+  - `data/locomo_distilled.json` — 5 LoCoMo conversations, hard QA filtered (multi-hop dist>100, causal keywords)
+- Phần selection và distillation đã xong — việc còn lại là wiring vào eval pipeline.
+
+Phụ thuộc:
+1. S20 PASS.
+
+Inputs bắt buộc:
+1. `data/longmemeval_s_distilled_small.json` (đã có)
+2. `data/locomo_distilled.json` (đã có)
+3. `scripts/eval_cogmem.py` đã có S20 updates
+
+Atomic tasks:
+1. S21.1 Adapter cho LongMemEval distilled format:
+	- Schema của distilled file: `question_id`, `question`, `answer`, `question_type`, `haystack_sessions`.
+	- Viết `_load_longmemeval_fixture(path)` trong `eval_cogmem.py`: đọc file → trả về list fixture items theo cùng schema `{"id", "query", "gold_answer", "category", "turns"}`.
+	- Map `question_type` → `category` field cho per-category metrics.
+	- Output: `logs/task_746_summary.md`, `tests/artifacts/test_task746_lme_adapter.py`.
+	- Verification: adapter đọc được `longmemeval_s_distilled_small.json`, trả về đúng 12 items với category labels.
+
+2. S21.2 Adapter cho LoCoMo distilled format:
+	- Schema của distilled file: list conversations, mỗi conversation có `conversation` turns và `qa` list.
+	- Viết `_load_locomo_fixture(path)` trong `eval_cogmem.py`: flatten conversation turns thành `turns`, expand QA pairs thành individual fixture items.
+	- Map LoCoMo category integers sang string labels (1=single-hop, 2=multi-hop, v.v. theo dataset spec).
+	- Output: `logs/task_747_summary.md`, `tests/artifacts/test_task747_locomo_adapter.py`.
+	- Verification: adapter đọc được `locomo_distilled.json`, expand đúng số QA items.
+
+3. S21.3 Wiring `--fixture` CLI arg vào benchmark files:
+	- Mở rộng `parse_args()`: thêm `--fixture longmemeval|locomo|short` và `--fixture-path` cho custom path.
+	- `get_fixture()` dispatch sang đúng loader theo fixture name.
+	- `SHORT_DIALOGUE_FIXTURE` giữ nguyên như fallback/dev mode (`--fixture short`).
+	- Output: `logs/task_748_summary.md`, `tests/artifacts/test_task748_fixture_dispatch.py`.
+	- Verification: `python scripts/eval_cogmem.py --fixture longmemeval --pipeline recall --profile E1 --skip-retain` chạy không lỗi.
+
+File tác động dự kiến:
+1. `scripts/eval_cogmem.py` — thêm `_load_longmemeval_fixture`, `_load_locomo_fixture`, mở rộng `get_fixture()` và `parse_args()`
+
+Outputs bắt buộc:
+1. `logs/task_746_summary.md` -> `logs/task_748_summary.md`
+2. `tests/artifacts/test_task746_lme_adapter.py`
+3. `tests/artifacts/test_task747_locomo_adapter.py`
+4. `tests/artifacts/test_task748_fixture_dispatch.py`
+
+Exit gate:
+1. Cả hai adapters đọc được distilled files và trả về đúng schema fixture.
+2. `eval_cogmem.py --fixture longmemeval` và `--fixture locomo` chạy được end-to-end (dù kết quả chưa chính xác — pipeline không lỗi là đủ cho sprint này).
+3. `SHORT_DIALOGUE_FIXTURE` vẫn hoạt động (không regression).
+
+Rủi ro và fallback:
+1. Rủi ro: schema distilled file thay đổi nếu `distill_dataset.py` được chỉnh sửa.
+2. Fallback: adapter đọc flexible field names, log warning nếu field thiếu thay vì crash.
+
+---
+
+### Sprint S22 - Evaluation Metrics & Judge 🔄
+
+Mục tiêu sprint:
+1. Nâng evaluation pipeline lên đủ chuẩn so sánh có ý nghĩa với HINDSIGHT: judge mạnh hơn, metrics chuẩn hơn, breakdown per-category.
+
+Phụ thuộc:
+1. S21 PASS.
+
+Inputs bắt buộc:
+1. `scripts/eval_cogmem.py` đã tích hợp benchmark loaders
+2. Cấu hình judge LLM (model mạnh hơn Ministral-3B)
+
+Atomic tasks:
+1. S22.1 Judge LLM config độc lập:
+	- Gap: `resolve_eval_llm_config()` fallback cùng model với retain LLM — judge và retain dùng chung Ministral-3B.
+	- Fix: bắt buộc `COGMEM_EVAL_LLM_MODEL` và `COGMEM_EVAL_LLM_BASE_URL` phải set riêng; nếu thiếu thì raise error thay vì fallback im lặng.
+	- Ghi rõ trong docs: judge LLM phải là model ≥ 7B (ưu tiên Qwen3-7B hoặc tương đương), không dùng 3B.
+	- Output: `logs/task_749_summary.md`, `tests/artifacts/test_task749_judge_llm_config.py`.
+	- Verification: eval script fail rõ ràng nếu judge LLM không được config riêng.
+
+2. S22.2 Per-category accuracy breakdown:
+	- Gap: metrics hiện tại chỉ aggregate toàn dataset, không có breakdown theo category.
+	- Fix: `run_full_pipeline()` nhận `category` field từ benchmark loader, nhóm kết quả theo category, xuất `judge_accuracy_per_category` trong output JSON.
+	- Categories: single-session, multi-session, temporal, knowledge-update, preference (LongMemEval-S); multi-hop, temporal (LoCoMo).
+	- Output: `logs/task_750_summary.md`, `tests/artifacts/test_task750_per_category_metrics.py`.
+
+3. S22.3 Recall@k và Precision@k metrics:
+	- Gap: chỉ có keyword_coverage proxy — không có IR metric chuẩn.
+	- Fix: thêm `recall_at_k(k=5, k=10)` và `precision_at_k` dựa trên gold node IDs nếu available, hoặc keyword overlap per-k.
+	- Nếu benchmark không có gold node IDs: implement keyword-based Recall@k (% gold keywords present trong top-k results).
+	- Output: `logs/task_751_summary.md`, `tests/artifacts/test_task751_recall_at_k.py`.
+
+4. S22.4 Cross-encoder reranker validation trong eval:
+	- Gap: reranker được configure nhưng eval không xác nhận nó đang được dùng.
+	- Fix: thêm `reranker_used` flag vào eval output, log model name và latency của reranker step.
+	- Output: `logs/task_752_summary.md`, `tests/artifacts/test_task752_reranker_active.py`.
+
+File tác động dự kiến:
+1. `scripts/eval_cogmem.py` (judge config gate, per-category breakdown, recall@k, reranker log)
+2. `cogmem_api/engine/search/reranking.py` (expose reranker metadata)
+
+Outputs bắt buộc:
+1. `logs/task_749_summary.md` -> `logs/task_752_summary.md`
+2. `tests/artifacts/test_task749_judge_llm_config.py`
+3. `tests/artifacts/test_task750_per_category_metrics.py`
+4. `tests/artifacts/test_task751_recall_at_k.py`
+5. `tests/artifacts/test_task752_reranker_active.py`
+
+Exit gate:
+1. Eval script fail rõ ràng nếu judge LLM không configured riêng.
+2. Output JSON có `judge_accuracy_per_category` với đầy đủ categories của từng benchmark.
+3. Recall@k (k=5, k=10) được tính và ghi vào output.
+4. Reranker được xác nhận active trong eval run.
+
+Rủi ro và fallback:
+1. Rủi ro: không có model judge đủ mạnh trong môi trường hiện tại.
+2. Fallback: dùng Qwen3-7B hoặc model ≥ 7B có sẵn; ghi rõ model ID trong báo cáo để đảm bảo reproducibility.
+
+---
+
+### Sprint S23 - Full Ablation Dry Run Gate 🔄
+
+Mục tiêu sprint:
+1. Chạy toàn bộ E1-E7 trên benchmark subset thực — xác nhận pipeline hoạt động end-to-end trước khi run chính thức.
+2. Phát hiện bottleneck, lỗi runtime, và kết quả bất thường trước khi đầu tư tài nguyên vào full run.
+
+Phụ thuộc:
+1. S22 PASS.
+
+Inputs bắt buộc:
+1. Stratified subset đã chọn từ S21 (seed cố định)
+2. Judge LLM ≥ 7B đã configure
+3. `scripts/ablation_runner.py` đã integrate benchmark loaders + per-category metrics
+
+Atomic tasks:
+1. S23.1 Dry run E1 baseline:
+	- Chạy E1 trên LongMemEval-S subset (~30 questions) và LoCoMo subset (~10 conversations).
+	- Kiểm tra: không có lỗi runtime, output JSON đúng schema, judge trả về kết quả coherent.
+	- Ghi lại: tổng thời gian, LLM call count, latency p50/p95.
+	- Output: `reports/dry_run_E1.json`, `logs/task_753_summary.md`.
+
+2. S23.2 Dry run E2-E7 ablation:
+	- Chạy E2-E7 trên cùng subset.
+	- So sánh per-category accuracy giữa các profiles — trend phải coherent với hypothesis trong spec (E2 cải thiện Preference, E6 cải thiện Multi-hop, v.v.).
+	- Nếu trend ngược với hypothesis: flag là anomaly, không block sprint nhưng phải document.
+	- Output: `reports/dry_run_E2_E7.json`, `logs/task_754_summary.md`.
+
+3. S23.3 Evaluation readiness gate:
+	- Tạo checklist kết quả: pipeline chạy không lỗi, metrics coherent, anomalies documented.
+	- Nếu PASS: unlock chạy full benchmark.
+	- Output: `reports/eval_readiness_gate.md`, `logs/task_755_summary.md`, `tests/artifacts/test_task755_eval_readiness_gate.py`.
+
+File tác động dự kiến:
+1. `scripts/ablation_runner.py` (integrate với benchmark loaders)
+2. `reports/dry_run_E1.json`, `reports/dry_run_E2_E7.json` (mới)
+3. `reports/eval_readiness_gate.md` (mới)
+
+Outputs bắt buộc:
+1. `reports/dry_run_E1.json`
+2. `reports/dry_run_E2_E7.json`
+3. `reports/eval_readiness_gate.md`
+4. `logs/task_753_summary.md` -> `logs/task_755_summary.md`
+5. `tests/artifacts/test_task755_eval_readiness_gate.py`
+
+Exit gate:
+1. E1-E7 chạy không lỗi trên benchmark subset.
+2. Per-category output đúng schema, judge accuracy coherent (không phải toàn bộ 0 hoặc toàn bộ 1).
+3. `eval_readiness_gate.md` ký kết xác nhận pipeline sẵn sàng cho full benchmark run.
+
+Rủi ro và fallback:
+1. Rủi ro: subset quá nhỏ để phát hiện trend per-category.
+2. Fallback: tăng subset size trước khi claim gate PASS; record anomalies thay vì block.
+
+---
+
 ## 5) Bảng tiến độ hợp nhất
-| Nhóm | Sprint | Mục tiêu | Trạng thái |
-|---|---|---|---|
-| Historical | Sprint 0 -> Sprint 7.3 | Đã triển khai và có artifact | Done |
-| Remaining | S11 | Delete-first | Planned |
-| Remaining | S12 | Close C1 | Planned |
-| Remaining | S13 | Close C3 | Planned |
-| Remaining | S14 | Close C4 | Planned |
-| Remaining | S15 | Full Gate trước tutorial | Planned |
-| Tutorial | S16 | Tutorial top-down architecture baseline | Locked |
-| Tutorial | S17 | Tutorial module-by-module decomposition | Locked |
-| Tutorial | S18 | Tutorial function-by-function deep dive | Locked |
+
+### Completed ✅
+| Nhóm | Sprint | Mục tiêu | Trạng thái | Tasks |
+|---|---|---|---|---|
+| Historical | Sprint 0 -> Sprint 7.3 | Đã triển khai và có artifact | ✅ Done | 001-703 |
+| Delete | S11 | Delete hindsight_api folder | ✅ Done | 704 |
+| Coverage | S12-S15 | Close C1-C4 to FULL | ✅ Done | 705-708 |
+| Tutorial | S16 | Tutorial top-down architecture baseline | ✅ Done | 716 |
+| Tutorial | S17 | Tutorial module-by-module decomposition | ✅ Done | 717 |
+| Tutorial | S18 | Tutorial function-by-function deep dive | ✅ Done | 718 |
+| Manual Tutorial | S19.0-S19.8 | Per-file manual tutorial coverage | ✅ Done | 721-729 |
+| Audits | - | Tutorial convention + retain re-tests | ✅ Done | 730-742 |
+
+### Next Immediate (Ready to Execute)
+| Nhóm | Sprint | Mục tiêu | Trạng thái | Tasks |
+|---|---|---|---|---|
+| Eval Readiness | S20 | Contribution gaps closure (raw_snippet, BFS default, s_r_link) | 🔄 Ready | 743-745 |
+| Eval Readiness | S21 | Benchmark adapter integration (LongMemEval-S, LoCoMo) | 🔄 Ready | 746-748 |
+| Eval Readiness | S22 | Evaluation metrics & judge LLM (per-category, Recall@k) | 🔄 Ready | 749-752 |
+| Eval Readiness | S23 | Full ablation dry run gate (E1-E7) | 🔄 Ready | 753-755 |
 
 ---
 
 ## 6) Canonical execution order
-Historical completed:
-Sprint 0 -> Sprint 1 -> Sprint 2 -> Sprint 3 -> Sprint 4 -> Sprint 5 -> Sprint 6 -> Backfill B1-B5 -> Sprint 7
 
-Remaining required:
-S11 -> S12 -> S13 -> S14 -> S15 -> S16 -> S17 -> S18
+### ✅ COMPLETED EXECUTION PATH
+Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-703)
+→ S11 (task 704)
+→ S12-S15 (tasks 705-708)
+→ S16-S18 (tasks 716-718)
+→ S19.0-S19.8 (tasks 721-729)
+→ Audits (tasks 730-742)
+
+### 🔄 NEXT EXECUTION PATH (Currently Ready)
+**S20 (tasks 743-745):** Contribution gaps closure
+→ **S21 (tasks 746-748):** Benchmark adapter integration
+→ **S22 (tasks 749-752):** Eval metrics & judge LLM
+→ **S23 (tasks 753-755):** Full ablation dry run gate
+
+### Future (Dependent on S23 PASS)
+Post-S23: C5 (Hierarchical KG) track, full benchmark run, publication track
 
 Hard rules:
-1. Không vào S16 nếu S15 chưa PASS.
-2. C5 và eval mở rộng ở track sau, không chặn tutorial trong vòng hiện tại.
+1. S20 entry gate: S15 FULL coverage confirmed ✅
+2. S21 dependency: S20 PASS (raw_snippet + BFS default + s_r_link)
+3. S22 dependency: S21 PASS (benchmark adapters working)
+4. S23 dependency: S22 PASS (metrics + judge config ready)
+5. C5 deferred: không chặn eval trong vòng này
 
 ---
 
@@ -682,19 +976,23 @@ Hard rules:
 2. [reports/hindsight_removal_readiness.md](../reports/hindsight_removal_readiness.md)
 3. [docs/hindsight_removal_playbook.md](hindsight_removal_playbook.md)
 4. [docs/CogMem-Idea.md](CogMem-Idea.md)
-5. pyproject.toml
-6. [cogmem_api/engine/search/link_expansion_retrieval.py](../cogmem_api/engine/search/link_expansion_retrieval.py)
-7. [cogmem_api/engine/search/retrieval.py](../cogmem_api/engine/search/retrieval.py)
-8. [cogmem_api/engine/search/graph_retrieval.py](../cogmem_api/engine/search/graph_retrieval.py)
-9. [cogmem_api/config.py](../cogmem_api/config.py)
-10. [cogmem_api/engine/query_analyzer.py](../cogmem_api/engine/query_analyzer.py)
-11. [tests/artifacts/test_task701_idea_coverage_matrix.py](../tests/artifacts/test_task701_idea_coverage_matrix.py)
-12. [tests/artifacts/test_task702_hindsight_removal_gate.py](../tests/artifacts/test_task702_hindsight_removal_gate.py)
-13. [tests/artifacts/test_task703_removal_playbook_contract.py](../tests/artifacts/test_task703_removal_playbook_contract.py)
+5. [docs/REPORT.md](REPORT.md)
+6. pyproject.toml
+7. [cogmem_api/engine/search/link_expansion_retrieval.py](../cogmem_api/engine/search/link_expansion_retrieval.py)
+8. [cogmem_api/engine/search/retrieval.py](../cogmem_api/engine/search/retrieval.py)
+9. [cogmem_api/engine/search/graph_retrieval.py](../cogmem_api/engine/search/graph_retrieval.py)
+10. [cogmem_api/config.py](../cogmem_api/config.py)
+11. [cogmem_api/engine/query_analyzer.py](../cogmem_api/engine/query_analyzer.py)
+12. [cogmem_api/engine/reflect/agent.py](../cogmem_api/engine/reflect/agent.py)
+13. [scripts/eval_cogmem.py](../scripts/eval_cogmem.py)
+14. [scripts/ablation_runner.py](../scripts/ablation_runner.py)
+15. [tests/artifacts/test_task701_idea_coverage_matrix.py](../tests/artifacts/test_task701_idea_coverage_matrix.py)
+16. [tests/artifacts/test_task702_hindsight_removal_gate.py](../tests/artifacts/test_task702_hindsight_removal_gate.py)
+17. [tests/artifacts/test_task703_removal_playbook_contract.py](../tests/artifacts/test_task703_removal_playbook_contract.py)
 
 ---
 
-## 9) Addendum - Phase D Manual Tutorial Full-Coverage (post S18)
+## 9) ✅ Addendum - Phase D Manual Tutorial Full-Coverage (post S18) (DONE)
 
 Mục tiêu addendum:
 1. Chuyển tutorial từ machine-generated sang manual-first cho toàn bộ file code trong scope runtime + tooling.
@@ -708,7 +1006,7 @@ Phạm vi khóa cho Phase D:
 3. Không bao gồm `tests/artifacts/**` trong mandatory tutorial scope (tests vẫn là gate/verification artifacts).
 4. Bộ docs auto hiện có trong `tutorials/functions/` giữ vai trò checklist/inventory, không phải canonical explanation.
 
-### Sprint S19.0 - Scope lock + manifest gate
+### Sprint S19.0 - Scope lock + manifest gate ✅
 Mục tiêu sprint:
 1. Tạo source-of-truth manifest liệt kê toàn bộ file code trong scope Phase D.
 2. Khóa rule include/exclude để không có file bị bỏ sót âm thầm.
@@ -723,7 +1021,7 @@ Exit gate:
 1. Manifest có đầy đủ tất cả file `.py/.sh/.ps1` trong scope.
 2. Mỗi file có trạng thái coverage (`not-started|in-progress|done`).
 
-### Sprint S19.1 - Bootstrap/runtime/manual docs
+### Sprint S19.1 - Bootstrap/runtime/manual docs ✅
 Mục tiêu sprint:
 1. Hoàn tất manual docs cho bootstrap/runtime group để làm điểm tựa dependency cho các sprint sau.
 
@@ -739,7 +1037,7 @@ Outputs bắt buộc:
 2. `logs/task_722_summary.md`
 3. `tests/artifacts/test_task722_manual_bootstrap_coverage.py`
 
-### Sprint S19.2 - API/schema/manual docs
+### Sprint S19.2 - API/schema/manual docs ✅
 Mục tiêu sprint:
 1. Hoàn tất manual docs cho lớp API + schema + migration.
 
@@ -755,7 +1053,7 @@ Outputs bắt buộc:
 3. `logs/task_723_summary.md`
 4. `tests/artifacts/test_task723_manual_api_schema_coverage.py`
 
-### Sprint S19.3 - Engine core/manual docs
+### Sprint S19.3 - Engine core/manual docs ✅
 Mục tiêu sprint:
 1. Hoàn tất manual docs cho engine core services và runtime state management.
 
@@ -773,7 +1071,7 @@ Outputs bắt buộc:
 2. `logs/task_724_summary.md`
 3. `tests/artifacts/test_task724_manual_engine_core_coverage.py`
 
-### Sprint S19.4 - Retain stack/manual docs
+### Sprint S19.4 - Retain stack/manual docs ✅
 Mục tiêu sprint:
 1. Hoàn tất manual docs cho toàn bộ retain stack.
 
@@ -795,7 +1093,7 @@ Outputs bắt buộc:
 2. `logs/task_725_summary.md`
 3. `tests/artifacts/test_task725_manual_retain_coverage.py`
 
-### Sprint S19.5 - Search/query/manual docs
+### Sprint S19.5 - Search/query/manual docs ✅
 Mục tiêu sprint:
 1. Hoàn tất manual docs cho query analyzer + toàn bộ search stack.
 
@@ -820,7 +1118,7 @@ Outputs bắt buộc:
 2. `logs/task_726_summary.md`
 3. `tests/artifacts/test_task726_manual_search_coverage.py`
 
-### Sprint S19.6 - Reflect + scripts + docker/manual docs
+### Sprint S19.6 - Reflect + scripts + docker/manual docs ✅
 Mục tiêu sprint:
 1. Hoàn tất manual docs cho reflect stack và toàn bộ scripts/docker code files trong scope.
 
@@ -843,7 +1141,7 @@ Outputs bắt buộc:
 4. `logs/task_727_summary.md`
 5. `tests/artifacts/test_task727_manual_reflect_tooling_coverage.py`
 
-### Sprint S19.7 - Canonical reading order all files
+### Sprint S19.7 - Canonical reading order all files ✅
 Mục tiêu sprint:
 1. Xuất thứ tự đọc bao phủ 100% file code scope Phase D.
 2. Có hai lộ trình: onboarding path và debug-first path.
@@ -855,7 +1153,7 @@ Outputs bắt buộc:
 4. `logs/task_728_summary.md`
 5. `tests/artifacts/test_task728_reading_order_full_scope.py`
 
-### Sprint S19.8 - Final gate manual tutorial completeness
+### Sprint S19.8 - Final gate manual tutorial completeness ✅
 Mục tiêu sprint:
 1. Đóng cổng chất lượng manual docs cho toàn bộ scope.
 

@@ -113,4 +113,4 @@ def analyze_hindsight_cost(sample_index=0):
     print(f"\n🏁 TỔNG KẾT: {total_duration/60:.2f} phút")
 
 if __name__ == "__main__":
-    analyze_hindsight_cost(10)
+    analyze_hindsight_cost(11)
