@@ -389,7 +389,8 @@ def run_recall_only_pipeline(
 def _build_generation_prompt(query: str, recall_results: list[JsonDict]) -> str:
     evidence = []
     for idx, result in enumerate(recall_results, start=1):
-        evidence.append(f"[{idx}] {result.get('text', '')}")
+        snippet = result.get("raw_snippet") or result.get("text", "")
+        evidence.append(f"[{idx}] {snippet}")
     evidence_block = "\n".join(evidence) if evidence else "[No evidence]"
     return (
         "Trả lời câu hỏi dựa trên bằng chứng recall bên dưới. "
