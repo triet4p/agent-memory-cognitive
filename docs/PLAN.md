@@ -32,13 +32,16 @@ Mục tiêu điều phối:
 
 ## 2.5) 🔄 NEXT IMMEDIATE STEPS — Phase E Eval Readiness (S20-S23)
 
-**Tóm tắt hiện trạng:** Tất cả phase đã hoàn tất qua task 742:
+**Tóm tắt hiện trạng:** S20-S22 đã hoàn tất:
 - ✅ Sprint 0 → Sprint 7 + Backfill B1-B5 (tasks 001-703)
 - ✅ Phase A — Delete hindsight_api (S11, task 704)
 - ✅ Phase B — Coverage Closure C1-C4 (S12-S15, tasks 705-708)
 - ✅ Phase C — Tutorial top-down (S16-S18, tasks 716-718)
 - ✅ Phase D — Per-file manual tutorial (S19.0-S19.8, tasks 721-729)
-- ✅ Post-tutorial audits + retain re-tests (tasks 730-742)
+- ✅ Phase E — Audits + retain re-tests (tasks 730-742)
+- ✅ Phase E — S20 contribution gaps closure (tasks 743-745)
+- ✅ Phase E — S21 benchmark integration (tasks 746-748)
+- ✅ Phase E — S22 eval metrics & judge LLM (tasks 749-752)
 
 **Tại sao Phase E cần thiết?** [docs/REPORT.md](REPORT.md) (audit 2026-04-24) xác định gaps cụ thể giữa thiết kế và eval implementation:
 1. raw_snippet không được inject vào generation context (eval chỉ dùng text field)
@@ -678,7 +681,7 @@ Mục tiêu phase:
 
 Căn cứ: [docs/REPORT.md](REPORT.md) (audit 2026-04-24) xác định các gap cụ thể cần đóng trước khi chạy experiments thực sự.
 
-### Sprint S20 - Contribution Gaps Closure 🔄
+### Sprint S20 - Contribution Gaps Closure ✅
 
 Mục tiêu sprint:
 1. Đóng các gap còn lại giữa thiết kế và implementation mà S12-S14 chưa bao phủ.
@@ -734,7 +737,7 @@ Rủi ro và fallback:
 
 ---
 
-### Sprint S21 - Benchmark Pipeline Integration 🔄
+### Sprint S21 - Benchmark Pipeline Integration ✅
 
 Mục tiêu sprint:
 1. Integrate output của `scripts/distill_dataset.py` vào `eval_cogmem.py` thay cho `SHORT_DIALOGUE_FIXTURE` 2-question hiện tại.
@@ -796,7 +799,7 @@ Rủi ro và fallback:
 
 ---
 
-### Sprint S22 - Evaluation Metrics & Judge 🔄
+### Sprint S22 - Evaluation Metrics & Judge ✅
 
 Mục tiêu sprint:
 1. Nâng evaluation pipeline lên đủ chuẩn so sánh có ý nghĩa với HINDSIGHT: judge mạnh hơn, metrics chuẩn hơn, breakdown per-category.
@@ -856,14 +859,57 @@ Rủi ro và fallback:
 
 ---
 
-### Sprint S23 - Full Ablation Dry Run Gate 🔄
+### Sprint S23 - Session-Level Recall@k Implementation 🔄
+
+Mục tiêu sprint:
+1. Thay thế keyword-based `recall_at_k` (luôn trả về null với benchmark data) bằng session-level Recall@k sử dụng `document_id` provenance từ KG nodes.
+2. Đảm bảo S24 dry run có metric Recall@k có ý nghĩa thực sự.
+
+Bối cảnh kỹ thuật:
+- LongMemEval annotate gold ở cấp session: field `answer_session_ids` — chưa được fixture loader trích xuất.
+- LoCoMo annotate gold ở cấp evidence: field `evidence` (format `"D{doc_id}:{turn_id}"`) — chưa được trích xuất.
+- KG nodes hiện có `document_id` trong search results nhưng không có `session_id` (không stored).
+- Approach: session-level match — Recall@k = 1 nếu ≥1 trong top-k results có `document_id` thuộc gold session set.
+
+Phụ thuộc:
+1. S22 PASS.
+
+Inputs bắt buộc:
+1. `scripts/eval_cogmem.py` (fixture loaders + `_build_recall_at_k`)
+2. `data/longmemeval_s_distilled_small.json` (field `answer_session_ids`)
+3. `data/locomo_distilled.json` (field `evidence`)
+
+Atomic tasks:
+1. S23.1 (task 753) — Session-Level Recall@k:
+	- Đọc `eval_cogmem.py` lines 460-540 để xác nhận `document_id` được dùng khi retain (nếu chưa dùng session_id thì thêm).
+	- Fixture loader LongMemEval: trích xuất `answer_session_ids` → lưu vào `gold_session_ids`.
+	- Fixture loader LoCoMo: trích xuất `evidence` → map `"D{doc}:{turn}"` → list doc IDs → lưu vào `gold_session_ids`.
+	- Thay thế `_build_recall_at_k`: so sánh `result["document_id"]` với `gold_session_ids` thay vì keyword matching.
+	- Wire `gold_session_ids` qua `compute_metrics` thay cho `expected_keywords`.
+	- Output: `logs/task_753_summary.md`, `tests/artifacts/test_task753_recall_at_k_session.py`.
+
+File tác động dự kiến:
+1. `scripts/eval_cogmem.py` (fixture loaders + recall@k logic)
+
+Outputs bắt buộc:
+1. `logs/task_753_summary.md`
+2. `tests/artifacts/test_task753_recall_at_k_session.py`
+
+Exit gate:
+1. Unit test pass: Recall@k = 1.0 khi document_id match, 0.0 khi không match, None khi gold_session_ids=None.
+2. Chạy eval với `--fixture longmemeval_s` trên ≥1 question: `recall_at_k` không còn null.
+3. Không sửa `cogmem_api/` — chỉ thay đổi `scripts/eval_cogmem.py` và artifacts.
+
+---
+
+### Sprint S24 - Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
 1. Chạy toàn bộ E1-E7 trên benchmark subset thực — xác nhận pipeline hoạt động end-to-end trước khi run chính thức.
 2. Phát hiện bottleneck, lỗi runtime, và kết quả bất thường trước khi đầu tư tài nguyên vào full run.
 
 Phụ thuộc:
-1. S22 PASS.
+1. S23 PASS.
 
 Inputs bắt buộc:
 1. Stratified subset đã chọn từ S21 (seed cố định)
@@ -871,22 +917,22 @@ Inputs bắt buộc:
 3. `scripts/ablation_runner.py` đã integrate benchmark loaders + per-category metrics
 
 Atomic tasks:
-1. S23.1 Dry run E1 baseline:
+1. S24.1 Dry run E1 baseline:
 	- Chạy E1 trên LongMemEval-S subset (~30 questions) và LoCoMo subset (~10 conversations).
 	- Kiểm tra: không có lỗi runtime, output JSON đúng schema, judge trả về kết quả coherent.
 	- Ghi lại: tổng thời gian, LLM call count, latency p50/p95.
-	- Output: `reports/dry_run_E1.json`, `logs/task_753_summary.md`.
+	- Output: `reports/dry_run_E1.json`, `logs/task_754_summary.md`.
 
-2. S23.2 Dry run E2-E7 ablation:
+2. S24.2 Dry run E2-E7 ablation:
 	- Chạy E2-E7 trên cùng subset.
 	- So sánh per-category accuracy giữa các profiles — trend phải coherent với hypothesis trong spec (E2 cải thiện Preference, E6 cải thiện Multi-hop, v.v.).
 	- Nếu trend ngược với hypothesis: flag là anomaly, không block sprint nhưng phải document.
-	- Output: `reports/dry_run_E2_E7.json`, `logs/task_754_summary.md`.
+	- Output: `reports/dry_run_E2_E7.json`, `logs/task_755_summary.md`.
 
-3. S23.3 Evaluation readiness gate:
+3. S24.3 Evaluation readiness gate:
 	- Tạo checklist kết quả: pipeline chạy không lỗi, metrics coherent, anomalies documented.
 	- Nếu PASS: unlock chạy full benchmark.
-	- Output: `reports/eval_readiness_gate.md`, `logs/task_755_summary.md`, `tests/artifacts/test_task755_eval_readiness_gate.py`.
+	- Output: `reports/eval_readiness_gate.md`, `logs/task_756_summary.md`, `tests/artifacts/test_task756_eval_readiness_gate.py`.
 
 File tác động dự kiến:
 1. `scripts/ablation_runner.py` (integrate với benchmark loaders)
@@ -897,8 +943,8 @@ Outputs bắt buộc:
 1. `reports/dry_run_E1.json`
 2. `reports/dry_run_E2_E7.json`
 3. `reports/eval_readiness_gate.md`
-4. `logs/task_753_summary.md` -> `logs/task_755_summary.md`
-5. `tests/artifacts/test_task755_eval_readiness_gate.py`
+4. `logs/task_754_summary.md` -> `logs/task_756_summary.md`
+5. `tests/artifacts/test_task756_eval_readiness_gate.py`
 
 Exit gate:
 1. E1-E7 chạy không lỗi trên benchmark subset.
@@ -928,10 +974,11 @@ Rủi ro và fallback:
 ### Next Immediate (Ready to Execute)
 | Nhóm | Sprint | Mục tiêu | Trạng thái | Tasks |
 |---|---|---|---|---|
-| Eval Readiness | S20 | Contribution gaps closure (raw_snippet, BFS default, s_r_link) | 🔄 Ready | 743-745 |
-| Eval Readiness | S21 | Benchmark adapter integration (LongMemEval-S, LoCoMo) | 🔄 Ready | 746-748 |
-| Eval Readiness | S22 | Evaluation metrics & judge LLM (per-category, Recall@k) | 🔄 Ready | 749-752 |
-| Eval Readiness | S23 | Full ablation dry run gate (E1-E7) | 🔄 Ready | 753-755 |
+| Eval Readiness | S20 | Contribution gaps closure (raw_snippet, BFS default, s_r_link) | ✅ Done | 743-745 |
+| Eval Readiness | S21 | Benchmark adapter integration (LongMemEval-S, LoCoMo) | ✅ Done | 746-748 |
+| Eval Readiness | S22 | Evaluation metrics & judge LLM (per-category, Recall@k) | ✅ Done | 749-752 |
+| Eval Readiness | S23 | Session-level Recall@k implementation | 🔄 Ready | 753 |
+| Eval Readiness | S24 | Full ablation dry run gate (E1-E7) | ⏳ Pending S23 | 754-756 |
 
 ---
 
@@ -946,20 +993,22 @@ Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-
 → Audits (tasks 730-742)
 
 ### 🔄 NEXT EXECUTION PATH (Currently Ready)
-**S20 (tasks 743-745):** Contribution gaps closure
-→ **S21 (tasks 746-748):** Benchmark adapter integration
-→ **S22 (tasks 749-752):** Eval metrics & judge LLM
-→ **S23 (tasks 753-755):** Full ablation dry run gate
+**S20 (tasks 743-745):** Contribution gaps closure ✅ DONE
+**S21 (tasks 746-748):** Benchmark adapter integration ✅ DONE
+**S22 (tasks 749-752):** Eval metrics & judge LLM ✅ DONE
+→ **S23 (task 753):** Session-level Recall@k implementation
+→ **S24 (tasks 754-756):** Full ablation dry run gate
 
-### Future (Dependent on S23 PASS)
-Post-S23: C5 (Hierarchical KG) track, full benchmark run, publication track
+### Future (Dependent on S24 PASS)
+Post-S24: C5 (Hierarchical KG) track, full benchmark run, publication track
 
 Hard rules:
 1. S20 entry gate: S15 FULL coverage confirmed ✅
-2. S21 dependency: S20 PASS (raw_snippet + BFS default + s_r_link)
-3. S22 dependency: S21 PASS (benchmark adapters working)
-4. S23 dependency: S22 PASS (metrics + judge config ready)
-5. C5 deferred: không chặn eval trong vòng này
+2. S21 dependency: S20 PASS ✅
+3. S22 dependency: S21 PASS ✅
+4. S23 dependency: S22 PASS ✅
+5. S24 dependency: S23 PASS
+6. C5 deferred: không chặn eval trong vòng này
 
 ---
 

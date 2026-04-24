@@ -85,6 +85,7 @@ class RecallResult(BaseModel):
     type: str
     score: float = 0.0
     raw_snippet: str | None = None
+    document_id: str | None = None
 
 
 class RecallResponse(BaseModel):
@@ -228,6 +229,7 @@ def create_app(
                 type=str(item.get("fact_type") or "world"),
                 score=float(item.get("score") or 0.0),
                 raw_snippet=item.get("raw_snippet"),
+                document_id=item.get("document_id"),
             )
             for item in recall_result.get("results", [])
             if item.get("id") and item.get("text")

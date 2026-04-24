@@ -523,6 +523,7 @@ class MemoryEngine:
                             "fact_type": scored_result.retrieval.fact_type,
                             "raw_snippet": scored_result.retrieval.raw_snippet,
                             "score": float(scored_result.combined_score),
+                            "document_id": scored_result.candidate.retrieval.document_id,
                         }
                     )
                     used_tokens += estimated

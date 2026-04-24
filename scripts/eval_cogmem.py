@@ -235,6 +235,8 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
 
     all_turns: list[str] = []
     questions: list[JsonDict] = []
+    fixture_sessions: list[tuple[str, list[str]]] = []
+    seen_session_ids: set[str] = set()
 
     if source == "longmemeval":
         type_map = {
@@ -248,68 +250,111 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
         }
         for item in data:
             category = type_map.get(item.get("question_type", ""), item.get("question_type", "unknown"))
-            sessions = item.get("haystack_sessions", [])
-            turns = []
-            for sess in sessions:
+            sessions_raw = item.get("haystack_sessions", [])
+            haystack_ids = item.get("haystack_session_ids", [])
+            sessions_with_ids: list[tuple[str, list[str]]] = []
+            for sess_idx, sess in enumerate(sessions_raw):
+                sess_id = haystack_ids[sess_idx] if sess_idx < len(haystack_ids) else f"session_{sess_idx + 1}"
+                sess_turns = []
                 if isinstance(sess, list):
                     for t in sess:
                         content = t.get("content") if isinstance(t, dict) else str(t) if isinstance(t, str) else ""
                         if content:
-                            turns.append(content)
+                            sess_turns.append(content)
                 elif isinstance(sess, dict):
                     c = sess.get("content", "")
                     if c:
-                        turns.append(c)
+                        sess_turns.append(c)
                 elif isinstance(sess, str) and sess:
-                    turns.append(sess)
-            all_turns.extend(turns)
+                    sess_turns.append(sess)
+                if sess_turns:
+                    sessions_with_ids.append((sess_id, sess_turns))
+            flat_turns = [t for _, t in sessions_with_ids for t in t]
+            all_turns.extend(flat_turns)
             questions.append({
                 "id": str(item.get("question_id", "")),
                 "query": item.get("question", ""),
                 "gold_answer": item.get("answer", ""),
+                "gold_session_ids": item.get("answer_session_ids", []),
                 "category": category,
-                "turns": turns,
+                "turns": flat_turns,
+                "_sessions": sessions_with_ids,
             })
 
     elif source == "locomo":
         cat_map = {1: "single-hop", 2: "multi-hop", 3: "temporal", 4: "preference", 5: "causal"}
         qa_counter = 0
         for conv in data:
-            conv_turns: list[str] = []
             conversation = conv.get("conversation", {})
+            sessions_with_ids: list[tuple[str, list[str]]] = []
             if isinstance(conversation, dict):
                 for key in sorted(conversation.keys()):
                     if key.endswith("_date_time"):
                         continue
+                    if key in ("speaker_a", "speaker_b"):
+                        continue
                     val = conversation[key]
+                    sess_id = None
+                    if key.startswith("session_"):
+                        n = key.split("_")[1]
+                        sess_id = f"D{n}"
+                    elif key.startswith("D"):
+                        sess_id = key
+                    if sess_id is None:
+                        continue
+                    sess_turns = []
                     if isinstance(val, list):
                         for t in val:
                             content = t.get("text") if isinstance(t, dict) else ""
                             if content:
-                                conv_turns.append(content)
+                                sess_turns.append(content)
                     elif isinstance(val, str) and val:
-                        conv_turns.append(val)
+                        sess_turns.append(val)
+                    if sess_turns:
+                        sessions_with_ids.append((sess_id, sess_turns))
             elif isinstance(conversation, list):
+                sess_turns = []
                 for t in conversation:
                     content = t.get("text") if isinstance(t, dict) else str(t) if isinstance(t, str) else ""
                     if content:
-                        conv_turns.append(content)
+                        sess_turns.append(content)
+                if sess_turns:
+                    sessions_with_ids.append(("D1", sess_turns))
             elif isinstance(conversation, str) and conversation:
-                conv_turns.append(conversation)
-            all_turns.extend(conv_turns)
+                sessions_with_ids.append(("D1", [conversation]))
+            flat_turns = [t for _, t in sessions_with_ids for t in t]
+            all_turns.extend(flat_turns)
 
             for qa in conv.get("qa", []):
                 qa_counter += 1
                 cat_int = qa.get("category", 0)
+                evidence_list = qa.get("evidence", [])
+                gold_session_ids = []
+                for ev in evidence_list:
+                    ev_str = str(ev)
+                    if ":" in ev_str:
+                        doc_part = ev_str.split(":")[0]
+                        if doc_part:
+                            gold_session_ids.append(doc_part)
+                    elif ev_str:
+                        gold_session_ids.append(ev_str)
                 questions.append({
                     "id": f"locomo_q{qa_counter}",
                     "query": qa.get("question", ""),
                     "gold_answer": qa.get("answer", ""),
+                    "gold_session_ids": gold_session_ids,
                     "category": cat_map.get(cat_int, f"category_{cat_int}"),
-                    "turns": conv_turns,
+                    "turns": flat_turns,
+                    "_sessions": sessions_with_ids,
                 })
 
-    return {"name": f"{source}_benchmark", "turns": all_turns, "questions": questions}
+    for q_sessions in (q.get("_sessions", []) for q in questions):
+        for sess_id, sess_turns in q_sessions:
+            if sess_id not in seen_session_ids:
+                fixture_sessions.append((sess_id, sess_turns))
+                seen_session_ids.add(sess_id)
+
+    return {"name": f"{source}_benchmark", "turns": all_turns, "questions": questions, "_sessions": fixture_sessions}
 
 
 def get_fixture(name: str, fixture_path: str | None = None) -> JsonDict:
@@ -375,7 +420,14 @@ def retain_fixture(
     post_json_fn: Callable[[str, JsonDict, float], JsonDict],
     timeout_seconds: float,
 ) -> JsonDict:
-    items = [{"content": turn} for turn in fixture["turns"]]
+    sessions = fixture.get("_sessions")
+    if sessions:
+        items = []
+        for session_id, turns in sessions:
+            for turn_content in turns:
+                items.append({"content": turn_content, "document_id": session_id})
+    else:
+        items = [{"content": turn} for turn in fixture["turns"]]
     return post_json_fn(
         f"{api_base_url}/v1/default/banks/{bank_id}/memories",
         {"items": items, "async": False},
@@ -397,6 +449,21 @@ def _build_recall_at_k(
     recall = recalled / len(gold_keywords)
     precision = recalled / (k * len(gold_keywords)) if k > 0 else 0.0
     return {"recall_at_k": recall, "precision_at_k": precision, "recalled_keywords": recalled, "total_gold_keywords": len(gold_keywords)}
+
+
+def _build_session_recall_at_k(
+    recall_results: list[JsonDict],
+    gold_session_ids: list[str] | None,
+    k: int,
+) -> JsonDict:
+    if not gold_session_ids:
+        return {"recall_at_k": None, "precision_at_k": None}
+    gold_set = set(gold_session_ids)
+    top_k = recall_results[:k]
+    matched = [r.get("document_id") for r in top_k if r.get("document_id") in gold_set]
+    recall = 1.0 if matched else 0.0
+    precision = len(matched) / k if k > 0 else 0.0
+    return {"recall_at_k": recall, "precision_at_k": precision, "matched_session_count": len(matched), "total_gold_sessions": len(gold_session_ids)}
 
 
 def _per_category_stats(
@@ -474,8 +541,11 @@ def run_recall_only_pipeline(
         strict_hits += 1 if metrics["strict_hit"] else 0
         coverage_sum += float(metrics["keyword_coverage"])
         gold_kw = question.get("expected_keywords")
+        gold_sids = question.get("gold_session_ids")
         recall_at_5 = _build_recall_at_k(results, gold_kw, 5)
         recall_at_10 = _build_recall_at_k(results, gold_kw, 10)
+        session_recall_at_5 = _build_session_recall_at_k(results, gold_sids, 5)
+        session_recall_at_10 = _build_session_recall_at_k(results, gold_sids, 10)
 
         per_question.append(
             {
@@ -483,10 +553,13 @@ def run_recall_only_pipeline(
                 "query": question["query"],
                 "category": question.get("category"),
                 "expected_keywords": question.get("expected_keywords"),
+                "gold_session_ids": gold_sids,
                 "recall_result_count": len(results),
                 "recall_metrics": metrics,
                 "recall_at_5": recall_at_5,
                 "recall_at_10": recall_at_10,
+                "session_recall_at_5": session_recall_at_5,
+                "session_recall_at_10": session_recall_at_10,
             }
         )
 
@@ -494,6 +567,8 @@ def run_recall_only_pipeline(
     per_cat = _per_category_stats(fixture["questions"], per_question, is_full_pipeline=False)
     recall_at_5_vals = [pq["recall_at_5"]["recall_at_k"] for pq in per_question if pq["recall_at_5"]["recall_at_k"] is not None]
     recall_at_10_vals = [pq["recall_at_10"]["recall_at_k"] for pq in per_question if pq["recall_at_10"]["recall_at_k"] is not None]
+    sess_recall_at_5_vals = [pq["session_recall_at_5"]["recall_at_k"] for pq in per_question if pq["session_recall_at_5"]["recall_at_k"] is not None]
+    sess_recall_at_10_vals = [pq["session_recall_at_10"]["recall_at_k"] for pq in per_question if pq["session_recall_at_10"]["recall_at_k"] is not None]
     return {
         "pipeline": "recall_only",
         "profile": asdict(profile),
@@ -513,6 +588,8 @@ def run_recall_only_pipeline(
             "recall_strict_accuracy": float(strict_hits) / float(total_questions or 1),
             "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
             "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
+            "session_recall_at_5_mean": sum(sess_recall_at_5_vals) / len(sess_recall_at_5_vals) if sess_recall_at_5_vals else None,
+            "session_recall_at_10_mean": sum(sess_recall_at_10_vals) / len(sess_recall_at_10_vals) if sess_recall_at_10_vals else None,
             "duration_seconds": time.time() - started_at,
         },
         "per_category_metrics": per_cat,
@@ -627,8 +704,11 @@ def run_full_pipeline(
         strict_hits += 1 if recall_metrics["strict_hit"] else 0
         coverage_sum += float(recall_metrics["keyword_coverage"])
         gold_kw = question.get("expected_keywords")
+        gold_sids = question.get("gold_session_ids")
         recall_at_5 = _build_recall_at_k(results, gold_kw, 5)
         recall_at_10 = _build_recall_at_k(results, gold_kw, 10)
+        session_recall_at_5 = _build_session_recall_at_k(results, gold_sids, 5)
+        session_recall_at_10 = _build_session_recall_at_k(results, gold_sids, 10)
 
         generation_prompt = _build_generation_prompt(question["query"], results)
         generated_answer = llm_call_fn(
@@ -657,11 +737,14 @@ def run_full_pipeline(
                 "query": question["query"],
                 "category": question.get("category"),
                 "gold_answer": question["gold_answer"],
+                "gold_session_ids": gold_sids,
                 "generated_answer": generated_answer,
                 "recall_result_count": len(results),
                 "recall_metrics": recall_metrics,
                 "recall_at_5": recall_at_5,
                 "recall_at_10": recall_at_10,
+                "session_recall_at_5": session_recall_at_5,
+                "session_recall_at_10": session_recall_at_10,
                 "judge": judge,
             }
         )
@@ -670,6 +753,8 @@ def run_full_pipeline(
     per_cat = _per_category_stats(fixture["questions"], per_question, is_full_pipeline=True)
     recall_at_5_vals = [pq["recall_at_5"]["recall_at_k"] for pq in per_question if pq["recall_at_5"]["recall_at_k"] is not None]
     recall_at_10_vals = [pq["recall_at_10"]["recall_at_k"] for pq in per_question if pq["recall_at_10"]["recall_at_k"] is not None]
+    sess_recall_at_5_vals = [pq["session_recall_at_5"]["recall_at_k"] for pq in per_question if pq["session_recall_at_5"]["recall_at_k"] is not None]
+    sess_recall_at_10_vals = [pq["session_recall_at_10"]["recall_at_k"] for pq in per_question if pq["session_recall_at_10"]["recall_at_k"] is not None]
     return {
         "pipeline": "full_e2e",
         "profile": asdict(profile),
@@ -692,6 +777,8 @@ def run_full_pipeline(
             "judge_score_mean": judge_score_sum / float(total_questions or 1),
             "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
             "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
+            "session_recall_at_5_mean": sum(sess_recall_at_5_vals) / len(sess_recall_at_5_vals) if sess_recall_at_5_vals else None,
+            "session_recall_at_10_mean": sum(sess_recall_at_10_vals) / len(sess_recall_at_10_vals) if sess_recall_at_10_vals else None,
             "duration_seconds": time.time() - started_at,
         },
         "judge_accuracy_per_category": per_cat,
