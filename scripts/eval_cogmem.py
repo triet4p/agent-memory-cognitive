@@ -160,48 +160,27 @@ def _build_chat_url(base_url: str) -> str:
 
 
 def resolve_eval_llm_config() -> EvalLLMConfig:
-    provider = _env_first(
-        "COGMEM_EVAL_LLM_PROVIDER",
-        "COGMEM_API_LLM_PROVIDER",
-        default="openai",
-    )
-    model = _env_first(
-        "COGMEM_EVAL_LLM_MODEL",
-        "COGMEM_API_LLM_MODEL",
-        default="ministral3-3b",
-    )
-    base_url = _env_first(
-        "COGMEM_EVAL_LLM_BASE_URL",
-        "COGMEM_API_LLM_BASE_URL",
-        default="http://localhost:11434/v1",
-    )
-    api_key = _env_first(
-        "COGMEM_EVAL_LLM_API_KEY",
-        "COGMEM_API_LLM_API_KEY",
-        default="ollama",
-    )
-    timeout_seconds = _to_float(
-        _env_first(
-            "COGMEM_EVAL_LLM_TIMEOUT",
-            "COGMEM_API_LLM_TIMEOUT",
-            default="600",
-        ),
-        default=600.0,
-    )
-    max_completion_tokens = _to_int(
-        _env_first(
-            "COGMEM_EVAL_MAX_COMPLETION_TOKENS",
-            "COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS",
-            default="13000",
-        ),
-        default=13000,
-    )
+    eval_model = _env_first("COGMEM_EVAL_LLM_MODEL", default=None)
+    eval_base_url = _env_first("COGMEM_EVAL_LLM_BASE_URL", default=None)
+
+    if eval_model is None or eval_base_url is None:
+        raise ValueError(
+            "Judge LLM must be configured independently from retain LLM. "
+            "Set both COGMEM_EVAL_LLM_MODEL and COGMEM_EVAL_LLM_BASE_URL env vars. "
+            "Judge LLM should be >= 7B (e.g. Qwen3-7B). "
+            f"Got: COGMEM_EVAL_LLM_MODEL={eval_model}, COGMEM_EVAL_LLM_BASE_URL={eval_base_url}"
+        )
+
+    provider = _env_first("COGMEM_EVAL_LLM_PROVIDER", default="openai")
+    api_key = _env_first("COGMEM_EVAL_LLM_API_KEY", default="ollama")
+    timeout_seconds = _to_float(_env_first("COGMEM_EVAL_LLM_TIMEOUT", default="600"), default=600.0)
+    max_completion_tokens = _to_int(_env_first("COGMEM_EVAL_MAX_COMPLETION_TOKENS", default="13000"), default=13000)
 
     return EvalLLMConfig(
         provider=provider or "openai",
-        model=model or "ministral3-3b",
+        model=eval_model,
         api_key=api_key or "ollama",
-        base_url=base_url or "http://localhost:11434/v1",
+        base_url=eval_base_url,
         timeout_seconds=max(1.0, timeout_seconds),
         max_completion_tokens=max(64, max_completion_tokens),
     )
@@ -404,6 +383,54 @@ def retain_fixture(
     )
 
 
+def _build_recall_at_k(
+    recall_results: list[JsonDict],
+    gold_keywords: list[str] | None,
+    k: int,
+) -> JsonDict:
+    if not gold_keywords:
+        return {"recall_at_k": None, "precision_at_k": None}
+    top_k = recall_results[:k]
+    top_k_text = " ".join(str(r.get("text", "") or "") for r in top_k).lower()
+    normalized_top_k = _normalize_text(top_k_text)
+    recalled = sum(1 for kw in gold_keywords if _normalize_text(kw) in normalized_top_k)
+    recall = recalled / len(gold_keywords)
+    precision = recalled / (k * len(gold_keywords)) if k > 0 else 0.0
+    return {"recall_at_k": recall, "precision_at_k": precision, "recalled_keywords": recalled, "total_gold_keywords": len(gold_keywords)}
+
+
+def _per_category_stats(
+    questions: list[JsonDict],
+    per_question: list[JsonDict],
+    is_full_pipeline: bool,
+) -> dict[str, JsonDict]:
+    cat_stats: dict[str, dict] = {}
+    for q, pq in zip(questions, per_question):
+        cat = q.get("category", "unknown")
+        if cat not in cat_stats:
+            cat_stats[cat] = {"correct": 0, "total": 0, "score_sum": 0.0, "recall_cov_sum": 0.0, "recall_strict": 0}
+        cat_stats[cat]["total"] += 1
+        cat_stats[cat]["recall_cov_sum"] += float(pq["recall_metrics"]["keyword_coverage"])
+        cat_stats[cat]["recall_strict"] += 1 if pq["recall_metrics"]["strict_hit"] else 0
+        if is_full_pipeline:
+            cat_stats[cat]["correct"] += 1 if pq["judge"]["correct"] else 0
+            cat_stats[cat]["score_sum"] += float(pq["judge"]["score"])
+
+    result = {}
+    for cat, stats in cat_stats.items():
+        t = stats["total"]
+        entry: JsonDict = {
+            "count": t,
+            "recall_keyword_accuracy": stats["recall_cov_sum"] / t,
+            "recall_strict_accuracy": float(stats["recall_strict"]) / t,
+        }
+        if is_full_pipeline:
+            entry["judge_accuracy"] = float(stats["correct"]) / t
+            entry["judge_score_mean"] = stats["score_sum"] / t
+        result[cat] = entry
+    return result
+
+
 def run_recall_only_pipeline(
     api_base_url: str,
     bank_id: str,
@@ -429,6 +456,7 @@ def run_recall_only_pipeline(
     per_question: list[JsonDict] = []
     strict_hits = 0
     coverage_sum = 0.0
+    reranker_used = False
 
     for question in fixture["questions"]:
         recall_payload = build_recall_payload(profile, question["query"])
@@ -439,22 +467,33 @@ def run_recall_only_pipeline(
         )
 
         results = recall_json.get("results") or []
+        if not reranker_used:
+            reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
         metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
         strict_hits += 1 if metrics["strict_hit"] else 0
         coverage_sum += float(metrics["keyword_coverage"])
+        gold_kw = question.get("expected_keywords")
+        recall_at_5 = _build_recall_at_k(results, gold_kw, 5)
+        recall_at_10 = _build_recall_at_k(results, gold_kw, 10)
 
         per_question.append(
             {
                 "question_id": question["id"],
                 "query": question["query"],
+                "category": question.get("category"),
                 "expected_keywords": question.get("expected_keywords"),
                 "recall_result_count": len(results),
                 "recall_metrics": metrics,
+                "recall_at_5": recall_at_5,
+                "recall_at_10": recall_at_10,
             }
         )
 
     total_questions = len(fixture["questions"])
+    per_cat = _per_category_stats(fixture["questions"], per_question, is_full_pipeline=False)
+    recall_at_5_vals = [pq["recall_at_5"]["recall_at_k"] for pq in per_question if pq["recall_at_5"]["recall_at_k"] is not None]
+    recall_at_10_vals = [pq["recall_at_10"]["recall_at_k"] for pq in per_question if pq["recall_at_10"]["recall_at_k"] is not None]
     return {
         "pipeline": "recall_only",
         "profile": asdict(profile),
@@ -466,13 +505,17 @@ def run_recall_only_pipeline(
             "sum_activation_enabled": profile.sum_activation_enabled,
             "recall_fact_types": list(profile.recall_fact_types),
         },
+        "reranker_used": reranker_used,
         "retain": retain_result,
         "metrics": {
             "question_count": total_questions,
             "recall_keyword_accuracy": coverage_sum / float(total_questions or 1),
             "recall_strict_accuracy": float(strict_hits) / float(total_questions or 1),
+            "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
+            "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
             "duration_seconds": time.time() - started_at,
         },
+        "per_category_metrics": per_cat,
         "questions": per_question,
     }
 
@@ -566,6 +609,7 @@ def run_full_pipeline(
     coverage_sum = 0.0
     judge_correct_count = 0
     judge_score_sum = 0.0
+    reranker_used = False
 
     for question in fixture["questions"]:
         recall_payload = build_recall_payload(profile, question["query"])
@@ -576,10 +620,15 @@ def run_full_pipeline(
         )
 
         results = recall_json.get("results") or []
+        if not reranker_used:
+            reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
         recall_metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
         strict_hits += 1 if recall_metrics["strict_hit"] else 0
         coverage_sum += float(recall_metrics["keyword_coverage"])
+        gold_kw = question.get("expected_keywords")
+        recall_at_5 = _build_recall_at_k(results, gold_kw, 5)
+        recall_at_10 = _build_recall_at_k(results, gold_kw, 10)
 
         generation_prompt = _build_generation_prompt(question["query"], results)
         generated_answer = llm_call_fn(
@@ -606,15 +655,21 @@ def run_full_pipeline(
             {
                 "question_id": question["id"],
                 "query": question["query"],
+                "category": question.get("category"),
                 "gold_answer": question["gold_answer"],
                 "generated_answer": generated_answer,
                 "recall_result_count": len(results),
                 "recall_metrics": recall_metrics,
+                "recall_at_5": recall_at_5,
+                "recall_at_10": recall_at_10,
                 "judge": judge,
             }
         )
 
     total_questions = len(fixture["questions"])
+    per_cat = _per_category_stats(fixture["questions"], per_question, is_full_pipeline=True)
+    recall_at_5_vals = [pq["recall_at_5"]["recall_at_k"] for pq in per_question if pq["recall_at_5"]["recall_at_k"] is not None]
+    recall_at_10_vals = [pq["recall_at_10"]["recall_at_k"] for pq in per_question if pq["recall_at_10"]["recall_at_k"] is not None]
     return {
         "pipeline": "full_e2e",
         "profile": asdict(profile),
@@ -627,6 +682,7 @@ def run_full_pipeline(
             "recall_fact_types": list(profile.recall_fact_types),
         },
         "llm_config": asdict(llm_config),
+        "reranker_used": reranker_used,
         "retain": retain_result,
         "metrics": {
             "question_count": total_questions,
@@ -634,8 +690,11 @@ def run_full_pipeline(
             "recall_strict_accuracy": float(strict_hits) / float(total_questions or 1),
             "judge_accuracy": float(judge_correct_count) / float(total_questions or 1),
             "judge_score_mean": judge_score_sum / float(total_questions or 1),
+            "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
+            "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
             "duration_seconds": time.time() - started_at,
         },
+        "judge_accuracy_per_category": per_cat,
         "questions": per_question,
     }
 
