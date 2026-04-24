@@ -250,10 +250,99 @@ def call_openai_chat(
     return str((choices[0].get("message") or {}).get("content") or "")
 
 
-def get_fixture(name: str) -> JsonDict:
-    if name != "short":
-        raise ValueError(f"Unsupported fixture: {name}")
-    return SHORT_DIALOGUE_FIXTURE
+def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    all_turns: list[str] = []
+    questions: list[JsonDict] = []
+
+    if source == "longmemeval":
+        type_map = {
+            "multi-session": "multi-session",
+            "knowledge-update": "knowledge-update",
+            "temporal-reasoning": "temporal",
+            "abstention": "abstention",
+            "prospective": "prospective",
+            "single-session-preference": "preference",
+            "single-session-user": "single-session",
+        }
+        for item in data:
+            category = type_map.get(item.get("question_type", ""), item.get("question_type", "unknown"))
+            sessions = item.get("haystack_sessions", [])
+            turns = []
+            for sess in sessions:
+                if isinstance(sess, list):
+                    for t in sess:
+                        content = t.get("content") if isinstance(t, dict) else str(t) if isinstance(t, str) else ""
+                        if content:
+                            turns.append(content)
+                elif isinstance(sess, dict):
+                    c = sess.get("content", "")
+                    if c:
+                        turns.append(c)
+                elif isinstance(sess, str) and sess:
+                    turns.append(sess)
+            all_turns.extend(turns)
+            questions.append({
+                "id": str(item.get("question_id", "")),
+                "query": item.get("question", ""),
+                "gold_answer": item.get("answer", ""),
+                "category": category,
+                "turns": turns,
+            })
+
+    elif source == "locomo":
+        cat_map = {1: "single-hop", 2: "multi-hop", 3: "temporal", 4: "preference", 5: "causal"}
+        qa_counter = 0
+        for conv in data:
+            conv_turns: list[str] = []
+            conversation = conv.get("conversation", {})
+            if isinstance(conversation, dict):
+                for key in sorted(conversation.keys()):
+                    if key.endswith("_date_time"):
+                        continue
+                    val = conversation[key]
+                    if isinstance(val, list):
+                        for t in val:
+                            content = t.get("text") if isinstance(t, dict) else ""
+                            if content:
+                                conv_turns.append(content)
+                    elif isinstance(val, str) and val:
+                        conv_turns.append(val)
+            elif isinstance(conversation, list):
+                for t in conversation:
+                    content = t.get("text") if isinstance(t, dict) else str(t) if isinstance(t, str) else ""
+                    if content:
+                        conv_turns.append(content)
+            elif isinstance(conversation, str) and conversation:
+                conv_turns.append(conversation)
+            all_turns.extend(conv_turns)
+
+            for qa in conv.get("qa", []):
+                qa_counter += 1
+                cat_int = qa.get("category", 0)
+                questions.append({
+                    "id": f"locomo_q{qa_counter}",
+                    "query": qa.get("question", ""),
+                    "gold_answer": qa.get("answer", ""),
+                    "category": cat_map.get(cat_int, f"category_{cat_int}"),
+                    "turns": conv_turns,
+                })
+
+    return {"name": f"{source}_benchmark", "turns": all_turns, "questions": questions}
+
+
+def get_fixture(name: str, fixture_path: str | None = None) -> JsonDict:
+    if name == "short":
+        return SHORT_DIALOGUE_FIXTURE
+    if name == "longmemeval":
+        path = fixture_path or str(Path(__file__).parent.parent / "data" / "longmemeval_s_distilled_small.json")
+        return _make_benchmark_fixture(path, "longmemeval")
+    if name == "locomo":
+        path = fixture_path or str(Path(__file__).parent.parent / "data" / "locomo_distilled.json")
+        return _make_benchmark_fixture(path, "locomo")
+    raise ValueError(f"Unsupported fixture: {name}")
 
 
 def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
@@ -267,7 +356,9 @@ def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
     return payload
 
 
-def _keyword_recall_metrics(expected_keywords: list[str], recall_text: str) -> JsonDict:
+def _keyword_recall_metrics(expected_keywords: list[str] | None, recall_text: str) -> JsonDict:
+    if not expected_keywords:
+        return {"matched_keywords": [], "keyword_total": 0, "keyword_coverage": 0.0, "strict_hit": False}
     normalized_text = _normalize_text(recall_text)
     matched = [keyword for keyword in expected_keywords if _normalize_text(keyword) in normalized_text]
     coverage = float(len(matched)) / float(len(expected_keywords) or 1)
@@ -349,7 +440,7 @@ def run_recall_only_pipeline(
 
         results = recall_json.get("results") or []
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
-        metrics = _keyword_recall_metrics(question["expected_keywords"], joined_text)
+        metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
         strict_hits += 1 if metrics["strict_hit"] else 0
         coverage_sum += float(metrics["keyword_coverage"])
 
@@ -357,7 +448,7 @@ def run_recall_only_pipeline(
             {
                 "question_id": question["id"],
                 "query": question["query"],
-                "expected_keywords": question["expected_keywords"],
+                "expected_keywords": question.get("expected_keywords"),
                 "recall_result_count": len(results),
                 "recall_metrics": metrics,
             }
@@ -486,7 +577,7 @@ def run_full_pipeline(
 
         results = recall_json.get("results") or []
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
-        recall_metrics = _keyword_recall_metrics(question["expected_keywords"], joined_text)
+        recall_metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
         strict_hits += 1 if recall_metrics["strict_hit"] else 0
         coverage_sum += float(recall_metrics["keyword_coverage"])
 
@@ -560,12 +651,13 @@ def run_pipeline(
     timeout_seconds: float,
     post_json_fn: Callable[[str, JsonDict, float], JsonDict] = post_json,
     llm_call_fn: Callable[[EvalLLMConfig, list[dict[str, str]], int | None], str] = call_openai_chat,
+    fixture_path: str | None = None,
 ) -> JsonDict:
     if profile_id not in ABLATION_PROFILES:
         raise ValueError(f"Unknown profile: {profile_id}")
 
     profile = ABLATION_PROFILES[profile_id]
-    fixture = get_fixture(fixture_name)
+    fixture = get_fixture(fixture_name, fixture_path=fixture_path)
 
     if pipeline == "recall":
         return run_recall_only_pipeline(
@@ -609,7 +701,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="CogMem T6.3 evaluation harness")
     parser.add_argument("--pipeline", choices=["recall", "full", "both"], default="both")
     parser.add_argument("--profile", choices=sorted(ABLATION_PROFILES.keys()), default="E1")
-    parser.add_argument("--fixture", choices=["short"], default="short")
+    parser.add_argument("--fixture", choices=["short", "longmemeval", "locomo"], default="short")
+    parser.add_argument("--fixture-path", default=None, help="Custom path to benchmark fixture JSON")
     parser.add_argument("--base-url", default=None, help="CogMem API base URL, example: http://localhost:8888")
     parser.add_argument("--bank-id", default=None)
     parser.add_argument("--skip-retain", action="store_true")
@@ -639,6 +732,7 @@ def main() -> None:
             fixture_name=args.fixture,
             skip_retain=args.skip_retain,
             timeout_seconds=max(1.0, args.api_timeout),
+            fixture_path=args.fixture_path,
         )
         file_path = save_eval_result(result, output_dir)
         written.append(file_path)
