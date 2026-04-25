@@ -398,7 +398,7 @@ def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
 
 def _keyword_recall_metrics(expected_keywords: list[str] | None, recall_text: str) -> JsonDict:
     if not expected_keywords:
-        return {"matched_keywords": [], "keyword_total": 0, "keyword_coverage": 0.0, "strict_hit": False}
+        return {"matched_keywords": [], "keyword_total": 0, "keyword_coverage": None, "strict_hit": None}
     normalized_text = _normalize_text(recall_text)
     matched = [keyword for keyword in expected_keywords if _normalize_text(keyword) in normalized_text]
     coverage = float(len(matched)) / float(len(expected_keywords) or 1)
@@ -492,10 +492,15 @@ def _per_category_stats(
     for q, pq in zip(questions, per_question):
         cat = q.get("category", "unknown")
         if cat not in cat_stats:
-            cat_stats[cat] = {"correct": 0, "total": 0, "score_sum": 0.0, "recall_cov_sum": 0.0, "recall_strict": 0}
+            cat_stats[cat] = {"correct": 0, "total": 0, "score_sum": 0.0, "recall_cov_vals": [], "recall_strict_hits": 0, "recall_strict_total": 0}
         cat_stats[cat]["total"] += 1
-        cat_stats[cat]["recall_cov_sum"] += float(pq["recall_metrics"]["keyword_coverage"])
-        cat_stats[cat]["recall_strict"] += 1 if pq["recall_metrics"]["strict_hit"] else 0
+        cov = pq["recall_metrics"].get("keyword_coverage")
+        if cov is not None:
+            cat_stats[cat]["recall_cov_vals"].append(float(cov))
+        strict = pq["recall_metrics"].get("strict_hit")
+        if strict is not None:
+            cat_stats[cat]["recall_strict_total"] += 1
+            cat_stats[cat]["recall_strict_hits"] += 1 if strict else 0
         if is_full_pipeline:
             cat_stats[cat]["correct"] += 1 if pq["judge"]["correct"] else 0
             cat_stats[cat]["score_sum"] += float(pq["judge"]["score"])
@@ -503,10 +508,12 @@ def _per_category_stats(
     result = {}
     for cat, stats in cat_stats.items():
         t = stats["total"]
+        cov_vals = stats["recall_cov_vals"]
+        strict_total = stats["recall_strict_total"]
         entry: JsonDict = {
             "count": t,
-            "recall_keyword_accuracy": stats["recall_cov_sum"] / t,
-            "recall_strict_accuracy": float(stats["recall_strict"]) / t,
+            "recall_keyword_accuracy": (sum(cov_vals) / len(cov_vals)) if cov_vals else None,
+            "recall_strict_accuracy": (float(stats["recall_strict_hits"]) / strict_total) if strict_total > 0 else None,
         }
         if is_full_pipeline:
             entry["judge_accuracy"] = float(stats["correct"]) / t
@@ -538,8 +545,8 @@ def run_recall_only_pipeline(
         )
 
     per_question: list[JsonDict] = []
-    strict_hits = 0
-    coverage_sum = 0.0
+    coverage_vals: list[float] = []
+    strict_vals: list[bool] = []
     reranker_used = False
 
     for question in fixture["questions"]:
@@ -555,8 +562,10 @@ def run_recall_only_pipeline(
             reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
         metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
-        strict_hits += 1 if metrics["strict_hit"] else 0
-        coverage_sum += float(metrics["keyword_coverage"])
+        if metrics["keyword_coverage"] is not None:
+            coverage_vals.append(float(metrics["keyword_coverage"]))
+        if metrics["strict_hit"] is not None:
+            strict_vals.append(bool(metrics["strict_hit"]))
         gold_kw = question.get("expected_keywords")
         gold_sids = question.get("gold_session_ids")
         recall_at_5 = _build_recall_at_k(results, gold_kw, 5)
@@ -601,8 +610,8 @@ def run_recall_only_pipeline(
         "retain": retain_result,
         "metrics": {
             "question_count": total_questions,
-            "recall_keyword_accuracy": coverage_sum / float(total_questions or 1),
-            "recall_strict_accuracy": float(strict_hits) / float(total_questions or 1),
+            "recall_keyword_accuracy": (sum(coverage_vals) / len(coverage_vals)) if coverage_vals else None,
+            "recall_strict_accuracy": (float(sum(strict_vals)) / len(strict_vals)) if strict_vals else None,
             "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
             "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
             "session_recall_at_5_mean": sum(sess_recall_at_5_vals) / len(sess_recall_at_5_vals) if sess_recall_at_5_vals else None,
@@ -726,8 +735,12 @@ def _judge_answer(
     except (TypeError, ValueError):
         numeric_score = 0.0
 
+    correct_val = parsed.get("correct", False)
+    if isinstance(correct_val, str):
+        correct_val = correct_val.lower() in ("true", "1", "yes")
+
     return {
-        "correct": bool(parsed.get("correct", False)),
+        "correct": bool(correct_val),
         "score": max(0.0, min(1.0, numeric_score)),
         "reason": str(parsed.get("reason", "")),
         "raw": raw,
@@ -759,8 +772,8 @@ def run_full_pipeline(
         )
 
     per_question: list[JsonDict] = []
-    strict_hits = 0
-    coverage_sum = 0.0
+    coverage_vals: list[float] = []
+    strict_vals: list[bool] = []
     judge_correct_count = 0
     judge_score_sum = 0.0
     reranker_used = False
@@ -778,8 +791,10 @@ def run_full_pipeline(
             reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
         recall_metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
-        strict_hits += 1 if recall_metrics["strict_hit"] else 0
-        coverage_sum += float(recall_metrics["keyword_coverage"])
+        if recall_metrics["keyword_coverage"] is not None:
+            coverage_vals.append(float(recall_metrics["keyword_coverage"]))
+        if recall_metrics["strict_hit"] is not None:
+            strict_vals.append(bool(recall_metrics["strict_hit"]))
         gold_kw = question.get("expected_keywords")
         gold_sids = question.get("gold_session_ids")
         recall_at_5 = _build_recall_at_k(results, gold_kw, 5)
@@ -849,8 +864,8 @@ def run_full_pipeline(
         "retain": retain_result,
         "metrics": {
             "question_count": total_questions,
-            "recall_keyword_accuracy": coverage_sum / float(total_questions or 1),
-            "recall_strict_accuracy": float(strict_hits) / float(total_questions or 1),
+            "recall_keyword_accuracy": (sum(coverage_vals) / len(coverage_vals)) if coverage_vals else None,
+            "recall_strict_accuracy": (float(sum(strict_vals)) / len(strict_vals)) if strict_vals else None,
             "judge_accuracy": float(judge_correct_count) / float(total_questions or 1),
             "judge_score_mean": judge_score_sum / float(total_questions or 1),
             "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
@@ -938,8 +953,8 @@ def _aggregate_checkpoints(ckpt_files: list[Path], profile_id: str, pipeline: st
     is_full = pipeline == "full"
     total = len(all_per_question)
 
-    coverage_sum = sum(float(q["recall_metrics"]["keyword_coverage"]) for q in all_per_question)
-    strict_hits = sum(1 for q in all_per_question if q["recall_metrics"]["strict_hit"])
+    coverage_vals = [float(q["recall_metrics"]["keyword_coverage"]) for q in all_per_question if q["recall_metrics"].get("keyword_coverage") is not None]
+    strict_vals = [q["recall_metrics"]["strict_hit"] for q in all_per_question if q["recall_metrics"].get("strict_hit") is not None]
     recall_at_5_vals = [q["recall_at_5"]["recall_at_k"] for q in all_per_question if q["recall_at_5"]["recall_at_k"] is not None]
     recall_at_10_vals = [q["recall_at_10"]["recall_at_k"] for q in all_per_question if q["recall_at_10"]["recall_at_k"] is not None]
     sess5_vals = [v for v in ((q.get("session_recall_at_5") or {}).get("recall_at_k") for q in all_per_question) if v is not None]
@@ -948,8 +963,8 @@ def _aggregate_checkpoints(ckpt_files: list[Path], profile_id: str, pipeline: st
     metrics: JsonDict = {
         "question_count": total,
         "conversation_count": len(all_results),
-        "recall_keyword_accuracy": coverage_sum / (total or 1),
-        "recall_strict_accuracy": float(strict_hits) / (total or 1),
+        "recall_keyword_accuracy": (sum(coverage_vals) / len(coverage_vals)) if coverage_vals else None,
+        "recall_strict_accuracy": (float(sum(1 for v in strict_vals if v)) / len(strict_vals)) if strict_vals else None,
         "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
         "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
         "session_recall_at_5_mean": sum(sess5_vals) / len(sess5_vals) if sess5_vals else None,

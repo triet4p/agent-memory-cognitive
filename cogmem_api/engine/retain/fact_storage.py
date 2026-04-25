@@ -66,6 +66,16 @@ async def insert_facts_batch(
     if hasattr(conn, "insert_memory_units"):
         return await conn.insert_memory_units(bank_id, prepared_facts, document_id=document_id)
 
+    # Upsert document records first so FK on memory_units.document_id is satisfied
+    unique_doc_ids = {f.document_id for f in prepared_facts if f.document_id}
+    if document_id:
+        unique_doc_ids.add(document_id)
+    if unique_doc_ids:
+        await conn.executemany(
+            f"INSERT INTO {fq_table('documents')} (id, bank_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            [(doc_id, bank_id) for doc_id in unique_doc_ids],
+        )
+
     unit_ids: list[str] = []
     for fact in prepared_facts:
         normalized_type = fact.fact_type

@@ -220,13 +220,192 @@ All exit gate criteria met:
 4. `document_id` flows from DB → retrieval → memory_engine → HTTP response
 5. 15/15 artifact tests pass
 
-**S24 (Full Ablation Dry Run): READY TO PROCEED ✅**
+**S24 (Full Ablation Dry Run): BLOCKED — 2 bugs must be fixed first (see Section 7)**
 
-Pre-conditions satisfied:
-- E1–E7 profiles defined and correct
-- Benchmark fixtures load with correct gold annotations
-- Judge LLM configured with hard fail if missing
-- `session_recall_at_5_mean` and `judge_accuracy_per_category` will both be populated
-- No blocking bugs in eval pipeline
+---
 
-**Recommended first step in S24:** Run E1 on LongMemEval-S subset (~30 questions) with `--skip-retain` disabled to confirm `document_id` propagation end-to-end under real DB conditions before running all 7 profiles.
+## 7. S24 Pre-flight Audit (2026-04-25) — New Issues Found
+
+### 7.1 CRITICAL — FK Violation on LongMemEval Retain
+
+**Status: 🔴 BLOCKER**
+
+**Location:** `scripts/eval_cogmem.py:retain_fixture()` + `cogmem_api/models.py:101-107`
+
+**Root cause chain:**
+
+`retain_fixture()` passes per-item `document_id=session_id` for each turn of each LongMemEval session:
+```python
+items.append({"content": turn_content, "document_id": session_id})
+```
+The HTTP handler (`http.py:198`) calls `retain_batch_async(bank_id, contents)` with all items in one batch. In `orchestrator.py:127-128`, `chunk_storage.store_chunks_batch` is called only when the **batch-level** `document_id` is non-null — but the HTTP handler doesn't pass one. So no `documents` table record is ever created for the session IDs.
+
+The `memory_units` table has a hard FK constraint:
+```python
+ForeignKeyConstraint(
+    ["document_id", "bank_id"],
+    ["documents.id", "documents.bank_id"],
+    ondelete="CASCADE"
+)
+```
+When `INSERT INTO memory_units ... document_id=session_id` executes with no matching `documents` row → **PostgreSQL error 23503 (FK violation)** → retain fails.
+
+**Confirmed not hit in smoke test** because the short fixture's `retain_fixture` goes through `items = [{"content": turn} for turn in fixture["turns"]]` (no document_id) → `memory_units.document_id = NULL` → FK check skipped.
+
+**Impact:** Every LongMemEval retain will fail at the fact-insert step. No facts stored → recall retrieves nothing → all session_recall metrics = 0.0, judge_accuracy = meaningless.
+
+**Fix options (ranked):**
+1. **(Preferred)** Remove FK constraint from `memory_units.document_id`; keep as plain text tracking column. No schema semantics are lost — `documents` table is currently unused in production.
+2. Auto-upsert into `documents` in the HTTP retain handler before inserting facts.
+3. In `retain_fixture`, pre-POST each unique session_id to `documents` via a separate endpoint (requires new endpoint).
+
+---
+
+### 7.2 HIGH — Judge Bool Coercion: `bool("false")` = True
+
+**Status: 🟡 BUG (not a blocker for starting, but inflates accuracy)**
+
+**Location:** `scripts/eval_cogmem.py:730`
+
+```python
+"correct": bool(parsed.get("correct", False))
+```
+
+In Python, `bool("false")` evaluates to `True` (any non-empty string is truthy). If minimax-m2.7 returns `"correct": "false"` as a JSON string instead of a JSON boolean, wrong answers are marked correct.
+
+**Observed behavior:** In the smoke test, minimax-m2.7 returns proper booleans (e.g., `"correct": true`). Risk is low but not zero — reasoning models occasionally return inconsistent types.
+
+**Fix:**
+```python
+correct_val = parsed.get("correct", False)
+if isinstance(correct_val, str):
+    correct_val = correct_val.lower() in ("true", "1", "yes")
+"correct": bool(correct_val)
+```
+
+---
+
+### 7.3 LOW — `recall_keyword_accuracy` Always 0.0 for LongMemEval
+
+**Status: 🟢 By design, but misleading**
+
+LongMemEval fixture questions have no `expected_keywords` field. `_keyword_recall_metrics(None, text)` returns `{"keyword_coverage": 0.0, "strict_hit": False}`. Aggregated result will show `recall_keyword_accuracy=0.0` for all LongMemEval runs regardless of actual recall quality.
+
+This is NOT a code bug — keyword metrics are only meaningful for the short fixture. But the output JSON looks like "recall quality is zero" which is confusing.
+
+**Recommended:** Filter or label this metric as `N/A` in the output for benchmark fixtures.
+
+---
+
+### 7.4 Verified OK — `document_id` in Recall Results
+
+`memory_engine.py:534` explicitly includes `document_id` in each recall result:
+```python
+"document_id": scored_result.candidate.retrieval.document_id,
+```
+Once the FK issue (7.1) is fixed and retain correctly stores session IDs, `_build_session_recall_at_k` will work correctly.
+
+---
+
+### 7.5 Verified OK — Entity FK Fix (`entity_processing.py`)
+
+- Import: `from cogmem_api.engine.memory_engine import fq_table` ✅
+- SQL: matches `entities` table schema exactly (`id uuid`, `canonical_name`, `bank_id`, `metadata jsonb`) ✅
+- `ON CONFLICT (id) DO NOTHING` correct for primary key ✅
+- Entities upserted before `insert_entity_links_batch` in orchestrator ✅
+- Sequential `await` calls — no async ordering issue ✅
+
+---
+
+### 7.6 Verified OK — `_build_session_recall_at_k` Design
+
+Binary recall (`1.0 if any match, else 0.0`) is correct for LongMemEval evaluation protocol. The metric answers: "did the system retrieve at least one relevant session in top-k?" This is standard IR evaluation for multi-document recall.
+
+---
+
+### 7.7 Revised Readiness Verdict
+
+| Issue | Severity | Blocks S24? |
+|---|---|---|
+| FK violation on LongMemEval retain (7.1) | 🔴 CRITICAL | **YES** |
+| Judge bool coercion (7.2) | 🟡 HIGH | No (can run, results slightly inflated) |
+| keyword_recall=0.0 misleading (7.3) | 🟢 LOW | No |
+| Entity FK fix unverified on real LLM | ⚠️ | Needs live test |
+
+**Action required before S24.1:** Fix the FK constraint issue (7.1). Verify with a dry-run of E7 on `conv-index=0` of LongMemEval. If retain completes without 500 errors, proceed to full run.
+
+---
+
+## 7. S24 Eval Pipeline Audit (2026-04-25)
+
+**Scope:** Post-smoke-test audit of prompt quality, token budgets, logging, and system readiness for full ablation on `longmemeval_s_distilled_small.json`.
+
+### 7.1 Changes Applied Since S23
+
+| Component | Change | Commit |
+|---|---|---|
+| `entity_processing.py` | FK fix: entities now upserted via `executemany` for real asyncpg connections | `b1028fe` (pre-filter) |
+| `scripts/eval_cogmem.py` | Category-specific judge prompts (5 variants) | `9e9c172` |
+| `scripts/eval_cogmem.py` | Judge max_tokens: 512 → 40000 | `9e9c172` |
+| `scripts/eval_cogmem.py` | Generation prompt: removed hardcoded Vietnamese; now language-neutral with evidence rules | `9e9c172` |
+| `scripts/eval_cogmem.py` | Debug logging for every LLM call (model, max_tokens, system preview) | `9e9c172` |
+| `scripts/eval_cogmem.py` | Log level: INFO → DEBUG | `9e9c172` |
+| `.gitignore` | `logs/` excluded from git tracking | `70d8bf0` |
+| git history | `logs/` purged from all prior commits (`git filter-repo`) | force-pushed |
+
+### 7.2 Smoke Test Result (S24.0 — short_conversation_v1)
+
+File: `logs/eval/s24_smoke/E7_full_e2e_1777111405814.json`
+
+| Metric | Value |
+|---|---|
+| judge_accuracy | 1.0 |
+| judge_score_mean | 1.0 |
+| recall_keyword_accuracy | 0.833 |
+| recall_at_5_mean | 0.833 |
+| session_recall_at_5_mean | null (short fixture has no gold_session_ids) |
+| duration_seconds | 155 |
+| eval LLM | minimax-m2.7 via api.minimax.io |
+| retain LLM | Ministral-3B via NGROK |
+
+Both judge outputs: `<think>` blocks stripped correctly, JSON parsed successfully. Category-specific prompt triggers default (unknown category) for short fixture.
+
+### 7.3 Prompt Audit
+
+| Prompt | Status | Notes |
+|---|---|---|
+| Retain `_BASE_PROMPT` (fact_extraction.py) | ✅ Detailed | 6 fact types with examples, relations, mode section |
+| Generation system prompt | ✅ Fixed | Language-neutral; instructs evidence-only, cite by index |
+| Generation user prompt | ✅ Fixed | English rules: cite, match language, no fabrication |
+| Judge — default/single-session/multi-hop | ✅ New | Generous grading, subset=false, time-format tolerance |
+| Judge — temporal | ✅ New | Off-by-one leniency for day/week/month counts |
+| Judge — knowledge-update | ✅ New | Old+updated both present → correct |
+| Judge — preference | ✅ New | Partial recall OK if personal info used correctly |
+| Judge — abstention | ✅ New | "I don't know" matches "You did not mention this" |
+
+### 7.4 Token Budget Audit
+
+| Call site | max_tokens | Source |
+|---|---|---|
+| Retain LLM (per chunk) | `COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS` = 13000 | `.env` |
+| Generation (answer from evidence) | `COGMEM_API_EVAL_MAX_COMPLETION_TOKENS` = 40000 | `.env` |
+| Judge LLM | hardcoded 40000 | `eval_cogmem.py:699` |
+
+All verified via DEBUG log: `LLM call model=minimax-m2.7 max_tokens=40000 system=...`
+
+### 7.5 System Readiness Checklist for S24.1 (Full Run)
+
+| Item | Status | Action needed |
+|---|---|---|
+| Docker Desktop | ⚠️ Not running | Start Docker Desktop before each run |
+| Docker image (entity FK fix) | ⚠️ Not rebuilt | `docker compose ... up --build -d` |
+| CogMem API (localhost:8888) | ⚠️ Depends on Docker | Start after Docker up |
+| NGROK tunnel (Ministral-3B) | ⚠️ Dynamic URL | Verify/update `COGMEM_API_LLM_BASE_URL` in `.env` |
+| minimax API key | ✅ Valid | Rotated after accidental commit; new key in `.env` |
+| Fixture loaded correctly | ✅ | 12 items, 3 categories, gold_session_ids present |
+| Per-conv checkpointing | ✅ | `--conv-index N --checkpoint-dir` working |
+| logs/ git-ignored | ✅ | Added to `.gitignore` |
+
+### 7.6 Fixture Scale Warning
+
+Each of the 12 questions has ~160 retain chunks (≈480k chars). Estimated retain time per question per group: 13 minutes (at ~5s/chunk via NGROK). Total estimated wall-clock time for all 5 retain groups × 12 questions: **~13 hours**. Use `--conv-index` to process one question at a time with checkpointing. See `docs/TEST_PLAN.md` for full execution plan.
