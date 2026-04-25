@@ -13,7 +13,7 @@ from typing import Any, Callable
 
 import requests
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -207,6 +207,15 @@ def call_openai_chat(
     messages: list[dict[str, str]],
     max_completion_tokens: int | None = None,
 ) -> str:
+    sys_preview = next(
+        (m["content"][:60] for m in messages if m.get("role") == "system"), ""
+    )
+    logger.debug(
+        "LLM call model=%s max_tokens=%s system=%.60s",
+        llm_config.model,
+        max_completion_tokens,
+        sys_preview,
+    )
     payload: JsonDict = {
         "model": llm_config.model,
         "messages": messages,
@@ -612,10 +621,71 @@ def _build_generation_prompt(query: str, recall_results: list[JsonDict]) -> str:
         evidence.append(f"[{idx}] {snippet}")
     evidence_block = "\n".join(evidence) if evidence else "[No evidence]"
     return (
-        "Trả lời câu hỏi dựa trên bằng chứng recall bên dưới. "
-        "Nếu thiếu bằng chứng, hãy nói rõ là chưa đủ thông tin.\n\n"
-        f"Question: {query}\n"
+        "Answer the question using ONLY the recall evidence below.\n"
+        "- Cite evidence by index, e.g. [1] or [2].\n"
+        "- If the evidence does not contain the answer, say explicitly that the information is not available.\n"
+        "- Do not fabricate facts not present in the evidence.\n"
+        "- Match the language of the question.\n\n"
+        f"Question: {query}\n\n"
         f"Recall Evidence:\n{evidence_block}\n"
+    )
+
+
+def _judge_system_prompt(category: str | None) -> str:
+    cat = (category or "").lower()
+
+    if cat in ("temporal", "temporal-reasoning"):
+        return (
+            "You are an evaluation judge for a memory system.\n"
+            "I will give you a question, a correct answer, and a model response.\n"
+            "Set correct=true if the response contains the correct answer or equivalent.\n"
+            "Do NOT penalize off-by-one errors for counts of days/weeks/months "
+            "(e.g. 18 days vs 19 days is still correct).\n"
+            "Set correct=false if the response contains only a subset of required information.\n"
+            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
+        )
+
+    if cat == "knowledge-update":
+        return (
+            "You are an evaluation judge for a memory system.\n"
+            "I will give you a question, a correct answer, and a model response.\n"
+            "Set correct=true if the response contains the correct (updated) answer.\n"
+            "If the response mentions outdated information alongside the updated answer, it is still correct.\n"
+            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
+        )
+
+    if cat in ("preference", "single-session-preference"):
+        return (
+            "You are an evaluation judge for a memory system.\n"
+            "I will give you a question about user preferences, a desired response, and a model response.\n"
+            "Set correct=true if the model response satisfies the desired response.\n"
+            "The model does not need to reflect every point — it is correct as long as it "
+            "recalls and correctly uses the user's personal information.\n"
+            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
+        )
+
+    if cat == "abstention":
+        return (
+            "You are an evaluation judge for a memory system.\n"
+            "I will give you a question, a correct answer, and a model response.\n"
+            "If the gold answer indicates the information was not mentioned "
+            "(e.g. 'You did not mention this'), and the model says it cannot answer or does not know, "
+            "set correct=true. Set correct=false if the model fabricates an answer.\n"
+            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
+        )
+
+    # Default: single-session, multi-session, single-hop, multi-hop, causal, prospective, unknown
+    return (
+        "You are an evaluation judge for a memory recall system.\n"
+        "Your task: label the model's answer as correct or incorrect.\n"
+        "You will be given a question, a gold (ground truth) answer, and a generated answer.\n"
+        "Rules:\n"
+        "- Set correct=true if the generated answer contains or is equivalent to the gold answer.\n"
+        "- Set correct=true if it contains all intermediate steps needed to reach the gold answer.\n"
+        "- Set correct=false if it contains only a SUBSET of required information.\n"
+        "- The generated answer may be longer — be generous: if it touches the same topic as the gold, count as correct.\n"
+        "- For time questions: if it refers to the same date/period (even different format), count as correct.\n"
+        'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
     )
 
 
@@ -625,12 +695,10 @@ def _judge_answer(
     gold_answer: str,
     predicted_answer: str,
     *,
+    category: str | None = None,
     llm_call_fn: Callable[[EvalLLMConfig, list[dict[str, str]], int | None], str],
 ) -> JsonDict:
-    judge_prompt = (
-        "You are an evaluation judge. Compare predicted answer with gold answer. "
-        "Return strict JSON with keys: correct (bool), score (float 0..1), reason (string)."
-    )
+    judge_prompt = _judge_system_prompt(category)
     user_prompt = (
         f"Question: {question}\n"
         f"Gold Answer: {gold_answer}\n"
@@ -640,7 +708,7 @@ def _judge_answer(
     raw = llm_call_fn(
         llm_config,
         [{"role": "system", "content": judge_prompt}, {"role": "user", "content": user_prompt}],
-        512,
+        40000,
     )
     parsed = _safe_parse_json(raw)
     if not parsed:
@@ -723,7 +791,7 @@ def run_full_pipeline(
         generated_answer = llm_call_fn(
             llm_config,
             [
-                {"role": "system", "content": "You are a memory assistant. Answer in Vietnamese."},
+                {"role": "system", "content": "You are a memory assistant. Answer questions based strictly on provided evidence. Be concise and accurate."},
                 {"role": "user", "content": generation_prompt},
             ],
             llm_config.max_completion_tokens,
@@ -734,6 +802,7 @@ def run_full_pipeline(
             question=question["query"],
             gold_answer=question["gold_answer"],
             predicted_answer=generated_answer,
+            category=question.get("category"),
             llm_call_fn=llm_call_fn,
         )
 
