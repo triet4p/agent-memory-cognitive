@@ -18,3 +18,5 @@ hindsight_api/*
 .env
 
 site/*
+
+logs/
