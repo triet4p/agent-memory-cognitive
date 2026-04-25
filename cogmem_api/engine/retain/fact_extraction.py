@@ -13,9 +13,12 @@ runtime resilience.
 
 from __future__ import annotations
 
+import logging
 import re
 from datetime import UTC, date, datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from cogmem_api.engine.llm_wrapper import OutputTooLongError, parse_llm_json
 from cogmem_api.engine.response_models import TokenUsage
@@ -495,9 +498,11 @@ async def _call_llm_chunk(
             temperature=0.1,
             max_completion_tokens=max_completion_tokens,
         )
-    except OutputTooLongError:
+    except OutputTooLongError as exc:
+        logger.warning("LLM output too long for retain chunk, skipping: %s", exc)
         return [], usage
-    except Exception:
+    except Exception as exc:
+        logger.warning("LLM call failed for retain chunk, skipping: %s", exc, exc_info=True)
         return [], usage
 
     payload: Any
@@ -511,7 +516,8 @@ async def _call_llm_chunk(
     if isinstance(payload, str):
         try:
             payload = parse_llm_json(payload)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to parse LLM JSON response: %s | raw=%.300r", exc, payload)
             return [], usage
 
     if not isinstance(payload, dict):
@@ -574,6 +580,7 @@ def _normalize_llm_facts(
         else:
             what = _first_non_empty(payload, ["what", "fact", "factual_core", "text"])
             if not what:
+                logger.debug("Skipping LLM fact with no 'what' field: %r", payload)
                 continue
 
             when = _normalized_optional_text(payload.get("when"))
@@ -940,6 +947,11 @@ async def extract_facts_from_contents(
             chunks.extend(llm_chunks)
             continue
 
+        logger.warning(
+            "LLM extraction returned no facts for content[%d] (len=%d), using heuristic fallback",
+            content_index,
+            len(content.content),
+        )
         fallback_facts, fallback_chunk = _extract_fallback_facts(content, content_index)
         extracted.extend(fallback_facts)
         chunks.append(fallback_chunk)

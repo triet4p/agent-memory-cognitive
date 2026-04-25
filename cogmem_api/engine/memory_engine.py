@@ -443,11 +443,13 @@ class MemoryEngine:
         enable_trace: bool = False,
         fact_types: list[str] | None = None,
         question_date: datetime | None = None,
+        adaptive_router: bool = True,
+        graph_retriever_override: str | None = None,
     ) -> dict[str, Any]:
         from cogmem_api.engine.retain import embedding_utils
         from cogmem_api.engine.retain.types import COGMEM_FACT_TYPES
         from cogmem_api.engine.search.reranking import CrossEncoderReranker, apply_combined_scoring
-        from cogmem_api.engine.search.retrieval import fuse_parallel_results, retrieve_all_fact_types_parallel
+        from cogmem_api.engine.search.retrieval import fuse_parallel_results, make_graph_retriever, retrieve_all_fact_types_parallel
 
         if not self._initialized:
             raise RuntimeError("MemoryEngine is not initialized. Call initialize() before recall.")
@@ -469,6 +471,10 @@ class MemoryEngine:
             )
             query_embedding_str = str(query_embedding[0]) if query_embedding else "[]"
 
+            from cogmem_api.engine.query_analyzer import FlatQueryAnalyzer
+            query_analyzer_override = None if adaptive_router else FlatQueryAnalyzer()
+            graph_retriever = make_graph_retriever(graph_retriever_override) if graph_retriever_override else None
+
             retrieval_result = await retrieve_all_fact_types_parallel(
                 pool=self._pool,
                 query_text=query,
@@ -477,6 +483,8 @@ class MemoryEngine:
                 fact_types=effective_types,
                 thinking_budget=thinking_budget,
                 question_date=question_date,
+                query_analyzer=query_analyzer_override,
+                graph_retriever=graph_retriever,
             )
 
             merged_by_id: dict[str, Any] = {}

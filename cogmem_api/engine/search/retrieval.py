@@ -268,6 +268,28 @@ def get_default_graph_retriever() -> GraphRetriever:
     return _default_graph_retriever
 
 
+def make_graph_retriever(name: str) -> GraphRetriever:
+    """Instantiate a graph retriever by name for per-request ablation override."""
+    config = get_config()
+    key = name.lower()
+    if key == "bfs":
+        return BFSGraphRetriever(
+            refractory_steps=config.bfs_refractory_steps,
+            firing_quota=config.bfs_firing_quota,
+            activation_saturation=config.bfs_activation_saturation,
+        )
+    if key == "mpfp":
+        return MPFPGraphRetriever()
+    if key == "link_expansion":
+        return LinkExpansionRetriever()
+    logger.warning(f"Unknown graph retriever '{name}' in override, falling back to BFS")
+    return BFSGraphRetriever(
+        refractory_steps=config.bfs_refractory_steps,
+        firing_quota=config.bfs_firing_quota,
+        activation_saturation=config.bfs_activation_saturation,
+    )
+
+
 def set_default_graph_retriever(retriever: GraphRetriever) -> None:
     """Set the default graph retriever (for configuration/testing)."""
     global _default_graph_retriever

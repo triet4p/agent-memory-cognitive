@@ -3,5 +3,7 @@
         "uv": true,
         "f:/ai-ml/agent-memory-cognitive/.venv/Scripts/python.exe": true,
         "ForEach-Object": true
-    }
+    },
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.terminal.useEnvFile": true
 }

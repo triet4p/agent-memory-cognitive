@@ -75,6 +75,8 @@ class RecallRequest(BaseModel):
     max_tokens: int = 4096
     trace: bool = False
     query_timestamp: str | None = None
+    adaptive_router: bool = True
+    graph_retriever: str | None = None
 
 
 class RecallResult(BaseModel):
@@ -218,6 +220,8 @@ def create_app(
                 enable_trace=payload.trace,
                 fact_types=payload.types,
                 question_date=question_date,
+                adaptive_router=payload.adaptive_router,
+                graph_retriever_override=payload.graph_retriever,
             )
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc

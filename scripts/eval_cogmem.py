@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import time
@@ -11,6 +12,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 import requests
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 
 JsonDict = dict[str, Any]
@@ -160,21 +164,21 @@ def _build_chat_url(base_url: str) -> str:
 
 
 def resolve_eval_llm_config() -> EvalLLMConfig:
-    eval_model = _env_first("COGMEM_EVAL_LLM_MODEL", default=None)
-    eval_base_url = _env_first("COGMEM_EVAL_LLM_BASE_URL", default=None)
+    eval_model = _env_first("COGMEM_API_EVAL_LLM_MODEL", default=None)
+    eval_base_url = _env_first("COGMEM_API_EVAL_LLM_BASE_URL", default=None)
 
     if eval_model is None or eval_base_url is None:
         raise ValueError(
             "Judge LLM must be configured independently from retain LLM. "
-            "Set both COGMEM_EVAL_LLM_MODEL and COGMEM_EVAL_LLM_BASE_URL env vars. "
+            "Set both COGMEM_API_EVAL_LLM_MODEL and COGMEM_API_EVAL_LLM_BASE_URL env vars. "
             "Judge LLM should be >= 7B (e.g. Qwen3-7B). "
-            f"Got: COGMEM_EVAL_LLM_MODEL={eval_model}, COGMEM_EVAL_LLM_BASE_URL={eval_base_url}"
+            f"Got: COGMEM_API_EVAL_LLM_MODEL={eval_model}, COGMEM_API_EVAL_LLM_BASE_URL={eval_base_url}"
         )
 
-    provider = _env_first("COGMEM_EVAL_LLM_PROVIDER", default="openai")
-    api_key = _env_first("COGMEM_EVAL_LLM_API_KEY", default="ollama")
-    timeout_seconds = _to_float(_env_first("COGMEM_EVAL_LLM_TIMEOUT", default="600"), default=600.0)
-    max_completion_tokens = _to_int(_env_first("COGMEM_EVAL_MAX_COMPLETION_TOKENS", default="13000"), default=13000)
+    provider = _env_first("COGMEM_API_EVAL_LLM_PROVIDER", default="openai")
+    api_key = _env_first("COGMEM_API_EVAL_LLM_API_KEY", default="ollama")
+    timeout_seconds = _to_float(_env_first("COGMEM_API_EVAL_LLM_TIMEOUT", default="600"), default=600.0)
+    max_completion_tokens = _to_int(_env_first("COGMEM_API_EVAL_MAX_COMPLETION_TOKENS", default="13000"), default=13000)
 
     return EvalLLMConfig(
         provider=provider or "openai",
@@ -189,7 +193,7 @@ def resolve_eval_llm_config() -> EvalLLMConfig:
 def resolve_api_base_url(cli_value: str | None = None) -> str:
     if cli_value:
         return cli_value.rstrip("/")
-    return (_env_first("COGMEM_EVAL_BASE_URL", default="http://localhost:8888") or "http://localhost:8888").rstrip("/")
+    return (_env_first("COGMEM_API_EVAL_LLM_BASE_URL", default="http://localhost:8888") or "http://localhost:8888").rstrip("/")
 
 
 def post_json(url: str, payload: JsonDict, timeout_seconds: float) -> JsonDict:
@@ -225,6 +229,7 @@ def call_openai_chat(
     response_json = response.json()
     choices = response_json.get("choices") or []
     if not choices:
+        logger.warning("LLM returned no choices. Response: %.300s", response_json)
         return ""
     return str((choices[0].get("message") or {}).get("content") or "")
 
@@ -376,6 +381,8 @@ def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
         "budget": "mid",
         "max_tokens": 1024,
         "trace": True,
+        "adaptive_router": profile.adaptive_router_enabled,
+        "graph_retriever": "bfs" if profile.sum_activation_enabled else "link_expansion",
     }
     return payload
 
@@ -398,11 +405,12 @@ def _safe_parse_json(text: str) -> JsonDict | None:
     stripped = text.strip()
     if not stripped:
         return None
+    # Strip <think>...</think> blocks emitted by reasoning models (R1, minimax, etc.)
+    stripped = re.sub(r"<think>.*?</think>", "", stripped, flags=re.DOTALL).strip()
+    # Strip markdown code fences (```json ... ``` or ``` ... ```)
     if stripped.startswith("```"):
-        stripped = stripped.split("\n", 1)[1] if "\n" in stripped else stripped[3:]
-        if stripped.endswith("```"):
-            stripped = stripped[:-3]
-        stripped = stripped.strip()
+        stripped = re.sub(r"^```(?:json)?\s*", "", stripped).strip()
+        stripped = re.sub(r"\s*```\s*$", "", stripped).strip()
     try:
         parsed = json.loads(stripped)
     except json.JSONDecodeError:
@@ -636,6 +644,7 @@ def _judge_answer(
     )
     parsed = _safe_parse_json(raw)
     if not parsed:
+        logger.warning("Judge LLM output could not be parsed as JSON. raw=%.500s", raw)
         return {
             "correct": False,
             "score": 0.0,
@@ -798,12 +807,13 @@ def run_pipeline(
     post_json_fn: Callable[[str, JsonDict, float], JsonDict] = post_json,
     llm_call_fn: Callable[[EvalLLMConfig, list[dict[str, str]], int | None], str] = call_openai_chat,
     fixture_path: str | None = None,
+    fixture_override: JsonDict | None = None,
 ) -> JsonDict:
     if profile_id not in ABLATION_PROFILES:
         raise ValueError(f"Unknown profile: {profile_id}")
 
     profile = ABLATION_PROFILES[profile_id]
-    fixture = get_fixture(fixture_name, fixture_path=fixture_path)
+    fixture = fixture_override if fixture_override is not None else get_fixture(fixture_name, fixture_path=fixture_path)
 
     if pipeline == "recall":
         return run_recall_only_pipeline(
@@ -833,9 +843,83 @@ def run_pipeline(
     raise ValueError(f"Unsupported pipeline: {pipeline}")
 
 
+def _benchmark_item_as_fixture(fixture: JsonDict, idx: int) -> JsonDict:
+    """Return a single-conversation mini-fixture from a benchmark fixture."""
+    questions = fixture["questions"]
+    if idx >= len(questions):
+        raise IndexError(f"conv_index {idx} out of range (0..{len(questions) - 1})")
+    q = questions[idx]
+    sessions = q.get("_sessions", [])
+    return {
+        "name": fixture["name"],
+        "turns": [t for _, sess_turns in sessions for t in sess_turns],
+        "questions": [q],
+        "_sessions": sessions,
+    }
+
+
+def _aggregate_checkpoints(ckpt_files: list[Path], profile_id: str, pipeline: str) -> JsonDict:
+    """Merge per-conversation checkpoint files into one aggregate result."""
+    all_results = [json.loads(f.read_text(encoding="utf-8")) for f in ckpt_files]
+    all_per_question: list[JsonDict] = []
+    for r in all_results:
+        all_per_question.extend(r.get("questions", []))
+
+    profile = ABLATION_PROFILES[profile_id]
+    is_full = pipeline == "full"
+    total = len(all_per_question)
+
+    coverage_sum = sum(float(q["recall_metrics"]["keyword_coverage"]) for q in all_per_question)
+    strict_hits = sum(1 for q in all_per_question if q["recall_metrics"]["strict_hit"])
+    recall_at_5_vals = [q["recall_at_5"]["recall_at_k"] for q in all_per_question if q["recall_at_5"]["recall_at_k"] is not None]
+    recall_at_10_vals = [q["recall_at_10"]["recall_at_k"] for q in all_per_question if q["recall_at_10"]["recall_at_k"] is not None]
+    sess5_vals = [v for v in ((q.get("session_recall_at_5") or {}).get("recall_at_k") for q in all_per_question) if v is not None]
+    sess10_vals = [v for v in ((q.get("session_recall_at_10") or {}).get("recall_at_k") for q in all_per_question) if v is not None]
+
+    metrics: JsonDict = {
+        "question_count": total,
+        "conversation_count": len(all_results),
+        "recall_keyword_accuracy": coverage_sum / (total or 1),
+        "recall_strict_accuracy": float(strict_hits) / (total or 1),
+        "recall_at_5_mean": sum(recall_at_5_vals) / len(recall_at_5_vals) if recall_at_5_vals else None,
+        "recall_at_10_mean": sum(recall_at_10_vals) / len(recall_at_10_vals) if recall_at_10_vals else None,
+        "session_recall_at_5_mean": sum(sess5_vals) / len(sess5_vals) if sess5_vals else None,
+        "session_recall_at_10_mean": sum(sess10_vals) / len(sess10_vals) if sess10_vals else None,
+        "duration_seconds": sum(r.get("metrics", {}).get("duration_seconds", 0.0) for r in all_results),
+    }
+
+    if is_full:
+        judge_correct = sum(1 for q in all_per_question if (q.get("judge") or {}).get("correct"))
+        judge_score_sum = sum(float((q.get("judge") or {}).get("score", 0.0)) for q in all_per_question)
+        metrics["judge_accuracy"] = float(judge_correct) / (total or 1)
+        metrics["judge_score_mean"] = judge_score_sum / (total or 1)
+
+    per_cat = _per_category_stats(all_per_question, all_per_question, is_full)
+
+    result: JsonDict = {
+        "pipeline": "full_e2e" if is_full else "recall_only",
+        "profile": asdict(profile),
+        "fixture": all_results[0]["fixture"] if all_results else "benchmark",
+        "aggregated_from_checkpoints": len(ckpt_files),
+        "ablation_hooks": {
+            "enabled_networks": list(profile.enabled_networks),
+            "adaptive_router_enabled": profile.adaptive_router_enabled,
+            "sum_activation_enabled": profile.sum_activation_enabled,
+            "recall_fact_types": list(profile.recall_fact_types),
+        },
+        "metrics": metrics,
+        "questions": all_per_question,
+    }
+    if is_full:
+        result["judge_accuracy_per_category"] = per_cat
+    else:
+        result["per_category_metrics"] = per_cat
+    return result
+
+
 def save_eval_result(result: JsonDict, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    stamp = int(time.time())
+    stamp = int(time.time() * 1000)  # millisecond precision to avoid collisions
     profile_id = str(result["profile"]["profile_id"])
     pipeline = str(result["pipeline"])
     file_path = output_dir / f"{profile_id}_{pipeline}_{stamp}.json"
@@ -854,6 +938,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-retain", action="store_true")
     parser.add_argument("--output-dir", default="logs/eval")
     parser.add_argument("--api-timeout", type=float, default=120.0)
+    parser.add_argument(
+        "--conv-index", type=int, default=None,
+        help="Benchmark only: process only this conversation index (0-based) and save a checkpoint.",
+    )
+    parser.add_argument(
+        "--checkpoint-dir", default=None,
+        help="Benchmark only: directory for per-conversation checkpoints (default: {output-dir}/checkpoints).",
+    )
     return parser.parse_args()
 
 
@@ -861,19 +953,62 @@ def main() -> None:
     args = parse_args()
     api_base_url = resolve_api_base_url(args.base_url)
 
-    bank_id = args.bank_id
-    if not bank_id:
-        bank_id = f"cogmem_eval_{args.profile.lower()}_{uuid.uuid4().hex[:8]}"
-
+    bank_id_base = args.bank_id or f"COGMEM_EVAL_{args.profile.lower()}_{uuid.uuid4().hex[:8]}"
     output_dir = Path(args.output_dir)
+    checkpoint_dir = Path(args.checkpoint_dir) if args.checkpoint_dir else output_dir / "checkpoints"
     pipelines = ["recall", "full"] if args.pipeline == "both" else [args.pipeline]
+
+    if args.fixture in ("longmemeval", "locomo"):
+        fixture = get_fixture(args.fixture, fixture_path=args.fixture_path)
+        total_items = len(fixture["questions"])
+        indices = [args.conv_index] if args.conv_index is not None else list(range(total_items))
+
+        for idx in indices:
+            for pipeline in pipelines:
+                ckpt_path = checkpoint_dir / f"{args.profile}_{pipeline}_c{idx:03d}.json"
+                if ckpt_path.exists():
+                    print(f"[{pipeline}] conv={idx}/{total_items - 1} SKIPPED (checkpoint exists)")
+                    continue
+                conv_bank_id = f"{bank_id_base}_c{idx:03d}"
+                mini = _benchmark_item_as_fixture(fixture, idx)
+                result = run_pipeline(
+                    pipeline=pipeline,
+                    api_base_url=api_base_url,
+                    bank_id=conv_bank_id,
+                    profile_id=args.profile,
+                    fixture_name=args.fixture,
+                    skip_retain=args.skip_retain,
+                    timeout_seconds=max(1.0, args.api_timeout),
+                    fixture_override=mini,
+                )
+                checkpoint_dir.mkdir(parents=True, exist_ok=True)
+                ckpt_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+                q0 = result["questions"][0] if result["questions"] else {}
+                sess5 = (q0.get("session_recall_at_5") or {}).get("recall_at_k")
+                print(
+                    f"[{pipeline}] conv={idx}/{total_items - 1} "
+                    f"recall_kw={result['metrics'].get('recall_keyword_accuracy', 0.0):.3f} "
+                    f"sess_rec@5={'null' if sess5 is None else f'{sess5:.1f}'} "
+                    f"ckpt={ckpt_path.as_posix()}"
+                )
+
+        if args.conv_index is None:
+            for pipeline in pipelines:
+                ckpt_files = sorted(checkpoint_dir.glob(f"{args.profile}_{pipeline}_c*.json"))
+                if len(ckpt_files) == total_items:
+                    agg = _aggregate_checkpoints(ckpt_files, args.profile, pipeline)
+                    path = save_eval_result(agg, output_dir)
+                    print(f"[{pipeline}] AGGREGATED {len(ckpt_files)} convs → {path.as_posix()}")
+                else:
+                    print(f"[{pipeline}] {len(ckpt_files)}/{total_items} checkpoints — run remaining to aggregate.")
+        return
 
     written: list[Path] = []
     for pipeline in pipelines:
         result = run_pipeline(
             pipeline=pipeline,
             api_base_url=api_base_url,
-            bank_id=bank_id,
+            bank_id=bank_id_base,
             profile_id=args.profile,
             fixture_name=args.fixture,
             skip_retain=args.skip_retain,

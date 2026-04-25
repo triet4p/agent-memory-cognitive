@@ -607,4 +607,21 @@ what is the weather = none
         except (ValueError, AttributeError):
             return None
 
+
+class FlatQueryAnalyzer(QueryAnalyzer):
+    """Returns flat RRF weights (1.0 per channel) with no adaptive routing.
+
+    Used for ablation profiles where adaptive query routing is disabled (E1-E4, E6).
+    """
+
+    def load(self) -> None:
+        pass
+
+    def analyze(self, query: str, reference_date: datetime | None = None) -> QueryAnalysis:
+        return QueryAnalysis(
+            temporal_constraint=None,
+            query_type="semantic",
+            rrf_weights={ch: 1.0 for ch in ("semantic", "bm25", "graph", "temporal")},
+        )
+
         return None

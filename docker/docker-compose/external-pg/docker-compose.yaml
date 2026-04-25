@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${COGMEM_DB_PASSWORD:?Please set COGMEM_DB_PASSWORD in your .env}
       POSTGRES_DB: ${COGMEM_DB_NAME:-cogmem_db}
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql
     networks:
       - cogmem-net
     healthcheck:

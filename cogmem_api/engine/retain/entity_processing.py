@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import uuid
 
+from cogmem_api.engine.memory_engine import fq_table
+
 from . import link_utils
 from .types import EntityLink, ProcessedFact
 
@@ -50,15 +52,23 @@ async def process_entities_batch(
 
     unit_entity_pairs: list[tuple[str, str]] = []
     entity_index: dict[str, list[str]] = {}
+    entity_name_map: dict[str, str] = {}
 
     for unit_id, entities in unit_to_entities.items():
         for entity_name in entities:
             entity_id = _resolve_entity_id(bank_id, entity_name)
             unit_entity_pairs.append((unit_id, entity_id))
             entity_index.setdefault(entity_id, []).append(unit_id)
+            entity_name_map[entity_id] = entity_name.strip()
 
     if hasattr(conn, "insert_unit_entities"):
         await conn.insert_unit_entities(unit_entity_pairs)
+    elif entity_name_map:
+        await conn.executemany(
+            f"INSERT INTO {fq_table('entities')} (id, canonical_name, bank_id, metadata) "
+            f"VALUES ($1::uuid, $2, $3, '{{}}'::jsonb) ON CONFLICT (id) DO NOTHING",
+            [(eid, name, bank_id) for eid, name in entity_name_map.items()],
+        )
 
     links: list[EntityLink] = []
     for entity_id, linked_units in entity_index.items():
