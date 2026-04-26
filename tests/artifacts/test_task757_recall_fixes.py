@@ -161,25 +161,22 @@ def test_8_5_dateparser_in_pyproject() -> None:
     )
 
 
-def test_8_7_native_bm25_no_search_vector() -> None:
-    """BM25 native path must not reference search_vector column.
+def test_8_7_native_bm25_uses_search_vector() -> None:
+    """BM25 native path uses search_vector column (migration 20260426_0002).
 
-    search_vector only appears in vchord/pg_textsearch branches (opt-in extensions).
-    The default 'native' branch must use to_tsvector('english', text) inline.
+    After fix 8.7 (workaround) reverted by 759.1, native branch now uses
+    the stored search_vector generated column + GIN index instead of
+    inline to_tsvector('english', text).
     """
     import inspect
     import cogmem_api.engine.search.retrieval as ret_mod
     src = inspect.getsource(ret_mod.retrieve_semantic_bm25_combined)
-    # Old native-path patterns that used the non-existent column
-    assert "ts_rank_cd(search_vector," not in src, (
-        "Native BM25 must not use ts_rank_cd(search_vector, ...) — column does not exist"
+    # New native-path uses stored search_vector column (migration 20260426_0002)
+    assert "ts_rank_cd(search_vector," in src, (
+        "Native BM25 should use ts_rank_cd(search_vector, ...) — search_vector column now exists"
     )
-    assert "search_vector @@ to_tsquery" not in src, (
-        "Native BM25 must not use search_vector @@ to_tsquery — column does not exist"
-    )
-    # Verify the replacement is in place
-    assert "to_tsvector('english', text)" in src, (
-        "Expected to_tsvector('english', text) inline expression in native BM25 path"
+    assert "search_vector @@ to_tsquery" in src, (
+        "Native BM25 should use search_vector @@ to_tsquery — leverages GIN index"
     )
 
 
@@ -192,7 +189,7 @@ if __name__ == "__main__":
         test_8_4_warning_log_when_ce_fails,
         test_8_2_session_recall_computation_with_null_docid,
         test_8_5_dateparser_in_pyproject,
-        test_8_7_native_bm25_no_search_vector,
+        test_8_7_native_bm25_uses_search_vector,
     ]
     passed = 0
     for t in tests:
