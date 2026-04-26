@@ -97,6 +97,21 @@ class RecallResponse(BaseModel):
     trace: dict[str, Any] | None = None
 
 
+class BankInfo(BaseModel):
+    """Summary info for a single bank."""
+
+    bank_id: str
+    unit_count: int
+
+
+class DeleteBankResponse(BaseModel):
+    """Response for bank deletion."""
+
+    bank_id: str
+    deleted: bool
+    units_deleted: int
+
+
 def _parse_query_timestamp(value: str | None) -> datetime | None:
     if value is None:
         return None
@@ -177,6 +192,36 @@ def create_app(
     )
     async def version_endpoint() -> VersionResponse:
         return VersionResponse(version=__version__, service="cogmem-api")
+
+    @app.get(
+        "/v1/banks",
+        response_model=list[BankInfo],
+        summary="List all banks",
+        description="Returns all memory banks with their unit counts.",
+        operation_id="list_banks",
+        tags=["Memory"],
+    )
+    async def list_banks() -> list[BankInfo]:
+        try:
+            banks = await app.state.memory.list_banks()
+            return [BankInfo(**b) for b in banks]
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.delete(
+        "/v1/default/banks/{bank_id}",
+        response_model=DeleteBankResponse,
+        summary="Delete a bank",
+        description="Deletes a bank and all its memory units, documents, and edges.",
+        operation_id="delete_bank",
+        tags=["Memory"],
+    )
+    async def delete_bank(bank_id: str) -> DeleteBankResponse:
+        try:
+            result = await app.state.memory.delete_bank(bank_id)
+            return DeleteBankResponse(**result)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     @app.post(
         "/v1/default/banks/{bank_id}/memories",

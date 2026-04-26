@@ -50,6 +50,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--access-log", action="store_true", help="Enable access log")
     parser.add_argument("--no-access-log", dest="access_log", action="store_false", help="Disable access log")
     parser.set_defaults(access_log=False)
+    parser.add_argument(
+        "--timeout-keep-alive",
+        type=int,
+        default=7200,
+        help="Seconds to keep idle HTTP connections alive (default: 7200)",
+    )
     parser.add_argument("--proxy-headers", action="store_true", help="Enable proxy headers")
     parser.add_argument("--forwarded-allow-ips", default=None, help="Trusted proxy IPs")
 
@@ -72,6 +78,7 @@ def main() -> None:
         access_log=args.access_log,
         proxy_headers=args.proxy_headers,
         forwarded_allow_ips=args.forwarded_allow_ips,
+        timeout_keep_alive=args.timeout_keep_alive,
     )
 
 

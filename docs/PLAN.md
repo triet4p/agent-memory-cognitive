@@ -902,6 +902,46 @@ Exit gate:
 
 ---
 
+### Sprint S24-hotfix - Pipeline Bug Fixes Before Dry Run ✅
+
+Mục tiêu: đóng các bug phát hiện trong quá trình chạy S24 trước khi tiếp tục dry run.
+
+Bug đã fix (task 756 + hotfixes 2026-04-26):
+
+1. **7.1 FK violation** (`cogmem_api/engine/retain/fact_storage.py`): `insert_facts_batch` thiếu upsert `documents` record trước khi INSERT `memory_units` → `asyncpg.ForeignKeyViolationError` với mọi LongMemEval retain. Fix: executemany upsert `(doc_id, bank_id)` vào `documents` trước vòng lặp INSERT.
+
+2. **7.2 Judge bool coercion** (`scripts/eval_cogmem.py`): `bool("false") == True` — minimax-m2.7 đôi khi trả về `"false"` dạng string. Fix: guard `isinstance(str)` trước `bool()`.
+
+3. **7.3 Keyword recall = 0.0** (`scripts/eval_cogmem.py`): LongMemEval không có `expected_keywords` → `_keyword_recall_metrics` trả về `0.0` gây misleading. Fix: trả về `None` khi không có keywords; tất cả 4 aggregation points dùng list-based accumulation.
+
+4. **URL conflict** (`scripts/eval_cogmem.py`): `resolve_api_base_url` fallback đọc nhầm `COGMEM_API_EVAL_LLM_BASE_URL` (minimax) → CogMem API request bị gửi đến minimax. Fix: đổi fallback sang `COGMEM_API_BASE_URL`; thêm `COGMEM_API_BASE_URL=http://localhost:8888` vào `.env`.
+
+5. **Bank ID double-suffix** (`scripts/eval_cogmem.py`): script luôn append `_c{idx:03d}` kể cả khi `--bank-id` đã đủ → `e567_c000_c000`. Fix: chỉ append khi `--bank-id` không được truyền.
+
+6. **API timeout** (`scripts/eval_cogmem.py`): default `--api-timeout 120s` quá thấp cho retain ~160 chunks (~800s). Fix: tăng default lên 3600s.
+
+7. **Per-turn chunking** (`scripts/eval_cogmem.py`): `retain_fixture` gửi từng turn riêng lẻ → mỗi turn ~100 chars → LLM không có cross-turn context → `{"facts": []}`. Fix: concatenate toàn bộ turns trong session thành 1 content item (join `"\n\n"`); backend chunk theo `COGMEM_API_RETAIN_CHUNK_SIZE=3000` → LLM nhận nhiều turns per chunk. Thêm `COGMEM_API_RETAIN_CHUNK_SIZE=3000` vào `.env`.
+
+Artifacts: `logs/task_756_summary.md`, `tests/artifacts/test_task756_fixes.py` (9/9 passed).
+
+### S24-hotfix task 757 — Session Recall + CE Fallback (2026-04-26) ✅
+
+Phát hiện sau dry run E7 conv-0 (`experiments/v1/checkpoints/E7_full_c000.json`, 47 sessions, ~500 nodes):
+
+1. **8.1 TypeError line 1087** (`scripts/eval_cogmem.py`): `recall_keyword_accuracy=None` formatted với `:.3f` → crash. Fix: `kw_str = "null" if kw is None else f"{kw:.3f}"`.
+
+2. **8.2 Missing `dateparser` dependency (PRIMARY)**: Root cause thực sự xác nhận qua server log: `"Recall main path failed, using lexical fallback: No module named 'dateparser'"`. `dateparser` không có trong `pyproject.toml` → `DateparserQueryAnalyzer.load()` raise `ModuleNotFoundError` → outer try-except bắt silently → lexical fallback không có `document_id` → `session_recall@k = 0.0`. Fix: `uv add dateparser` (installs dateparser==1.4.0 + pytz, regex, tzdata, tzlocal).
+
+3. **8.3 Cross-encoder silent fallback** (`cogmem_api/engine/memory_engine.py`): Phòng thủ thêm: inner try-except quanh CE block; nếu CE fail → dùng trực tiếp RRF-ordered candidates (có `document_id`).
+
+4. **8.4 Fallback includes document_id** (`cogmem_api/engine/memory_engine.py`): `_fallback_recall_from_conn` SELECT thiếu `document_id`. Fix: thêm `document_id` vào SELECT và result dict.
+
+5. **8.5 Warning log on fallback** (`cogmem_api/engine/memory_engine.py`): Thêm `logger.warning` khi main path và CE fail để dễ debug.
+
+Artifacts: `logs/task_757_summary.md`, `tests/artifacts/test_task757_recall_fixes.py` (7/7 passed).
+
+---
+
 ### Sprint S24 - Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
@@ -977,8 +1017,9 @@ Rủi ro và fallback:
 | Eval Readiness | S20 | Contribution gaps closure (raw_snippet, BFS default, s_r_link) | ✅ Done | 743-745 |
 | Eval Readiness | S21 | Benchmark adapter integration (LongMemEval-S, LoCoMo) | ✅ Done | 746-748 |
 | Eval Readiness | S22 | Evaluation metrics & judge LLM (per-category, Recall@k) | ✅ Done | 749-752 |
-| Eval Readiness | S23 | Session-level Recall@k implementation | 🔄 Ready | 753 |
-| Eval Readiness | S24 | Full ablation dry run gate (E1-E7) | ⏳ Pending S23 | 754-756 |
+| Eval Readiness | S23 | Session-level Recall@k implementation | ✅ Done | 753 |
+| Eval Readiness | S24-hotfix | Pipeline bug fixes (FK, bool, URL, timeout, chunking) | ✅ Done | 756 |
+| Eval Readiness | S24 | Full ablation dry run gate (E1-E7) | 🔄 Running | 754-756 |
 
 ---
 

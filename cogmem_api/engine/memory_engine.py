@@ -383,6 +383,7 @@ class MemoryEngine:
                         text,
                         fact_type,
                         raw_snippet,
+                        document_id,
                         occurred_start,
                         mentioned_at,
                         event_date
@@ -424,6 +425,7 @@ class MemoryEngine:
                     "text": text,
                     "fact_type": str(row.get("fact_type") or "world"),
                     "raw_snippet": row.get("raw_snippet"),
+                    "document_id": row.get("document_id"),
                     "score": lexical_score(text),
                 }
             )
@@ -505,17 +507,31 @@ class MemoryEngine:
             merged_candidates = sorted(merged_by_id.values(), key=lambda item: item.rrf_score, reverse=True)
 
             reranked_results: list[dict[str, Any]] = []
+            cross_encoder_ok = False
             if merged_candidates:
                 candidate_limit = min(len(merged_candidates), self._engine_config.reranker_max_candidates)
                 top_candidates = merged_candidates[:candidate_limit]
 
-                if self._cross_encoder is None:
-                    self._cross_encoder = CrossEncoderReranker()
+                try:
+                    if self._cross_encoder is None:
+                        self._cross_encoder = CrossEncoderReranker()
 
-                await self._cross_encoder.ensure_initialized()
-                scored = await self._cross_encoder.rerank(query=query, candidates=top_candidates)
-                apply_combined_scoring(scored_results=scored, now=datetime.now(UTC))
-                scored.sort(key=lambda item: item.combined_score, reverse=True)
+                    await self._cross_encoder.ensure_initialized()
+                    scored = await self._cross_encoder.rerank(query=query, candidates=top_candidates)
+                    apply_combined_scoring(scored_results=scored, now=datetime.now(UTC))
+                    scored.sort(key=lambda item: item.combined_score, reverse=True)
+                    cross_encoder_ok = True
+                except Exception as ce_exc:
+                    logger.warning("Cross-encoder reranking failed, using RRF order: %s", ce_exc)
+                    # Wrap RRF-ordered candidates as ScoredResult stubs so the loop below works uniformly.
+                    from cogmem_api.engine.search.types import ScoredResult
+                    scored = [
+                        ScoredResult(candidate=c, cross_encoder_score=0.0, cross_encoder_score_normalized=c.rrf_score)
+                        for c in top_candidates
+                    ]
+                    for sr in scored:
+                        sr.combined_score = sr.cross_encoder_score_normalized
+                        sr.weight = sr.combined_score
 
                 used_tokens = 0
                 for scored_result in scored:
@@ -543,10 +559,12 @@ class MemoryEngine:
                     "rrf_weights": retrieval_result.rrf_weights,
                     "fact_types": effective_types,
                     "timings": retrieval_result.timings,
+                    "cross_encoder_ok": cross_encoder_ok,
                 }
 
             return {"results": reranked_results, "trace": trace}
-        except Exception:
+        except Exception as exc:
+            logger.warning("Recall main path failed, using lexical fallback: %s", exc)
             fallback = await self._fallback_recall_from_conn(
                 bank_id=bank_id,
                 query=query,
@@ -556,3 +574,46 @@ class MemoryEngine:
             )
             trace = {"fallback": "lexical_db_scan"} if enable_trace else None
             return {"results": fallback, "trace": trace}
+
+    async def list_banks(self) -> list[dict[str, Any]]:
+        """Return all banks with memory unit counts."""
+        if self._pool is None:
+            raise RuntimeError("MemoryEngine is not connected.")
+        async with acquire_with_retry(self._pool) as conn:
+            rows = await conn.fetch(
+                f"""
+                SELECT b.bank_id,
+                       COUNT(m.id) AS unit_count
+                FROM {fq_table("banks")} b
+                LEFT JOIN {fq_table("memory_units")} m ON m.bank_id = b.bank_id
+                GROUP BY b.bank_id
+                ORDER BY b.bank_id
+                """
+            )
+        return [{"bank_id": r["bank_id"], "unit_count": r["unit_count"]} for r in rows]
+
+    async def delete_bank(self, bank_id: str) -> dict[str, Any]:
+        """Delete a bank and all its associated memory units, documents, and edges."""
+        if self._pool is None:
+            raise RuntimeError("MemoryEngine is not connected.")
+        async with acquire_with_retry(self._pool) as conn:
+            async with conn.transaction():
+                # memory_edges and memory_unit_entities cascade from memory_units FK
+                tag = await conn.execute(
+                    f"DELETE FROM {fq_table('memory_units')} WHERE bank_id = $1",
+                    bank_id,
+                )
+                units_deleted = int(tag.split()[-1]) if tag else 0
+                await conn.execute(
+                    f"DELETE FROM {fq_table('documents')} WHERE bank_id = $1",
+                    bank_id,
+                )
+                deleted_bank = await conn.fetchval(
+                    f"DELETE FROM {fq_table('banks')} WHERE bank_id = $1 RETURNING bank_id",
+                    bank_id,
+                )
+        return {
+            "bank_id": bank_id,
+            "deleted": deleted_bank is not None,
+            "units_deleted": units_deleted,
+        }

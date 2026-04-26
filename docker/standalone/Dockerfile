@@ -39,7 +39,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /bin/bash cogmem
 
 COPY pyproject.toml uv.lock README.md ./
-COPY cogmem_api ./cogmem_api
 
 RUN pip install --no-cache-dir uv \
     && if [ "${INCLUDE_LOCAL_MODELS}" = "true" ]; then \
@@ -50,6 +49,7 @@ RUN pip install --no-cache-dir uv \
         uv sync --frozen --extra embedded-db; \
     fi
 
+COPY cogmem_api ./cogmem_api
 COPY docker/standalone/start-all.sh /app/start-all.sh
 RUN chmod +x /app/start-all.sh \
     && mkdir -p /home/cogmem/.pg0 \

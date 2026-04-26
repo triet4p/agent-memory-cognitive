@@ -20,3 +20,5 @@ hindsight_api/*
 site/*
 
 logs/
+
+experiments/

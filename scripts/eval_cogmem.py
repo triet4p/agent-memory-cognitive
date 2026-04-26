@@ -193,7 +193,7 @@ def resolve_eval_llm_config() -> EvalLLMConfig:
 def resolve_api_base_url(cli_value: str | None = None) -> str:
     if cli_value:
         return cli_value.rstrip("/")
-    return (_env_first("COGMEM_API_EVAL_LLM_BASE_URL", default="http://localhost:8888") or "http://localhost:8888").rstrip("/")
+    return (_env_first("COGMEM_API_BASE_URL", default="http://localhost:8888") or "http://localhost:8888").rstrip("/")
 
 
 def post_json(url: str, payload: JsonDict, timeout_seconds: float) -> JsonDict:
@@ -272,9 +272,13 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                 sess_turns = []
                 if isinstance(sess, list):
                     for t in sess:
-                        content = t.get("content") if isinstance(t, dict) else str(t) if isinstance(t, str) else ""
-                        if content:
-                            sess_turns.append(content)
+                        if isinstance(t, dict):
+                            role = t.get("role", "")
+                            content = t.get("content", "")
+                            if content:
+                                sess_turns.append(f"{role}: {content}" if role else content)
+                        elif isinstance(t, str) and t:
+                            sess_turns.append(t)
                 elif isinstance(sess, dict):
                     c = sess.get("content", "")
                     if c:
@@ -319,9 +323,11 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                     sess_turns = []
                     if isinstance(val, list):
                         for t in val:
-                            content = t.get("text") if isinstance(t, dict) else ""
-                            if content:
-                                sess_turns.append(content)
+                            if isinstance(t, dict):
+                                speaker = t.get("speaker", "")
+                                content = t.get("text", "")
+                                if content:
+                                    sess_turns.append(f"{speaker}: {content}" if speaker else content)
                     elif isinstance(val, str) and val:
                         sess_turns.append(val)
                     if sess_turns:
@@ -329,9 +335,13 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
             elif isinstance(conversation, list):
                 sess_turns = []
                 for t in conversation:
-                    content = t.get("text") if isinstance(t, dict) else str(t) if isinstance(t, str) else ""
-                    if content:
-                        sess_turns.append(content)
+                    if isinstance(t, dict):
+                        speaker = t.get("speaker", "")
+                        content = t.get("text", "")
+                        if content:
+                            sess_turns.append(f"{speaker}: {content}" if speaker else content)
+                    elif isinstance(t, str) and t:
+                        sess_turns.append(t)
                 if sess_turns:
                     sessions_with_ids.append(("D1", sess_turns))
             elif isinstance(conversation, str) and conversation:
@@ -439,10 +449,13 @@ def retain_fixture(
 ) -> JsonDict:
     sessions = fixture.get("_sessions")
     if sessions:
+        # Concatenate all turns within each session into one content item.
+        # The backend's _chunk_content() will split by chunk_size (default 3000 chars),
+        # giving the LLM cross-turn context instead of isolated single-turn snippets.
         items = []
         for session_id, turns in sessions:
-            for turn_content in turns:
-                items.append({"content": turn_content, "document_id": session_id})
+            session_content = "\n\n".join(turns)
+            items.append({"content": session_content, "document_id": session_id})
     else:
         items = [{"content": turn} for turn in fixture["turns"]]
     return post_json_fn(
@@ -1021,7 +1034,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bank-id", default=None)
     parser.add_argument("--skip-retain", action="store_true")
     parser.add_argument("--output-dir", default="logs/eval")
-    parser.add_argument("--api-timeout", type=float, default=120.0)
+    parser.add_argument("--api-timeout", type=float, default=10800.0)
     parser.add_argument(
         "--conv-index", type=int, default=None,
         help="Benchmark only: process only this conversation index (0-based) and save a checkpoint.",
@@ -1053,7 +1066,7 @@ def main() -> None:
                 if ckpt_path.exists():
                     print(f"[{pipeline}] conv={idx}/{total_items - 1} SKIPPED (checkpoint exists)")
                     continue
-                conv_bank_id = f"{bank_id_base}_c{idx:03d}"
+                conv_bank_id = bank_id_base if args.bank_id else f"{bank_id_base}_c{idx:03d}"
                 mini = _benchmark_item_as_fixture(fixture, idx)
                 result = run_pipeline(
                     pipeline=pipeline,
@@ -1069,9 +1082,11 @@ def main() -> None:
                 ckpt_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
                 q0 = result["questions"][0] if result["questions"] else {}
                 sess5 = (q0.get("session_recall_at_5") or {}).get("recall_at_k")
+                kw = result["metrics"].get("recall_keyword_accuracy")
+                kw_str = "null" if kw is None else f"{kw:.3f}"
                 print(
                     f"[{pipeline}] conv={idx}/{total_items - 1} "
-                    f"recall_kw={result['metrics'].get('recall_keyword_accuracy', 0.0):.3f} "
+                    f"recall_kw={kw_str} "
                     f"sess_rec@5={'null' if sess5 is None else f'{sess5:.1f}'} "
                     f"ckpt={ckpt_path.as_posix()}"
                 )
