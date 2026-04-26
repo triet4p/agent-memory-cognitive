@@ -134,6 +134,7 @@ async def retain_batch(
                     bank_id=bank_id,
                     facts=processed_facts,
                     document_id=document_id,
+                    document_tags=document_tags,
                 )
 
                 user_entities_per_content = {

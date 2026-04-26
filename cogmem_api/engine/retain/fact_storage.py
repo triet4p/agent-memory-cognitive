@@ -56,6 +56,7 @@ async def insert_facts_batch(
     bank_id: str,
     facts: list[ProcessedFact],
     document_id: str | None = None,
+    document_tags: list[str] | None = None,
 ) -> list[str]:
     """Insert processed facts and return created memory unit IDs."""
     if not facts:
@@ -64,7 +65,7 @@ async def insert_facts_batch(
     prepared_facts = [_prepare_fact_for_storage(fact) for fact in facts]
 
     if hasattr(conn, "insert_memory_units"):
-        return await conn.insert_memory_units(bank_id, prepared_facts, document_id=document_id)
+        return await conn.insert_memory_units(bank_id, prepared_facts, document_id=document_id, document_tags=document_tags)
 
     # Upsert document records first so FK on memory_units.document_id is satisfied
     unique_doc_ids = {f.document_id for f in prepared_facts if f.document_id}
@@ -98,7 +99,8 @@ async def insert_facts_batch(
                 fact_type,
                 network_type,
                 confidence_score,
-                metadata
+                metadata,
+                tags
             )
             VALUES
             (
@@ -115,7 +117,8 @@ async def insert_facts_batch(
                 $11,
                 $12,
                 $13,
-                $14::jsonb
+                $14::jsonb,
+                $15::text[]
             )
             RETURNING id::text
             """,
@@ -133,6 +136,7 @@ async def insert_facts_batch(
             normalized_type,
             confidence_score,
             json.dumps(fact.metadata),
+            document_tags or None,
         )
         unit_ids.append(created)
 

@@ -10,6 +10,7 @@ Tests that:
 8.3  Cross-encoder failure falls back to RRF order, not full lexical scan
 8.4  Lexical fallback includes document_id
 8.5  Warning log when CE or main path fails
+8.7  BM25 native path does not reference search_vector column
 """
 
 import sys
@@ -160,6 +161,28 @@ def test_8_5_dateparser_in_pyproject() -> None:
     )
 
 
+def test_8_7_native_bm25_no_search_vector() -> None:
+    """BM25 native path must not reference search_vector column.
+
+    search_vector only appears in vchord/pg_textsearch branches (opt-in extensions).
+    The default 'native' branch must use to_tsvector('english', text) inline.
+    """
+    import inspect
+    import cogmem_api.engine.search.retrieval as ret_mod
+    src = inspect.getsource(ret_mod.retrieve_semantic_bm25_combined)
+    # Old native-path patterns that used the non-existent column
+    assert "ts_rank_cd(search_vector," not in src, (
+        "Native BM25 must not use ts_rank_cd(search_vector, ...) — column does not exist"
+    )
+    assert "search_vector @@ to_tsquery" not in src, (
+        "Native BM25 must not use search_vector @@ to_tsquery — column does not exist"
+    )
+    # Verify the replacement is in place
+    assert "to_tsvector('english', text)" in src, (
+        "Expected to_tsvector('english', text) inline expression in native BM25 path"
+    )
+
+
 if __name__ == "__main__":
     tests = [
         test_8_2_dateparser_installed,
@@ -169,6 +192,7 @@ if __name__ == "__main__":
         test_8_4_warning_log_when_ce_fails,
         test_8_2_session_recall_computation_with_null_docid,
         test_8_5_dateparser_in_pyproject,
+        test_8_7_native_bm25_no_search_vector,
     ]
     passed = 0
     for t in tests:

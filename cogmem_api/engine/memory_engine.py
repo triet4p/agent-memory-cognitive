@@ -166,10 +166,15 @@ class MemoryEngine:
             self._initialized = True
             return
 
+        async def _init_pool_connection(conn: asyncpg.Connection) -> None:
+            """Set per-connection HNSW search parameters for accuracy."""
+            await conn.execute("SET hnsw.ef_search = 200")
+
         self._pool = await asyncpg.create_pool(
             self.db_url,
             min_size=self._pool_min_size,
             max_size=self._pool_max_size,
+            init=_init_pool_connection,
         )
 
         await self._bootstrap_schema_objects()

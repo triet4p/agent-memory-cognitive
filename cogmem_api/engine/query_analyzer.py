@@ -623,5 +623,3 @@ class FlatQueryAnalyzer(QueryAnalyzer):
             query_type="semantic",
             rrf_weights={ch: 1.0 for ch in ("semantic", "bm25", "graph", "temporal")},
         )
-
-        return None

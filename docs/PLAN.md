@@ -938,11 +938,246 @@ Phát hiện sau dry run E7 conv-0 (`experiments/v1/checkpoints/E7_full_c000.jso
 
 5. **8.5 Warning log on fallback** (`cogmem_api/engine/memory_engine.py`): Thêm `logger.warning` khi main path và CE fail để dễ debug.
 
-Artifacts: `logs/task_757_summary.md`, `tests/artifacts/test_task757_recall_fixes.py` (7/7 passed).
+6. **8.6 Remove non-existent columns chunk_id/tags from SQL SELECTs**: `memory_units` không có cột `chunk_id` hay `tags` (không có trong `models.py` hay migration). Tất cả 4 retrieval files đều SELECT chúng → `column "chunk_id" does not exist` → fallback. Fix: remove khỏi SELECT trong `retrieval.py` (4 nơi), `graph_retrieval.py` (2 nơi), `link_expansion_retrieval.py` (5 nơi), `mpfp_retrieval.py` (1 nơi).
+
+7. **8.7 search_vector column không tồn tại** (`cogmem_api/engine/search/retrieval.py`): Native BM25 path (`DEFAULT_TEXT_SEARCH_EXTENSION = "native"`) dùng `ts_rank_cd(search_vector, ...)` và `search_vector @@ to_tsquery(...)` — column không có trong schema. Fix tạm: thay bằng `to_tsvector('english', text)` inline. Fix vĩnh viễn: tạo stored generated column trong migration S24 (task 758).
+
+Artifacts: `logs/task_757_summary.md`, `tests/artifacts/test_task757_recall_fixes.py` (8/8 passed).
 
 ---
 
-### Sprint S24 - Full Ablation Dry Run Gate 🔄
+### Sprint S24 — Retrieval Stack Quality Hardening 🔄
+
+Mục tiêu sprint:
+1. Tạo Alembic migration bổ sung đầy đủ schema/index còn thiếu mà retrieval code đã assume tồn tại.
+2. Đồng bộ code để dùng đúng schema mới — không còn workaround inline.
+3. Fix ef_search chưa được set thực tế — đây là accuracy gap quan trọng nhất.
+4. Wire document_tags vào retain pipeline để tags thực sự được lưu và có thể dùng cho filtering.
+
+**Lý do kỹ thuật (theo từng vấn đề):**
+- **BM25 no-index**: `to_tsvector('english', text) @@ to_tsquery(...)` không có GIN index → full sequential scan toàn bộ memory_units cho mọi BM25 query. Với stored generated column + GIN index, PostgreSQL dùng index scan → chỉ touch matching rows.
+- **search_vector stored vs inline**: `ts_rank_cd(search_vector, ...)` nhanh hơn `ts_rank_cd(to_tsvector('english', text), ...)` cho matched rows vì tsvector đã được tính trước. Không ảnh hưởng accuracy nhưng tốt hơn về hiệu năng.
+- **ef_search=40 vs 200**: HNSW default ef_search=40 có accuracy thấp hơn nhiều so với ef_search=200. ef_search kiểm soát beam width khi search — cao hơn → nhiều candidate được explore → recall cao hơn. Đây là **accuracy impact trực tiếp và quan trọng nhất** của sprint này.
+- **Partial HNSW indexes**: Thay vì một global HNSW index, mỗi fact_type có partial index riêng → HNSW graph được build trên tập nhỏ hơn → approximate nearest neighbor chính xác hơn trong partition. Quan trọng khi fact types phân bố không đều.
+- **Tags column**: API hiện tại nhận `tags` từ client nhưng không lưu vào DB → tags filtering luôn crash/no-op. Phải fix để tags feature có thể dùng.
+
+Phụ thuộc:
+1. S23 PASS.
+2. Task 757 hotfixes PASS.
+
+---
+
+#### Task 758 — Alembic migration: Retrieval Quality Schema
+
+**File tạo mới**: `cogmem_api/alembic/versions/20260426_0002_retrieval_quality.py`
+
+Header migration:
+```python
+"""Retrieval quality schema: search_vector, tags, partial HNSW, links indexes.
+
+Revision ID: 20260426_0002
+Revises: 20260330_0001
+Create Date: 2026-04-26
+"""
+revision = "20260426_0002"
+down_revision = "20260330_0001"
+branch_labels = None
+depends_on = None
+```
+
+**Nội dung `upgrade()` — thứ tự thực hiện quan trọng:**
+
+**Step 1 — search_vector stored generated column + GIN index:**
+```python
+op.execute("""
+    ALTER TABLE memory_units
+    ADD COLUMN search_vector tsvector
+    GENERATED ALWAYS AS (
+        to_tsvector('english',
+            coalesce(text, '') || ' ' || coalesce(raw_snippet, ''))
+    ) STORED
+""")
+op.execute(
+    "CREATE INDEX idx_memory_units_search_vector "
+    "ON memory_units USING gin(search_vector)"
+)
+```
+
+Lý do dùng `op.execute()` raw SQL thay vì `op.add_column()`: SQLAlchemy Alembic chưa hỗ trợ GENERATED ALWAYS AS STORED trực tiếp qua API. Raw SQL là cách đúng chuẩn.
+
+Lý do include `raw_snippet` trong tsvector: `raw_snippet` là đoạn hội thoại gốc chứa nhiều keyword quan trọng không xuất hiện trong `text` (extracted fact). Kết hợp cả hai tăng BM25 recall đáng kể.
+
+**Step 2 — tags column + GIN index:**
+```python
+op.add_column("memory_units", sa.Column("tags", sa.ARRAY(sa.Text()), nullable=True))
+op.execute(
+    "CREATE INDEX idx_memory_units_tags "
+    "ON memory_units USING gin(tags) "
+    "WHERE tags IS NOT NULL"
+)
+```
+
+GIN index with WHERE clause: chỉ index rows có tags ≠ NULL → nhỏ hơn, nhanh hơn khi hầu hết rows không có tags.
+
+**Step 3 — 6 partial HNSW indexes per fact_type:**
+```python
+FACT_TYPES = ["world", "experience", "opinion", "habit", "intention", "action_effect"]
+for ft in FACT_TYPES:
+    op.execute(
+        f"CREATE INDEX idx_mu_emb_{ft} "
+        f"ON memory_units USING hnsw (embedding vector_cosine_ops) "
+        f"WHERE fact_type = '{ft}'"
+    )
+```
+
+Lưu ý: Alembic `op.execute()` chạy trong transaction. Với pgvector HNSW, index creation trong transaction là OK. PostgreSQL sẽ TỰ ĐỘNG dùng partial index khi query có `WHERE fact_type = '...'` — không cần thay đổi code.
+
+**Step 4 — memory_links covering/composite indexes:**
+```python
+# Covering index cho entity expansion: index-only scan, không cần heap fetch
+op.execute(
+    "CREATE INDEX idx_memory_links_entity_covering "
+    "ON memory_links (from_unit_id) "
+    "INCLUDE (to_unit_id, entity_id) "
+    "WHERE link_type = 'entity'"
+)
+# Composite index cho incoming semantic links (cả hai hướng trong LinkExpansion)
+op.execute(
+    "CREATE INDEX idx_memory_links_to_type_weight "
+    "ON memory_links (to_unit_id, link_type, weight DESC)"
+)
+```
+
+**Nội dung `downgrade()`:**
+```python
+def downgrade():
+    op.drop_index("idx_memory_links_to_type_weight", table_name="memory_links")
+    op.drop_index("idx_memory_links_entity_covering", table_name="memory_links")
+    for ft in ["world", "experience", "opinion", "habit", "intention", "action_effect"]:
+        op.drop_index(f"idx_mu_emb_{ft}", table_name="memory_units")
+    op.drop_index("idx_memory_units_tags", table_name="memory_units")
+    op.drop_column("memory_units", "tags")
+    op.drop_index("idx_memory_units_search_vector", table_name="memory_units")
+    op.execute("ALTER TABLE memory_units DROP COLUMN search_vector")
+```
+
+**Output task 758:**
+- `cogmem_api/alembic/versions/20260426_0002_retrieval_quality.py`
+- `logs/task_758_summary.md`
+
+---
+
+#### Task 759 — Code adaptations to match new schema
+
+**759.1 — Revert fix 8.7 trong retrieval.py, dùng search_vector column**
+
+File: `cogmem_api/engine/search/retrieval.py` (native BM25 branch)
+
+Thay:
+```python
+else:  # native — no stored search_vector column; compute tsvector inline
+    query_tsquery = " | ".join(tokens)
+    bm25_score_expr = "ts_rank_cd(to_tsvector('english', text), to_tsquery('english', $4))"
+    bm25_order_by = f"{bm25_score_expr} DESC"
+    bm25_where_filter = "AND to_tsvector('english', text) @@ to_tsquery('english', $4)"
+    bm25_text_param = query_tsquery
+```
+
+Thành:
+```python
+else:  # native — stored generated column search_vector (migration 20260426_0002)
+    query_tsquery = " | ".join(tokens)
+    bm25_score_expr = "ts_rank_cd(search_vector, to_tsquery('english', $4))"
+    bm25_order_by = f"{bm25_score_expr} DESC"
+    bm25_where_filter = "AND search_vector @@ to_tsquery('english', $4)"
+    bm25_text_param = query_tsquery
+```
+
+**759.2 — Set ef_search=200 trong pool init**
+
+File: `cogmem_api/engine/memory_engine.py`
+
+Thêm callback trước `asyncpg.create_pool(...)` (line ~169):
+```python
+async def _init_pool_connection(conn: asyncpg.Connection) -> None:
+    """Set per-connection HNSW search parameters for accuracy."""
+    await conn.execute("SET hnsw.ef_search = 200")
+```
+
+Truyền `init=_init_pool_connection` vào `asyncpg.create_pool(...)`.
+
+**Lưu ý quan trọng**: Không dùng `SET LOCAL` — chỉ có hiệu lực trong transaction. Dùng `SET` (session-level) để ef_search áp dụng cho toàn bộ connection lifetime.
+
+**759.3 — Wire document_tags vào fact_storage INSERT**
+
+File: `cogmem_api/engine/retain/fact_storage.py`
+
+Sửa signature `insert_facts_batch` — thêm parameter:
+```python
+async def insert_facts_batch(
+    conn,
+    bank_id: str,
+    facts: list[ProcessedFact],
+    document_id: str | None = None,
+    document_tags: list[str] | None = None,  # ← THÊM
+) -> list[str]:
+```
+
+Sửa INSERT SQL — thêm `tags` vào column list, thêm `$15::text[]` vào VALUES. Thêm `document_tags or None` vào params list cho mỗi fact trong batch (document-level tags, cùng value cho toàn bộ facts trong batch).
+
+File: `cogmem_api/engine/retain/orchestrator.py` (dòng gọi `insert_facts_batch`)
+
+Thêm keyword argument:
+```python
+document_tags=document_tags,
+```
+
+**759.4 — Xóa dead code trong FlatQueryAnalyzer**
+
+File: `cogmem_api/engine/query_analyzer.py`
+
+Xóa dòng `return None` unreachable sau `return QueryAnalysis(...)` trong `FlatQueryAnalyzer.analyze()`. Dòng này không bao giờ được thực thi nhưng gây nhầm lẫn khi đọc code.
+
+---
+
+#### Task 760 — Artifact tests + summary log
+
+**File tạo mới**: `tests/artifacts/test_task758_retrieval_quality.py`
+
+Tests bắt buộc (không cần live DB):
+
+1. `test_migration_exists_with_correct_chain` — Migration `20260426_0002` tồn tại, `revision = "20260426_0002"`, `down_revision = "20260330_0001"`.
+2. `test_migration_has_all_required_indexes` — Migration tạo đủ: `idx_memory_units_search_vector`, `idx_memory_units_tags`, `idx_mu_emb_{ft}` cho 6 fact_types, `idx_memory_links_entity_covering`, `idx_memory_links_to_type_weight`.
+3. `test_migration_search_vector_includes_raw_snippet` — `search_vector` generated column dùng cả `text` và `raw_snippet` trong `to_tsvector(...)`.
+4. `test_bm25_native_path_uses_search_vector_column` — `retrieval.py` native BM25 path dùng `ts_rank_cd(search_vector,` và `search_vector @@ to_tsquery`; không dùng `to_tsvector('english', text)` inline.
+5. `test_ef_search_set_in_pool_init` — `memory_engine.py` có code `SET hnsw.ef_search = 200` (không chỉ trong comment).
+6. `test_insert_facts_batch_accepts_document_tags` — `insert_facts_batch` có parameter `document_tags` trong signature.
+7. `test_orchestrator_passes_document_tags` — `orchestrator.py` pass `document_tags` vào `insert_facts_batch`.
+8. `test_flat_query_analyzer_no_dead_code` — `FlatQueryAnalyzer.analyze()` không có unreachable `return None` sau `return QueryAnalysis(...)`.
+
+**File tạo mới**: `logs/task_758_summary.md`
+
+**Exit gate S24:**
+1. `uv run python tests/artifacts/test_task758_retrieval_quality.py` — 8/8 tests PASS.
+2. `alembic upgrade head` từ clean DB chạy không lỗi, tạo đủ indexes/columns.
+3. BM25 native path dùng `search_vector` column (verified by test 4).
+4. `ef_search=200` được set trong pool init, không chỉ trong comment (verified by test 5).
+5. Retain request với `tags=["tag1"]` → tags được lưu vào DB (smoke test thủ công).
+6. `FlatQueryAnalyzer.analyze()` không còn dead code (verified by test 8).
+
+**Outputs bắt buộc:**
+- `cogmem_api/alembic/versions/20260426_0002_retrieval_quality.py` (task 758)
+- `cogmem_api/engine/search/retrieval.py` — revert fix 8.7 (task 759.1)
+- `cogmem_api/engine/memory_engine.py` — ef_search pool init (task 759.2)
+- `cogmem_api/engine/retain/fact_storage.py` — document_tags param + tags INSERT (task 759.3)
+- `cogmem_api/engine/retain/orchestrator.py` — pass document_tags (task 759.3)
+- `cogmem_api/engine/query_analyzer.py` — remove dead code (task 759.4)
+- `tests/artifacts/test_task758_retrieval_quality.py` (task 760)
+- `logs/task_758_summary.md` (task 760)
+
+---
+
+### Sprint S25 - Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
 1. Chạy toàn bộ E1-E7 trên benchmark subset thực — xác nhận pipeline hoạt động end-to-end trước khi run chính thức.
@@ -961,18 +1196,18 @@ Atomic tasks:
 	- Chạy E1 trên LongMemEval-S subset (~30 questions) và LoCoMo subset (~10 conversations).
 	- Kiểm tra: không có lỗi runtime, output JSON đúng schema, judge trả về kết quả coherent.
 	- Ghi lại: tổng thời gian, LLM call count, latency p50/p95.
-	- Output: `reports/dry_run_E1.json`, `logs/task_754_summary.md`.
+	- Output: `reports/dry_run_E1.json`, `logs/task_761_summary.md`.
 
 2. S24.2 Dry run E2-E7 ablation:
 	- Chạy E2-E7 trên cùng subset.
 	- So sánh per-category accuracy giữa các profiles — trend phải coherent với hypothesis trong spec (E2 cải thiện Preference, E6 cải thiện Multi-hop, v.v.).
 	- Nếu trend ngược với hypothesis: flag là anomaly, không block sprint nhưng phải document.
-	- Output: `reports/dry_run_E2_E7.json`, `logs/task_755_summary.md`.
+	- Output: `reports/dry_run_E2_E7.json`, `logs/task_762_summary.md`.
 
 3. S24.3 Evaluation readiness gate:
 	- Tạo checklist kết quả: pipeline chạy không lỗi, metrics coherent, anomalies documented.
 	- Nếu PASS: unlock chạy full benchmark.
-	- Output: `reports/eval_readiness_gate.md`, `logs/task_756_summary.md`, `tests/artifacts/test_task756_eval_readiness_gate.py`.
+	- Output: `reports/eval_readiness_gate.md`, `logs/task_763_summary.md`, `tests/artifacts/test_task763_eval_readiness_gate.py`.
 
 File tác động dự kiến:
 1. `scripts/ablation_runner.py` (integrate với benchmark loaders)
@@ -983,8 +1218,8 @@ Outputs bắt buộc:
 1. `reports/dry_run_E1.json`
 2. `reports/dry_run_E2_E7.json`
 3. `reports/eval_readiness_gate.md`
-4. `logs/task_754_summary.md` -> `logs/task_756_summary.md`
-5. `tests/artifacts/test_task756_eval_readiness_gate.py`
+4. `logs/task_761_summary.md` -> `logs/task_763_summary.md`
+5. `tests/artifacts/test_task763_eval_readiness_gate.py`
 
 Exit gate:
 1. E1-E7 chạy không lỗi trên benchmark subset.
@@ -1019,7 +1254,8 @@ Rủi ro và fallback:
 | Eval Readiness | S22 | Evaluation metrics & judge LLM (per-category, Recall@k) | ✅ Done | 749-752 |
 | Eval Readiness | S23 | Session-level Recall@k implementation | ✅ Done | 753 |
 | Eval Readiness | S24-hotfix | Pipeline bug fixes (FK, bool, URL, timeout, chunking) | ✅ Done | 756 |
-| Eval Readiness | S24 | Full ablation dry run gate (E1-E7) | 🔄 Running | 754-756 |
+| Eval Readiness | S24 | Retrieval stack quality hardening (schema/index/ef_search/tags) | 🔄 Next | 758-760 |
+| Eval Readiness | S25 | Full ablation dry run gate (E1-E7) | 🔄 Pending S24 | 761-763 |
 
 ---
 
@@ -1038,18 +1274,20 @@ Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-
 **S21 (tasks 746-748):** Benchmark adapter integration ✅ DONE
 **S22 (tasks 749-752):** Eval metrics & judge LLM ✅ DONE
 → **S23 (task 753):** Session-level Recall@k implementation
-→ **S24 (tasks 754-756):** Full ablation dry run gate
+→ **S24 (tasks 758-760):** Retrieval stack quality hardening
+→ **S25 (tasks 761-763):** Full ablation dry run gate
 
-### Future (Dependent on S24 PASS)
-Post-S24: C5 (Hierarchical KG) track, full benchmark run, publication track
+### Future (Dependent on S25 PASS)
+Post-S25: C5 (Hierarchical KG) track, full benchmark run, publication track
 
 Hard rules:
 1. S20 entry gate: S15 FULL coverage confirmed ✅
 2. S21 dependency: S20 PASS ✅
 3. S22 dependency: S21 PASS ✅
 4. S23 dependency: S22 PASS ✅
-5. S24 dependency: S23 PASS
-6. C5 deferred: không chặn eval trong vòng này
+5. S24 dependency: S23 PASS + task 757 hotfixes PASS
+6. S25 dependency: S24 PASS
+7. C5 deferred: không chặn eval trong vòng này
 
 ---
 
