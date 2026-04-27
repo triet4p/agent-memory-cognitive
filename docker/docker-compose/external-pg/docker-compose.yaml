@@ -26,7 +26,6 @@ services:
       dockerfile: docker/standalone/Dockerfile
       args:
         INCLUDE_LOCAL_MODELS: ${COGMEM_DOCKER_INCLUDE_LOCAL_MODELS:-true}
-        PRELOAD_ML_MODELS: ${COGMEM_DOCKER_PRELOAD_ML_MODELS:-false}
         TORCH_CPU_VERSION: ${COGMEM_DOCKER_TORCH_CPU_VERSION:-2.11.0}
         ST_VERSION: ${COGMEM_DOCKER_ST_VERSION:-5.3.0}
     image: cogmem:local
@@ -35,13 +34,15 @@ services:
     env_file:
       - ../../../.env
     ports:
-      - "8888:8888"
+      - "${COGMEM_API_PORT:-8888}:${COGMEM_API_PORT:-8888}"
     environment:
       COGMEM_API_DATABASE_URL: postgresql://${COGMEM_DB_USER:-cogmem_user}:${COGMEM_DB_PASSWORD:?Please set COGMEM_DB_PASSWORD in your .env}@db:5432/${COGMEM_DB_NAME:-cogmem_db}
-      COGMEM_API_HOST: 0.0.0.0
-      COGMEM_API_PORT: 8888
+      COGMEM_API_HOST: ${COGMEM_API_HOST:-0.0.0.0}
+      COGMEM_API_PORT: ${COGMEM_API_PORT:-8888}
+      COGMEM_API_LOG_LEVEL: ${COGMEM_API_LOG_LEVEL:-info}
       COGMEM_WAIT_FOR_DEPS: true
-      HUGGINGFACE_HUB_TOKEN: ${HF_TOKEN:-}
+      PRELOAD_ML_MODELS: ${PRELOAD_ML_MODELS:-false}
+      HF_TOKEN: ${HF_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy

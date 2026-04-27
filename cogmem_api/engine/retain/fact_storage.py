@@ -109,8 +109,8 @@ async def insert_facts_batch(
                 $2,
                 $3,
                 $4,
-                $5::vector,
-                $6,
+                $5,
+                $6::vector,
                 $7,
                 $8,
                 $9,
@@ -118,8 +118,9 @@ async def insert_facts_batch(
                 $11,
                 $12,
                 $13,
-                $14::jsonb,
-                $15::text[]
+                $14,
+                $15::jsonb,
+                $16::text[]
             )
             RETURNING id::text
             """,

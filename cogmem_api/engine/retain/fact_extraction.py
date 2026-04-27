@@ -32,6 +32,32 @@ from .types import (
     coerce_fact_type,
 )
 
+def _strip_markdown(text: str) -> str:
+    """Remove inline markdown formatting while preserving all content words.
+
+    Conservative: only strips paired markers where content would survive intact.
+    Does NOT strip lone underscores (snake_case) or lone asterisks (math/wildcards).
+    """
+    # [link text](url) → link text
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+    # **bold** and __bold__ → content
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text, flags=re.DOTALL)
+    text = re.sub(r"__(.+?)__", r"\1", text, flags=re.DOTALL)
+    # `inline code` → content
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    # *italic* → content (only when asterisks wrap a non-empty run of non-asterisk chars)
+    text = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"\1", text)
+    return text
+
+
+# Future-tense planning markers in what → experience should be reclassified as intention
+_FUTURE_PLANNING_PATTERNS: tuple[str, ...] = (
+    r"\bplans?\s+to\b",
+    r"\bintends?\s+to\b",
+    r"\bis\s+going\s+to\b",
+    r"\bare\s+going\s+to\b",
+)
+
 _HABIT_PATTERNS: tuple[str, ...] = (
     r"\balways\b",
     r"\busually\b",
@@ -77,9 +103,13 @@ EVERY fact MUST have these REQUIRED fields:
 OPTIONAL: "when", "who", "why", "fact_kind" (event|conversation), "occurred_start", "occurred_end" (ISO 8601)
 
 FACT TYPE GUIDE:
-1. "world" — objective fact, not time-bound (job, role, skill, location)
+1. "world" — objective fact, not time-bound: job, role, skill, location, general knowledge,
+   technical facts, advice, recommendations, abstract descriptions of challenges.
+   Assistant suggestions and general how-to advice are ALWAYS "world", never "experience".
    {{"fact_type":"world","what":"Alice works as ML Engineer at DI","entities":["Alice","DI"]}}
-2. "experience" — past event at a specific time
+2. "experience" — USER's personal past event at a specific time (purchase, visit, action taken).
+   ONLY use "experience" if the USER (not the assistant) did or experienced something specific.
+   Do NOT use "experience" for assistant suggestions, general advice, or abstract descriptions.
    Include "why" whenever motivation or context is stated or strongly implied.
    Example: "why": "to practice metal painting techniques"
    {{"fact_type":"experience","what":"Alice joined DI in April 2024","entities":["Alice","DI"],"when":"April 2024","why":"to work on real-world ML projects"}}
@@ -590,6 +620,7 @@ def _normalize_llm_facts(
             if not what:
                 logger.debug("Skipping LLM fact with no 'what' field: %r", payload)
                 continue
+            what = _strip_markdown(what)
 
             when = _normalized_optional_text(payload.get("when"))
             who = _normalized_optional_text(payload.get("who"))
@@ -617,6 +648,19 @@ def _normalize_llm_facts(
             for pattern in _HABIT_PATTERNS:
                 if re.search(pattern, fact_text.lower()):
                     fact_type = "habit"
+                    break
+
+        # Heuristic override: if LLM returned "world" but included intention_status,
+        # reclassify as "intention". World facts cannot have planning/fulfilled/abandoned status.
+        if fact_type == "world" and payload.get("intention_status") is not None:
+            fact_type = "intention"
+
+        # Heuristic override: if LLM returned "experience" but what text signals a future plan,
+        # reclassify as "intention". SLMs often use experience for "User plans to..." sentences.
+        if fact_type == "experience":
+            for pattern in _FUTURE_PLANNING_PATTERNS:
+                if re.search(pattern, fact_text.lower()):
+                    fact_type = "intention"
                     break
 
         fact_metadata = dict(content.metadata)

@@ -3,19 +3,20 @@
 #
 # Build args:
 #   INCLUDE_LOCAL_MODELS=true/false  Install local embeddings/reranker dependencies.
-#   PRELOAD_ML_MODELS=true/false     Pre-download local ST models during image build.
 #   TORCH_CPU_VERSION=...            Pin CPU-only torch version used in Docker image.
 #   ST_VERSION=...                   Pin sentence-transformers version in Docker image.
+#
+# Runtime env (set via docker-compose or .env — NOT baked into image):
+#   PRELOAD_ML_MODELS=true/false     Download ST models on first container startup.
+#   HF_TOKEN=...                     HuggingFace token for authenticated downloads.
 
 ARG INCLUDE_LOCAL_MODELS=true
-ARG PRELOAD_ML_MODELS=false
 ARG TORCH_CPU_VERSION=2.11.0
 ARG ST_VERSION=5.3.0
 
 FROM python:3.13-slim AS standalone
 
 ARG INCLUDE_LOCAL_MODELS
-ARG PRELOAD_ML_MODELS
 ARG TORCH_CPU_VERSION
 ARG ST_VERSION
 
@@ -58,17 +59,7 @@ RUN chmod +x /app/start-all.sh \
 USER cogmem
 
 ENV PATH="/app/.venv/bin:${PATH}"
-ENV COGMEM_API_COMMAND="python -m cogmem_api.main"
-ENV COGMEM_API_HOST=0.0.0.0
-ENV COGMEM_API_PORT=8888
-ENV COGMEM_API_LOG_LEVEL=info
 ENV PYTHONUNBUFFERED=1
-
-RUN if [ "${PRELOAD_ML_MODELS}" = "true" ] && [ "${INCLUDE_LOCAL_MODELS}" = "true" ]; then \
-        /app/.venv/bin/python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; SentenceTransformer('BAAI/bge-small-en-v1.5'); CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"; \
-    else \
-        echo "Skipping local ML model preload"; \
-    fi
 
 EXPOSE 8888
 

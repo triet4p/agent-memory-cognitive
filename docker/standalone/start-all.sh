@@ -1,6 +1,55 @@
 #!/bin/bash
 set -euo pipefail
 
+# ---------------------------------------------------------------------------
+# Startup config dump — print every important variable so there is no
+# ambiguity about what value is actually in effect at runtime.
+# Sensitive values (tokens, passwords) are masked: shown as SET/UNSET only.
+# ---------------------------------------------------------------------------
+_mask() {
+    # Print SET or UNSET for a variable name
+    local val="${!1:-}"
+    [ -n "$val" ] && echo "SET" || echo "UNSET"
+}
+_db_url_safe() {
+    # Strip password from DATABASE_URL for logging
+    echo "${COGMEM_API_DATABASE_URL:-}" | sed 's|://[^:]*:[^@]*@|://***:***@|'
+}
+
+echo "=========================================="
+echo " CogMem startup config"
+echo "=========================================="
+echo " API"
+echo "   COGMEM_API_COMMAND     = ${COGMEM_API_COMMAND:-cogmem-api}"
+echo "   COGMEM_API_HOST        = ${COGMEM_API_HOST:-0.0.0.0}"
+echo "   COGMEM_API_PORT        = ${COGMEM_API_PORT:-8888}"
+echo "   COGMEM_API_LOG_LEVEL   = ${COGMEM_API_LOG_LEVEL:-info}"
+echo " Database"
+echo "   COGMEM_API_DATABASE_URL= $(_db_url_safe)"
+echo "   COGMEM_WAIT_FOR_DEPS   = ${COGMEM_WAIT_FOR_DEPS:-false}"
+echo " LLM (retain)"
+echo "   LLM_BASE_URL           = ${COGMEM_API_LLM_BASE_URL:-UNSET}"
+echo "   LLM_MODEL              = ${COGMEM_API_LLM_MODEL:-ministral3-3b}"
+echo "   EXTRACTION_MODE        = ${COGMEM_API_RETAIN_EXTRACTION_MODE:-concise}"
+echo " LLM (generate)"
+echo "   GENERATE_LLM_BASE_URL  = ${COGMEM_API_GENERATE_LLM_BASE_URL:-UNSET}"
+echo "   GENERATE_LLM_MODEL     = ${COGMEM_API_GENERATE_LLM_MODEL:-UNSET}"
+echo " ML models"
+echo "   PRELOAD_ML_MODELS      = ${PRELOAD_ML_MODELS:-false}"
+echo "   HF_TOKEN               = $(_mask HF_TOKEN)"
+echo "=========================================="
+
+# Pre-download ML models at startup so HF_TOKEN from runtime environment is available.
+# Set PRELOAD_ML_MODELS=true to enable; safe to skip if models are already cached.
+if [ "${PRELOAD_ML_MODELS:-false}" = "true" ]; then
+    echo "Preloading ML models from HuggingFace..."
+    python -c "
+from sentence_transformers import SentenceTransformer, CrossEncoder
+SentenceTransformer('BAAI/bge-small-en-v1.5')
+CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+" || echo "Warning: ML model preload failed — models will be downloaded on first use."
+fi
+
 API_COMMAND="${COGMEM_API_COMMAND:-cogmem-api}"
 API_HEALTH_URL="${COGMEM_API_HEALTH_URL:-http://localhost:${COGMEM_API_PORT:-8888}/health}"
 API_STARTUP_WAIT_SECONDS="${COGMEM_API_STARTUP_WAIT_SECONDS:-120}"
