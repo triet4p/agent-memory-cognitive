@@ -50,10 +50,13 @@ def build_judge_system_prompt(category: str | None) -> str:
         return (
             "You are an evaluation judge for a memory system.\n"
             "I will give you a question, a correct answer, and a model response.\n"
-            "Set correct=true if the response contains the correct answer or equivalent.\n"
+            "Score rubric (0.0-1.0):\n"
+            "- 1.0: correct and complete\n"
+            "- 0.7-0.9: correct but slightly rephrased or minor detail missing\n"
+            "- 0.3-0.6: partially correct — right topic but missing key facts, wrong count, or hedged answer\n"
+            "- 0.0-0.2: wrong, fabricated, or completely missing the answer\n"
             "Do NOT penalize off-by-one errors for counts of days/weeks/months "
             "(e.g. 18 days vs 19 days is still correct).\n"
-            "Set correct=false if the response contains only a subset of required information.\n"
             'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
         )
 
@@ -91,12 +94,12 @@ def build_judge_system_prompt(category: str | None) -> str:
         "You are an evaluation judge for a memory recall system.\n"
         "Your task: label the model's answer as correct or incorrect.\n"
         "You will be given a question, a gold (ground truth) answer, and a generated answer.\n"
-        "Rules:\n"
-        "- Set correct=true if the generated answer contains or is equivalent to the gold answer.\n"
-        "- Set correct=true if it contains all intermediate steps needed to reach the gold answer.\n"
-        "- Set correct=false if it contains only a SUBSET of required information.\n"
-        "- The generated answer may be longer — be generous: if it touches the same topic as the gold, count as correct.\n"
-        "- For time questions: if it refers to the same date/period (even different format), count as correct.\n"
+        "Score rubric (0.0-1.0):\n"
+        "- 1.0: correct and complete\n"
+        "- 0.7-0.9: correct but slightly rephrased or minor detail missing\n"
+        "- 0.3-0.6: partially correct — right topic but missing key facts, wrong count, or hedged answer\n"
+        "- 0.0-0.2: wrong, fabricated, or completely missing the answer\n"
+        "For count/quantity questions: if the number is wrong, score <= 0.3 even if the topic is right.\n"
         'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
     )
 

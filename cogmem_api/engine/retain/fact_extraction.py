@@ -579,7 +579,15 @@ def _sanitize_temporal_fact(payload: dict[str, Any]) -> dict[str, Any]:
 
     SLMs often fill 'when'/'occurred_start'/'occurred_end' with today's date
     when no real time context exists.  We detect this and reset those fields.
+    World facts are time-independent by definition — always strip temporal fields.
     """
+    # World facts must not carry temporal metadata (it's always hallucinated)
+    if str(payload.get("fact_type", "")).lower() == "world":
+        payload["when"] = None
+        payload["occurred_start"] = None
+        payload["occurred_end"] = None
+        return payload
+
     today_prefix = date.today().isoformat()  # e.g. "2026-04-20"
     what_lower = str(payload.get("what", "")).lower()
     has_real_time_context = any(kw in what_lower for kw in _TODAY_TIME_KEYWORDS)

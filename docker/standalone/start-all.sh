@@ -35,7 +35,7 @@ echo " LLM (generate)"
 echo "   GENERATE_LLM_BASE_URL  = ${COGMEM_API_GENERATE_LLM_BASE_URL:-UNSET}"
 echo "   GENERATE_LLM_MODEL     = ${COGMEM_API_GENERATE_LLM_MODEL:-UNSET}"
 echo " ML models"
-echo "   PRELOAD_ML_MODELS      = ${PRELOAD_ML_MODELS:-false}"
+echo "   PRELOAD_ML_MODELS      = ${COGMEM_DOCKER_INCLUDE_LOCAL_MODELS:-false}"
 echo "   HF_TOKEN               = $(_mask HF_TOKEN)"
 echo "=========================================="
 

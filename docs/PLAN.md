@@ -1607,7 +1607,7 @@ Output: `logs/task_770_summary.md`
 
 ---
 
-### Sprint S24.7 — Retain Quality Fixes (Chunk Snippet + Richer Extraction)
+### Sprint S24.7 — Retain Quality Fixes (Chunk Snippet + Richer Extraction) ✅
 
 ## Context
 
@@ -1785,14 +1785,421 @@ Trade-off:
 
 ---
 
-### Sprint S25 - Full Ablation Dry Run Gate 🔄
+## Plan: Sprint S24.8 — chunk_id Pipeline Fix + Judge Scoring + Entity Diagnostics
+
+### Context
+
+Sau khi re-retain toàn bộ data với code S24.7, kiểm tra SQL thấy `chunk_id` vẫn NULL toàn bộ. Checkpoint E7_full_c000 mới nhất cho thấy:
+- Recall tìm được 4/5 kits (Spitfire Mk.V bị miss)
+- Generation trả lời "at least 2" thay vì "5" → judge cho 0.4 (partial credit không rõ tiêu chí)
+- `chunk_id = null` toàn bộ → dedup snippet logic không hoạt động, raw_snippet vẫn dùng session-level fallback
+
+**Root cause 1 — chunk_id NULL:** `orchestrator.py` line 127 có guard `if chunks and document_id:`. `document_id` ở đây là **top-level parameter** của `retain_batch()`, KHÔNG phải per-content document_id. Khi HTTP endpoint gọi `retain_batch_async(bank_id=bank_id, contents=contents)`, top-level `document_id=None` → block bị skip hoàn toàn dù mỗi content item đã có `document_id` riêng trong dict.
+
+**Root cause 2 — Judge 0.4 không rõ:** Default judge prompt có mâu thuẫn: "Set correct=false if SUBSET" nhưng "be generous: if it touches the same topic, count as correct". LLM judge tự quyết score 0.4 mà không có rubric → không nhất quán, đặc biệt cho count/quantity questions.
+
+---
+
+### Task 775 — Fix chunk_id pipeline: bỏ dependency vào top-level document_id
+
+#### File: `cogmem_api/engine/retain/orchestrator.py`
+
+**Vấn đề:**
+```python
+# HIỆN TẠI — bị skip khi top-level document_id=None
+if chunks and document_id:
+    chunk_id_map = await chunk_storage.store_chunks_batch(conn, bank_id, document_id, chunks)
+    for extracted_fact, processed_fact in zip(extracted_facts, processed_facts):
+        processed_fact.chunk_id = chunk_id_map.get(extracted_fact.chunk_index)
+```
+
+**Fix:** Dùng per-content `document_id` (từ `contents_dicts`) để generate chunk_id. Tách chunk_id assignment ra khỏi `store_chunks_batch` call.
+
+```python
+# SAU — generate chunk_id từ per-content document_id
+if chunks:
+    for extracted_fact, processed_fact in zip(extracted_facts, processed_facts):
+        fact_doc_id = (
+            contents_dicts[extracted_fact.content_index].get("document_id")
+            or document_id
+        )
+        if fact_doc_id:
+            processed_fact.chunk_id = f"{bank_id}_{fact_doc_id}_{extracted_fact.chunk_index}"
+
+# Giữ store_chunks_batch cho DB persistence (no-op hiện tại nhưng future-proof)
+if chunks and document_id:
+    await chunk_storage.store_chunks_batch(conn, bank_id, document_id, chunks)
+```
+
+`chunk_id` format `{bank_id}_{document_id}_{chunk_index}` khớp với fallback logic đã có trong `chunk_storage.py` line 20.
+
+---
+
+### Task 776 — Fix judge scoring: thêm score rubric rõ ràng
+
+#### File: `cogmem_api/engine/eval_helpers.py`
+
+**Vấn đề:** Default judge prompt thiếu score rubric. LLM judge tự quyết 0.4 cho "right topic wrong count".
+
+**Fix:** Thêm score mapping vào default prompt và temporal prompt:
+
+```
+Score rubric (0.0–1.0):
+- 1.0: correct and complete
+- 0.7–0.9: correct but slightly rephrased or minor detail missing
+- 0.3–0.6: partially correct — right topic but missing key facts, wrong count, or hedged answer
+- 0.0–0.2: wrong, fabricated, or completely missing the answer
+
+For count/quantity questions: if the number is wrong, score ≤ 0.3 even if the topic is right.
+```
+
+Bỏ câu "be generous: if it touches the same topic as the gold, count as correct" — đây là nguồn gây mâu thuẫn.
+
+---
+
+### Task 777 — Entity diagnostic search
+
+#### Sau khi 2 task trên done, thêm debug capability để tìm fact theo entity/keyword.
+
+**Approach:** Thêm hàm script riêng `scripts/diagnose_bank.py`:
+- Input: `bank_id`, `entity_keyword`, optional `fact_type`
+- Output: danh sách facts matching (text, fact_type, document_id, chunk_id, has_snippet)
+- Implementation: SQL `WHERE text ILIKE '%keyword%' AND bank_id = $1` + optional entity join
+- Cũng check xem entity có trong `unit_entities` table không
+
+**SQL mẫu:**
+```sql
+SELECT mu.id, mu.fact_type, mu.text, mu.document_id, mu.chunk_id,
+       mu.raw_snippet IS NOT NULL AS has_snippet
+FROM memory_units mu
+WHERE mu.bank_id = $1
+  AND (mu.text ILIKE $2 OR EXISTS (
+    SELECT 1 FROM unit_entities ue
+    JOIN entities e ON ue.entity_id = e.id
+    WHERE ue.unit_id = mu.id AND e.name ILIKE $2
+  ))
+ORDER BY mu.created_at DESC
+LIMIT 20;
+```
+
+---
+
+### Artifact & verification
+
+| Artifact | Nội dung |
+|----------|---------|
+| `tests/artifacts/test_task775_chunk_id_pipeline.py` | Kiểm tra: mock retain với per-content document_id → chunk_id không còn NULL |
+| `tests/artifacts/test_task776_judge_rubric.py` | Kiểm tra: prompt có "score ≤ 0.3" cho count/quantity wrong |
+| `logs/task_775_summary.md` | Summary |
+| `logs/task_776_summary.md` | Summary |
+
+**Exit gate:**
+1. `uv run python tests/artifacts/test_task775_chunk_id_pipeline.py` → PASS
+2. `uv run python tests/artifacts/test_task776_judge_rubric.py` → PASS
+3. SQL kiểm tra sau re-retain: `chunk_id IS NOT NULL` count > 0
+4. Chạy lại E7 → `chunk_id` có giá trị trong checkpoint, judge score rõ ràng hơn
+
+---
+
+### Sprint S25 — 2-Pass Speaker-Aware Extraction + Prompt Centralization 🔄
+
+## Context
+
+**Why this change.** E7 evaluation v7 trên LongMemEval cho thấy hệ thống miss 2/5 model kits (Spitfire Mk.V, Camaro). Diagnose qua API `/recall` xác nhận:
+- DB chỉ có `world` facts về kỹ thuật (Spitfire painting techniques, Camaro wire details) — không có `experience` fact "User bought/finished Tamiya 1/48 Spitfire Mk.V" hay "User got 1/24 '69 Camaro at model show".
+- Retain pipeline đọc các session đó nhưng chỉ extract assistant's verbose advice (chiếm ~80% chunk text), bỏ qua user's brief side-notes như "By the way, I just got this kit..." hay "I recently finished a Tamiya 1/48 scale Spitfire Mk.V".
+
+**Root cause architectural.** Single-pass LLM extraction trên mixed-speaker chunk → attention asymmetry: Ministral-3B bị dominate bởi turn dài (assistant), miss turn ngắn (user). Đây là vấn đề chung của extraction trên dialogue, không chỉ riêng 2 case này.
+
+**Theoretical foundation.** Information density asymmetry: user turns dense (goal-oriented utterance, Grice maxim of quantity), assistant turns verbose (RLHF-tuned inflation). Personal facts memorable nằm ở "human source"; assistant nội dung chủ yếu là common knowledge. Áp dụng được cho LongMemEval (1 user) và LoCoMo (N peer personas).
+
+**Outcome mong đợi.**
+- Pass 2 capture user-side experience/habit/intention/opinion mà Pass 1 đã miss.
+- Spitfire và Camaro experience facts xuất hiện trong DB sau re-retain.
+- E7 recall top-20 chứa cả 5 kits.
+- Codebase prompt management: từ rải rác sang centralized — dễ A/B test, dễ version, dễ unit test.
+
+---
+
+## Architecture Overview
+
+```
+HTTP /memories  ──►  RetainItem.messages  (new structured input)
+                       │
+                       ▼
+                  orchestrator.retain_batch
+                       │
+                       ▼
+              fact_extraction.extract_facts_from_contents
+                       │
+        ┌──────────────┼──────────────┐
+        ▼                             ▼
+    PASS 1                         PASS 2
+  (full chunk,                  (per-speaker turns,
+   wide context,                 high-density,
+   all 6 fact types)             4 personal types)
+        │                             │
+        └──────────────┬──────────────┘
+                       ▼
+                 dedup_facts
+                       │
+                       ▼
+            embedding/storage/links
+                       │
+                       ▼
+                final unit_ids
+```
+
+Each pass produces `chunk_id` in its own namespace (`p1_*`, `p2_*`) — no collision. Dedup keeps Pass 2 fact when 4 personal types overlap, keeps Pass 1 fact for `world`/`action_effect`.
+
+---
+
+## Task Breakdown
+
+### Task 778 — API: structured messages input
+
+**Files:** [cogmem_api/api/http.py](cogmem_api/api/http.py), [cogmem_api/engine/retain/types.py](cogmem_api/engine/retain/types.py)
+
+- Add `MessageInput(role: str, content: str)` Pydantic model.
+- Extend `RetainItem`: add `messages: list[MessageInput] | None = None`. Keep `content: str` for backward compat.
+- Validation: at least one of `content` or `messages` must be non-empty.
+- Extend `RetainContentDict` and `RetainContent`: add `messages: list[dict] | None = None`.
+- `_build_retain_payload`: if `messages` provided, pass through; else fall back to `content`.
+
+**Note:** `content` field tự động được derive từ `messages` (concat with role prefixes) khi `messages` provided — để các module downstream chưa được update vẫn hoạt động.
+
+### Task 779 — Prompt centralization
+
+**New directory:** `cogmem_api/prompts/`
+
+```
+cogmem_api/prompts/
+  __init__.py                  # public API: build_pass1_prompt, build_pass2_prompt, build_judge_prompt, build_generation_prompt
+  retain/
+    __init__.py
+    pass1.py                   # _BASE_PROMPT, _CONCISE_MODE, _VERBATIM_MODE, _VERBOSE_MODE, _CUSTOM_MODE moved from fact_extraction.py
+    pass2.py                   # NEW: persona-focused prompt (4 fact types only)
+    shared.py                  # FACT_TYPE_GUIDE, OUTPUT_FORMAT_RULES, RELATIONS blocks
+  eval/
+    __init__.py
+    judge.py                   # build_judge_system_prompt moved from eval_helpers.py
+    generate.py                # build_generation_prompt moved from eval_helpers.py
+```
+
+- Move existing prompt strings out of `fact_extraction.py` and `eval_helpers.py`.
+- `eval_helpers.py` only keeps utility (`parse_judge_response`).
+- `fact_extraction.py` imports from `cogmem_api.prompts.retain.pass1` / `pass2`.
+- Pass 1 prompt = current `_BASE_PROMPT` with 2 minor edits:
+  - Drop "ONLY use 'experience' if the USER (not the assistant) did or experienced something specific" — Pass 2 will be canonical for user experience.
+  - Add line: "This is Pass 1 of 2-pass extraction; a second pass focuses on user-only segments. Prioritize cross-turn synthesis facts and assistant-side facts here."
+
+### Task 780 — Pass 2 prompt design
+
+**File:** `cogmem_api/prompts/retain/pass2.py`
+
+Prompt design principles:
+- Input is single-speaker text (already filtered to user turns or single persona's turns).
+- Allowed fact types: `experience`, `habit`, `intention`, `opinion` (no `world`, no `action_effect`).
+- Instruction frame: "The text below is from a single speaker describing their own context. Extract personal facts they reveal about themselves."
+- Be aggressive about brief mentions: "Even a single short statement like 'I bought X' or 'I'm planning Y' MUST be extracted as a separate fact."
+- Same JSON output format as Pass 1 (reuse parsing logic).
+
+### Task 781 — Two chunking strategies
+
+**New file:** `cogmem_api/engine/retain/chunking.py`
+
+Two functions:
+
+**`chunk_for_pass1(messages, max_chars=10000) -> list[Pass1Chunk]`**
+- Internal representation: list of `(role, sentence)` tuples — each message is sentence-split with its role attached to every sentence it produced.
+- Pack sentences into chunks ≤ `max_chars`. **Sentences within a single turn CAN be split across chunks** (we are sentence-based, not turn-based).
+- **Role marker duplication on split:** when a chunk cuts in the middle of a speaker's turn, the next chunk MUST prepend the same role marker so every chunk independently knows who is speaking at every position.
+  - Example: assistant turn with 50 sentences exceeding `max_chars` → chunk N ends with assistant sentences 1..30 → chunk N+1 starts with `[assistant]: ` followed by sentences 31..50, then transitions to whoever speaks next.
+  - When the speaker changes within a chunk, render new role marker inline: `... [user]: ... [assistant]: ...`.
+- Render rule per chunk: walk the (role, sentence) list; emit role marker whenever (a) it is the first sentence of the chunk, or (b) the role differs from the previous sentence in this chunk.
+- Each `Pass1Chunk` carries: `text` (rendered with role markers), `chunk_index`, `messages_covered: list[int]` (which message indexes appear in this chunk, even partially).
+- Default `max_chars=10000` (~3000 tokens) — wider context than current 3000 chars.
+
+**`chunk_for_pass2(messages, target_role="user", max_chars=3000) -> list[Pass2Chunk]`**
+- Filter messages where `role == target_role` (or any role in a target set, for multi-persona).
+- For each filtered turn:
+  - If `len(turn.content) <= max_chars`: 1 sub-chunk = that turn text.
+  - Else: sentence-split that turn and pack into multiple sub-chunks ≤ `max_chars`.
+- `Pass2Chunk` carries: `text`, `chunk_index`, `source_message_idx`, `sub_chunk_index`, `target_role`.
+
+**`Pass1Chunk.chunk_id_suffix = f"p1_{chunk_index}"`**
+**`Pass2Chunk.chunk_id_suffix = f"p2_{source_message_idx}_{sub_chunk_index}"`**
+
+Final `chunk_id` format: `{bank_id}_{document_id}_{suffix}`. Two namespaces, no conflict.
+
+### Task 782 — Refactor `_extract_facts_with_llm` for 2-pass
+
+**File:** [cogmem_api/engine/retain/fact_extraction.py](cogmem_api/engine/retain/fact_extraction.py)
+
+Replace single loop with:
+
+```python
+async def _extract_facts_with_llm(content, content_index, llm_config, config):
+    if content.messages:
+        pass1_chunks = chunk_for_pass1(content.messages, max_chars=...)
+        pass2_chunks = chunk_for_pass2(content.messages, target_role="user", max_chars=...)
+    else:
+        # Backward-compat path: parse "user:" / "assistant:" from plain text
+        parsed_messages = _parse_legacy_text(content.content)
+        pass1_chunks = chunk_for_pass1(parsed_messages, ...)
+        pass2_chunks = chunk_for_pass2(parsed_messages, ...)
+
+    # Pass 1 — full chunks, all 6 fact types
+    facts_p1 = []
+    for pc in pass1_chunks:
+        raw = await _call_llm_chunk(pass1_prompt, pc.text, ...)
+        facts_p1 += _normalize_llm_facts(raw, content, content_index, pc.chunk_id_suffix, ...)
+
+    # Pass 2 — user segments only, 4 personal fact types
+    facts_p2 = []
+    if config.retain_two_pass_enabled:
+        for pc in pass2_chunks:
+            raw = await _call_llm_chunk(pass2_prompt, pc.text, ...)
+            normalized = _normalize_llm_facts(raw, content, content_index, pc.chunk_id_suffix, ...)
+            normalized = [f for f in normalized if f.fact_type in PASS2_ALLOWED]
+            facts_p2 += normalized
+
+    final_facts = dedup_facts(facts_p1, facts_p2)
+    return final_facts, all_chunks, total_usage
+```
+
+`PASS2_ALLOWED = {"experience", "habit", "intention", "opinion"}`. Drop any Pass 2 fact whose type is not in this set (model violation).
+
+### Task 783 — Cross-pass dedup
+
+**New file:** `cogmem_api/engine/retain/dedup.py`
+
+Function `dedup_facts(facts_p1, facts_p2) -> list[ExtractedFact]`:
+
+- Build keys per fact: `key = (fact_type, normalized_text)` where `normalized_text` is lowercased + whitespace-collapsed + first 120 chars.
+- For 4 personal types: if same key in both passes → keep Pass 2 (more reliable for user content), drop Pass 1.
+- For `world` / `action_effect`: Pass 2 cannot extract these (filtered out at task 782) — only Pass 1 contributes.
+- Fuzzy match (optional, behind config flag): rapidfuzz `token_set_ratio >= 90` on `text` field, same `fact_type` → dedup.
+
+Rationale for normalization: Pass 1 và Pass 2 có thể paraphrase khác nhau (ví dụ "User bought Camaro" vs "User got 1/24 '69 Camaro at model show"). Exact match miss được. Fuzzy match khi có rapidfuzz — đã có trong dependencies hay không cần check; nếu chưa, fallback exact match.
+
+### Task 784 — Config + Eval script update
+
+**File:** [cogmem_api/config.py](cogmem_api/config.py)
+
+Add fields (env-driven):
+- `retain_two_pass_enabled: bool = True` (env `COGMEM_API_RETAIN_TWO_PASS_ENABLED`)
+- `retain_pass1_chunk_chars: int = 10000` (env `COGMEM_API_RETAIN_PASS1_CHUNK_CHARS`)
+- `retain_pass2_chunk_chars: int = 3000` (env `COGMEM_API_RETAIN_PASS2_CHUNK_CHARS`)
+- `retain_pass2_target_roles: tuple[str,...] = ("user",)` — for LoCoMo: `("speaker_a", "speaker_b")` etc.
+
+**File:** [scripts/eval_cogmem.py](scripts/eval_cogmem.py)
+
+- Update `retain_fixture()` to send `messages: [{role, content}]` instead of joined `"role: content"` plain text. The fixture loader already has structured turns ([line 186-191](scripts/eval_cogmem.py#L186-L191)) — just stop concatenating, send as-is.
+- Backward-compat: if API rejects (older server), fall back to plain text path.
+
+### Task 785 — Artifact tests
+
+**Files:**
+- `tests/artifacts/test_task781_chunking.py`
+  - Pass 1 chunker: long mixed-speaker text → produces N chunks ≤ max_chars; every chunk starts with a role marker; when a single turn spans 2 chunks, the second chunk's first marker matches the speaker of the split turn (marker duplication verified).
+  - Pass 2 chunker: only user turns extracted; long user turn sub-chunked correctly.
+  - Empty `messages` → empty chunk list (no crash).
+- `tests/artifacts/test_task782_two_pass_extraction.py`
+  - With `FakeLLM` returning canned facts: Pass 1 gets full chunk, Pass 2 gets user-only text. Verify both LLM calls happen.
+  - Pass 2 fact with `fact_type="world"` → filtered out.
+  - `retain_two_pass_enabled=False` → only Pass 1 runs.
+- `tests/artifacts/test_task783_dedup.py`
+  - Same `(fact_type, normalized_text)` in both passes → keeps Pass 2.
+  - Different normalized texts → both kept.
+- `tests/artifacts/test_task779_prompt_organization.py`
+  - All Pass 1/Pass 2/judge/generate prompts reachable via `cogmem_api.prompts.*`.
+  - `eval_helpers.py` no longer contains prompt template strings (only utilities).
+
+---
+
+## Files to Create
+
+- `cogmem_api/prompts/__init__.py`
+- `cogmem_api/prompts/retain/__init__.py`
+- `cogmem_api/prompts/retain/pass1.py`
+- `cogmem_api/prompts/retain/pass2.py`
+- `cogmem_api/prompts/retain/shared.py`
+- `cogmem_api/prompts/eval/__init__.py`
+- `cogmem_api/prompts/eval/judge.py`
+- `cogmem_api/prompts/eval/generate.py`
+- `cogmem_api/engine/retain/chunking.py`
+- `cogmem_api/engine/retain/dedup.py`
+- `tests/artifacts/test_task779_prompt_organization.py`
+- `tests/artifacts/test_task781_chunking.py`
+- `tests/artifacts/test_task782_two_pass_extraction.py`
+- `tests/artifacts/test_task783_dedup.py`
+
+## Files to Modify
+
+- [cogmem_api/api/http.py](cogmem_api/api/http.py) — `RetainItem.messages`, `MessageInput`, `_build_retain_payload`
+- [cogmem_api/engine/retain/types.py](cogmem_api/engine/retain/types.py) — `RetainContentDict.messages`, `RetainContent.messages`
+- [cogmem_api/engine/retain/fact_extraction.py](cogmem_api/engine/retain/fact_extraction.py) — remove prompt constants, split `_extract_facts_with_llm` into 2-pass
+- [cogmem_api/engine/retain/orchestrator.py](cogmem_api/engine/retain/orchestrator.py) — propagate `messages` to `RetainContent`
+- [cogmem_api/engine/eval_helpers.py](cogmem_api/engine/eval_helpers.py) — remove prompt builders (re-export from `cogmem_api.prompts.eval` for backward compat, or delete file if no other utilities)
+- [cogmem_api/config.py](cogmem_api/config.py) — new env fields
+- [scripts/eval_cogmem.py](scripts/eval_cogmem.py) — send structured messages
+
+---
+
+## Verification
+
+### Local unit/artifact tests
+```bash
+uv run python tests/artifacts/test_task779_prompt_organization.py
+uv run python tests/artifacts/test_task781_chunking.py
+uv run python tests/artifacts/test_task782_two_pass_extraction.py
+uv run python tests/artifacts/test_task783_dedup.py
+```
+All must print `N/N PASS`.
+
+### Integration: re-retain LongMemEval
+1. Delete bank: `curl -X DELETE http://localhost:8888/v1/default/banks/COGMEM_S24_e567_c000`
+2. Verify 0 nodes: `curl http://localhost:8888/v1/default/banks/COGMEM_S24_e567_c000/stats`
+3. Re-retain: run eval with `--skip-recall` or full E7 retain phase.
+4. Diagnose:
+   ```bash
+   curl -X POST .../recall -d '{"query":"Spitfire Mk.V purchased finished","fact_types":["experience"],"top_k":5}'
+   curl -X POST .../recall -d '{"query":"Camaro 69 model kit got","fact_types":["experience"],"top_k":5}'
+   ```
+   Both queries must return at least 1 `experience` fact mentioning the kit.
+
+### E2E: E7 evaluation
+Re-run E7 full pipeline. Acceptance criteria:
+- Question "How many model kits have I worked on or bought?" → recall top-20 contains at least 1 experience fact for each of the 5 kits.
+- Generated answer mentions at least 4/5 kits (allow some tolerance).
+- Judge `correct=True` or `score >= 0.7`.
+
+### Performance regression check
+- Baseline retain time per session (single-pass): record from current logs.
+- New retain time (2-pass): expect ~1.5–2.0x baseline. If >2.5x, profile and tune.
+
+### LoCoMo dry-run (optional, deferred)
+With `retain_pass2_target_roles = ("speaker_a","speaker_b")` and a small LoCoMo sample, verify per-persona Pass 2 chunks are produced. No extraction quality assertion — just structural smoke test.
+
+---
+
+## Out of Scope (deferred)
+
+- Cross-encoder rerank quality issue (rank-1 cliff with score 0.78 on world fact). Address only if 2-pass alone doesn't lift E7. Likely fix path: per-fact-type cross-encoder weighting or fact-aware reranker fine-tune.
+- Generation prompt rework (current prompt OK once recall returns the right facts).
+- Embedding model swap.
+
+---
+
+## Sprint S-final — Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
 1. Chạy toàn bộ E1-E7 trên benchmark subset thực — xác nhận pipeline hoạt động end-to-end trước khi run chính thức.
 2. Phát hiện bottleneck, lỗi runtime, và kết quả bất thường trước khi đầu tư tài nguyên vào full run.
 
 Phụ thuộc:
-1. S23 PASS.
+1. S24.8 PASS.
 
 Inputs bắt buộc:
 1. Stratified subset đã chọn từ S21 (seed cố định)
@@ -1800,19 +2207,19 @@ Inputs bắt buộc:
 3. `scripts/ablation_runner.py` đã integrate benchmark loaders + per-category metrics
 
 Atomic tasks:
-1. S24.1 Dry run E1 baseline:
+1. S-final.1 Dry run E1 baseline:
 	- Chạy E1 trên LongMemEval-S subset (~30 questions) và LoCoMo subset (~10 conversations).
 	- Kiểm tra: không có lỗi runtime, output JSON đúng schema, judge trả về kết quả coherent.
 	- Ghi lại: tổng thời gian, LLM call count, latency p50/p95.
 	- Output: `reports/dry_run_E1.json`, `logs/task_761_summary.md`.
 
-2. S24.2 Dry run E2-E7 ablation:
+2. S-final.2 Dry run E2-E7 ablation:
 	- Chạy E2-E7 trên cùng subset.
 	- So sánh per-category accuracy giữa các profiles — trend phải coherent với hypothesis trong spec (E2 cải thiện Preference, E6 cải thiện Multi-hop, v.v.).
 	- Nếu trend ngược với hypothesis: flag là anomaly, không block sprint nhưng phải document.
 	- Output: `reports/dry_run_E2_E7.json`, `logs/task_762_summary.md`.
 
-3. S24.3 Evaluation readiness gate:
+3. S-final.3 Evaluation readiness gate:
 	- Tạo checklist kết quả: pipeline chạy không lỗi, metrics coherent, anomalies documented.
 	- Nếu PASS: unlock chạy full benchmark.
 	- Output: `reports/eval_readiness_gate.md`, `logs/task_763_summary.md`, `tests/artifacts/test_task763_eval_readiness_gate.py`.
@@ -1865,8 +2272,10 @@ Rủi ro và fallback:
 | Eval Readiness | S24 | Retrieval stack quality hardening (schema/index/ef_search/tags) | ✅ Done | 758-760 |
 | Eval Readiness | S24.5 | Eval pipeline correctness (two-tier recall, gen/judge endpoints) | ✅ Done | 764-767 |
 | Eval Readiness | S24.6 | Eval quality fixes (snippet dedup, cross-encoder, dual model) | ✅ Done | 768-771 |
-| Eval Readiness | S24.7 | Retain quality fixes (chunk snippet + richer extraction) | 🔄 Next | 772-774 |
-| Eval Readiness | S25 | Full ablation dry run gate (E1-E7) | 🔄 Pending S24.7 | 761-763 |
+| Eval Readiness | S24.7 | Retain quality fixes (chunk snippet + richer extraction) | ✅ Done | 772-774 |
+| Eval Readiness | S24.8 | hot fix chunk id, judge rubric, entity diagnostics | ✅ Done | 775-777 |
+| Eval Readiness | S25 | 2-Pass Speaker-Aware Extraction + Prompt Centralization | 🔄 Pending | 778-785 |
+| Eval Readiness | S-final | Full ablation dry run gate (E1-E7) | 🔄 Pending | 761-763 |
 
 ---
 
@@ -1884,12 +2293,14 @@ Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-
 **S20 (tasks 743-745):** Contribution gaps closure ✅ DONE
 **S21 (tasks 746-748):** Benchmark adapter integration ✅ DONE
 **S22 (tasks 749-752):** Eval metrics & judge LLM ✅ DONE
-→ **S23 (task 753):** Session-level Recall@k implementation
-→ **S24 (tasks 758-760):** Retrieval stack quality hardening
-→ **S25 (tasks 761-763):** Full ablation dry run gate
+→ **S23 (task 753):** Session-level Recall@k implementation ✅ DONE
+→ **S24 (tasks 758-760):** Retrieval stack quality hardening ✅ DONE
+→ **S24.5-S24.8 (tasks 764-777):** Eval pipeline correctness + quality fixes ✅ DONE
+→ **S25 (tasks 778-785):** 2-Pass Speaker-Aware Extraction + Prompt Centralization 🔄 Pending
+→ **S-final (tasks 761-763):** Full Ablation Dry Run Gate 🔄 Pending
 
-### Future (Dependent on S25 PASS)
-Post-S25: C5 (Hierarchical KG) track, full benchmark run, publication track
+### Future (Dependent on S-final PASS)
+Post-S-final: C5 (Hierarchical KG) track, full benchmark run, publication track
 
 Hard rules:
 1. S20 entry gate: S15 FULL coverage confirmed ✅
@@ -1897,8 +2308,9 @@ Hard rules:
 3. S22 dependency: S21 PASS ✅
 4. S23 dependency: S22 PASS ✅
 5. S24 dependency: S23 PASS + task 757 hotfixes PASS
-6. S25 dependency: S24 PASS
-7. C5 deferred: không chặn eval trong vòng này
+6. S25 dependency: S24.8 PASS
+7. S-final dependency: S25 PASS
+8. C5 deferred: không chặn eval trong vòng này
 
 ---
 

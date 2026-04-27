@@ -523,6 +523,7 @@ def run_recall_only_pipeline(
                     {
                         "rank": i + 1,
                         "document_id": r.get("document_id"),
+                        "chunk_id": r.get("chunk_id"),
                         "fact_type": r.get("type"),
                         "score": r.get("score"),
                         "cross_encoder_score": r.get("cross_encoder_score"),
@@ -668,6 +669,7 @@ def run_full_pipeline(
                     {
                         "rank": i + 1,
                         "document_id": r.get("document_id"),
+                        "chunk_id": r.get("chunk_id"),
                         "fact_type": r.get("type"),
                         "score": r.get("score"),
                         "cross_encoder_score": r.get("cross_encoder_score"),

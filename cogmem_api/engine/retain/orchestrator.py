@@ -124,10 +124,17 @@ async def retain_batch(
             async with _maybe_transaction(conn):
                 await fact_storage.ensure_bank_exists(conn, bank_id)
 
-                if chunks and document_id:
-                    chunk_id_map = await chunk_storage.store_chunks_batch(conn, bank_id, document_id, chunks)
+                if chunks:
                     for extracted_fact, processed_fact in zip(extracted_facts, processed_facts):
-                        processed_fact.chunk_id = chunk_id_map.get(extracted_fact.chunk_index)
+                        fact_doc_id = (
+                            contents_dicts[extracted_fact.content_index].get("document_id")
+                            or document_id
+                        )
+                        if fact_doc_id:
+                            processed_fact.chunk_id = f"{bank_id}_{fact_doc_id}_{extracted_fact.chunk_index}"
+
+                    if document_id:
+                        await chunk_storage.store_chunks_batch(conn, bank_id, document_id, chunks)
 
                 created_unit_ids = await fact_storage.insert_facts_batch(
                     conn=conn,
