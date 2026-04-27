@@ -54,6 +54,13 @@ ENV_RERANKER_TEI_URL = "COGMEM_API_RERANKER_TEI_URL"
 ENV_RERANKER_TEI_BATCH_SIZE = "COGMEM_API_RERANKER_TEI_BATCH_SIZE"
 ENV_RERANKER_MAX_CANDIDATES = "COGMEM_API_RERANKER_MAX_CANDIDATES"
 
+ENV_JUDGE_LLM_PROVIDER = "COGMEM_API_JUDGE_LLM_PROVIDER"
+ENV_JUDGE_LLM_MODEL = "COGMEM_API_JUDGE_LLM_MODEL"
+ENV_JUDGE_LLM_API_KEY = "COGMEM_API_JUDGE_LLM_API_KEY"
+ENV_JUDGE_LLM_BASE_URL = "COGMEM_API_JUDGE_LLM_BASE_URL"
+ENV_JUDGE_LLM_TIMEOUT = "COGMEM_API_JUDGE_LLM_TIMEOUT"
+ENV_JUDGE_LLM_MAX_COMPLETION_TOKENS = "COGMEM_API_JUDGE_LLM_MAX_COMPLETION_TOKENS"
+
 DEFAULT_EMBEDDING_DIMENSION = 384
 EMBEDDING_DIMENSION = DEFAULT_EMBEDDING_DIMENSION
 
@@ -93,6 +100,11 @@ DEFAULT_RERANKER_MAX_CANDIDATES = 300
 DEFAULT_BFS_REFRACTORY_STEPS = 1
 DEFAULT_BFS_FIRING_QUOTA = 2
 DEFAULT_BFS_ACTIVATION_SATURATION = 2.0
+DEFAULT_JUDGE_LLM_PROVIDER = "openai"
+DEFAULT_JUDGE_LLM_MODEL = "minimax-m2.7"
+DEFAULT_JUDGE_LLM_BASE_URL = None
+DEFAULT_JUDGE_LLM_TIMEOUT = 600.0
+DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS = 13000
 DEFAULT_EMBEDDINGS_PROVIDER = "local"
 DEFAULT_EMBEDDINGS_LOCAL_MODEL = "BAAI/bge-small-en-v1.5"
 DEFAULT_EMBEDDINGS_OPENAI_MODEL = "text-embedding-3-small"
@@ -195,6 +207,12 @@ class CogMemRuntimeConfig:
     recall_max_concurrent: int = DEFAULT_RECALL_MAX_CONCURRENT
     db_pool_min_size: int = DEFAULT_DB_POOL_MIN_SIZE
     db_pool_max_size: int = DEFAULT_DB_POOL_MAX_SIZE
+    judge_llm_provider: str = DEFAULT_JUDGE_LLM_PROVIDER
+    judge_llm_model: str = DEFAULT_JUDGE_LLM_MODEL
+    judge_llm_api_key: str | None = None
+    judge_llm_base_url: str | None = DEFAULT_JUDGE_LLM_BASE_URL
+    judge_llm_timeout: float = DEFAULT_JUDGE_LLM_TIMEOUT
+    judge_llm_max_completion_tokens: int = DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS
 
 
 @dataclass(frozen=True)
@@ -228,6 +246,12 @@ class CogMemConfig:
     bfs_refractory_steps: int = DEFAULT_BFS_REFRACTORY_STEPS
     bfs_firing_quota: int = DEFAULT_BFS_FIRING_QUOTA
     bfs_activation_saturation: float = DEFAULT_BFS_ACTIVATION_SATURATION
+    judge_llm_provider: str = DEFAULT_JUDGE_LLM_PROVIDER
+    judge_llm_model: str = DEFAULT_JUDGE_LLM_MODEL
+    judge_llm_api_key: str | None = None
+    judge_llm_base_url: str | None = DEFAULT_JUDGE_LLM_BASE_URL
+    judge_llm_timeout: float = DEFAULT_JUDGE_LLM_TIMEOUT
+    judge_llm_max_completion_tokens: int = DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS
 
 
 _cached_config: CogMemConfig | None = None
@@ -265,6 +289,16 @@ def _get_raw_config() -> CogMemRuntimeConfig:
         recall_max_concurrent=_read_int(ENV_RECALL_MAX_CONCURRENT, DEFAULT_RECALL_MAX_CONCURRENT, minimum=1),
         db_pool_min_size=_read_int(ENV_DB_POOL_MIN_SIZE, DEFAULT_DB_POOL_MIN_SIZE, minimum=1),
         db_pool_max_size=_read_int(ENV_DB_POOL_MAX_SIZE, DEFAULT_DB_POOL_MAX_SIZE, minimum=1),
+        judge_llm_provider=os.getenv(ENV_JUDGE_LLM_PROVIDER, DEFAULT_JUDGE_LLM_PROVIDER),
+        judge_llm_model=os.getenv(ENV_JUDGE_LLM_MODEL, DEFAULT_JUDGE_LLM_MODEL),
+        judge_llm_api_key=_read_optional_str(ENV_JUDGE_LLM_API_KEY),
+        judge_llm_base_url=_read_optional_str(ENV_JUDGE_LLM_BASE_URL, DEFAULT_JUDGE_LLM_BASE_URL),
+        judge_llm_timeout=_read_float(ENV_JUDGE_LLM_TIMEOUT, DEFAULT_JUDGE_LLM_TIMEOUT, minimum=0.1),
+        judge_llm_max_completion_tokens=_read_int(
+            ENV_JUDGE_LLM_MAX_COMPLETION_TOKENS,
+            DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS,
+            minimum=1,
+        ),
     )
 
 
@@ -313,5 +347,11 @@ def get_config() -> CogMemConfig:
                 DEFAULT_BFS_ACTIVATION_SATURATION,
                 minimum=0.1,
             ),
+            judge_llm_provider=runtime.judge_llm_provider,
+            judge_llm_model=runtime.judge_llm_model,
+            judge_llm_api_key=runtime.judge_llm_api_key,
+            judge_llm_base_url=runtime.judge_llm_base_url,
+            judge_llm_timeout=runtime.judge_llm_timeout,
+            judge_llm_max_completion_tokens=runtime.judge_llm_max_completion_tokens,
         )
     return _cached_config

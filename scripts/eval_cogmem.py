@@ -21,16 +21,6 @@ JsonDict = dict[str, Any]
 
 
 @dataclass(frozen=True)
-class EvalLLMConfig:
-    provider: str
-    model: str
-    api_key: str
-    base_url: str
-    timeout_seconds: float
-    max_completion_tokens: int
-
-
-@dataclass(frozen=True)
 class AblationProfile:
     profile_id: str
     description: str
@@ -154,42 +144,6 @@ def _normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower()).strip()
 
 
-def _build_chat_url(base_url: str) -> str:
-    trimmed = base_url.rstrip("/")
-    if trimmed.endswith("/chat/completions"):
-        return trimmed
-    if trimmed.endswith("/v1"):
-        return f"{trimmed}/chat/completions"
-    return f"{trimmed}/v1/chat/completions"
-
-
-def resolve_eval_llm_config() -> EvalLLMConfig:
-    eval_model = _env_first("COGMEM_API_EVAL_LLM_MODEL", default=None)
-    eval_base_url = _env_first("COGMEM_API_EVAL_LLM_BASE_URL", default=None)
-
-    if eval_model is None or eval_base_url is None:
-        raise ValueError(
-            "Judge LLM must be configured independently from retain LLM. "
-            "Set both COGMEM_API_EVAL_LLM_MODEL and COGMEM_API_EVAL_LLM_BASE_URL env vars. "
-            "Judge LLM should be >= 7B (e.g. Qwen3-7B). "
-            f"Got: COGMEM_API_EVAL_LLM_MODEL={eval_model}, COGMEM_API_EVAL_LLM_BASE_URL={eval_base_url}"
-        )
-
-    provider = _env_first("COGMEM_API_EVAL_LLM_PROVIDER", default="openai")
-    api_key = _env_first("COGMEM_API_EVAL_LLM_API_KEY", default="ollama")
-    timeout_seconds = _to_float(_env_first("COGMEM_API_EVAL_LLM_TIMEOUT", default="600"), default=600.0)
-    max_completion_tokens = _to_int(_env_first("COGMEM_API_EVAL_MAX_COMPLETION_TOKENS", default="13000"), default=13000)
-
-    return EvalLLMConfig(
-        provider=provider or "openai",
-        model=eval_model,
-        api_key=api_key or "ollama",
-        base_url=eval_base_url,
-        timeout_seconds=max(1.0, timeout_seconds),
-        max_completion_tokens=max(64, max_completion_tokens),
-    )
-
-
 def resolve_api_base_url(cli_value: str | None = None) -> str:
     if cli_value:
         return cli_value.rstrip("/")
@@ -202,11 +156,11 @@ def post_json(url: str, payload: JsonDict, timeout_seconds: float) -> JsonDict:
     return response.json()
 
 
-def call_openai_chat(
-    llm_config: EvalLLMConfig,
+def _unused_call_openai_chat(
+    llm_config: "EvalLLMConfig",
     messages: list[dict[str, str]],
     max_completion_tokens: int | None = None,
-) -> str:
+) -> str:  # pragma: no cover  # DEPRECATED: LLM logic moved to cogmem_api HTTP endpoints
     sys_preview = next(
         (m["content"][:60] for m in messages if m.get("role") == "system"), ""
     )
@@ -216,6 +170,9 @@ def call_openai_chat(
         max_completion_tokens,
         sys_preview,
     )
+    total_chars = sum(len(m.get("content", "")) for m in messages)
+    print(f"[LLM] input chars={total_chars} (~{total_chars//4} tokens) max_tokens={max_completion_tokens}")
+
     payload: JsonDict = {
         "model": llm_config.model,
         "messages": messages,
@@ -229,11 +186,12 @@ def call_openai_chat(
         headers["Authorization"] = f"Bearer {llm_config.api_key}"
 
     response = requests.post(
-        _build_chat_url(llm_config.base_url),
+        llm_config.base_url.rstrip("/") + "/v1/chat/completions",
         json=payload,
         headers=headers,
         timeout=llm_config.timeout_seconds,
     )
+    print(response.text)
     response.raise_for_status()
     response_json = response.json()
     choices = response_json.get("choices") or []
@@ -394,11 +352,15 @@ def get_fixture(name: str, fixture_path: str | None = None) -> JsonDict:
 
 
 def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
+    top_k = _to_int(_env_first("COGMEM_API_EVAL_RECALL_TOP_K", default="10"), default=10)
+    snippet_budget = _to_int(_env_first("COGMEM_API_EVAL_RECALL_SNIPPET_BUDGET", default="30000"), default=30000)
     payload: JsonDict = {
         "query": query,
         "types": list(profile.recall_fact_types),
         "budget": "mid",
-        "max_tokens": 1024,
+        "max_tokens": 13000,
+        "top_k": top_k,
+        "snippet_budget": snippet_budget,
         "trace": True,
         "adaptive_router": profile.adaptive_router_enabled,
         "graph_retriever": "bfs" if profile.sum_activation_enabled else "link_expansion",
@@ -636,141 +598,22 @@ def run_recall_only_pipeline(
     }
 
 
-def _build_generation_prompt(query: str, recall_results: list[JsonDict]) -> str:
-    evidence = []
-    for idx, result in enumerate(recall_results, start=1):
-        snippet = result.get("raw_snippet") or result.get("text", "")
-        evidence.append(f"[{idx}] {snippet}")
-    evidence_block = "\n".join(evidence) if evidence else "[No evidence]"
-    return (
-        "Answer the question using ONLY the recall evidence below.\n"
-        "- Cite evidence by index, e.g. [1] or [2].\n"
-        "- If the evidence does not contain the answer, say explicitly that the information is not available.\n"
-        "- Do not fabricate facts not present in the evidence.\n"
-        "- Match the language of the question.\n\n"
-        f"Question: {query}\n\n"
-        f"Recall Evidence:\n{evidence_block}\n"
-    )
-
-
-def _judge_system_prompt(category: str | None) -> str:
-    cat = (category or "").lower()
-
-    if cat in ("temporal", "temporal-reasoning"):
-        return (
-            "You are an evaluation judge for a memory system.\n"
-            "I will give you a question, a correct answer, and a model response.\n"
-            "Set correct=true if the response contains the correct answer or equivalent.\n"
-            "Do NOT penalize off-by-one errors for counts of days/weeks/months "
-            "(e.g. 18 days vs 19 days is still correct).\n"
-            "Set correct=false if the response contains only a subset of required information.\n"
-            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
-        )
-
-    if cat == "knowledge-update":
-        return (
-            "You are an evaluation judge for a memory system.\n"
-            "I will give you a question, a correct answer, and a model response.\n"
-            "Set correct=true if the response contains the correct (updated) answer.\n"
-            "If the response mentions outdated information alongside the updated answer, it is still correct.\n"
-            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
-        )
-
-    if cat in ("preference", "single-session-preference"):
-        return (
-            "You are an evaluation judge for a memory system.\n"
-            "I will give you a question about user preferences, a desired response, and a model response.\n"
-            "Set correct=true if the model response satisfies the desired response.\n"
-            "The model does not need to reflect every point — it is correct as long as it "
-            "recalls and correctly uses the user's personal information.\n"
-            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
-        )
-
-    if cat == "abstention":
-        return (
-            "You are an evaluation judge for a memory system.\n"
-            "I will give you a question, a correct answer, and a model response.\n"
-            "If the gold answer indicates the information was not mentioned "
-            "(e.g. 'You did not mention this'), and the model says it cannot answer or does not know, "
-            "set correct=true. Set correct=false if the model fabricates an answer.\n"
-            'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
-        )
-
-    # Default: single-session, multi-session, single-hop, multi-hop, causal, prospective, unknown
-    return (
-        "You are an evaluation judge for a memory recall system.\n"
-        "Your task: label the model's answer as correct or incorrect.\n"
-        "You will be given a question, a gold (ground truth) answer, and a generated answer.\n"
-        "Rules:\n"
-        "- Set correct=true if the generated answer contains or is equivalent to the gold answer.\n"
-        "- Set correct=true if it contains all intermediate steps needed to reach the gold answer.\n"
-        "- Set correct=false if it contains only a SUBSET of required information.\n"
-        "- The generated answer may be longer — be generous: if it touches the same topic as the gold, count as correct.\n"
-        "- For time questions: if it refers to the same date/period (even different format), count as correct.\n"
-        'Return strict JSON: {"correct": bool, "score": float 0..1, "reason": string}'
-    )
-
-
-def _judge_answer(
-    llm_config: EvalLLMConfig,
-    question: str,
-    gold_answer: str,
-    predicted_answer: str,
-    *,
-    category: str | None = None,
-    llm_call_fn: Callable[[EvalLLMConfig, list[dict[str, str]], int | None], str],
-) -> JsonDict:
-    judge_prompt = _judge_system_prompt(category)
-    user_prompt = (
-        f"Question: {question}\n"
-        f"Gold Answer: {gold_answer}\n"
-        f"Predicted Answer: {predicted_answer}\n"
-        "Return JSON only."
-    )
-    raw = llm_call_fn(
-        llm_config,
-        [{"role": "system", "content": judge_prompt}, {"role": "user", "content": user_prompt}],
-        40000,
-    )
-    parsed = _safe_parse_json(raw)
-    if not parsed:
-        logger.warning("Judge LLM output could not be parsed as JSON. raw=%.500s", raw)
-        return {
-            "correct": False,
-            "score": 0.0,
-            "reason": "judge_output_not_json",
-            "raw": raw,
-        }
-
-    score = parsed.get("score", 0.0)
-    try:
-        numeric_score = float(score)
-    except (TypeError, ValueError):
-        numeric_score = 0.0
-
-    correct_val = parsed.get("correct", False)
-    if isinstance(correct_val, str):
-        correct_val = correct_val.lower() in ("true", "1", "yes")
-
-    return {
-        "correct": bool(correct_val),
-        "score": max(0.0, min(1.0, numeric_score)),
-        "reason": str(parsed.get("reason", "")),
-        "raw": raw,
-    }
-
+# --- DEPRECATED LLM helpers (moved to cogmem_api HTTP endpoints) ---
+# def _build_generation_prompt(...): ...
+# def _judge_system_prompt(...): ...
+# def _judge_answer(...): ...
+# def _safe_parse_json(...): ...
+pass
 
 def run_full_pipeline(
     api_base_url: str,
     bank_id: str,
     profile: AblationProfile,
     fixture: JsonDict,
-    llm_config: EvalLLMConfig,
     *,
     skip_retain: bool,
     timeout_seconds: float,
     post_json_fn: Callable[[str, JsonDict, float], JsonDict] = post_json,
-    llm_call_fn: Callable[[EvalLLMConfig, list[dict[str, str]], int | None], str] = call_openai_chat,
 ) -> JsonDict:
     started_at = time.time()
 
@@ -815,24 +658,24 @@ def run_full_pipeline(
         session_recall_at_5 = _build_session_recall_at_k(results, gold_sids, 5)
         session_recall_at_10 = _build_session_recall_at_k(results, gold_sids, 10)
 
-        generation_prompt = _build_generation_prompt(question["query"], results)
-        generated_answer = llm_call_fn(
-            llm_config,
-            [
-                {"role": "system", "content": "You are a memory assistant. Answer questions based strictly on provided evidence. Be concise and accurate."},
-                {"role": "user", "content": generation_prompt},
-            ],
-            llm_config.max_completion_tokens,
+        gen_resp = post_json_fn(
+            f"{api_base_url}/v1/default/banks/{bank_id}/memories/generate",
+            {"query": question["query"], "evidence": results, "max_tokens": 2048},
+            timeout_seconds,
         )
+        generated_answer = gen_resp.get("answer", "")
 
-        judge = _judge_answer(
-            llm_config,
-            question=question["query"],
-            gold_answer=question["gold_answer"],
-            predicted_answer=generated_answer,
-            category=question.get("category"),
-            llm_call_fn=llm_call_fn,
+        judge_resp = post_json_fn(
+            f"{api_base_url}/v1/default/judge",
+            {
+                "question": question["query"],
+                "gold_answer": question["gold_answer"],
+                "predicted_answer": generated_answer,
+                "category": question.get("category"),
+            },
+            timeout_seconds,
         )
+        judge = judge_resp
 
         judge_correct_count += 1 if judge["correct"] else 0
         judge_score_sum += float(judge["score"])
@@ -872,7 +715,6 @@ def run_full_pipeline(
             "sum_activation_enabled": profile.sum_activation_enabled,
             "recall_fact_types": list(profile.recall_fact_types),
         },
-        "llm_config": asdict(llm_config),
         "reranker_used": reranker_used,
         "retain": retain_result,
         "metrics": {
@@ -902,7 +744,6 @@ def run_pipeline(
     skip_retain: bool,
     timeout_seconds: float,
     post_json_fn: Callable[[str, JsonDict, float], JsonDict] = post_json,
-    llm_call_fn: Callable[[EvalLLMConfig, list[dict[str, str]], int | None], str] = call_openai_chat,
     fixture_path: str | None = None,
     fixture_override: JsonDict | None = None,
 ) -> JsonDict:
@@ -924,17 +765,14 @@ def run_pipeline(
         )
 
     if pipeline == "full":
-        llm_config = resolve_eval_llm_config()
         return run_full_pipeline(
             api_base_url,
             bank_id,
             profile,
             fixture,
-            llm_config,
             skip_retain=skip_retain,
             timeout_seconds=timeout_seconds,
             post_json_fn=post_json_fn,
-            llm_call_fn=llm_call_fn,
         )
 
     raise ValueError(f"Unsupported pipeline: {pipeline}")

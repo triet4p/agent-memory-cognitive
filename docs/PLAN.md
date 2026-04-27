@@ -1177,6 +1177,219 @@ Tests bắt buộc (không cần live DB):
 
 ---
 
+### Sprint S24.5 — Eval Pipeline Correctness Fix 🔄
+
+Mục tiêu sprint:
+1. Recall API: thêm hai boundary đúng nghĩa (`top_k` + `snippet_budget` trên char thực tế của raw_snippet).
+2. Tách generation và judge ra khỏi eval_cogmem.py — đưa vào cogmem_api như các endpoint độc lập.
+3. eval_cogmem.py chỉ còn là script ghép nối thuần túy, không chứa LLM logic.
+
+**Vấn đề cốt lõi phát hiện khi chạy eval:**
+- Recall `max_tokens` tính trên word count của `text` (fact ngắn ~10-15 words) → 800+ facts được trả về, 50-100% toàn bộ DB. Token budget sai đơn vị, cần tính trên char thực tế của `raw_snippet`.
+- `eval_cogmem.py` nhét LLM logic (prompt building, HTTP calls) trực tiếp — vi phạm separation of concerns. Generation và judge phải là pipeline endpoints trong server, eval script chỉ gọi HTTP.
+- `raw_snippet` cho tất cả 800+ results → 4.3M chars input, vượt context window. Với two-tier recall (top_k facts, snippet_budget chars), raw_snippet chỉ được populate cho top-L facts nằm trong budget.
+
+Phụ thuộc: S24 PASS.
+
+---
+
+#### Task 764 — Two-tier recall: `top_k` + `snippet_budget`
+
+**Thiết kế hai boundary:**
+- `top_k: int | None`: hard limit số facts trả về sau rerank (primary filter). Default: None (không giới hạn).
+- `snippet_budget: int | None`: budget chars cho raw_snippet, tính trên `len(raw_snippet)` thực tế, cấp phát greedy từ score cao xuống thấp. Fact nằm trong budget → `raw_snippet` populated; fact vượt budget → `raw_snippet=None` (text vẫn trả về). Default: None (không giới hạn).
+- `max_tokens` hiện tại: giữ nguyên làm secondary guard trên text word count (backward compat), nhưng không còn là boundary chính.
+
+**764.1 — `cogmem_api/api/http.py` (RecallRequest)**
+
+```python
+class RecallRequest(BaseModel):
+    query: str
+    types: list[str] | None = None
+    budget: Literal["low", "mid", "high"] = "mid"
+    max_tokens: int = 4096
+    top_k: int | None = None          # ← MỚI: hard limit facts returned
+    snippet_budget: int | None = None  # ← MỚI: char budget for raw_snippet
+    trace: bool = False
+    query_timestamp: str | None = None
+    adaptive_router: bool = True
+    graph_retriever: str | None = None
+```
+
+Pass cả hai vào `recall_async()`.
+
+**764.2 — `cogmem_api/engine/memory_engine.py` (recall_async)**
+
+Sau token budget loop (line ~625), thay thế bằng logic 2-tier:
+```python
+# Tier 1: hard limit on number of facts
+if top_k is not None:
+    reranked_results = reranked_results[:top_k]
+
+# Tier 2: snippet_budget — populate raw_snippet greedily by score (already sorted)
+if snippet_budget is not None:
+    used_chars = 0
+    for item in reranked_results:
+        snippet = item.get("raw_snippet") or ""
+        if used_chars + len(snippet) <= snippet_budget:
+            used_chars += len(snippet)
+        else:
+            item["raw_snippet"] = None  # exceed budget → strip snippet
+```
+
+Output: `logs/task_764_summary.md`
+
+---
+
+#### Task 765 — Generation + Judge endpoints trong cogmem_api
+
+**Kiến trúc:** Generation dùng retain LLM (`_build_retain_llm_config()` đã có); Judge dùng judge LLM riêng (env vars mới `COGMEM_API_JUDGE_LLM_*`).
+
+**765.1 — Schemas mới trong `cogmem_api/api/http.py`:**
+
+```python
+class GenerateRequest(BaseModel):
+    query: str
+    evidence: list[dict]          # list of recall result dicts (text, raw_snippet, score, ...)
+    max_tokens: int = 2048
+
+class GenerateResponse(BaseModel):
+    answer: str
+
+class JudgeRequest(BaseModel):
+    question: str
+    gold_answer: str
+    predicted_answer: str
+    category: str | None = None
+
+class JudgeResponse(BaseModel):
+    correct: bool
+    score: float
+    reason: str
+    raw: str
+```
+
+**765.2 — Hai endpoint mới trong `cogmem_api/api/http.py`:**
+
+```
+POST /v1/{agent_name}/banks/{bank_id}/memories/generate
+POST /v1/{agent_name}/judge
+```
+
+- `/generate`: build generation prompt từ evidence, call retain LLM (`app.state.memory._build_retain_llm_config()`), trả về answer.
+- `/judge`: build judge prompt (category-aware system prompt), call judge LLM (config mới), parse JSON, trả về `JudgeResponse`.
+
+Logic prompt building được move vào `cogmem_api/engine/eval_helpers.py` (module mới):
+- `build_generation_prompt(query: str, evidence: list[dict]) -> str`
+- `build_judge_system_prompt(category: str | None) -> str`
+- `parse_judge_response(raw: str) -> dict` — reuse `parse_llm_json` từ `llm_wrapper.py`
+
+**765.3 — Judge LLM config trong MemoryEngine:**
+
+Thêm `_build_judge_llm_config()` đọc:
+```
+COGMEM_API_JUDGE_LLM_BASE_URL
+COGMEM_API_JUDGE_LLM_MODEL
+COGMEM_API_JUDGE_LLM_API_KEY
+COGMEM_API_JUDGE_LLM_TIMEOUT  (default 600s)
+```
+
+Env vars mới cần thêm vào `.env` và `.env.example`:
+```bash
+COGMEM_API_JUDGE_LLM_BASE_URL=https://api.minimax.io/v1
+COGMEM_API_JUDGE_LLM_MODEL=minimax-m2.7
+COGMEM_API_JUDGE_LLM_API_KEY=<key>
+COGMEM_API_JUDGE_LLM_TIMEOUT=600
+```
+
+Output: `logs/task_765_summary.md`
+
+---
+
+#### Task 766 — Simplify eval_cogmem.py
+
+eval_cogmem.py sau khi sửa: không còn `call_openai_chat`, `resolve_eval_llm_config`, `EvalLLMConfig`, `_build_generation_prompt`, `_judge_answer`, `_judge_system_prompt`.
+
+**766.1 — Xóa LLM logic khỏi eval_cogmem.py:**
+- Xóa: `call_openai_chat`, `resolve_eval_llm_config`, `EvalLLMConfig` dataclass
+- Xóa: `_build_generation_prompt`, `_judge_answer`, `_judge_system_prompt`
+- Xóa: `_build_chat_url`, `resolve_gen_llm_config` (không cần nữa)
+- Xóa: debug prints `print(response.text)` và `print(f"[LLM] input chars=...")`
+
+**766.2 — Sửa `run_full_pipeline`:**
+```python
+# Generation → gọi /generate endpoint
+gen_resp = post_json_fn(
+    f"{api_base_url}/v1/default/banks/{bank_id}/memories/generate",
+    {"query": question["query"], "evidence": results, "max_tokens": 2048},
+    timeout_seconds,
+)
+generated_answer = gen_resp.get("answer", "")
+
+# Judge → gọi /judge endpoint
+judge_resp = post_json_fn(
+    f"{api_base_url}/v1/default/judge",
+    {"question": question["query"], "gold_answer": question["gold_answer"],
+     "predicted_answer": generated_answer, "category": question.get("category")},
+    timeout_seconds,
+)
+judge = judge_resp  # {correct, score, reason, raw}
+```
+
+Signature `run_full_pipeline` bỏ `llm_config` và `llm_call_fn` — không còn cần thiết.
+
+**766.3 — Fix `build_recall_payload`:**
+```python
+def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
+    top_k = _to_int(_env_first("COGMEM_API_EVAL_RECALL_TOP_K", default="10"), default=10)
+    snippet_budget = _to_int(_env_first("COGMEM_API_EVAL_RECALL_SNIPPET_BUDGET", default="30000"), default=30000)
+    return {
+        "query": query,
+        "types": list(profile.recall_fact_types),
+        "budget": "mid",
+        "top_k": top_k,
+        "snippet_budget": snippet_budget,
+        "trace": True,
+        "adaptive_router": profile.adaptive_router_enabled,
+        "graph_retriever": "bfs" if profile.sum_activation_enabled else "link_expansion",
+    }
+```
+
+Env vars mới trong `.env`:
+```bash
+COGMEM_API_EVAL_RECALL_TOP_K=10
+COGMEM_API_EVAL_RECALL_SNIPPET_BUDGET=30000
+```
+
+Output: `logs/task_766_summary.md`
+
+---
+
+#### Task 767 — Artifacts
+
+**`tests/artifacts/test_task764_recall_top_k.py`** (3 tests):
+- `RecallRequest` có `top_k` và `snippet_budget` fields với default None
+- `recall_async` source có logic `reranked_results[:top_k]`
+- `recall_async` source có logic snippet_budget strip (kiểm tra `item["raw_snippet"] = None`)
+
+**`tests/artifacts/test_task765_generate_judge_endpoints.py`** (3 tests):
+- `GenerateRequest`, `GenerateResponse` schemas tồn tại trong `http.py`
+- `JudgeRequest`, `JudgeResponse` schemas tồn tại trong `http.py`
+- `cogmem_api/engine/eval_helpers.py` có `build_generation_prompt` và `build_judge_system_prompt`
+
+**`tests/artifacts/test_task766_eval_script_simplified.py`** (4 tests):
+- `eval_cogmem.py` không còn `call_openai_chat`
+- `eval_cogmem.py` không còn `EvalLLMConfig`
+- `build_recall_payload` có `top_k` và `snippet_budget`
+- `run_full_pipeline` không có `llm_config` parameter
+
+Exit gate:
+1. `uv run python tests/artifacts/test_task764_recall_top_k.py` → 3/3 PASS
+2. `uv run python tests/artifacts/test_task765_generate_judge_endpoints.py` → 3/3 PASS
+3. `uv run python tests/artifacts/test_task766_eval_script_simplified.py` → 4/4 PASS
+
+---
+
 ### Sprint S25 - Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
@@ -1254,8 +1467,9 @@ Rủi ro và fallback:
 | Eval Readiness | S22 | Evaluation metrics & judge LLM (per-category, Recall@k) | ✅ Done | 749-752 |
 | Eval Readiness | S23 | Session-level Recall@k implementation | ✅ Done | 753 |
 | Eval Readiness | S24-hotfix | Pipeline bug fixes (FK, bool, URL, timeout, chunking) | ✅ Done | 756 |
-| Eval Readiness | S24 | Retrieval stack quality hardening (schema/index/ef_search/tags) | 🔄 Next | 758-760 |
-| Eval Readiness | S25 | Full ablation dry run gate (E1-E7) | 🔄 Pending S24 | 761-763 |
+| Eval Readiness | S24 | Retrieval stack quality hardening (schema/index/ef_search/tags) | ✅ Done | 758-760 |
+| Eval Readiness | S24.5 | Eval pipeline correctness (two-tier recall, gen/judge endpoints) | 🔄 Next | 764-767 |
+| Eval Readiness | S25 | Full ablation dry run gate (E1-E7) | 🔄 Pending S24.5 | 761-763 |
 
 ---
 

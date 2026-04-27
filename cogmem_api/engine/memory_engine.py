@@ -200,6 +200,73 @@ class MemoryEngine:
 
                 await conn.execute(text(f'SET search_path TO "{self.database_schema}"'))
                 await conn.run_sync(Base.metadata.create_all)
+
+                # Columns and indexes not expressible in SQLAlchemy ORM are created
+                # idempotently here. Each DDL runs inside its own savepoint so a
+                # failure (e.g. column already exists on an old DB) does not abort
+                # the surrounding transaction and block subsequent statements.
+                async def _safe_ddl(label: str, sql: str) -> None:
+                    try:
+                        async with conn.begin_nested():
+                            await conn.execute(text(sql))
+                    except Exception as exc:
+                        logger.warning("Schema extension skipped (%s): %s", label, exc)
+
+                # tags text[] — create_all does not ALTER existing tables, so we
+                # must add this column explicitly for databases that pre-date it.
+                await _safe_ddl(
+                    "tags column",
+                    "ALTER TABLE memory_units ADD COLUMN IF NOT EXISTS tags text[]",
+                )
+
+                # search_vector GENERATED ALWAYS AS STORED — SQLAlchemy ORM cannot
+                # express this PostgreSQL syntax, so it is always created here.
+                await _safe_ddl(
+                    "search_vector column",
+                    "ALTER TABLE memory_units "
+                    "ADD COLUMN IF NOT EXISTS search_vector tsvector "
+                    "GENERATED ALWAYS AS ("
+                    "  to_tsvector('english',"
+                    "    coalesce(text, '') || ' ' || coalesce(raw_snippet, ''))"
+                    ") STORED",
+                )
+
+                # Specialized indexes (GIN, partial HNSW, covering) that cannot be
+                # expressed in the ORM __table_args__.
+                for idx_name, stmt in [
+                    ("idx_memory_units_search_vector",
+                     "CREATE INDEX IF NOT EXISTS idx_memory_units_search_vector "
+                     "ON memory_units USING gin(search_vector)"),
+                    ("idx_memory_units_tags",
+                     "CREATE INDEX IF NOT EXISTS idx_memory_units_tags "
+                     "ON memory_units USING gin(tags) WHERE tags IS NOT NULL"),
+                    ("idx_mu_emb_world",
+                     "CREATE INDEX IF NOT EXISTS idx_mu_emb_world "
+                     "ON memory_units USING hnsw (embedding vector_cosine_ops) WHERE fact_type = 'world'"),
+                    ("idx_mu_emb_experience",
+                     "CREATE INDEX IF NOT EXISTS idx_mu_emb_experience "
+                     "ON memory_units USING hnsw (embedding vector_cosine_ops) WHERE fact_type = 'experience'"),
+                    ("idx_mu_emb_opinion",
+                     "CREATE INDEX IF NOT EXISTS idx_mu_emb_opinion "
+                     "ON memory_units USING hnsw (embedding vector_cosine_ops) WHERE fact_type = 'opinion'"),
+                    ("idx_mu_emb_habit",
+                     "CREATE INDEX IF NOT EXISTS idx_mu_emb_habit "
+                     "ON memory_units USING hnsw (embedding vector_cosine_ops) WHERE fact_type = 'habit'"),
+                    ("idx_mu_emb_intention",
+                     "CREATE INDEX IF NOT EXISTS idx_mu_emb_intention "
+                     "ON memory_units USING hnsw (embedding vector_cosine_ops) WHERE fact_type = 'intention'"),
+                    ("idx_mu_emb_action_effect",
+                     "CREATE INDEX IF NOT EXISTS idx_mu_emb_action_effect "
+                     "ON memory_units USING hnsw (embedding vector_cosine_ops) WHERE fact_type = 'action_effect'"),
+                    ("idx_memory_links_entity_covering",
+                     "CREATE INDEX IF NOT EXISTS idx_memory_links_entity_covering "
+                     "ON memory_links (from_unit_id) INCLUDE (to_unit_id, entity_id) "
+                     "WHERE link_type = 'entity'"),
+                    ("idx_memory_links_to_type_weight",
+                     "CREATE INDEX IF NOT EXISTS idx_memory_links_to_type_weight "
+                     "ON memory_links (to_unit_id, link_type, weight DESC)"),
+                ]:
+                    await _safe_ddl(idx_name, stmt)
         finally:
             await engine.dispose()
 
@@ -293,6 +360,17 @@ class MemoryEngine:
             api_key=self._runtime_config.llm_api_key,
             base_url=self._runtime_config.llm_base_url,
             timeout=self._runtime_config.retain_llm_timeout,
+        )
+
+    def _build_judge_llm_config(self) -> LLMConfig | None:
+        if not self._runtime_config.judge_llm_base_url:
+            return None
+        return LLMConfig(
+            provider=self._runtime_config.judge_llm_provider,
+            model=self._runtime_config.judge_llm_model,
+            api_key=self._runtime_config.judge_llm_api_key,
+            base_url=self._runtime_config.judge_llm_base_url,
+            timeout=self._runtime_config.judge_llm_timeout,
         )
 
     async def retain_batch_async(
@@ -447,6 +525,8 @@ class MemoryEngine:
         *,
         budget: str = "mid",
         max_tokens: int = 4096,
+        top_k: int | None = None,
+        snippet_budget: int | None = None,
         enable_trace: bool = False,
         fact_types: list[str] | None = None,
         question_date: datetime | None = None,
@@ -556,6 +636,18 @@ class MemoryEngine:
                         }
                     )
                     used_tokens += estimated
+
+            if top_k is not None:
+                reranked_results = reranked_results[:top_k]
+
+            if snippet_budget is not None:
+                used_chars = 0
+                for item in reranked_results:
+                    snippet = item.get("raw_snippet") or ""
+                    if used_chars + len(snippet) <= snippet_budget:
+                        used_chars += len(snippet)
+                    else:
+                        item["raw_snippet"] = None
 
             trace = None
             if enable_trace:

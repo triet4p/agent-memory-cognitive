@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from cogmem_api import MemoryEngine, __version__
+from cogmem_api.engine import eval_helpers
 
 
 class HealthResponse(BaseModel):
@@ -73,6 +74,8 @@ class RecallRequest(BaseModel):
     types: list[str] | None = None
     budget: Literal["low", "mid", "high"] = "mid"
     max_tokens: int = 4096
+    top_k: int | None = None
+    snippet_budget: int | None = None
     trace: bool = False
     query_timestamp: str | None = None
     adaptive_router: bool = True
@@ -95,6 +98,38 @@ class RecallResponse(BaseModel):
 
     results: list[RecallResult]
     trace: dict[str, Any] | None = None
+
+
+class GenerateRequest(BaseModel):
+    """Request payload for generation endpoint."""
+
+    query: str
+    evidence: list[dict]
+    max_tokens: int = 2048
+
+
+class GenerateResponse(BaseModel):
+    """Response payload for generation endpoint."""
+
+    answer: str
+
+
+class JudgeRequest(BaseModel):
+    """Request payload for judge endpoint."""
+
+    question: str
+    gold_answer: str
+    predicted_answer: str
+    category: str | None = None
+
+
+class JudgeResponse(BaseModel):
+    """Response payload for judge endpoint."""
+
+    correct: bool
+    score: float
+    reason: str
+    raw: str
 
 
 class BankInfo(BaseModel):
@@ -262,6 +297,8 @@ def create_app(
                 query=payload.query,
                 budget=payload.budget,
                 max_tokens=payload.max_tokens,
+                top_k=payload.top_k,
+                snippet_budget=payload.snippet_budget,
                 enable_trace=payload.trace,
                 fact_types=payload.types,
                 question_date=question_date,
@@ -284,5 +321,77 @@ def create_app(
             if item.get("id") and item.get("text")
         ]
         return RecallResponse(results=results, trace=recall_result.get("trace"))
+
+    @app.post(
+        "/v1/default/banks/{bank_id}/memories/generate",
+        response_model=GenerateResponse,
+        summary="Generate answer from recall evidence",
+        description="Uses the retain LLM to generate an answer grounded in recall evidence.",
+        operation_id="generate_answer",
+        tags=["Memory"],
+    )
+    async def generate_answer(bank_id: str, payload: GenerateRequest) -> GenerateResponse:
+        if not app.state.memory._runtime_config.llm_base_url:
+            raise HTTPException(status_code=503, detail="Retain LLM not configured")
+
+        llm_config = app.state.memory._build_retain_llm_config()
+        if llm_config is None:
+            raise HTTPException(status_code=503, detail="Retain LLM not available")
+
+        prompt = eval_helpers.build_generation_prompt(payload.query, payload.evidence)
+        messages = [{"role": "user", "content": prompt}]
+
+        try:
+            answer = await llm_config.call(
+                messages=messages,
+                temperature=0.1,
+                max_completion_tokens=payload.max_tokens,
+            )
+            return GenerateResponse(answer=str(answer or ""))
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @app.post(
+        "/v1/default/judge",
+        response_model=JudgeResponse,
+        summary="Judge predicted answer against gold answer",
+        description="Uses a dedicated judge LLM to evaluate prediction quality.",
+        operation_id="judge_answer",
+        tags=["Evaluation"],
+    )
+    async def judge_answer(payload: JudgeRequest) -> JudgeResponse:
+        if not app.state.memory._runtime_config.judge_llm_base_url:
+            raise HTTPException(status_code=503, detail="Judge LLM not configured")
+
+        llm_config = app.state.memory._build_judge_llm_config()
+        if llm_config is None:
+            raise HTTPException(status_code=503, detail="Judge LLM not available")
+
+        system_prompt = eval_helpers.build_judge_system_prompt(payload.category)
+        user_prompt = (
+            f"Question: {payload.question}\n"
+            f"Gold Answer: {payload.gold_answer}\n"
+            f"Predicted Answer: {payload.predicted_answer}\n"
+            "Return JSON only."
+        )
+
+        try:
+            raw = await llm_config.call(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+                max_completion_tokens=40000,
+            )
+            parsed = eval_helpers.parse_judge_response(str(raw or "{}"))
+            return JudgeResponse(
+                correct=parsed.get("correct", False),
+                score=float(parsed.get("score", 0.0)),
+                reason=parsed.get("reason", ""),
+                raw=parsed.get("raw", ""),
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return app

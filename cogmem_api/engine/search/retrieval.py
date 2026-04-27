@@ -317,7 +317,7 @@ async def retrieve_semantic_bm25_combined(
 
     Requires partial HNSW indexes per fact_type (e.g., idx_mu_emb_world,
     idx_mu_emb_experience, idx_mu_emb_intention), created automatically by
-    Alembic migration a3b4c5d6e7f8_add_partial_hnsw_indexes.py.
+    Alembic migration 20260426_0002_retrieval_quality.py.
 
     HNSW is approximate — semantic arms over-fetch by 5x (min 100) and trim to
     limit in Python to compensate.  ef_search=200 is set globally on pool
