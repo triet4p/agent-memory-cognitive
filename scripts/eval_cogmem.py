@@ -155,52 +155,6 @@ def post_json(url: str, payload: JsonDict, timeout_seconds: float) -> JsonDict:
     response.raise_for_status()
     return response.json()
 
-
-def _unused_call_openai_chat(
-    llm_config: "EvalLLMConfig",
-    messages: list[dict[str, str]],
-    max_completion_tokens: int | None = None,
-) -> str:  # pragma: no cover  # DEPRECATED: LLM logic moved to cogmem_api HTTP endpoints
-    sys_preview = next(
-        (m["content"][:60] for m in messages if m.get("role") == "system"), ""
-    )
-    logger.debug(
-        "LLM call model=%s max_tokens=%s system=%.60s",
-        llm_config.model,
-        max_completion_tokens,
-        sys_preview,
-    )
-    total_chars = sum(len(m.get("content", "")) for m in messages)
-    print(f"[LLM] input chars={total_chars} (~{total_chars//4} tokens) max_tokens={max_completion_tokens}")
-
-    payload: JsonDict = {
-        "model": llm_config.model,
-        "messages": messages,
-        "temperature": 0.1,
-    }
-    if max_completion_tokens is not None:
-        payload["max_completion_tokens"] = max_completion_tokens
-
-    headers = {"Content-Type": "application/json"}
-    if llm_config.api_key:
-        headers["Authorization"] = f"Bearer {llm_config.api_key}"
-
-    response = requests.post(
-        llm_config.base_url.rstrip("/") + "/v1/chat/completions",
-        json=payload,
-        headers=headers,
-        timeout=llm_config.timeout_seconds,
-    )
-    print(response.text)
-    response.raise_for_status()
-    response_json = response.json()
-    choices = response_json.get("choices") or []
-    if not choices:
-        logger.warning("LLM returned no choices. Response: %.300s", response_json)
-        return ""
-    return str((choices[0].get("message") or {}).get("content") or "")
-
-
 def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
@@ -354,11 +308,13 @@ def get_fixture(name: str, fixture_path: str | None = None) -> JsonDict:
 def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
     top_k = _to_int(_env_first("COGMEM_API_EVAL_RECALL_TOP_K", default="10"), default=10)
     snippet_budget = _to_int(_env_first("COGMEM_API_EVAL_RECALL_SNIPPET_BUDGET", default="30000"), default=30000)
+    budget = _env_first("COGMEM_API_EVAL_RECALL_BUDGET", default="mid") or "mid"
+    max_tokens = _to_int(_env_first("COGMEM_API_EVAL_RECALL_MAX_TOKENS", default="13000"), default=13000)
     payload: JsonDict = {
         "query": query,
         "types": list(profile.recall_fact_types),
-        "budget": "mid",
-        "max_tokens": 13000,
+        "budget": budget,
+        "max_tokens": max_tokens,
         "top_k": top_k,
         "snippet_budget": snippet_budget,
         "trace": True,
@@ -533,8 +489,9 @@ def run_recall_only_pipeline(
         )
 
         results = recall_json.get("results") or []
+        cross_encoder_ok = recall_json.get("trace", {}).get("cross_encoder_ok", False)
         if not reranker_used:
-            reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
+            reranker_used = cross_encoder_ok or reranker_used
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
         metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
         if metrics["keyword_coverage"] is not None:
@@ -556,11 +513,25 @@ def run_recall_only_pipeline(
                 "expected_keywords": question.get("expected_keywords"),
                 "gold_session_ids": gold_sids,
                 "recall_result_count": len(results),
+                "cross_encoder_ok": cross_encoder_ok,
                 "recall_metrics": metrics,
                 "recall_at_5": recall_at_5,
                 "recall_at_10": recall_at_10,
                 "session_recall_at_5": session_recall_at_5,
                 "session_recall_at_10": session_recall_at_10,
+                "recall_results": [
+                    {
+                        "rank": i + 1,
+                        "document_id": r.get("document_id"),
+                        "fact_type": r.get("type"),
+                        "score": r.get("score"),
+                        "cross_encoder_score": r.get("cross_encoder_score"),
+                        "has_snippet": r.get("raw_snippet") is not None,
+                        "text": r.get("text"),
+                        "raw_snippet": r.get("raw_snippet"),
+                    }
+                    for i, r in enumerate(results)
+                ],
             }
         )
 
@@ -598,13 +569,6 @@ def run_recall_only_pipeline(
     }
 
 
-# --- DEPRECATED LLM helpers (moved to cogmem_api HTTP endpoints) ---
-# def _build_generation_prompt(...): ...
-# def _judge_system_prompt(...): ...
-# def _judge_answer(...): ...
-# def _safe_parse_json(...): ...
-pass
-
 def run_full_pipeline(
     api_base_url: str,
     bank_id: str,
@@ -627,6 +591,9 @@ def run_full_pipeline(
             timeout_seconds=timeout_seconds,
         )
 
+    gen_max_tokens = _to_int(_env_first("COGMEM_API_EVAL_GENERATE_MAX_TOKENS", default="2048"), default=2048)
+    print("Generation max tokens:", gen_max_tokens)
+
     per_question: list[JsonDict] = []
     coverage_vals: list[float] = []
     strict_vals: list[bool] = []
@@ -643,8 +610,9 @@ def run_full_pipeline(
         )
 
         results = recall_json.get("results") or []
+        cross_encoder_ok = recall_json.get("trace", {}).get("cross_encoder_ok", False)
         if not reranker_used:
-            reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
+            reranker_used = cross_encoder_ok or reranker_used
         joined_text = "\n".join(str(item.get("text") or "") for item in results)
         recall_metrics = _keyword_recall_metrics(question.get("expected_keywords"), joined_text)
         if recall_metrics["keyword_coverage"] is not None:
@@ -660,7 +628,7 @@ def run_full_pipeline(
 
         gen_resp = post_json_fn(
             f"{api_base_url}/v1/default/banks/{bank_id}/memories/generate",
-            {"query": question["query"], "evidence": results, "max_tokens": 2048},
+            {"query": question["query"], "evidence": results, "max_tokens": gen_max_tokens},
             timeout_seconds,
         )
         generated_answer = gen_resp.get("answer", "")
@@ -689,12 +657,26 @@ def run_full_pipeline(
                 "gold_session_ids": gold_sids,
                 "generated_answer": generated_answer,
                 "recall_result_count": len(results),
+                "cross_encoder_ok": cross_encoder_ok,
                 "recall_metrics": recall_metrics,
                 "recall_at_5": recall_at_5,
                 "recall_at_10": recall_at_10,
                 "session_recall_at_5": session_recall_at_5,
                 "session_recall_at_10": session_recall_at_10,
                 "judge": judge,
+                "recall_results": [
+                    {
+                        "rank": i + 1,
+                        "document_id": r.get("document_id"),
+                        "fact_type": r.get("type"),
+                        "score": r.get("score"),
+                        "cross_encoder_score": r.get("cross_encoder_score"),
+                        "has_snippet": r.get("raw_snippet") is not None,
+                        "text": r.get("text"),
+                        "raw_snippet": r.get("raw_snippet"),
+                    }
+                    for i, r in enumerate(results)
+                ],
             }
         )
 

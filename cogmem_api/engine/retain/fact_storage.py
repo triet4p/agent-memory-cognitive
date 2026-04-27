@@ -88,6 +88,7 @@ async def insert_facts_batch(
             (
                 bank_id,
                 document_id,
+                chunk_id,
                 text,
                 raw_snippet,
                 embedding,
@@ -124,6 +125,7 @@ async def insert_facts_batch(
             """,
             bank_id,
             fact.document_id if fact.document_id else document_id,
+            fact.chunk_id,
             fact.fact_text,
             fact.raw_snippet,
             str(fact.embedding),

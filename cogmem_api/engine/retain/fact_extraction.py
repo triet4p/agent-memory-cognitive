@@ -66,8 +66,13 @@ Format: {{"facts": [<fact>, ...]}}  or  {{"facts": []}} if nothing to store.
 
 EVERY fact MUST have these REQUIRED fields:
 - "fact_type": one of: world | experience | opinion | habit | intention | action_effect
-- "what": core statement, specific, under 40 words
-- "entities": named people/places/orgs/tech — e.g. ["Alice","DI"] — use [] if none
+- "what": core statement, under 80 words — must include: WHO did WHAT to/with WHAT OBJECT.
+  Be specific: prefer "User bought Tamiya 1/48 Spitfire Mk.V kit" over "User bought a model kit".
+  Include scale, brand, model name, or product name when mentioned.
+- "entities": ALL named entities — people, places, orgs, tech tools, product names, brand names,
+  model kit names, vehicle names, software names. e.g. ["Alice","Tamiya","Spitfire Mk.V","Tiger I"].
+  For experience/action_effect facts: entities MUST NOT be empty if the fact involves a named product,
+  person, or place. Empty [] only when truly no named entity exists.
 
 OPTIONAL: "when", "who", "why", "fact_kind" (event|conversation), "occurred_start", "occurred_end" (ISO 8601)
 
@@ -75,7 +80,9 @@ FACT TYPE GUIDE:
 1. "world" — objective fact, not time-bound (job, role, skill, location)
    {{"fact_type":"world","what":"Alice works as ML Engineer at DI","entities":["Alice","DI"]}}
 2. "experience" — past event at a specific time
-   {{"fact_type":"experience","what":"Alice joined DI in April 2024","entities":["Alice","DI"],"when":"April 2024"}}
+   Include "why" whenever motivation or context is stated or strongly implied.
+   Example: "why": "to practice metal painting techniques"
+   {{"fact_type":"experience","what":"Alice joined DI in April 2024","entities":["Alice","DI"],"when":"April 2024","why":"to work on real-world ML projects"}}
 3. "opinion" — belief or preference; add "confidence": 0.0-1.0
    {{"fact_type":"opinion","what":"Alice believes Python is best for ML","entities":["Alice"],"confidence":0.85}}
 4. "habit" — repeating behavior; triggers: always, usually, every day/week, every morning, tends to, routine, regular
@@ -83,11 +90,12 @@ FACT TYPE GUIDE:
    {{"fact_type":"habit","what":"Alice always checks email before standup","entities":["Alice"]}}
    {{"fact_type":"habit","what":"Team holds a standup every morning at 9 AM","entities":["Team"]}}
 5. "intention" — future plan or goal; add "intention_status": "planning"|"fulfilled"|"abandoned"
+   Include "why" whenever the goal reason is stated.
    - planning: goal is still future ("plan to", "will", "going to", "want to", "intend to")
    - fulfilled: goal was already completed ("finished", "completed", "achieved", "done", "it worked", "all tests pass")
    - abandoned: goal was cancelled ("gave up", "decided not to", "dropped", "cancelled")
    When someone says they "finished" or "achieved" a past goal, use fulfilled — NOT planning.
-   {{"fact_type":"intention","what":"Alice plans to learn Rust by Q3","entities":["Alice"],"intention_status":"planning"}}
+   {{"fact_type":"intention","what":"Alice plans to learn Rust by Q3","entities":["Alice"],"intention_status":"planning","why":"to improve system programming skills"}}
    {{"fact_type":"intention","what":"Alice planned to learn Rust — she finished it last month","entities":["Alice"],"intention_status":"fulfilled"}}
 6. "action_effect" — causal triple; REQUIRED fields: "precondition", "action", "outcome", "confidence", "devalue_sensitive"(true|false)
    Each independent cause-effect relationship = ONE separate action_effect fact.
@@ -125,7 +133,7 @@ MODE: verbose
 - Extract every potentially relevant fact, including context, background, and motivation.
 - Fill the "why" field whenever motivation is stated or clearly implied.
 - Prefer "experience" over "world" when a specific time or event is mentioned.
-- Include supporting detail in "what" (up to 40 words is acceptable).
+- Include supporting detail in "what" (up to 80 words is acceptable).
 """
 
 
@@ -698,7 +706,7 @@ def _normalize_llm_facts(
                 causal_relations=causal_relations,
                 action_effect_relations=action_effect_relations,
                 transition_relations=_extract_transition_relations(payload.get("transition_relations")),
-                raw_snippet=content.content,
+                raw_snippet=chunk_text,
             )
         )
 

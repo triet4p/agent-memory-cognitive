@@ -89,8 +89,10 @@ class RecallResult(BaseModel):
     text: str
     type: str
     score: float = 0.0
+    cross_encoder_score: float = 0.0
     raw_snippet: str | None = None
     document_id: str | None = None
+    chunk_id: str | None = None
 
 
 class RecallResponse(BaseModel):
@@ -314,6 +316,7 @@ def create_app(
                 text=str(item.get("text") or ""),
                 type=str(item.get("fact_type") or "world"),
                 score=float(item.get("score") or 0.0),
+                cross_encoder_score=float(item.get("cross_encoder_score") or 0.0),
                 raw_snippet=item.get("raw_snippet"),
                 document_id=item.get("document_id"),
             )
@@ -326,17 +329,14 @@ def create_app(
         "/v1/default/banks/{bank_id}/memories/generate",
         response_model=GenerateResponse,
         summary="Generate answer from recall evidence",
-        description="Uses the retain LLM to generate an answer grounded in recall evidence.",
+        description="Uses the generate LLM to produce a grounded answer from recall evidence.",
         operation_id="generate_answer",
         tags=["Memory"],
     )
     async def generate_answer(bank_id: str, payload: GenerateRequest) -> GenerateResponse:
-        if not app.state.memory._runtime_config.llm_base_url:
-            raise HTTPException(status_code=503, detail="Retain LLM not configured")
-
-        llm_config = app.state.memory._build_retain_llm_config()
+        llm_config = app.state.memory._build_generate_llm_config()
         if llm_config is None:
-            raise HTTPException(status_code=503, detail="Retain LLM not available")
+            raise HTTPException(status_code=503, detail="Generate LLM not configured")
 
         prompt = eval_helpers.build_generation_prompt(payload.query, payload.evidence)
         messages = [{"role": "user", "content": prompt}]

@@ -448,10 +448,10 @@ async def fetch_memory_units_by_ids(
         rows = await conn.fetch(
             f"""
             SELECT id, text, context, event_date, occurred_start, occurred_end,
-                   mentioned_at, fact_type, document_id
-            FROM {fq_table("memory_units")}
-            WHERE id = ANY($1::uuid[])
-              AND fact_type = $2
+                   mentioned_at, fact_type, document_id, chunk_id
+             FROM {fq_table("memory_units")}
+             WHERE id = ANY($1::uuid[])
+               AND fact_type = $2
             """,
             node_ids,
             fact_type,

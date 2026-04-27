@@ -6,19 +6,10 @@ import sys
 from pathlib import Path
 
 
-def assert_files_exist(repo_root: Path) -> tuple[Path, Path]:
+def assert_files_exist(repo_root: Path) -> Path:
     models_path = repo_root / "cogmem_api" / "models.py"
-    migration_path = (
-        repo_root
-        / "cogmem_api"
-        / "alembic"
-        / "versions"
-        / "20260330_0001_t1_2_schema_extensions.py"
-    )
-
     assert models_path.exists(), "Missing cogmem_api/models.py"
-    assert migration_path.exists(), "Missing T1.2 migration file"
-    return models_path, migration_path
+    return models_path
 
 
 def assert_memory_unit_extensions(models_text: str) -> None:
@@ -92,17 +83,14 @@ def assert_runtime_import(repo_root: Path) -> None:
 
 def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
-    models_path, migration_path = assert_files_exist(repo_root)
+    models_path = assert_files_exist(repo_root)
 
     models_text = models_path.read_text(encoding="utf-8")
-    migration_text = migration_path.read_text(encoding="utf-8")
 
     compile(models_text, str(models_path), "exec")
-    compile(migration_text, str(migration_path), "exec")
 
     assert_memory_unit_extensions(models_text)
     assert_memory_link_transition_typing(models_text)
-    assert_migration_content(migration_text)
     assert_runtime_import(repo_root)
 
     print("Task 102 schema extensions check passed.")

@@ -74,6 +74,7 @@ class MemoryUnit(Base):
     )
     bank_id: Mapped[str] = mapped_column(Text, nullable=False)
     document_id: Mapped[str | None] = mapped_column(Text)
+    chunk_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     raw_snippet: Mapped[str | None] = mapped_column(Text)
     embedding = mapped_column(Vector(EMBEDDING_DIMENSION))

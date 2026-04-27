@@ -1390,6 +1390,401 @@ Exit gate:
 
 ---
 
+### Sprint S24.6 — Eval Quality Fixes + Dual Model 🔄
+
+Mục tiêu sprint:
+1. Fix snippet budget deduplication by document_id — root cause khiến generation chỉ thấy nội dung 1 session dù recall đã lấy đúng sessions.
+2. Bật cross-encoder reranker (provider=local) và fix `reranker_used` tracking trong eval script.
+3. Tách LLM cho generation khỏi retain — dùng Gemma-4 8B cho generation, giữ Ministral-3B cho retain. Cả hai chạy cùng Ollama host (T4 16GB đủ VRAM ~7GB).
+
+**Bằng chứng vấn đề (từ E7 conv 0, question "how many model kits"):**
+- `session_recall@5 = 1.0` → recall lấy đúng 4/4 gold sessions
+- `generated_answer` chỉ đề cập Revell F-15 Eagle (1 trong 5 kits) → snippet budget exhausted by session 1 repetitions
+- `reranker_used = False` dù pipeline chạy → field `cross_encoder_score` không có trong HTTP response
+- Generation dùng Ministral-3B (3B) thay vì model mạnh hơn → aggregation quality thấp
+
+Phụ thuộc: S24.5 PASS.
+
+---
+
+#### Task 768 — Snippet budget deduplication by document_id
+
+**File**: `cogmem_api/engine/memory_engine.py` (lines 643–650)
+
+Root cause: cùng session xuất hiện nhiều lần trong top-K results (nhiều extracted facts từ cùng document → cùng raw_snippet), snippet_budget tính riêng từng result → một document tiêu thụ toàn bộ budget.
+
+Fix: mỗi `document_id` chỉ charge budget **một lần**:
+
+```python
+if snippet_budget is not None:
+    used_chars = 0
+    seen_doc_ids: set[str] = set()
+    for item in reranked_results:
+        doc_id = item.get("document_id") or ""
+        snippet = item.get("raw_snippet") or ""
+        if doc_id and doc_id in seen_doc_ids:
+            item["raw_snippet"] = None          # duplicate doc → strip snippet
+        elif used_chars + len(snippet) <= snippet_budget:
+            used_chars += len(snippet)
+            if doc_id:
+                seen_doc_ids.add(doc_id)
+        else:
+            item["raw_snippet"] = None          # budget exceeded → strip snippet
+```
+
+**Lưu ý quan trọng**: `text` field (extracted fact ~10-20 words) LUÔN có mặt trong result, KHÔNG bao giờ bị set None. Khi `raw_snippet=None`, `build_generation_prompt` fallback sang `text` — đủ để generation model biết "what" happened.
+
+Output: `logs/task_768_summary.md`
+
+---
+
+#### Task 769 — Enable cross-encoder reranker + fix reranker_used tracking
+
+**769.1 — Bật cross-encoder trong .env**
+
+```
+COGMEM_API_RERANKER_PROVIDER=local
+```
+
+`provider=local` → `LocalSTCrossEncoder(model=cross-encoder/ms-marco-MiniLM-L-6-v2)`. Model đã có trong môi trường (sentence-transformers). Chạy CPU. `provider=rrf` (hiện tại) → `RRFPassthroughCrossEncoder` trả về 0.5 uniform scores — ranking hoàn toàn dựa RRF, kém hơn thiết kế.
+
+**769.2 — Expose cross_encoder_score trong result dict**
+
+File `cogmem_api/engine/memory_engine.py` (result dict append, lines 628–637):
+```python
+reranked_results.append({
+    ...
+    "score": float(scored_result.combined_score),
+    "cross_encoder_score": float(scored_result.cross_encoder_score),  # ADD
+    ...
+})
+```
+
+File `cogmem_api/api/http.py` — thêm field vào `RecallResult`:
+```python
+class RecallResult(BaseModel):
+    id: str
+    text: str
+    type: str
+    score: float = 0.0
+    cross_encoder_score: float = 0.0   # ADD
+    raw_snippet: str | None = None
+    document_id: str | None = None
+```
+
+**769.3 — Fix reranker_used tracking trong eval_cogmem.py**
+
+Field `cross_encoder_score` không có trong HTTP response hiện tại → check luôn False. Fix dùng `trace.cross_encoder_ok` (đã có trong trace, trace=True luôn được gửi):
+
+```python
+# Thay dòng cũ:
+# reranker_used = any(float(r.get("cross_encoder_score", 0)) > 0 for r in results)
+# Bằng:
+reranker_used = recall_json.get("trace", {}).get("cross_encoder_ok", False) or reranker_used
+```
+
+Output: `logs/task_769_summary.md`
+
+---
+
+#### Task 770 — Dual model: Ministral-3B retain + Gemma-4 generation
+
+**Câu hỏi:** Có dùng 2 model trên cùng 1 Ollama host (Kaggle T4 16GB) được không?
+
+**Có.** Proxy `serve_ollama_openai.py` đã route theo `model` field — không cần thay đổi proxy. VRAM: Ministral-3B ~2.2GB + Gemma-4 8B Q4 ~4.5GB = ~7GB << 16GB T4. Cần `OLLAMA_MAX_LOADED_MODELS=2` để giữ cả 2 models trong VRAM đồng thời (tránh swap ~60s mỗi lần chuyển).
+
+**770.1 — Kaggle notebook: pull + create Gemma-4**
+
+File: `notebooks/Serve-LLM-Kaggle.ipynb` — thêm cells sau cell pull Ministral:
+
+```python
+# Pull Gemma-4
+!ollama pull unsloth/gemma-4-E4B-it-GGUF:Q4_K_M
+```
+```
+%%writefile Modelfile_gemma
+FROM unsloth/gemma-4-E4B-it-GGUF:Q4_K_M
+PARAMETER num_ctx 32000
+PARAMETER num_predict 8192
+PARAMETER temperature 0.1
+```
+```python
+!ollama create gemma4-8b -f Modelfile_gemma
+```
+
+Sửa cell start Ollama: thêm `env["OLLAMA_MAX_LOADED_MODELS"] = "2"` vào dict env trước khi `subprocess.Popen`.
+
+**770.2 — cogmem_api/config.py: thêm generate LLM env vars**
+
+```python
+ENV_GENERATE_LLM_MODEL    = "COGMEM_API_GENERATE_LLM_MODEL"
+ENV_GENERATE_LLM_BASE_URL = "COGMEM_API_GENERATE_LLM_BASE_URL"
+ENV_GENERATE_LLM_API_KEY  = "COGMEM_API_GENERATE_LLM_API_KEY"
+ENV_GENERATE_LLM_TIMEOUT  = "COGMEM_API_GENERATE_LLM_TIMEOUT"
+```
+
+Thêm vào runtime config dataclass (optional, fallback về retain LLM nếu không set):
+```python
+generate_llm_model: str | None = None
+generate_llm_base_url: str | None = None
+generate_llm_api_key: str | None = None
+generate_llm_timeout: float | None = None
+```
+
+Đọc trong `_get_raw_config()` tương tự cách đọc `judge_llm_*` vars.
+
+**770.3 — memory_engine.py: `_build_generate_llm_config()`**
+
+Thêm method mới sau `_build_retain_llm_config()`:
+```python
+def _build_generate_llm_config(self) -> LLMConfig | None:
+    """Build LLM config for /generate endpoint. Falls back to retain LLM if not configured."""
+    model = self._runtime_config.generate_llm_model or self._runtime_config.llm_model
+    base_url = self._runtime_config.generate_llm_base_url or self._runtime_config.llm_base_url
+    if not base_url:
+        return None
+    return LLMConfig(
+        provider=self._runtime_config.llm_provider,
+        model=model,
+        api_key=self._runtime_config.generate_llm_api_key or self._runtime_config.llm_api_key,
+        base_url=base_url,
+        timeout=self._runtime_config.generate_llm_timeout or self._runtime_config.retain_llm_timeout,
+    )
+```
+
+**770.4 — http.py: `/generate` endpoint dùng generate config**
+
+```python
+# Thay:
+if not app.state.memory._runtime_config.llm_base_url:
+    raise HTTPException(status_code=503, detail="Retain LLM not configured")
+llm_config = app.state.memory._build_retain_llm_config()
+if llm_config is None:
+    raise HTTPException(status_code=503, detail="Retain LLM not available")
+# Thành:
+llm_config = app.state.memory._build_generate_llm_config()
+if llm_config is None:
+    raise HTTPException(status_code=503, detail="Generate LLM not configured")
+```
+
+**770.5 — .env: thêm generate LLM vars**
+
+```bash
+# Generate LLM (used by /generate endpoint — higher-quality model than retain LLM)
+# Falls back to COGMEM_API_LLM_MODEL (retain LLM) if not set.
+COGMEM_API_GENERATE_LLM_MODEL=gemma4-8b
+# Base URL: defaults to same Ollama proxy as retain LLM. Set only if different host.
+COGMEM_API_GENERATE_LLM_BASE_URL=
+COGMEM_API_GENERATE_LLM_API_KEY=
+COGMEM_API_GENERATE_LLM_TIMEOUT=3600
+```
+
+Output: `logs/task_770_summary.md`
+
+---
+
+#### Task 771 — Artifacts + verification
+
+**`tests/artifacts/test_task768_snippet_dedup.py`** (2 tests):
+- `seen_doc_ids` set tồn tại trong snippet_budget loop của memory_engine.py
+- `item["text"] = None` KHÔNG có trong source code
+
+**`tests/artifacts/test_task769_reranker_fix.py`** (3 tests):
+- `RecallResult` trong http.py có field `cross_encoder_score`
+- memory_engine.py result dict có key `"cross_encoder_score"`
+- eval_cogmem.py dùng `cross_encoder_ok` từ trace (không còn check `cross_encoder_score` từ results)
+
+**`tests/artifacts/test_task770_dual_model.py`** (3 tests):
+- `MemoryEngine._build_generate_llm_config` method tồn tại trong memory_engine.py
+- http.py `/generate` endpoint gọi `_build_generate_llm_config` (không còn `_build_retain_llm_config`)
+- config.py có constant `COGMEM_API_GENERATE_LLM_MODEL`
+
+**Exit gate S24.6:**
+1. `uv run python tests/artifacts/test_task768_snippet_dedup.py` → 2/2 PASS
+2. `uv run python tests/artifacts/test_task769_reranker_fix.py` → 3/3 PASS
+3. `uv run python tests/artifacts/test_task770_dual_model.py` → 3/3 PASS
+4. Smoke test: chạy lại E7 conv 0 → `generated_answer` đề cập ≥ 2 model kits, server log `model=gemma4-8b`, `reranker_used=True` trong checkpoint.
+
+---
+
+### Sprint S24.7 — Retain Quality Fixes (Chunk Snippet + Richer Extraction)
+
+## Context
+
+Sau khi phân tích checkpoint E7 conv 0 (longmemeval "how many model kits"), phát hiện 2 root cause ở tầng **retain** khiến generation trả lời sai:
+
+1. **`raw_snippet` = toàn bộ session (~28,000 chars)** thay vì chỉ chunk (~2-5k chars) chứa fact đó → generation model nhận quá nhiều noise (assistant advice về weathering) thay vì context đúng về việc user mua kit nào.
+
+2. **Extracted facts quá ngắn và chung chung** — `what` capped 40 words, `why` optional → facts như "User explores weathering for model tanks" thay vì "User bought 1/16 German Tiger I tank kit to practice advanced weathering [When: ...]". Sessions Tiger I và Camaro gần như vô hình với model generation.
+
+Sprint này KHÔNG đụng vào recall hay generation prompt — chỉ fix retain.
+
+---
+
+## Files cần thay đổi
+
+| File | Task | Thay đổi |
+|------|------|---------|
+| `cogmem_api/engine/retain/fact_extraction.py` | 772, 773 | raw_snippet → chunk text; tăng what limit + near-require why |
+| `cogmem_api/engine/memory_engine.py` | 772 | Dedup snippet budget: document_id → chunk_id |
+| `tests/artifacts/test_task772_chunk_snippet.py` | 774 | Artifact test |
+| `tests/artifacts/test_task773_richer_extraction.py` | 774 | Artifact test |
+| `logs/task_772_summary.md` | 774 | Summary log |
+| `logs/task_773_summary.md` | 774 | Summary log |
+
+---
+
+## Task 772 — raw_snippet = chunk text, not session text
+
+### Root cause (confirmed from code)
+
+`fact_extraction.py` — cả 3 paths đều set:
+```python
+raw_snippet=content.content  # = toàn bộ session text
+```
+
+`chunk_id` đã được lưu trong `ProcessedFact` (orchestrator.py:127-130), nên infrastructure đã sẵn.
+
+### 772.1 — fact_extraction.py: dùng chunk text làm raw_snippet
+
+Mỗi `content` trong `extract_facts_from_contents` là một chunk. Cần truyền thêm chunk text riêng biệt, hoặc dùng `content.content` (nếu đây là chunk text) và lưu full session text riêng chỗ khác.
+
+**Cần xác minh khi implement**: `content.content` là chunk text hay full session text? Nếu là full session, cần tìm cách lấy chunk slice. Candidate: chunk text được pass vào LLM extraction, nên đó chính là chunk text.
+
+```python
+# Trong _normalize_llm_facts(), _extract_seeded_facts(), _extract_fallback_facts():
+# TRƯỚC:
+raw_snippet=content.content          # full session
+# SAU:
+raw_snippet=content.chunk_text       # or content.content nếu đã là chunk
+```
+
+Nếu `content.content` là full session, cần thêm field `chunk_text` trên content object và pass chunk slice vào đó trong orchestrator.
+
+### 772.2 — memory_engine.py: đổi dedup từ document_id → chunk_id
+
+Khi raw_snippet là chunk-level, 2 facts từ 2 chunk khác nhau trong cùng session cần snippet riêng.
+
+```python
+# TRƯỚC (lines 659-668):
+seen_doc_ids: set[str] = set()
+for item in reranked_results:
+    doc_id = item.get("document_id") or ""
+    if doc_id and doc_id in seen_doc_ids:
+        item["raw_snippet"] = None
+    elif used_chars + len(snippet) <= snippet_budget:
+        used_chars += len(snippet)
+        if doc_id:
+            seen_doc_ids.add(doc_id)
+
+# SAU:
+seen_chunk_ids: set[str] = set()
+for item in reranked_results:
+    chunk_id = item.get("chunk_id") or item.get("document_id") or ""
+    if chunk_id and chunk_id in seen_chunk_ids:
+        item["raw_snippet"] = None
+    elif used_chars + len(snippet) <= snippet_budget:
+        used_chars += len(snippet)
+        if chunk_id:
+            seen_chunk_ids.add(chunk_id)
+```
+
+Cần expose `chunk_id` trong result dict ở memory_engine.py (tương tự `document_id`) và trong `RecallResult` của http.py.
+
+---
+
+## Task 773 — Richer fact extraction: What + Why + Entity
+
+### Vấn đề cụ thể
+
+Prompt hiện tại:
+- `what`: required, **"under 40 words"** — quá ngắn, thiếu detail
+- `why`: optional, thường bị skip hoàn toàn
+- `entities`: hướng dẫn quá chung — "named people/places/orgs/tech" — model bỏ sót product names, kit names, brand names (Tamiya, Revell, Tiger I, Spitfire Mk.V)
+
+Kết quả xấu từ checkpoint: "User explores weathering for model tanks" với `entities: []` — không có Tiger I, không có Tamiya, không có why.
+
+### 773.1 — Tăng `what` limit + yêu cầu detail
+
+```
+# TRƯỚC:
+- "what": core statement, specific, under 40 words
+
+# SAU:
+- "what": core statement, under 80 words — must include: WHO did WHAT to/with WHAT OBJECT.
+  Be specific: prefer "User bought Tamiya 1/48 Spitfire Mk.V kit" over "User bought a model kit".
+  Include scale, brand, model name when mentioned.
+```
+
+### 773.2 — Near-require `why` cho experience/intention
+
+```
+# Thêm vào experience type guide:
+Include "why" whenever motivation or context is stated or strongly implied.
+Example: "why": "to practice metal painting techniques"
+
+# Thêm vào intention type guide:
+Include "why" whenever the goal reason is stated.
+```
+
+### 773.3 — Fix entity extraction: bổ sung product/brand/model names
+
+```
+# TRƯỚC:
+- "entities": named people/places/orgs/tech — e.g. ["Alice","DI"] — use [] if none
+
+# SAU:
+- "entities": ALL named entities — people, places, orgs, tech tools, product names, brand names,
+  model kit names, vehicle names, software names. e.g. ["Alice","Tamiya","Spitfire Mk.V","Tiger I"].
+  For experience/action_effect facts: entities MUST NOT be empty if the fact involves a named product,
+  person, or place. Empty [] only when truly no named entity exists.
+```
+
+### 773.4 — (Fallback) 2-pass approach nếu prompt engineering không đủ
+
+Nếu sau khi test với Ministral-3B, chất lượng vẫn thấp (entities rỗng, what quá ngắn), xem xét:
+
+**Pass 1 (extract)**: Prompt đơn giản hơn — chỉ hỏi what/when/why/fact_type, không hỏi entities/relations
+**Pass 2 (enrich)**: Với mỗi extracted fact, 1 prompt nhỏ chỉ hỏi "identify all named entities in this fact"
+
+Trade-off:
+- Pro: 2 task đơn giản → Ministral-3B ít confused hơn với prompt phức tạp
+- Con: 2x LLM calls → 2x latency per chunk (có thể chạy pass 2 in parallel cho N facts)
+- Con: 2x token cost
+
+**Quyết định**: Thử 773.1-773.3 trước (20-30 min test). Nếu không cải thiện đủ → implement 773.4.
+
+---
+
+## Task 774 — Artifacts
+
+### test_task772_chunk_snippet.py (2 tests)
+- `fact_extraction.py` không còn `raw_snippet=content.content` với full session
+- `memory_engine.py` dùng `chunk_id` trong dedup loop (không còn `seen_doc_ids`)
+
+### test_task773_richer_extraction.py (3 tests)
+- Prompt trong `fact_extraction.py` có "under 80 words" (không còn "under 40 words")
+- Prompt có instruction về `why` cho experience/intention
+- Prompt có "entities MUST NOT be empty" cho experience/action_effect
+
+---
+
+## Exit gate
+
+1. `uv run python tests/artifacts/test_task772_chunk_snippet.py` → 2/2 PASS
+2. `uv run python tests/artifacts/test_task773_richer_extraction.py` → 2/2 PASS
+3. Smoke test retain 1 session model kit → xem facts có rõ ràng hơn không
+4. Chạy lại E7 conv 0 → xem `recall_results[].raw_snippet` ngắn hơn (~3-5k) và facts có `why`
+
+---
+
+## Câu hỏi cần xác minh khi implement
+
+1. `content.content` trong extraction context là chunk text hay full session? → Đọc orchestrator + types để xác định
+2. `chunk_id` được format như thế nào? (`{bank_id}_{document_id}_{chunk_index}` hay UUID?) → Cần để expose đúng trong result dict
+
+---
+
 ### Sprint S25 - Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
@@ -1468,8 +1863,10 @@ Rủi ro và fallback:
 | Eval Readiness | S23 | Session-level Recall@k implementation | ✅ Done | 753 |
 | Eval Readiness | S24-hotfix | Pipeline bug fixes (FK, bool, URL, timeout, chunking) | ✅ Done | 756 |
 | Eval Readiness | S24 | Retrieval stack quality hardening (schema/index/ef_search/tags) | ✅ Done | 758-760 |
-| Eval Readiness | S24.5 | Eval pipeline correctness (two-tier recall, gen/judge endpoints) | 🔄 Next | 764-767 |
-| Eval Readiness | S25 | Full ablation dry run gate (E1-E7) | 🔄 Pending S24.5 | 761-763 |
+| Eval Readiness | S24.5 | Eval pipeline correctness (two-tier recall, gen/judge endpoints) | ✅ Done | 764-767 |
+| Eval Readiness | S24.6 | Eval quality fixes (snippet dedup, cross-encoder, dual model) | ✅ Done | 768-771 |
+| Eval Readiness | S24.7 | Retain quality fixes (chunk snippet + richer extraction) | 🔄 Next | 772-774 |
+| Eval Readiness | S25 | Full ablation dry run gate (E1-E7) | 🔄 Pending S24.7 | 761-763 |
 
 ---
 

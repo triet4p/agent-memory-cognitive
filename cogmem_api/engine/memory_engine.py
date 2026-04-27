@@ -219,6 +219,17 @@ class MemoryEngine:
                     "ALTER TABLE memory_units ADD COLUMN IF NOT EXISTS tags text[]",
                 )
 
+                # chunk_id text — added in S24.7 to track which chunk a fact came from.
+                await _safe_ddl(
+                    "chunk_id column",
+                    "ALTER TABLE memory_units ADD COLUMN IF NOT EXISTS chunk_id text",
+                )
+                await _safe_ddl(
+                    "idx_memory_units_chunk_id",
+                    "CREATE INDEX IF NOT EXISTS idx_memory_units_chunk_id "
+                    "ON memory_units (chunk_id) WHERE chunk_id IS NOT NULL",
+                )
+
                 # search_vector GENERATED ALWAYS AS STORED — SQLAlchemy ORM cannot
                 # express this PostgreSQL syntax, so it is always created here.
                 await _safe_ddl(
@@ -371,6 +382,19 @@ class MemoryEngine:
             api_key=self._runtime_config.judge_llm_api_key,
             base_url=self._runtime_config.judge_llm_base_url,
             timeout=self._runtime_config.judge_llm_timeout,
+        )
+
+    def _build_generate_llm_config(self) -> LLMConfig | None:
+        model = self._runtime_config.generate_llm_model or self._runtime_config.llm_model
+        base_url = self._runtime_config.generate_llm_base_url or self._runtime_config.llm_base_url
+        if not base_url:
+            return None
+        return LLMConfig(
+            provider=self._runtime_config.llm_provider,
+            model=model,
+            api_key=self._runtime_config.generate_llm_api_key or self._runtime_config.llm_api_key,
+            base_url=base_url,
+            timeout=self._runtime_config.generate_llm_timeout or self._runtime_config.retain_llm_timeout,
         )
 
     async def retain_batch_async(
@@ -632,7 +656,9 @@ class MemoryEngine:
                             "fact_type": scored_result.retrieval.fact_type,
                             "raw_snippet": scored_result.retrieval.raw_snippet,
                             "score": float(scored_result.combined_score),
+                            "cross_encoder_score": float(scored_result.cross_encoder_score),
                             "document_id": scored_result.candidate.retrieval.document_id,
+                            "chunk_id": scored_result.candidate.retrieval.chunk_id,
                         }
                     )
                     used_tokens += estimated
@@ -642,10 +668,16 @@ class MemoryEngine:
 
             if snippet_budget is not None:
                 used_chars = 0
+                seen_chunk_ids: set[str] = set()
                 for item in reranked_results:
+                    chunk_id = item.get("chunk_id") or item.get("document_id") or ""
                     snippet = item.get("raw_snippet") or ""
-                    if used_chars + len(snippet) <= snippet_budget:
+                    if chunk_id and chunk_id in seen_chunk_ids:
+                        item["raw_snippet"] = None
+                    elif used_chars + len(snippet) <= snippet_budget:
                         used_chars += len(snippet)
+                        if chunk_id:
+                            seen_chunk_ids.add(chunk_id)
                     else:
                         item["raw_snippet"] = None
 

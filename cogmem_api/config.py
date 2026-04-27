@@ -61,6 +61,11 @@ ENV_JUDGE_LLM_BASE_URL = "COGMEM_API_JUDGE_LLM_BASE_URL"
 ENV_JUDGE_LLM_TIMEOUT = "COGMEM_API_JUDGE_LLM_TIMEOUT"
 ENV_JUDGE_LLM_MAX_COMPLETION_TOKENS = "COGMEM_API_JUDGE_LLM_MAX_COMPLETION_TOKENS"
 
+ENV_GENERATE_LLM_MODEL = "COGMEM_API_GENERATE_LLM_MODEL"
+ENV_GENERATE_LLM_BASE_URL = "COGMEM_API_GENERATE_LLM_BASE_URL"
+ENV_GENERATE_LLM_API_KEY = "COGMEM_API_GENERATE_LLM_API_KEY"
+ENV_GENERATE_LLM_TIMEOUT = "COGMEM_API_GENERATE_LLM_TIMEOUT"
+
 DEFAULT_EMBEDDING_DIMENSION = 384
 EMBEDDING_DIMENSION = DEFAULT_EMBEDDING_DIMENSION
 
@@ -213,6 +218,10 @@ class CogMemRuntimeConfig:
     judge_llm_base_url: str | None = DEFAULT_JUDGE_LLM_BASE_URL
     judge_llm_timeout: float = DEFAULT_JUDGE_LLM_TIMEOUT
     judge_llm_max_completion_tokens: int = DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS
+    generate_llm_model: str | None = None
+    generate_llm_base_url: str | None = None
+    generate_llm_api_key: str | None = None
+    generate_llm_timeout: float | None = None
 
 
 @dataclass(frozen=True)
@@ -252,6 +261,10 @@ class CogMemConfig:
     judge_llm_base_url: str | None = DEFAULT_JUDGE_LLM_BASE_URL
     judge_llm_timeout: float = DEFAULT_JUDGE_LLM_TIMEOUT
     judge_llm_max_completion_tokens: int = DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS
+    generate_llm_model: str | None = None
+    generate_llm_base_url: str | None = None
+    generate_llm_api_key: str | None = None
+    generate_llm_timeout: float | None = None
 
 
 _cached_config: CogMemConfig | None = None
@@ -299,6 +312,10 @@ def _get_raw_config() -> CogMemRuntimeConfig:
             DEFAULT_JUDGE_LLM_MAX_COMPLETION_TOKENS,
             minimum=1,
         ),
+        generate_llm_model=_read_optional_str(ENV_GENERATE_LLM_MODEL),
+        generate_llm_base_url=_read_optional_str(ENV_GENERATE_LLM_BASE_URL),
+        generate_llm_api_key=_read_optional_str(ENV_GENERATE_LLM_API_KEY),
+        generate_llm_timeout=_read_float(ENV_GENERATE_LLM_TIMEOUT, None, minimum=0.1) if os.getenv(ENV_GENERATE_LLM_TIMEOUT) else None,
     )
 
 

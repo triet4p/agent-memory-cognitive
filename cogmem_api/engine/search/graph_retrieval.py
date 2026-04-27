@@ -185,16 +185,16 @@ class BFSGraphRetriever(GraphRetriever):
         entry_points = await conn.fetch(
             f"""
             SELECT id, text, context, event_date, occurred_start, occurred_end,
-                   mentioned_at, fact_type, document_id,
+                   mentioned_at, fact_type, document_id, chunk_id,
                    1 - (embedding <=> $1::vector) AS similarity
-            FROM {fq_table("memory_units")}
-            WHERE bank_id = $2
-              AND embedding IS NOT NULL
-              AND fact_type = $3
-              AND (1 - (embedding <=> $1::vector)) >= $4
-              {tags_clause}
-              {groups_clause}
-            ORDER BY embedding <=> $1::vector
+             FROM {fq_table("memory_units")}
+             WHERE bank_id = $2
+               AND embedding IS NOT NULL
+               AND fact_type = $3
+               AND (1 - (embedding <=> $1::vector)) >= $4
+               {tags_clause}
+               {groups_clause}
+             ORDER BY embedding <=> $1::vector
             LIMIT $5
             """,
             *params,
@@ -281,15 +281,15 @@ class BFSGraphRetriever(GraphRetriever):
                     f"""
                     SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
                            mu.mentioned_at, mu.fact_type,
-                           mu.document_id,
+                           mu.document_id, mu.chunk_id,
                            ml.weight, ml.link_type, ml.from_unit_id
-                    FROM {fq_table("memory_links")} ml
-                    JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
-                    WHERE ml.from_unit_id = ANY($1::uuid[])
-                      AND ml.weight >= $2
-                      AND mu.fact_type = $3
-                    ORDER BY ml.weight DESC
-                    LIMIT $4
+                     FROM {fq_table("memory_links")} ml
+                     JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
+                     WHERE ml.from_unit_id = ANY($1::uuid[])
+                       AND ml.weight >= $2
+                       AND mu.fact_type = $3
+                     ORDER BY ml.weight DESC
+                     LIMIT $4
                     """,
                     batch_nodes,
                     self.min_activation,
