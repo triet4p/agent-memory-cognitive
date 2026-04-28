@@ -50,8 +50,8 @@ services:
       - cogmem-net
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8888/health > /dev/null"]
-      interval: 5s
-      timeout: 5s
+      interval: 60s
+      timeout: 60s
       retries: 20
 
 networks:

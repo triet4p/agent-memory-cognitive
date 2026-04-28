@@ -768,6 +768,11 @@ async def _extract_facts_with_llm(
     extract_causal_links = bool(getattr(config, "retain_extract_causal_links", True))
     two_pass_enabled = bool(getattr(config, "retain_two_pass_enabled", True))
 
+    logger.info(
+        "[retain][idx=%d] routing: messages_present=%s two_pass_enabled=%s",
+        content_index, bool(content.messages), two_pass_enabled,
+    )
+
     if content.messages and two_pass_enabled:
         pass1_prompt, mode = build_pass1_prompt(config)
         pass2_prompt = build_pass2_prompt()
@@ -784,12 +789,22 @@ async def _extract_facts_with_llm(
                 chunk_for_pass2(content.messages, target_role=role, max_chars=int(getattr(config, "retain_pass2_chunk_chars", 3000) or 3000))
             )
 
+        logger.info(
+            "[retain][idx=%d] 2-PASS: messages=%d p1_chunks=%d p2_chunks=%d roles=%s",
+            content_index, len(content.messages), len(p1_chunks), len(p2_chunks), p2_target_roles,
+        )
+
         facts_p1: list[ExtractedFact] = []
         facts_p2: list[ExtractedFact] = []
         all_chunks_p1: list[ChunkMetadata] = []
         all_chunks_p2: list[ChunkMetadata] = []
 
+        logger.info("[retain][idx=%d] PASS 1 START — %d chunks", content_index, len(p1_chunks))
         for chunk in p1_chunks:
+            logger.debug(
+                "[retain][idx=%d] PASS 1 chunk=%s text_preview=%r",
+                content_index, chunk.chunk_id_suffix, chunk.text[:120],
+            )
             raw_facts, chunk_usage = await _call_llm_for_pass1(
                 llm_config=llm_config,
                 prompt=pass1_prompt,
@@ -809,6 +824,10 @@ async def _extract_facts_with_llm(
                 chunk_text=chunk.text,
                 extract_causal_links=extract_causal_links,
             )
+            logger.info(
+                "[retain][idx=%d] PASS 1 chunk=%s facts=%d",
+                content_index, chunk.chunk_id_suffix, len(parsed),
+            )
             for pf in parsed:
                 pf.raw_snippet = chunk.text
                 pf.chunk_id_suffix = chunk.chunk_id_suffix
@@ -822,7 +841,14 @@ async def _extract_facts_with_llm(
                 )
             )
 
+        logger.info("[retain][idx=%d] PASS 1 END — %d facts extracted", content_index, len(facts_p1))
+
+        logger.info("[retain][idx=%d] PASS 2 START — %d chunks", content_index, len(p2_chunks))
         for chunk in p2_chunks:
+            logger.debug(
+                "[retain][idx=%d] PASS 2 chunk=%s text_preview=%r",
+                content_index, chunk.chunk_id_suffix, chunk.text[:120],
+            )
             raw_facts, chunk_usage = await _call_llm_for_pass2(
                 llm_config=llm_config,
                 prompt=pass2_prompt,
@@ -840,6 +866,13 @@ async def _extract_facts_with_llm(
                 extract_causal_links=False,
             )
             filtered = [f for f in normalized if f.fact_type in PASS2_ALLOWED_FACT_TYPES]
+            dropped = len(normalized) - len(filtered)
+            logger.info(
+                "[retain][idx=%d] PASS 2 chunk=%s raw=%d normalized=%d filtered_kept=%d type_dropped=%d",
+                content_index, chunk.chunk_id_suffix,
+                len(raw_facts) if isinstance(raw_facts, list) else -1,
+                len(normalized), len(filtered), dropped,
+            )
             for pf in filtered:
                 pf.raw_snippet = chunk.text
                 pf.chunk_id_suffix = chunk.chunk_id_suffix
@@ -853,10 +886,20 @@ async def _extract_facts_with_llm(
                 )
             )
 
+        logger.info("[retain][idx=%d] PASS 2 END — %d facts (after type filter)", content_index, len(facts_p2))
+
         final_facts = dedup_facts(facts_p1, facts_p2)
+        logger.info(
+            "[retain][idx=%d] DEDUP DONE — p1=%d p2=%d final=%d",
+            content_index, len(facts_p1), len(facts_p2), len(final_facts),
+        )
         final_chunks = all_chunks_p1 + all_chunks_p2
         return final_facts, final_chunks, usage
 
+    logger.info(
+        "[retain][idx=%d] SINGLE-PASS (legacy) — messages_present=%s two_pass_enabled=%s",
+        content_index, bool(content.messages), two_pass_enabled,
+    )
     prompt, mode = build_pass1_prompt(config)
     chunk_size = int(getattr(config, "retain_chunk_size", 3000) or 3000)
     content_chunks = _chunk_content(content.content, chunk_size)

@@ -144,3 +144,144 @@ async def insert_facts_batch(
         unit_ids.append(created)
 
     return unit_ids
+
+
+async def get_facts(
+    conn,
+    bank_id: str,
+    *,
+    keyword: str | None = None,
+    fact_type: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Query memory units by keyword (text search) and/or fact_type filter."""
+    conditions = ["bank_id = $1"]
+    params: list[Any] = [bank_id]
+    param_idx = 2
+
+    if keyword:
+        conditions.append(f"text ILIKE ${param_idx}")
+        params.append(f"%{keyword}%")
+        param_idx += 1
+
+    if fact_type:
+        conditions.append(f"fact_type = ${param_idx}")
+        params.append(fact_type)
+        param_idx += 1
+
+    params.extend([limit, offset])
+    query = f"""
+        SELECT id::text, text, fact_type, raw_snippet, context,
+               occurred_start, occurred_end, mentioned_at, event_date,
+               chunk_id, document_id, metadata, tags, embedding
+        FROM {fq_table("memory_units")}
+        WHERE {' AND '.join(conditions)}
+        ORDER BY event_date DESC NULLS LAST
+        LIMIT ${param_idx} OFFSET ${param_idx + 1}
+    """
+    rows = await conn.fetch(query, *params)
+    return [_row_to_fact_dict(row) for row in rows]
+
+
+async def get_all_facts(
+    conn,
+    bank_id: str,
+    *,
+    limit: int = 100,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Get all memory units for a bank with pagination."""
+    query = f"""
+        SELECT id::text, text, fact_type, raw_snippet, context,
+               occurred_start, occurred_end, mentioned_at, event_date,
+               chunk_id, document_id, metadata, tags, embedding
+        FROM {fq_table("memory_units")}
+        WHERE bank_id = $1
+        ORDER BY event_date DESC NULLS LAST
+        LIMIT $2 OFFSET $3
+    """
+    rows = await conn.fetch(query, bank_id, limit, offset)
+    return [_row_to_fact_dict(row) for row in rows]
+
+
+async def get_relationships(
+    conn,
+    bank_id: str,
+    *,
+    limit: int = 100,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Get all memory_links for a bank with pagination."""
+    query = f"""
+        SELECT ml.from_unit_id::text, ml.to_unit_id::text, ml.link_type,
+               ml.transition_type, ml.weight,
+               mu_from.text AS from_text, mu_from.fact_type AS from_fact_type,
+               mu_to.text AS to_text, mu_to.fact_type AS to_fact_type
+        FROM {fq_table("memory_links")} ml
+        JOIN {fq_table("memory_units")} mu_from ON mu_from.id = ml.from_unit_id
+        JOIN {fq_table("memory_units")} mu_to ON mu_to.id = ml.to_unit_id
+        WHERE mu_from.bank_id = $1 AND mu_to.bank_id = $1
+        ORDER BY ml.link_type, ml.weight DESC
+        LIMIT $2 OFFSET $3
+    """
+    rows = await conn.fetch(query, bank_id, limit, offset)
+    return [_row_to_link_dict(row) for row in rows]
+
+
+async def get_relationships_by_type(
+    conn,
+    bank_id: str,
+    link_type: str,
+    *,
+    limit: int = 100,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Get memory_links filtered by link_type for a bank."""
+    query = f"""
+        SELECT ml.from_unit_id::text, ml.to_unit_id::text, ml.link_type,
+               ml.transition_type, ml.weight,
+               mu_from.text AS from_text, mu_from.fact_type AS from_fact_type,
+               mu_to.text AS to_text, mu_to.fact_type AS to_fact_type
+        FROM {fq_table("memory_links")} ml
+        JOIN {fq_table("memory_units")} mu_from ON mu_from.id = ml.from_unit_id
+        JOIN {fq_table("memory_units")} mu_to ON mu_to.id = ml.to_unit_id
+        WHERE mu_from.bank_id = $1 AND mu_to.bank_id = $1 AND ml.link_type = $2
+        ORDER BY ml.weight DESC
+        LIMIT $3 OFFSET $4
+    """
+    rows = await conn.fetch(query, bank_id, link_type, limit, offset)
+    return [_row_to_link_dict(row) for row in rows]
+
+
+def _row_to_fact_dict(row) -> dict[str, Any]:
+    return {
+        "id": row["id"],
+        "text": row["text"],
+        "fact_type": row["fact_type"],
+        "raw_snippet": row["raw_snippet"],
+        "context": row["context"],
+        "occurred_start": row["occurred_start"].isoformat() if row["occurred_start"] else None,
+        "occurred_end": row["occurred_end"].isoformat() if row["occurred_end"] else None,
+        "mentioned_at": row["mentioned_at"].isoformat() if row["mentioned_at"] else None,
+        "event_date": row["event_date"].isoformat() if row["event_date"] else None,
+        "chunk_id": row["chunk_id"],
+        "document_id": row["document_id"],
+        "metadata": row["metadata"],
+        "tags": row["tags"] or [],
+        "embedding": row["embedding"],
+    }
+
+
+def _row_to_link_dict(row) -> dict[str, Any]:
+    return {
+        "from_unit_id": row["from_unit_id"],
+        "to_unit_id": row["to_unit_id"],
+        "link_type": row["link_type"],
+        "transition_type": row["transition_type"],
+        "weight": float(row["weight"]) if row["weight"] is not None else None,
+        "from_text": row["from_text"],
+        "from_fact_type": row["from_fact_type"],
+        "to_text": row["to_text"],
+        "to_fact_type": row["to_fact_type"],
+    }

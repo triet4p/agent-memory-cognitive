@@ -10,6 +10,15 @@ from cogmem_api.config import _get_raw_config
 
 logging.getLogger(__name__)
 
+_cogmem_logger = logging.getLogger("cogmem_api")
+_cogmem_logger.setLevel(logging.DEBUG)
+if not _cogmem_logger.handlers:
+    _h = logging.StreamHandler()
+    _h.setLevel(logging.DEBUG)
+    _h.setFormatter(logging.Formatter("%(asctime)s | %(name)s | %(levelname)s | %(message)s"))
+    _cogmem_logger.addHandler(_h)
+    _cogmem_logger.propagate = False
+
 _config = _get_raw_config()
 
 _memory = MemoryEngine(

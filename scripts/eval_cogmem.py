@@ -801,11 +801,13 @@ def _benchmark_item_as_fixture(fixture: JsonDict, idx: int) -> JsonDict:
         raise IndexError(f"conv_index {idx} out of range (0..{len(questions) - 1})")
     q = questions[idx]
     sessions = q.get("_sessions", [])
+    messages = q.get("_messages", [])
     return {
         "name": fixture["name"],
         "turns": [t for _, sess_turns in sessions for t in sess_turns],
         "questions": [q],
         "_sessions": sessions,
+        "_messages": messages,
     }
 
 

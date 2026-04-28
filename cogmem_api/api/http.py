@@ -426,4 +426,106 @@ def create_app(
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+    @app.get(
+        "/v1/default/banks/{bank_id}/facts",
+        summary="List facts with optional filters",
+        description="Returns memory units filtered by keyword and/or fact type, with pagination.",
+        operation_id="list_facts",
+        tags=["Memory"],
+    )
+    async def list_facts(
+        bank_id: str,
+        keyword: str | None = None,
+        type: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        pool = app.state.memory.pool
+        if pool is None:
+            raise HTTPException(status_code=503, detail="Database pool not initialized")
+
+        from cogmem_api.engine.db_utils import acquire_with_retry
+        from cogmem_api.engine.retain.fact_storage import get_facts
+
+        async with acquire_with_retry(pool) as conn:
+            facts = await get_facts(
+                conn,
+                bank_id,
+                keyword=keyword,
+                fact_type=type,
+                limit=limit,
+                offset=offset,
+            )
+        return facts
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/facts/all",
+        summary="List all facts (paginated)",
+        description="Returns all memory units for a bank with limit/offset pagination.",
+        operation_id="list_all_facts",
+        tags=["Memory"],
+    )
+    async def list_all_facts(
+        bank_id: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        pool = app.state.memory.pool
+        if pool is None:
+            raise HTTPException(status_code=503, detail="Database pool not initialized")
+
+        from cogmem_api.engine.db_utils import acquire_with_retry
+        from cogmem_api.engine.retain.fact_storage import get_all_facts
+
+        async with acquire_with_retry(pool) as conn:
+            facts = await get_all_facts(conn, bank_id, limit=limit, offset=offset)
+        return facts
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/relationships",
+        summary="List all relationships (paginated)",
+        description="Returns all memory links (relationships) for a bank with pagination.",
+        operation_id="list_relationships",
+        tags=["Memory"],
+    )
+    async def list_relationships(
+        bank_id: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        pool = app.state.memory.pool
+        if pool is None:
+            raise HTTPException(status_code=503, detail="Database pool not initialized")
+
+        from cogmem_api.engine.db_utils import acquire_with_retry
+        from cogmem_api.engine.retain.fact_storage import get_relationships
+
+        async with acquire_with_retry(pool) as conn:
+            links = await get_relationships(conn, bank_id, limit=limit, offset=offset)
+        return links
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/relationships/by-type/{link_type}",
+        summary="List relationships by type",
+        description="Returns memory links filtered by link type (causal, semantic, temporal, entity, s_r_link, a_o_causal, transition).",
+        operation_id="list_relationships_by_type",
+        tags=["Memory"],
+    )
+    async def list_relationships_by_type(
+        bank_id: str,
+        link_type: str,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        pool = app.state.memory.pool
+        if pool is None:
+            raise HTTPException(status_code=503, detail="Database pool not initialized")
+
+        from cogmem_api.engine.db_utils import acquire_with_retry
+        from cogmem_api.engine.retain.fact_storage import get_relationships_by_type
+
+        async with acquire_with_retry(pool) as conn:
+            links = await get_relationships_by_type(conn, bank_id, link_type, limit=limit, offset=offset)
+        return links
+
     return app
