@@ -2192,6 +2192,105 @@ With `retain_pass2_target_roles = ("speaker_a","speaker_b")` and a small LoCoMo 
 
 ---
 
+## Sprint S26 — Recall Quality Fixes: Query Routing + Full Channel Trace 🔄
+
+**Mục tiêu sprint:**
+1. Sửa bug misrouting khiến mọi câu hỏi có `question_date` bị classify là `temporal` → weight 2.2 bias RRF về phía facts có time anchor, dìm các facts cross-session không có timestamp rõ ràng.
+2. Thêm per-fact 4-channel trace vào recall response để debug được tại sao mỗi fact đứng ở rank hiện tại.
+
+**Phụ thuộc:** S25 complete.
+
+---
+
+### Task 786 — Fix adaptive query routing: decouple `temporal_constraint` khỏi query type classification
+
+**Vấn đề:**
+
+`classify_query_type` trong [cogmem_api/engine/query_analyzer.py:107](cogmem_api/engine/query_analyzer.py#L107):
+
+```python
+if temporal_constraint is not None or _TEMPORAL_HINT_PATTERN.search(text):
+    return "temporal"
+```
+
+`temporal_constraint is not None` fire bất cứ khi nào `question_date` được truyền vào pipeline — dù query không hỏi gì về thời gian. Kết quả: mọi câu hỏi trong LongMemEval đều route thành `temporal` với weight profile `{"semantic": 0.8, "bm25": 0.6, "graph": 0.8, "temporal": 2.2}`. Temporal channel được nhân 2.2 → facts có time anchor tường minh ("last weekend") thống trị RRF; facts cross-session không có timestamp rõ bị dìm xuống score ~0.001.
+
+Ví dụ cụ thể từ E7: "How many model kits have I worked on or bought?" route thành `temporal` dù không có temporal intent → B-29 (có "last weekend") chiếm rank 1-2 score 0.65/0.62, Spitfire/Tiger I bị dìm xuống 0.002/0.001.
+
+**Fix:**
+
+1. Bỏ `temporal_constraint is not None` khỏi điều kiện routing. Query type chỉ dựa trên query text, không phụ thuộc vào context timestamp.
+2. Mở rộng `_MULTI_HOP_PATTERN` để bắt aggregation/count queries: thêm `\b(how many|how much|list all|what are all|count|total|all the|across all)\b`.
+3. `temporal_constraint` vẫn được truyền xuống temporal retrieval channel như cũ — chỉ không được dùng để quyết định query type nữa.
+
+**Files:**
+- [cogmem_api/engine/query_analyzer.py](cogmem_api/engine/query_analyzer.py) — `_MULTI_HOP_PATTERN` (line 42) và `classify_query_type()` (line 94-109)
+
+**Verification:**
+```python
+# Phải pass hết:
+assert classify_query_type("How many model kits have I worked on or bought?", temporal_constraint=<non-None>) == "multi_hop"
+assert classify_query_type("List all the places I've visited", temporal_constraint=None) == "multi_hop"
+assert classify_query_type("What did I do last week?", temporal_constraint=None) == "temporal"
+assert classify_query_type("When did I buy the B-29?", temporal_constraint=None) == "temporal"
+assert classify_query_type("I prefer Vallejo paints", temporal_constraint=None) == "preference"
+```
+
+Sau fix, recall với trace cho query "How many model kits" → `rrf_weights.temporal < rrf_weights.graph`; `query_type = "multi_hop"`.
+
+**Artifact:** `tests/artifacts/test_task786_query_routing.py`
+
+---
+
+### Task 787 — Full per-fact 4-channel trace trong recall response
+
+**Vấn đề:**
+
+Trace hiện tại chỉ expose: `query_type`, `rrf_weights`, `fact_types`, `timings`, `cross_encoder_ok`. Không có thông tin nào về điểm số của từng fact theo từng channel. Không thể biết: fact này rank 1 vì semantic mạnh hay vì temporal mạnh? Fact kia bị dìm vì cross-encoder hay vì BM25 không thấy nó?
+
+**Trace shape mong muốn** (thêm vào `trace.per_result` khi `enable_trace=True`):
+
+```json
+{
+  "per_result": [
+    {
+      "id": "...",
+      "text": "User purchased a 1/72 scale B-29 bomber...",
+      "channels": {
+        "semantic": {"rank": 1, "contributed": true},
+        "bm25":     {"rank": 4, "contributed": true},
+        "graph":    {"rank": null, "contributed": false},
+        "temporal": {"rank": 1, "contributed": true}
+      },
+      "rrf_score": 0.653,
+      "cross_encoder_score": 0.631
+    },
+    ...
+  ]
+}
+```
+
+`rank` = thứ hạng của fact trong channel đó (1-based), `null` nếu channel không retrieve được fact này. `contributed` = True nếu fact xuất hiện trong channel. Không cần raw similarity score — rank đủ để debug imbalance.
+
+**Files:**
+- [cogmem_api/engine/search/fusion.py](cogmem_api/engine/search/fusion.py) — `weighted_reciprocal_rank_fusion()`: trong vòng lặp tính RRF, ghi lại `{doc_id: {source_name: rank}}` khi `enable_trace=True`; trả về cùng với merged list
+- [cogmem_api/engine/search/retrieval.py](cogmem_api/engine/search/retrieval.py) — `_fuse_retrieval_channels()`: nhận per-doc channel map từ fusion, đính kèm vào trace dict khi `enable_trace=True`
+- [cogmem_api/engine/search/tracer.py](cogmem_api/engine/search/tracer.py) hoặc [cogmem_api/engine/search/trace.py](cogmem_api/engine/search/trace.py) — thêm `per_result` field vào trace schema nếu có TypedDict/dataclass ở đây
+
+**Constraint:** trace chỉ build khi `enable_trace=True`. Không thêm overhead vào normal recall path.
+
+**Verification:**
+```bash
+curl -X POST http://localhost:8888/v1/default/banks/.../memories/recall \
+  -d '{"query":"How many model kits","top_k":10,"trace":true}' \
+  | python -c "import sys,json; t=json.load(sys.stdin)['trace']; print(json.dumps(t['per_result'][:3],indent=2))"
+# Expected: 3 objects, mỗi object có channels.semantic.rank, channels.temporal.rank, rrf_score, cross_encoder_score
+```
+
+**Artifact:** `tests/artifacts/test_task787_recall_trace.py`
+
+---
+
 ## Sprint S-final — Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
@@ -2275,6 +2374,7 @@ Rủi ro và fallback:
 | Eval Readiness | S24.7 | Retain quality fixes (chunk snippet + richer extraction) | ✅ Done | 772-774 |
 | Eval Readiness | S24.8 | hot fix chunk id, judge rubric, entity diagnostics | ✅ Done | 775-777 |
 | Eval Readiness | S25 | 2-Pass Speaker-Aware Extraction + Prompt Centralization | 🔄 Pending | 778-785 |
+| Eval Readiness | S26 | Recall quality fixes: query routing + full channel trace | 🔄 Pending | 786-787 |
 | Eval Readiness | S-final | Full ablation dry run gate (E1-E7) | 🔄 Pending | 761-763 |
 
 ---
@@ -2297,6 +2397,7 @@ Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-
 → **S24 (tasks 758-760):** Retrieval stack quality hardening ✅ DONE
 → **S24.5-S24.8 (tasks 764-777):** Eval pipeline correctness + quality fixes ✅ DONE
 → **S25 (tasks 778-785):** 2-Pass Speaker-Aware Extraction + Prompt Centralization 🔄 Pending
+→ **S26 (tasks 786-787):** Recall Quality Fixes: Query Routing + Full Channel Trace 🔄 Pending
 → **S-final (tasks 761-763):** Full Ablation Dry Run Gate 🔄 Pending
 
 ### Future (Dependent on S-final PASS)

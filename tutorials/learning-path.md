@@ -1,72 +1,87 @@
-# CogMem Learning Path (Architecture -> Module -> Function)
+# CogMem Learning Path
 
-## Mục tiêu
-Tài liệu này quy định thứ tự học codebase theo top-down, tránh đọc ngẫu nhiên gây mất context.
-Scope hiện tại đã hoàn tất nền S16/S17 và bổ sung inventory đầy đủ ở S18.1.
+## Reader Tracks
 
-## Điểm vào tài liệu
-1. Chỉ mục tổng hợp: [tutorials/INDEX.md](INDEX.md)
-2. Framework và quy chuẩn: [tutorials/README.md](README.md)
-3. Hướng dẫn đọc code thủ công: [tutorials/manual-code-reading-guide.md](manual-code-reading-guide.md)
-4. Phase D per-file index: [tutorials/per-file/INDEX.md](per-file/INDEX.md)
-5. Phase D canonical reading order: [tutorials/per-file/READING-ORDER.md](per-file/READING-ORDER.md)
+CogMem serves three kinds of readers. Pick the track that matches your goal:
 
-## Thứ tự đọc đề xuất
-1. Manual-first walkthrough
-   - Doc [tutorials/manual-code-reading-guide.md](manual-code-reading-guide.md).
-   - Mục tiêu: nắm ngay runtime call chain thật (main -> server -> api -> memory_engine -> retain/recall/reflect).
+| Track | Goal | Start | Duration |
+|-------|------|-------|----------|
+| **A. Onboarding** | Understand how the system works, run it locally | `QUICKSTART.md` → `ARCHITECTURE/overview.md` → `ARCHITECTURE/retain-pipeline.md` → `ARCHITECTURE/search-pipeline.md` → `ARCHITECTURE/reflect-pipeline.md` | ~45 min |
+| **B. Configuration & Ops** | Deploy, tune, or debug the system | `CONFIG/env-vars.md` → `CONFIG/prompts.md` → `REFERENCE/troubleshooting.md` | ~30 min |
+| **C. Deep Dive / Contributing** | Understand code in detail to extend or fix | `ARCHITECTURE/overview.md` → `PER-FILE/` walkthrough (bottom-up) → relevant `ARCHITECTURE/` docs | ~2-3 hrs |
 
-2. Layer 0 - Architecture overview
-   - Doc [tutorials/module-map.md](module-map.md), mục `Layer 0 - System Overview`.
-   - Mục tiêu: nắm boundary hệ thống, dataflow retain/recall/reflect.
+## Track A — Onboarding
 
-3. Layer 1 - End-to-end flow map
-   - Doc [tutorials/module-map.md](module-map.md), mục `Layer 1 - End-to-end Flows`.
-   - Doc [tutorials/flows/retain-recall-reflect-response.md](flows/retain-recall-reflect-response.md), flow module-level chính của hệ thống.
-   - Mục tiêu: nắm đường chạy chính từ request vào đến response ra.
+### Step 1: Run it locally (10 min)
+Follow `QUICKSTART.md` to start the API, send a retain request, and run a recall query. Get the API running before reading further.
 
-4. Layer 2 - Module catalog
-   - Doc [tutorials/module-map.md](module-map.md), mục `Layer 2 - Module Catalog`.
-   - Doc [tutorials/modules/README.md](modules/README.md), danh mục module dossiers của S17.2.
-   - Mục tiêu: xác định module ownership, dependency direction, và boundary sử dụng.
+### Step 2: Understand the big picture (15 min)
+Read `ARCHITECTURE/overview.md`. Focus on:
+- The three pipelines (retain / recall / reflect) and how data flows between them
+- The 6 memory networks and why they exist
+- The Memory Engine singleton and what state it holds
 
-5. Layer 3 - Function inventory seed
-   - Doc [tutorials/module-map.md](module-map.md), mục `Layer 3 - Function Inventory Seed`.
-   - Doc [tutorials/functions/function-inventory.md](functions/function-inventory.md), inventory function-level đầy đủ ở S18.1.
-   - Mục tiêu: dùng inventory làm baseline chống bỏ sót hàm trước khi viết deep-dive docs.
+### Step 3: Retain pipeline details (10 min)
+Read `ARCHITECTURE/retain-pipeline.md`. Focus on:
+- Why two-pass extraction exists
+- How `raw_snippet` solves the lossy compression problem
+- The fallback hierarchy: LLM → seeded → heuristic
 
-6. Chuyển tiếp sang S17/S18
-   - S17: đã hoàn tất module-level dossiers và flow docs.
-   - S18.2: đã hoàn tất deep-dive function-level theo inventory đã khóa ở S18.1 (xem `tutorials/functions/README.md`).
-   - S18.3: tạo capstone walkthrough + self-checklist gắn function checkpoints.
+### Step 4: Recall pipeline details (10 min)
+Read `ARCHITECTURE/search-pipeline.md`. Focus on:
+- The 4 retrieval channels and why they run in parallel
+- How adaptive RRF weights work
+- BFS SUM vs HINDSIGHT MAX
+- The prospective guard for intention filtering
 
-7. Áp template chuẩn cho tài liệu mới
-   - Dùng [tutorials/templates/function-property-template.md](templates/function-property-template.md) làm khung mặc định.
-   - Bảo đảm đủ các heading bắt buộc: Purpose, Inputs, Outputs, Top-down level, Prerequisites, Module responsibility, Function inventory (public/private), Failure modes, Verify commands.
+### Verify your understanding:
+```bash
+uv run python tests/artifacts/test_task201_retain_baseline.py
+uv run python tests/artifacts/test_task302_sum_activation.py
+```
 
-8. Phase D canonical per-file reading
-   - Doc [tutorials/per-file/READING-ORDER.md](per-file/READING-ORDER.md).
-   - Mục tiêu: đọc theo catalog ID để bao phủ 100% file code scope Phase D.
-   - Khi onboarding: áp dụng `ONBOARDING_IDS` theo thứ tự tuyệt đối.
-   - Khi debug production: áp dụng `DEBUG_FIRST_IDS` để khoanh vùng nhanh.
+## Track B — Configuration & Ops
 
-## Checklist hoàn tất S16.1
-1. Có đủ 2 tài liệu scaffold: `tutorials/module-map.md` và `tutorials/learning-path.md`.
-2. Learning path thể hiện rõ trình tự Architecture -> Module -> Function.
-3. Module map bao gồm đủ 4 layer top-down theo PLAN.
+### Step 1: Environment variables
+Read `CONFIG/env-vars.md`. Key groups:
+- **Database**: `DATABASE_URL`, `DB_POOL_*`
+- **LLM**: `LLM_BASE_URL`, `LLM_MODEL`, `RETAIN_*_TIMEOUT`
+- **Retriever**: `GRAPH_RETRIEVER`, `BFS_*` params
+- **Judge**: `JUDGE_LLM_*`
 
-## Checklist hoàn tất S18.1
-1. Có `tutorials/functions/function-inventory.md` và `tutorials/functions/function-inventory.json`.
-2. Inventory bao phủ toàn bộ hàm/module trong phạm vi `cogmem_api/**` (trừ `cogmem_api/alembic/versions/**`).
-3. Mỗi hàm có signature + vị trí file và trạng thái coverage (`inventory_status`, `deep_dive_status`).
+### Step 2: Extraction prompts
+Read `CONFIG/prompts.md` to understand Pass 1 vs Pass 2 and the 4 extraction modes.
 
-## Checklist hoàn tất S18.2
-1. Có `tutorials/functions/README.md` và `tutorials/functions/function-doc-index.json`.
-2. Có deep-dive docs theo module trong `tutorials/functions/*.md` (trừ inventory/index files).
-3. Mọi hàm trong inventory đều có section deep-dive và verify command tương ứng.
+### Step 3: Common issues
+Read `REFERENCE/troubleshooting.md` before hitting your first bug. Common issues:
+- `ModuleNotFoundError: No module named 'dateparser'` — run `uv add dateparser`
+- FK violations on first retain — fixed in S24 hotfix (task 756)
+- Cross-encoder silent fallback — expected behavior when CE unavailable
 
-## Verify commands
-1. `uv run python tests/artifacts/test_task716_tutorial_framework.py`
-2. `uv run python tests/artifacts/test_task718_function_inventory.py`
-3. `uv run python tests/artifacts/test_task719_function_deep_dive.py`
-4. `uv run python tests/artifacts/test_task728_reading_order_full_scope.py`
+## Track C — Deep Dive
+
+### Prerequisites
+- Understand the three pipelines from Track A
+- Have read `ARCHITECTURE/overview.md`
+
+### Bottom-up reading order:
+
+1. `cogmem_api/config.py` — env var reading and config caching
+2. `cogmem_api/engine/memory_engine.py` — singleton holding pool, embeddings, CE
+3. `cogmem_api/engine/retain/orchestrator.py` — retain transaction orchestrator
+4. `cogmem_api/engine/retain/fact_extraction.py` — most complex module; focus on fallback hierarchy
+5. `cogmem_api/engine/retain/fact_storage.py` — memory_units upsert with document_id
+6. `cogmem_api/engine/retain/link_creation.py` — all 7 edge types
+7. `cogmem_api/engine/search/retrieval.py` — 4-channel orchestration and RRF fusion
+8. `cogmem_api/engine/search/graph_retrieval.py` — BFS SUM with cycle guards
+9. `cogmem_api/engine/query_analyzer.py` — query type classification
+10. `cogmem_api/engine/reflect/agent.py` — lazy synthesis vs HINDSIGHT CARA
+
+### Key files for specific contributions:
+
+| Contribution | Key File(s) |
+|--------------|-------------|
+| C1: 6 networks + 7 edges | `retain/types.py`, `link_creation.py` |
+| C2: raw_snippet lossless | `fact_extraction.py`, `memory_engine.py` |
+| C3: SUM + 3 guards | `graph_retrieval.py::BFSGraphRetriever` |
+| C4: adaptive RRF | `query_analyzer.py`, `retrieval.py::resolve_query_routing` |
