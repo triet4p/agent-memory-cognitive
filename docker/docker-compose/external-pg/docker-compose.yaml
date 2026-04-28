@@ -43,6 +43,8 @@ services:
       COGMEM_WAIT_FOR_DEPS: true
       COGMEM_DOCKER_PRELOAD_ML_MODELS: ${COGMEM_DOCKER_PRELOAD_ML_MODELS:-false}
       HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - ../../../cogmem_api:/app/cogmem_api
     depends_on:
       db:
         condition: service_healthy

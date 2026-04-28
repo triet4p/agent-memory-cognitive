@@ -40,7 +40,7 @@ _PREFERENCE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _MULTI_HOP_PATTERN = re.compile(
-    r"\b(connect|connected|link|related|relationship|between|across|together|and\s+then|after\s+that|before\s+that)\b",
+    r"\b(connect|connected|link|related|relationship|between|across|together|and\s+then|after\s+that|before\s+that|how\s+many|how\s+much|list\s+all|what\s+are\s+all|count|total|all\s+the|across\s+all)\b",
     re.IGNORECASE,
 )
 _TEMPORAL_HINT_PATTERN = re.compile(
@@ -104,7 +104,7 @@ def classify_query_type(query: str, temporal_constraint: TemporalConstraint | No
         return "preference"
     if _MULTI_HOP_PATTERN.search(text):
         return "multi_hop"
-    if temporal_constraint is not None or _TEMPORAL_HINT_PATTERN.search(text):
+    if _TEMPORAL_HINT_PATTERN.search(text):
         return "temporal"
     return "semantic"
 

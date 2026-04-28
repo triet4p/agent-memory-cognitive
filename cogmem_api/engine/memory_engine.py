@@ -642,12 +642,21 @@ class MemoryEngine:
                         sr.combined_score = sr.cross_encoder_score_normalized
                         sr.weight = sr.combined_score
 
+                _ALL_CHANNELS = ("semantic", "bm25", "graph", "temporal")
+
                 used_tokens = 0
                 for scored_result in scored:
                     text = scored_result.retrieval.text
                     estimated = max(1, len(text.split()))
                     if max_tokens > 0 and used_tokens + estimated > max_tokens:
                         break
+
+                    raw_ranks = scored_result.candidate.source_ranks
+                    channel_ranks = (
+                        {ch: raw_ranks.get(f"{ch}_rank") for ch in _ALL_CHANNELS}
+                        if enable_trace
+                        else None
+                    )
 
                     reranked_results.append(
                         {
@@ -659,6 +668,7 @@ class MemoryEngine:
                             "cross_encoder_score": float(scored_result.cross_encoder_score),
                             "document_id": scored_result.candidate.retrieval.document_id,
                             "chunk_id": scored_result.candidate.retrieval.chunk_id,
+                            "channel_ranks": channel_ranks,
                         }
                     )
                     used_tokens += estimated

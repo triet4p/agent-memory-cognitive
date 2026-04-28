@@ -109,6 +109,7 @@ class RecallResult(BaseModel):
     raw_snippet: str | None = None
     document_id: str | None = None
     chunk_id: str | None = None
+    channel_ranks: dict[str, int | None] | None = None
 
 
 class RecallResponse(BaseModel):
@@ -351,6 +352,7 @@ def create_app(
                 raw_snippet=item.get("raw_snippet"),
                 document_id=item.get("document_id"),
                 chunk_id=item.get("chunk_id"),
+                channel_ranks=item.get("channel_ranks"),
             )
             for item in recall_result.get("results", [])
             if item.get("id") and item.get("text")

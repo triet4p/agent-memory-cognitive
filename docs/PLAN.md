@@ -2291,6 +2291,80 @@ curl -X POST http://localhost:8888/v1/default/banks/.../memories/recall \
 
 ---
 
+### Task 788 — Fix generation prompt: EVIDENCES + REFERENCES format
+
+**Vấn đề:**
+
+`build_generation_prompt` trong [cogmem_api/prompts/eval/generate.py](cogmem_api/prompts/eval/generate.py):
+
+```python
+snippet = item.get("raw_snippet") or item.get("text", "")
+```
+
+Ưu tiên `raw_snippet` hơn `text`. Raw snippet là toàn bộ multi-turn conversation (hàng nghìn từ). Kết quả: evidence block ~30,000–50,000 token. Generation LLM bị ngập trong nhiễu, đọc raw snippet dài nhất (có thể là một session laptop accessories hoàn toàn không liên quan) và respond theo nó thay vì trả lời câu hỏi.
+
+Ví dụ cụ thể: E7 với query "How many model kits" — `generated_answer` nói về "Laptop Stand: Anker" vì raw_snippet của rank 8 là session về mua laptop ở Best Buy. Trong khi `text` của rank 8 lại là "User picks up model kits on impulse during hobby store trips" — đúng và ngắn gọn.
+
+**Fix — MEMORIES + REFERENCES format:**
+
+Tách thành 2 section rõ ràng trong prompt:
+
+```
+Answer the question using MEMORIES as primary evidence.
+REFERENCES provide raw context — prioritize MEMORIES.
+
+Question: {query}
+
+MEMORIES (extracted facts — answer primarily from these):
+[1] User purchased a 1/72 scale B-29 bomber model kit for photo-etching practice
+[2] User purchased B-29 + '69 Camaro at a model show last weekend
+[3] User acquired a 1/24 scale '69 Chevrolet Camaro ZL1 kit at a model show
+[4] User picks up model kits on impulse during hobby store trips
+[5] User finished a 1/48 Revell F-15 Eagle model kit | When: late April
+...
+
+REFERENCES (supporting raw context for each memory, if needed):
+[1-ref] "I'm looking for some tips on photo-etching for my new 1/72 scale B-29 bomber model kit. By the way, I just got this kit and a 1/24 scale '69 Camaro at a model show last weekend."
+[2-ref] [user]: I'm looking for some tips on photo-etching... [assistant]: Nice scores! ...
+...
+
+Instructions:
+- Answer PRIMARILY from MEMORIES. Only consult REFERENCES if a memory is ambiguous.
+- If MEMORIES contain partial information (e.g., you can see some but not all items in a list), enumerate what you found and state the list may be incomplete.
+- Do NOT say "information not available" when partial evidence exists in MEMORIES.
+- Cite by index, e.g. [1] or [2].
+```
+
+**Quy tắc implementation:**
+- `text` → MEMORIES (luôn dùng, ngắn gọn, đã extracted)
+- `raw_snippet` → REFERENCES (giữ nguyên, không truncate, optional — chỉ thêm nếu snippet tồn tại)
+- Item không có `raw_snippet` → không xuất hiện trong REFERENCES block
+- Thứ tự MEMORIES đặt trước REFERENCES, câu hỏi đặt sau header
+
+**File:**
+- [cogmem_api/prompts/eval/generate.py](cogmem_api/prompts/eval/generate.py) — `build_generation_prompt()`
+
+**Verification:**
+```python
+evidence = [
+    {"text": "User bought B-29 kit", "raw_snippet": "I just got this B-29 kit..."},
+    {"text": "User finished F-15 Eagle", "raw_snippet": None},
+    {"text": "User started Tiger I diorama", "raw_snippet": "I started a diorama..."},
+]
+prompt = build_generation_prompt("How many kits?", evidence)
+assert "MEMORIES" in prompt
+assert "REFERENCES" in prompt
+assert "[1] User bought B-29 kit" in prompt        # text trong MEMORIES
+assert "[1-ref]" in prompt                          # snippet trong REFERENCES
+assert "[2-ref]" not in prompt                      # F-15 không có snippet → không xuất hiện trong REFERENCES
+assert "[3-ref]" in prompt                          # Tiger I có snippet → xuất hiện
+assert prompt.index("MEMORIES") < prompt.index("REFERENCES")  # MEMORIES trước
+```
+
+**Artifact:** `tests/artifacts/test_task788_generation_prompt.py`
+
+---
+
 ## Sprint S-final — Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
@@ -2374,7 +2448,7 @@ Rủi ro và fallback:
 | Eval Readiness | S24.7 | Retain quality fixes (chunk snippet + richer extraction) | ✅ Done | 772-774 |
 | Eval Readiness | S24.8 | hot fix chunk id, judge rubric, entity diagnostics | ✅ Done | 775-777 |
 | Eval Readiness | S25 | 2-Pass Speaker-Aware Extraction + Prompt Centralization | 🔄 Pending | 778-785 |
-| Eval Readiness | S26 | Recall quality fixes: query routing + full channel trace | 🔄 Pending | 786-787 |
+| Eval Readiness | S26 | Recall + generation fixes: query routing, channel trace, prompt format | 🔄 Pending | 786-788 |
 | Eval Readiness | S-final | Full ablation dry run gate (E1-E7) | 🔄 Pending | 761-763 |
 
 ---
@@ -2397,7 +2471,7 @@ Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-
 → **S24 (tasks 758-760):** Retrieval stack quality hardening ✅ DONE
 → **S24.5-S24.8 (tasks 764-777):** Eval pipeline correctness + quality fixes ✅ DONE
 → **S25 (tasks 778-785):** 2-Pass Speaker-Aware Extraction + Prompt Centralization 🔄 Pending
-→ **S26 (tasks 786-787):** Recall Quality Fixes: Query Routing + Full Channel Trace 🔄 Pending
+→ **S26 (tasks 786-788):** Recall + Generation Fixes: Query Routing, Channel Trace, Prompt Format 🔄 Pending
 → **S-final (tasks 761-763):** Full Ablation Dry Run Gate 🔄 Pending
 
 ### Future (Dependent on S-final PASS)
