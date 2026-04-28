@@ -1,92 +1,150 @@
-# CogMem - Agent Memory Cognitive
+# CogMem — Cognitively-Grounded Long-Term Memory API
 
-Repository này chứa mã nguồn, tài liệu và artifact migration cho CogMem: hệ thống long-term conversational memory theo hướng cognitively grounded.
+CogMem is a production-ready memory API for conversational agents, built on cognitive science principles rather than pure engineering. It stores conversation facts as a typed knowledge graph with 6 specialized memory networks, adaptive query routing, and SUM spreading activation with cycle guards.
 
-## Mục tiêu chính
-1. Xây dựng và kiểm chứng kiến trúc retain/recall/reflect cho bộ nhớ hội thoại dài hạn.
-2. Distill và đánh giá benchmark (LongMemEval, LoCoMo) theo các năng lực trọng tâm.
-3. Duy trì bộ tutorial chuẩn hóa theo hướng top-down và per-file để onboarding/debug nhanh.
+**Key capabilities:**
+- **6 Memory Networks**: World, Experience, Opinion, Habit, Intention, Action-Effect
+- **Two-Pass Extraction**: Speaker-aware fact extraction (user turns isolated to catch personal experiences that get diluted in mixed-speaker chunks)
+- **4-Channel Retrieval**: Semantic (pgvector) + BM25 + Graph (BFS SUM + 3 cycle guards) + Temporal, merged via adaptive weighted RRF
+- **6 Query Types**: semantic, temporal, causal, prospective, multi-hop, preference — each with optimized channel weights
+- **Lossless Context**: `raw_snippet` preserved alongside extracted `text` for accurate generation
 
-## 4 mục lớn trên GitHub Pages
-Trang Pages của dự án được tổ chức thành 4 mục lớn:
-1. Dự án tổng quan: README (tài liệu này)
-2. Idea: `docs/CogMem-Idea.md`
-3. Plan: `docs/PLAN.md`
-4. Tutorials: toàn bộ tài liệu cũ trong `tutorials/`
+## Quick Start
 
-## Tài liệu quan trọng
-1. Idea: [docs/CogMem-Idea.md](docs/CogMem-Idea.md)
-2. Plan: [docs/PLAN.md](docs/PLAN.md)
-3. Tutorials index: [tutorials/INDEX.md](tutorials/INDEX.md)
-4. Per-file reading order: [tutorials/per-file/READING-ORDER.md](tutorials/per-file/READING-ORDER.md)
-
-## Cấu trúc repo (rút gọn)
-```text
-.
-|- cogmem_api/
-|- docs/
-|- tutorials/
-|- tests/artifacts/
-|- scripts/
-|- docker/
-|- .github/workflows/
-|- pyproject.toml
-`- README.md
-```
-
-## Yêu cầu môi trường
-1. Python >= 3.13
-2. uv (khuyến nghị quản lý môi trường)
-
-Cài dependencies:
 ```bash
+# Install dependencies
 uv sync
-```
 
-Kích hoạt môi trường ảo trên Windows:
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-## Chạy API nhanh (local)
-```bash
+# Start the API server (default: localhost:8888)
 uv run cogmem-api
-```
 
-Health check:
-```bash
+# Health check
 curl http://localhost:8888/health
 ```
 
-## Docker và smoke test
-1. Build image:
+### Docker
+
 ```bash
 docker build -f docker/standalone/Dockerfile -t cogmem:local .
+docker run -p 8888:8888 cogmem:local
 ```
 
-2. Chạy smoke test end-to-end:
+## Core API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/{agent}/banks/{bank_id}` | PUT | Create/update memory bank |
+| `/v1/{agent}/banks/{bank_id}/memories` | POST | Retain conversation items |
+| `/v1/{agent}/banks/{bank_id}/memories/recall` | POST | Search/recall facts |
+| `/v1/{agent}/banks/{bank_id}/stats` | GET | Node counts by type |
+| `/v1/{agent}/banks/{bank_id}` | DELETE | Delete a bank |
+
+### Retain example
+
 ```bash
-./docker/test-image.sh cogmem:local
+curl -X POST http://localhost:8888/v1/default/banks/test_bank/memories \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "I just bought a Tamiya 1/48 Spitfire Mk.V kit"},
+      {"role": "assistant", "content": "Nice! What scale is your Spitfire?"}
+    ]
+  }'
 ```
 
-PowerShell:
-```powershell
-.\docker\test-image.ps1 -Image cogmem:local
-```
+### Recall example
 
-## CI/CD cho Tutorials App
-Workflow deploy Pages: [.github/workflows/tutorials-app-cicd.yml](.github/workflows/tutorials-app-cicd.yml)
-
-Trigger chính:
-1. Push vào branch `master`
-2. Khi thay đổi `README.md`, `docs/**`, `tutorials/**`, `mkdocs.yml`, `requirements-docs.txt`
-
-Build docs local:
 ```bash
-uv run --with mkdocs --with mkdocs-material --with mkdocs-include-markdown-plugin mkdocs build --config-file mkdocs.yml --site-dir site
+curl -X POST http://localhost:8888/v1/default/banks/test_bank/memories/recall \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What model kits did I buy?",
+    "top_k": 10,
+    "snippet_budget": 30000,
+    "adaptive_router": true,
+    "trace": true
+  }'
 ```
 
-## Ghi chú governance
-1. Không sửa `docs/migration_idea_coverage_matrix.md` nếu chưa có yêu cầu explicit audit/update coverage.
-2. Logs task phải có đủ section: Scope, Outputs Created, Verification Strategy Applied.
-3. Tutorials canonical per-file nằm ở `tutorials/per-file/`; `tutorials/functions/` là inventory/deep-dive function-level hỗ trợ.
+## Configuration
+
+All configuration via environment variables. See [tutorials/CONFIG/env-vars.md](tutorials/CONFIG/env-vars.md) for the full list.
+
+Key variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `COGMEM_API_LLM_BASE_URL` | `http://localhost:11434/v1` | Retain LLM endpoint (Ollama/NGROK) |
+| `COGMEM_API_LLM_MODEL` | `ministral3-3b` | Retain extraction model |
+| `COGMEM_API_GRAPH_RETRIEVER` | `bfs` | Graph retriever: `bfs` (SUM) or `link_expansion` (MAX) |
+| `COGMEM_API_RERANKER_PROVIDER` | `local` | Cross-encoder reranker: `local` or `rrf` |
+| `COGMEM_API_RETAIN_TWO_PASS_ENABLED` | `true` | Enable two-pass speaker-aware extraction |
+| `COGMEM_API_JUDGE_LLM_MODEL` | — | Judge LLM (must be ≥7B for eval) |
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/CogMem-Idea.md](docs/CogMem-Idea.md) | Technical spec — 4 contributions, 6 networks, SUM activation, adaptive routing |
+| [docs/PLAN.md](docs/PLAN.md) | Sprint plan and execution history (S0 → S-final) |
+| [tutorials/INDEX.md](tutorials/INDEX.md) | Master tutorial index |
+| [tutorials/QUICKSTART.md](tutorials/QUICKSTART.md) | 5-minute API walkthrough |
+| [tutorials/LEARNING-PATH.md](tutorials/LEARNING-PATH.md) | 3 reader tracks: onboarding, config, deep-dive |
+| [tutorials/ARCHITECTURE/overview.md](tutorials/ARCHITECTURE/overview.md) | System overview — 3 pipelines, 6 networks, Memory Engine |
+| [tutorials/ARCHITECTURE/retain-pipeline.md](tutorials/ARCHITECTURE/retain-pipeline.md) | Retain pipeline deep-dive: two-pass, fallback hierarchy |
+| [tutorials/ARCHITECTURE/search-pipeline.md](tutorials/ARCHITECTURE/search-pipeline.md) | Search pipeline: 4-channel retrieval, adaptive RRF, BFS SUM |
+| [tutorials/REFERENCE/troubleshooting.md](tutorials/REFERENCE/troubleshooting.md) | 13 common errors with fixes and diagnostic commands |
+
+## Project Structure
+
+```
+.
+├── cogmem_api/              # Core API and engine
+│   ├── api/http.py          # FastAPI endpoints
+│   ├── config.py            # Environment configuration
+│   ├── engine/
+│   │   ├── memory_engine.py     # Main orchestrator
+│   │   ├── retain/             # Retain pipeline (orchestrator, extraction, storage, chunking, dedup)
+│   │   └── search/             # Search pipeline (retrieval, fusion, graph, reranking)
+│   └── prompts/             # Centralized prompt library
+│       ├── retain/pass1.py  # Pass 1 (full chunk, all 6 types)
+│       ├── retain/pass2.py  # Pass 2 (user-only, 4 personal types)
+│       └── eval/            # Judge + generation prompts
+├── scripts/
+│   ├── eval_cogmem.py       # Benchmark evaluation script
+│   └── ablation_runner.py   # E1-E7 ablation runner
+├── tests/artifacts/         # Sprint artifact tests (task-gated, standalone)
+├── tutorials/               # Full tutorial library
+│   ├── ARCHITECTURE/        # System-level why + how
+│   ├── CONFIG/             # Configuration reference
+│   ├── PER-FILE/          # Symbol-by-symbol file explanations
+│   └── REFERENCE/         # Quick lookups
+├── docker/                 # Dockerfile, compose, smoke tests
+└── experiments/            # E1-E7 ablation checkpoint output
+```
+
+## Running Tests
+
+```bash
+# Run a specific artifact test
+uv run python tests/artifacts/test_task786_query_routing.py
+
+# Run all retain dialogue tests
+uv run python tests/retain/test_dialogue_onboarding.py
+
+# Build docs locally
+uv run --with mkdocs --with mkdocs-material --with mkdocs-include-markdown-plugin \
+  mkdocs build --config-file mkdocs.yml --site-dir site
+```
+
+## Status
+
+- **S0 → S-final**: All sprints complete ✅
+- **E7 dry run**: `session_recall@5 = 1.0`, `judge_score = 0.3` on "how many model kits" (4/5 kits found, missing Spitfire Mk.V due to count rubric)
+- **Next**: Full benchmark run on LongMemEval-S + LoCoMo (post S-final, deferred)
+
+## References
+
+- HINDSIGHT baseline: Latimer et al. (2025) — 91.4% on LongMemEval, 89.61% on LoCoMo
+- Benchmarks: LongMemEval-S (Wu et al., 2025), LoCoMo (Maharana et al., 2024)
+- Cognitive foundations: Tulving (1972, 1983), Squire & Zola-Morgan (1991), Baddeley (2000), Dickinson & Balleine (1994)
