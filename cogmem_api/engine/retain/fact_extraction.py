@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 from cogmem_api.engine.llm_wrapper import OutputTooLongError, parse_llm_json
 from cogmem_api.engine.response_models import TokenUsage
+from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
+from cogmem_api.prompts.retain.pass2 import build_pass2_prompt, PASS2_ALLOWED_FACT_TYPES
 from .types import (
     ActionEffectRelation,
     CausalRelation,
@@ -31,6 +33,8 @@ from .types import (
     TransitionRelation,
     coerce_fact_type,
 )
+from .chunking import chunk_for_pass1, chunk_for_pass2, Pass1Chunk, Pass2Chunk
+from .dedup import dedup_facts
 
 def _strip_markdown(text: str) -> str:
     """Remove inline markdown formatting while preserving all content words.
@@ -82,89 +86,6 @@ _SUPPORTED_TRANSITION_TYPES: set[str] = {
     "revised_to",
     "contradicted_by",
 }
-
-_ALLOWED_MODES: set[str] = {"concise", "custom", "verbatim", "verbose"}
-
-_BASE_PROMPT = """You are a memory extraction assistant. Extract durable facts from conversations for long-term storage.
-
-OUTPUT RULE: Respond ONLY with valid JSON — no prose, no markdown fences.
-Format: {{"facts": [<fact>, ...]}}  or  {{"facts": []}} if nothing to store.
-
-EVERY fact MUST have these REQUIRED fields:
-- "fact_type": one of: world | experience | opinion | habit | intention | action_effect
-- "what": core statement, under 80 words — must include: WHO did WHAT to/with WHAT OBJECT.
-  Be specific: prefer "User bought Tamiya 1/48 Spitfire Mk.V kit" over "User bought a model kit".
-  Include scale, brand, model name, or product name when mentioned.
-- "entities": ALL named entities — people, places, orgs, tech tools, product names, brand names,
-  model kit names, vehicle names, software names. e.g. ["Alice","Tamiya","Spitfire Mk.V","Tiger I"].
-  For experience/action_effect facts: entities MUST NOT be empty if the fact involves a named product,
-  person, or place. Empty [] only when truly no named entity exists.
-
-OPTIONAL: "when", "who", "why", "fact_kind" (event|conversation), "occurred_start", "occurred_end" (ISO 8601)
-
-FACT TYPE GUIDE:
-1. "world" — objective fact, not time-bound: job, role, skill, location, general knowledge,
-   technical facts, advice, recommendations, abstract descriptions of challenges.
-   Assistant suggestions and general how-to advice are ALWAYS "world", never "experience".
-   {{"fact_type":"world","what":"Alice works as ML Engineer at DI","entities":["Alice","DI"]}}
-2. "experience" — USER's personal past event at a specific time (purchase, visit, action taken).
-   ONLY use "experience" if the USER (not the assistant) did or experienced something specific.
-   Do NOT use "experience" for assistant suggestions, general advice, or abstract descriptions.
-   Include "why" whenever motivation or context is stated or strongly implied.
-   Example: "why": "to practice metal painting techniques"
-   {{"fact_type":"experience","what":"Alice joined DI in April 2024","entities":["Alice","DI"],"when":"April 2024","why":"to work on real-world ML projects"}}
-3. "opinion" — belief or preference; add "confidence": 0.0-1.0
-   {{"fact_type":"opinion","what":"Alice believes Python is best for ML","entities":["Alice"],"confidence":0.85}}
-4. "habit" — repeating behavior; triggers: always, usually, every day/week, every morning, tends to, routine, regular
-   Use "habit" (NOT "world") when the fact describes what someone *regularly does*.
-   {{"fact_type":"habit","what":"Alice always checks email before standup","entities":["Alice"]}}
-   {{"fact_type":"habit","what":"Team holds a standup every morning at 9 AM","entities":["Team"]}}
-5. "intention" — future plan or goal; add "intention_status": "planning"|"fulfilled"|"abandoned"
-   Include "why" whenever the goal reason is stated.
-   - planning: goal is still future ("plan to", "will", "going to", "want to", "intend to")
-   - fulfilled: goal was already completed ("finished", "completed", "achieved", "done", "it worked", "all tests pass")
-   - abandoned: goal was cancelled ("gave up", "decided not to", "dropped", "cancelled")
-   When someone says they "finished" or "achieved" a past goal, use fulfilled — NOT planning.
-   {{"fact_type":"intention","what":"Alice plans to learn Rust by Q3","entities":["Alice"],"intention_status":"planning","why":"to improve system programming skills"}}
-   {{"fact_type":"intention","what":"Alice planned to learn Rust — she finished it last month","entities":["Alice"],"intention_status":"fulfilled"}}
-6. "action_effect" — causal triple; REQUIRED fields: "precondition", "action", "outcome", "confidence", "devalue_sensitive"(true|false)
-   Each independent cause-effect relationship = ONE separate action_effect fact.
-   {{"fact_type":"action_effect","what":"int8 reduced latency","entities":[],"precondition":"Latency>100ms","action":"Switch to int8","outcome":"Latency dropped 75%","confidence":0.92,"devalue_sensitive":true}}
-   {{"fact_type":"action_effect","what":"index eliminated full scan","entities":["orders"],"precondition":"Full table scan on orders","action":"Add composite index","outcome":"Query time cut from 3s to 50ms","confidence":0.95,"devalue_sensitive":false}}
-
-RELATIONS (only when facts in same response are linked):
-- "causal_relations": [{{"target_index":<int>,"relation_type":"caused_by","strength":0.8}}]
-- "action_effect_relations": [{{"target_index":<int>,"relation_type":"a_o_causal","strength":0.9}}]
-- "transition_relations": [{{"target_index":<int>,"transition_type":"fulfilled_by"|"triggered"|"enabled_by"|"revised_to"|"contradicted_by","strength":0.9}}]
-
-RULES: (1) Extract ALL facts in the text. (2) Prefer "experience" over "world" when a time is mentioned. (3) Do NOT invent facts. (4) Match output language to input language.
-{mission_section}{mode_section}"""
-
-_CONCISE_MODE = """
-MODE: concise
-- Extract only durable, memory-worthy facts. Skip greetings, filler, and pleasantries.
-- Target: 1-5 facts per chunk. Keep each "what" short and precise.
-"""
-
-_CUSTOM_MODE = """
-MODE: custom — follow these instructions strictly:
-{custom_instructions}
-"""
-
-_VERBATIM_MODE = """
-MODE: verbatim
-- Return exactly ONE fact object.
-- Do not paraphrase. Use the most informative sentence from the text as "what".
-- Focus on extracting "entities", "when", and "fact_type" accurately.
-"""
-
-_VERBOSE_MODE = """
-MODE: verbose
-- Extract every potentially relevant fact, including context, background, and motivation.
-- Fill the "why" field whenever motivation is stated or clearly implied.
-- Prefer "experience" over "world" when a specific time or event is mentioned.
-- Include supporting detail in "what" (up to 80 words is acceptable).
-"""
 
 
 def _safe_datetime(value: datetime | None) -> datetime | None:
@@ -429,6 +350,55 @@ def _fallback_fact_splits(text: str) -> list[str]:
     return candidates[:3]
 
 
+def _sentence_split_for_legacy(text: str) -> list[str]:
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    return [s.strip() for s in sentences if s.strip()]
+
+
+def _parse_legacy_text(text: str) -> list[dict[str, str]]:
+    """Parse plain text content into role-tagged message dicts.
+
+    Detects [user]: and [assistant]: markers from the text.
+    Falls back to treating entire text as a single user turn if no markers found.
+    """
+    if not text.strip():
+        return []
+
+    lines = text.split("\n")
+    messages: list[dict[str, str]] = []
+    current_role = "user"
+    current_content: list[str] = []
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        user_match = re.match(r"^\[user\]\s*:\s*(.*)$", line, re.IGNORECASE)
+        assistant_match = re.match(r"^\[assistant\]\s*:\s*(.*)$", line, re.IGNORECASE)
+        if user_match:
+            if current_content:
+                messages.append({"role": current_role, "content": " ".join(current_content)})
+                current_content = []
+            current_role = "user"
+            current_content.append(user_match.group(1))
+        elif assistant_match:
+            if current_content:
+                messages.append({"role": current_role, "content": " ".join(current_content)})
+                current_content = []
+            current_role = "assistant"
+            current_content.append(assistant_match.group(1))
+        else:
+            current_content.append(line)
+
+    if current_content:
+        messages.append({"role": current_role, "content": " ".join(current_content)})
+
+    if not messages:
+        messages.append({"role": "user", "content": text.strip()})
+
+    return messages
+
+
 def _chunk_content(text: str, max_chars: int) -> list[str]:
     if max_chars <= 0 or len(text) <= max_chars:
         return [text]
@@ -458,55 +428,7 @@ def _chunk_content(text: str, max_chars: int) -> list[str]:
 
 
 def _build_prompt(config: Any) -> tuple[str, str]:
-    mode = str(getattr(config, "retain_extraction_mode", "concise") or "concise").strip().lower()
-    if mode not in _ALLOWED_MODES:
-        mode = "concise"
-
-    mission = _normalized_optional_text(getattr(config, "retain_mission", None))
-    if mission:
-        mission_section = f"\nMission:\n{mission}\n"
-    else:
-        mission_section = ""
-
-    if mode == "custom":
-        custom_instructions = _normalized_optional_text(getattr(config, "retain_custom_instructions", None))
-        if not custom_instructions:
-            mode_section = _CONCISE_MODE
-            mode = "concise"
-        else:
-            mode_section = _CUSTOM_MODE.format(custom_instructions=custom_instructions)
-    elif mode == "verbatim":
-        mode_section = _VERBATIM_MODE
-    elif mode == "verbose":
-        mode_section = _VERBOSE_MODE
-    else:
-        mode_section = _CONCISE_MODE
-
-    return _BASE_PROMPT.format(mission_section=mission_section, mode_section=mode_section), mode
-
-
-def _build_user_message(
-    chunk: str,
-    chunk_index: int,
-    total_chunks: int,
-    event_date: datetime | None,
-    context: str,
-    metadata: dict[str, Any] | None,
-) -> str:
-    event_date_text = event_date.isoformat() if event_date else "unknown"
-    metadata_text = ""
-    if metadata:
-        pairs = [f"{k}={v}" for k, v in metadata.items()]
-        metadata_text = f"\nMetadata: {', '.join(pairs)}"
-
-    return (
-        "Extract facts from this chunk. "
-        f"Chunk {chunk_index + 1}/{total_chunks}. "
-        f"Event date: {event_date_text}. "
-        f"Context: {context or 'none'}."
-        f"{metadata_text}\n\n"
-        f"Text:\n{chunk}"
-    )
+    raise NotImplementedError("fact_extraction._build_prompt was removed; use build_pass1_prompt from cogmem_api.prompts.retain.pass1")
 
 
 async def _call_llm_chunk(
@@ -767,6 +689,71 @@ def _normalize_llm_facts(
     return normalized
 
 
+def _build_user_message(
+    chunk: str,
+    chunk_index: int,
+    total_chunks: int,
+    event_date: datetime | None,
+    context: str,
+    metadata: dict[str, Any] | None,
+) -> str:
+    event_date_text = event_date.isoformat() if event_date else "unknown"
+    metadata_text = ""
+    if metadata:
+        pairs = [f"{k}={v}" for k, v in metadata.items()]
+        metadata_text = f"\nMetadata: {', '.join(pairs)}"
+
+    return (
+        "Extract facts from this chunk. "
+        f"Chunk {chunk_index + 1}/{total_chunks}. "
+        f"Event date: {event_date_text}. "
+        f"Context: {context or 'none'}."
+        f"{metadata_text}\n\n"
+        f"Text:\n{chunk}"
+    )
+
+
+async def _call_llm_for_pass1(
+    llm_config: Any,
+    prompt: str,
+    chunk: Pass1Chunk,
+    event_date: datetime | None,
+    context: str,
+    metadata: dict[str, Any] | None,
+    max_completion_tokens: int,
+) -> tuple[list[dict[str, Any]], TokenUsage]:
+    """Call LLM for a Pass 1 chunk."""
+    user_message = _build_user_message(
+        chunk=chunk.text,
+        chunk_index=chunk.chunk_index,
+        total_chunks=1,
+        event_date=event_date,
+        context=context,
+        metadata=metadata,
+    )
+    return await _call_llm_chunk(
+        llm_config=llm_config,
+        prompt=prompt,
+        user_message=user_message,
+        max_completion_tokens=max_completion_tokens,
+    )
+
+
+async def _call_llm_for_pass2(
+    llm_config: Any,
+    prompt: str,
+    chunk: Pass2Chunk,
+    max_completion_tokens: int,
+) -> tuple[list[dict[str, Any]], TokenUsage]:
+    """Call LLM for a Pass 2 chunk (user-only, persona-focused)."""
+    return await _call_llm_chunk(
+        llm_config=llm_config,
+        prompt=prompt,
+        user_message=chunk.text,
+        max_completion_tokens=max_completion_tokens,
+    )
+
+
 async def _extract_facts_with_llm(
     content: RetainContent,
     content_index: int,
@@ -777,10 +764,101 @@ async def _extract_facts_with_llm(
     if llm_config is None or not hasattr(llm_config, "call"):
         return [], [], usage
 
-    prompt, mode = _build_prompt(config)
     max_tokens = int(getattr(config, "retain_max_completion_tokens", 64000) or 64000)
-    chunk_size = int(getattr(config, "retain_chunk_size", 3000) or 3000)
     extract_causal_links = bool(getattr(config, "retain_extract_causal_links", True))
+    two_pass_enabled = bool(getattr(config, "retain_two_pass_enabled", True))
+
+    if content.messages and two_pass_enabled:
+        pass1_prompt, mode = build_pass1_prompt(config)
+        pass2_prompt = build_pass2_prompt()
+
+        p1_chunks = chunk_for_pass1(content.messages, max_chars=int(getattr(config, "retain_pass1_chunk_chars", 10000) or 10000))
+        raw_p2_roles = getattr(config, "retain_pass2_target_roles", "user")
+        if isinstance(raw_p2_roles, str):
+            p2_target_roles = tuple(r.strip() for r in raw_p2_roles.split(",") if r.strip())
+        else:
+            p2_target_roles = tuple(raw_p2_roles) if isinstance(raw_p2_roles, (list, tuple)) else ("user",)
+        p2_chunks: list[Pass2Chunk] = []
+        for role in p2_target_roles:
+            p2_chunks.extend(
+                chunk_for_pass2(content.messages, target_role=role, max_chars=int(getattr(config, "retain_pass2_chunk_chars", 3000) or 3000))
+            )
+
+        facts_p1: list[ExtractedFact] = []
+        facts_p2: list[ExtractedFact] = []
+        all_chunks_p1: list[ChunkMetadata] = []
+        all_chunks_p2: list[ChunkMetadata] = []
+
+        for chunk in p1_chunks:
+            raw_facts, chunk_usage = await _call_llm_for_pass1(
+                llm_config=llm_config,
+                prompt=pass1_prompt,
+                chunk=chunk,
+                event_date=content.event_date,
+                context=content.context,
+                metadata=content.metadata,
+                max_completion_tokens=max_tokens,
+            )
+            usage = usage + chunk_usage
+            parsed = _normalize_llm_facts(
+                raw_facts=raw_facts,
+                content=content,
+                content_index=content_index,
+                chunk_index=chunk.chunk_index,
+                mode=mode,
+                chunk_text=chunk.text,
+                extract_causal_links=extract_causal_links,
+            )
+            for pf in parsed:
+                pf.raw_snippet = chunk.text
+                pf.chunk_id_suffix = chunk.chunk_id_suffix
+            facts_p1.extend(parsed)
+            all_chunks_p1.append(
+                ChunkMetadata(
+                    chunk_text=chunk.text,
+                    fact_count=len(parsed),
+                    content_index=content_index,
+                    chunk_index=chunk.chunk_index,
+                )
+            )
+
+        for chunk in p2_chunks:
+            raw_facts, chunk_usage = await _call_llm_for_pass2(
+                llm_config=llm_config,
+                prompt=pass2_prompt,
+                chunk=chunk,
+                max_completion_tokens=max_tokens,
+            )
+            usage = usage + chunk_usage
+            normalized = _normalize_llm_facts(
+                raw_facts=raw_facts,
+                content=content,
+                content_index=content_index,
+                chunk_index=chunk.chunk_index,
+                mode="concise",
+                chunk_text=chunk.text,
+                extract_causal_links=False,
+            )
+            filtered = [f for f in normalized if f.fact_type in PASS2_ALLOWED_FACT_TYPES]
+            for pf in filtered:
+                pf.raw_snippet = chunk.text
+                pf.chunk_id_suffix = chunk.chunk_id_suffix
+            facts_p2.extend(filtered)
+            all_chunks_p2.append(
+                ChunkMetadata(
+                    chunk_text=chunk.text,
+                    fact_count=len(filtered),
+                    content_index=content_index,
+                    chunk_index=chunk.chunk_index,
+                )
+            )
+
+        final_facts = dedup_facts(facts_p1, facts_p2)
+        final_chunks = all_chunks_p1 + all_chunks_p2
+        return final_facts, final_chunks, usage
+
+    prompt, mode = build_pass1_prompt(config)
+    chunk_size = int(getattr(config, "retain_chunk_size", 3000) or 3000)
     content_chunks = _chunk_content(content.content, chunk_size)
 
     extracted: list[ExtractedFact] = []

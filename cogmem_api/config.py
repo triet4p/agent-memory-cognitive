@@ -32,6 +32,10 @@ ENV_RETAIN_EXTRACT_CAUSAL_LINKS = "COGMEM_API_RETAIN_EXTRACT_CAUSAL_LINKS"
 ENV_RETAIN_EXTRACTION_MODE = "COGMEM_API_RETAIN_EXTRACTION_MODE"
 ENV_RETAIN_MISSION = "COGMEM_API_RETAIN_MISSION"
 ENV_RETAIN_CUSTOM_INSTRUCTIONS = "COGMEM_API_RETAIN_CUSTOM_INSTRUCTIONS"
+ENV_RETAIN_TWO_PASS_ENABLED = "COGMEM_API_RETAIN_TWO_PASS_ENABLED"
+ENV_RETAIN_PASS1_CHUNK_CHARS = "COGMEM_API_RETAIN_PASS1_CHUNK_CHARS"
+ENV_RETAIN_PASS2_CHUNK_CHARS = "COGMEM_API_RETAIN_PASS2_CHUNK_CHARS"
+ENV_RETAIN_PASS2_TARGET_ROLES = "COGMEM_API_RETAIN_PASS2_TARGET_ROLES"
 ENV_RECALL_MAX_CONCURRENT = "COGMEM_API_RECALL_MAX_CONCURRENT"
 ENV_DB_POOL_MIN_SIZE = "COGMEM_API_DB_POOL_MIN_SIZE"
 ENV_DB_POOL_MAX_SIZE = "COGMEM_API_DB_POOL_MAX_SIZE"
@@ -87,6 +91,10 @@ DEFAULT_RETAIN_EXTRACT_CAUSAL_LINKS = True
 DEFAULT_RETAIN_EXTRACTION_MODE = "concise"
 DEFAULT_RETAIN_MISSION = None
 DEFAULT_RETAIN_CUSTOM_INSTRUCTIONS = None
+DEFAULT_RETAIN_TWO_PASS_ENABLED = True
+DEFAULT_RETAIN_PASS1_CHUNK_CHARS = 10000
+DEFAULT_RETAIN_PASS2_CHUNK_CHARS = 3000
+DEFAULT_RETAIN_PASS2_TARGET_ROLES = "user"
 DEFAULT_RECALL_MAX_CONCURRENT = 32
 DEFAULT_DB_POOL_MIN_SIZE = 2
 DEFAULT_DB_POOL_MAX_SIZE = 10
@@ -209,6 +217,10 @@ class CogMemRuntimeConfig:
     retain_extraction_mode: str = DEFAULT_RETAIN_EXTRACTION_MODE
     retain_mission: str | None = DEFAULT_RETAIN_MISSION
     retain_custom_instructions: str | None = DEFAULT_RETAIN_CUSTOM_INSTRUCTIONS
+    retain_two_pass_enabled: bool = DEFAULT_RETAIN_TWO_PASS_ENABLED
+    retain_pass1_chunk_chars: int = DEFAULT_RETAIN_PASS1_CHUNK_CHARS
+    retain_pass2_chunk_chars: int = DEFAULT_RETAIN_PASS2_CHUNK_CHARS
+    retain_pass2_target_roles: str = DEFAULT_RETAIN_PASS2_TARGET_ROLES
     recall_max_concurrent: int = DEFAULT_RECALL_MAX_CONCURRENT
     db_pool_min_size: int = DEFAULT_DB_POOL_MIN_SIZE
     db_pool_max_size: int = DEFAULT_DB_POOL_MAX_SIZE
@@ -252,6 +264,10 @@ class CogMemConfig:
     retain_extraction_mode: str = DEFAULT_RETAIN_EXTRACTION_MODE
     retain_mission: str | None = DEFAULT_RETAIN_MISSION
     retain_custom_instructions: str | None = DEFAULT_RETAIN_CUSTOM_INSTRUCTIONS
+    retain_two_pass_enabled: bool = DEFAULT_RETAIN_TWO_PASS_ENABLED
+    retain_pass1_chunk_chars: int = DEFAULT_RETAIN_PASS1_CHUNK_CHARS
+    retain_pass2_chunk_chars: int = DEFAULT_RETAIN_PASS2_CHUNK_CHARS
+    retain_pass2_target_roles: str = DEFAULT_RETAIN_PASS2_TARGET_ROLES
     bfs_refractory_steps: int = DEFAULT_BFS_REFRACTORY_STEPS
     bfs_firing_quota: int = DEFAULT_BFS_FIRING_QUOTA
     bfs_activation_saturation: float = DEFAULT_BFS_ACTIVATION_SATURATION
@@ -299,6 +315,10 @@ def _get_raw_config() -> CogMemRuntimeConfig:
             ENV_RETAIN_CUSTOM_INSTRUCTIONS,
             DEFAULT_RETAIN_CUSTOM_INSTRUCTIONS,
         ),
+        retain_two_pass_enabled=_read_bool(ENV_RETAIN_TWO_PASS_ENABLED, DEFAULT_RETAIN_TWO_PASS_ENABLED),
+        retain_pass1_chunk_chars=_read_int(ENV_RETAIN_PASS1_CHUNK_CHARS, DEFAULT_RETAIN_PASS1_CHUNK_CHARS, minimum=1),
+        retain_pass2_chunk_chars=_read_int(ENV_RETAIN_PASS2_CHUNK_CHARS, DEFAULT_RETAIN_PASS2_CHUNK_CHARS, minimum=1),
+        retain_pass2_target_roles=_read_optional_str(ENV_RETAIN_PASS2_TARGET_ROLES, DEFAULT_RETAIN_PASS2_TARGET_ROLES) or "user",
         recall_max_concurrent=_read_int(ENV_RECALL_MAX_CONCURRENT, DEFAULT_RECALL_MAX_CONCURRENT, minimum=1),
         db_pool_min_size=_read_int(ENV_DB_POOL_MIN_SIZE, DEFAULT_DB_POOL_MIN_SIZE, minimum=1),
         db_pool_max_size=_read_int(ENV_DB_POOL_MAX_SIZE, DEFAULT_DB_POOL_MAX_SIZE, minimum=1),
@@ -357,6 +377,10 @@ def get_config() -> CogMemConfig:
             retain_extraction_mode=runtime.retain_extraction_mode,
             retain_mission=runtime.retain_mission,
             retain_custom_instructions=runtime.retain_custom_instructions,
+            retain_two_pass_enabled=runtime.retain_two_pass_enabled,
+            retain_pass1_chunk_chars=runtime.retain_pass1_chunk_chars,
+            retain_pass2_chunk_chars=runtime.retain_pass2_chunk_chars,
+            retain_pass2_target_roles=runtime.retain_pass2_target_roles,
             bfs_refractory_steps=_read_int(ENV_BFS_REFRACTORY_STEPS, DEFAULT_BFS_REFRACTORY_STEPS, minimum=1),
             bfs_firing_quota=_read_int(ENV_BFS_FIRING_QUOTA, DEFAULT_BFS_FIRING_QUOTA, minimum=1),
             bfs_activation_saturation=_read_float(

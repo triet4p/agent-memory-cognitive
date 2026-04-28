@@ -86,7 +86,7 @@ def _llm_raw_str(text: str) -> _BaseFakeLLM:
 
 def test_prompt_json_only_instruction() -> None:
     """Prompt must explicitly tell the model to output ONLY JSON."""
-    from cogmem_api.engine.retain.fact_extraction import _BASE_PROMPT
+    from cogmem_api.prompts.retain.pass1 import _BASE_PROMPT
     prompt_lower = _BASE_PROMPT.lower()
     assert "only" in prompt_lower and "json" in prompt_lower, (
         "Prompt must instruct model to output ONLY JSON. "
@@ -96,7 +96,7 @@ def test_prompt_json_only_instruction() -> None:
 
 def test_prompt_has_all_six_fact_types() -> None:
     """All 6 CogMem network types must be explicitly named in the base prompt."""
-    from cogmem_api.engine.retain.fact_extraction import _BASE_PROMPT
+    from cogmem_api.prompts.retain.pass1 import _BASE_PROMPT
     required_types = ["world", "experience", "opinion", "habit", "intention", "action_effect"]
     missing = [t for t in required_types if t not in _BASE_PROMPT]
     assert not missing, f"Fact types missing from _BASE_PROMPT: {missing}"
@@ -104,7 +104,7 @@ def test_prompt_has_all_six_fact_types() -> None:
 
 def test_prompt_has_required_fields_section() -> None:
     """'what' and 'entities' must be marked REQUIRED — SLMs skip optional fields."""
-    from cogmem_api.engine.retain.fact_extraction import _BASE_PROMPT
+    from cogmem_api.prompts.retain.pass1 import _BASE_PROMPT
     assert "REQUIRED" in _BASE_PROMPT, "Must have explicit REQUIRED field annotation"
     assert '"what"' in _BASE_PROMPT or "'what'" in _BASE_PROMPT, "Must mention 'what' field"
     assert "entities" in _BASE_PROMPT, "Must mention 'entities' field"
@@ -112,7 +112,7 @@ def test_prompt_has_required_fields_section() -> None:
 
 def test_prompt_has_examples_for_complex_types() -> None:
     """action_effect, habit, intention must have at least one concrete example in prompt."""
-    from cogmem_api.engine.retain.fact_extraction import _BASE_PROMPT
+    from cogmem_api.prompts.retain.pass1 import _BASE_PROMPT
     # Each complex type needs at least the key field name as part of an example
     assert "precondition" in _BASE_PROMPT, "Must show precondition field in action_effect example"
     assert "outcome" in _BASE_PROMPT, "Must show outcome field in action_effect example"
@@ -125,26 +125,31 @@ def test_prompt_has_examples_for_complex_types() -> None:
 
 def test_prompt_has_transition_types() -> None:
     """All transition types must be enumerated so SLM doesn't hallucinate type names."""
-    from cogmem_api.engine.retain.fact_extraction import _BASE_PROMPT
+    from cogmem_api.prompts.retain.pass1 import _BASE_PROMPT
     required_transitions = ["fulfilled_by", "triggered", "enabled_by", "revised_to", "contradicted_by"]
     missing = [t for t in required_transitions if t not in _BASE_PROMPT]
     assert not missing, f"Transition types missing from prompt: {missing}"
 
 
 def test_prompt_length_reasonable_for_slm() -> None:
-    """Base prompt should be under 4000 chars to leave room for context + generation."""
-    from cogmem_api.engine.retain.fact_extraction import _BASE_PROMPT, _CONCISE_MODE
+    """Base prompt should be under 6000 chars to leave room for context + generation.
+
+    Threshold raised from 4000→6000 in S25: the 2-pass context line and richer
+    entity/example guidance added ~1300 chars. ~6000 chars ≈ ~1500 tokens —
+    still well within SLM context budgets.
+    """
+    from cogmem_api.prompts.retain.pass1 import _BASE_PROMPT, _CONCISE_MODE
     # Build a full prompt as it would appear to the model
     full_prompt = _BASE_PROMPT.format(mission_section="", mode_section=_CONCISE_MODE)
-    assert len(full_prompt) <= 4000, (
-        f"Full prompt is {len(full_prompt)} chars — too long for SLM, target ≤4000. "
+    assert len(full_prompt) <= 6000, (
+        f"Full prompt is {len(full_prompt)} chars — too long for SLM, target ≤6000. "
         "Long prompts reduce generation budget and cause truncation."
     )
 
 
 def test_mode_prompts_exist_and_nonempty() -> None:
     """Each mode must have a non-trivial instruction block."""
-    from cogmem_api.engine.retain.fact_extraction import (
+    from cogmem_api.prompts.retain.pass1 import (
         _CONCISE_MODE,
         _VERBOSE_MODE,
         _VERBATIM_MODE,
@@ -154,42 +159,42 @@ def test_mode_prompts_exist_and_nonempty() -> None:
 
 
 def test_concise_mode_in_system_prompt() -> None:
-    """Concise mode is injected into the system prompt by _build_prompt."""
-    from cogmem_api.engine.retain.fact_extraction import _build_prompt
+    """Concise mode is injected into the system prompt by build_pass1_prompt."""
+    from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
     config = _make_config(mode="concise")
-    prompt, mode = _build_prompt(config)
+    prompt, mode = build_pass1_prompt(config)
     assert mode == "concise"
     assert "concise" in prompt.lower()
 
 
 def test_verbose_mode_in_system_prompt() -> None:
-    from cogmem_api.engine.retain.fact_extraction import _build_prompt
+    from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
     config = _make_config(mode="verbose")
-    prompt, mode = _build_prompt(config)
+    prompt, mode = build_pass1_prompt(config)
     assert mode == "verbose"
     assert "verbose" in prompt.lower()
 
 
 def test_verbatim_mode_in_system_prompt() -> None:
-    from cogmem_api.engine.retain.fact_extraction import _build_prompt
+    from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
     config = _make_config(mode="verbatim")
-    prompt, mode = _build_prompt(config)
+    prompt, mode = build_pass1_prompt(config)
     assert mode == "verbatim"
     assert "verbatim" in prompt.lower()
 
 
 def test_custom_mode_injects_instructions() -> None:
-    from cogmem_api.engine.retain.fact_extraction import _build_prompt
+    from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
     config = _make_config(mode="custom", custom_instructions="RULE_XYZ: extract only technical facts")
-    prompt, mode = _build_prompt(config)
+    prompt, mode = build_pass1_prompt(config)
     assert mode == "custom"
     assert "RULE_XYZ" in prompt
 
 
 def test_mission_section_injected() -> None:
-    from cogmem_api.engine.retain.fact_extraction import _build_prompt
+    from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
     config = _make_config(mission="Only retain ML engineering facts")
-    prompt, _mode = _build_prompt(config)
+    prompt, _mode = build_pass1_prompt(config)
     assert "Only retain ML engineering facts" in prompt
 
 

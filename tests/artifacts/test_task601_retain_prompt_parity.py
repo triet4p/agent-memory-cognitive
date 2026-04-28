@@ -19,7 +19,7 @@ class FakeLLMConfig:
 
         usage = TokenUsage(input_tokens=20, output_tokens=15, total_tokens=35)
 
-        if "Mode: custom" in system_prompt:
+        if "MODE: custom" in system_prompt:
             return {
                 "facts": [
                     {
@@ -43,7 +43,7 @@ class FakeLLMConfig:
                 ]
             }, usage
 
-        if "Mode: verbatim" in system_prompt:
+        if "MODE: verbatim" in system_prompt:
             return {
                 "facts": [
                     {
@@ -57,7 +57,7 @@ class FakeLLMConfig:
                 ]
             }, usage
 
-        if "Mode: verbose" in system_prompt:
+        if "MODE: verbose" in system_prompt:
             return {
                 "facts": [
                     {
@@ -136,21 +136,28 @@ def assert_isolation(repo_root: Path) -> None:
 
 
 def assert_drift_contract(repo_root: Path) -> None:
-    extraction_source = (repo_root / "cogmem_api" / "engine" / "retain" / "fact_extraction.py").read_text(
+    # Prompts are centralized in pass1.py (S25 migration). Check them there.
+    pass1_source = (repo_root / "cogmem_api" / "prompts" / "retain" / "pass1.py").read_text(
         encoding="utf-8"
     )
-
-    required_markers = [
+    prompt_markers = [
         "_CONCISE_MODE",
         "_CUSTOM_MODE",
         "_VERBATIM_MODE",
         "_VERBOSE_MODE",
         "retain_mission",
         "retain_custom_instructions",
-        "retain_extract_causal_links",
     ]
-    missing = [marker for marker in required_markers if marker not in extraction_source]
-    assert not missing, f"Prompt/cfg parity markers missing in fact_extraction.py: {missing}"
+    missing_prompt = [marker for marker in prompt_markers if marker not in pass1_source]
+    assert not missing_prompt, f"Prompt/cfg parity markers missing in prompts/retain/pass1.py: {missing_prompt}"
+
+    # retain_extract_causal_links stays in fact_extraction.py (pipeline config)
+    extraction_source = (repo_root / "cogmem_api" / "engine" / "retain" / "fact_extraction.py").read_text(
+        encoding="utf-8"
+    )
+    pipeline_markers = ["retain_extract_causal_links"]
+    missing_pipeline = [marker for marker in pipeline_markers if marker not in extraction_source]
+    assert not missing_pipeline, f"Pipeline config markers missing in fact_extraction.py: {missing_pipeline}"
 
 
 async def run_behavior_test(repo_root: Path) -> None:
@@ -231,10 +238,10 @@ async def run_behavior_test(repo_root: Path) -> None:
 
     # Ensure all four mode prompts were used.
     system_prompts = [str(call["messages"][0]["content"]) for call in llm.calls]
-    assert any("Mode: concise" in prompt for prompt in system_prompts)
-    assert any("Mode: custom" in prompt for prompt in system_prompts)
-    assert any("Mode: verbatim" in prompt for prompt in system_prompts)
-    assert any("Mode: verbose" in prompt for prompt in system_prompts)
+    assert any("MODE: concise" in prompt for prompt in system_prompts)
+    assert any("MODE: custom" in prompt for prompt in system_prompts)
+    assert any("MODE: verbatim" in prompt for prompt in system_prompts)
+    assert any("MODE: verbose" in prompt for prompt in system_prompts)
 
 
 def main() -> None:

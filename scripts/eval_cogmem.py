@@ -162,6 +162,7 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
     all_turns: list[str] = []
     questions: list[JsonDict] = []
     fixture_sessions: list[tuple[str, list[str]]] = []
+    fixture_messages: list[tuple[str, list[dict]]] = []
     seen_session_ids: set[str] = set()
 
     if source == "longmemeval":
@@ -179,9 +180,11 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
             sessions_raw = item.get("haystack_sessions", [])
             haystack_ids = item.get("haystack_session_ids", [])
             sessions_with_ids: list[tuple[str, list[str]]] = []
+            sessions_msg_ids: list[tuple[str, list[dict]]] = []
             for sess_idx, sess in enumerate(sessions_raw):
                 sess_id = haystack_ids[sess_idx] if sess_idx < len(haystack_ids) else f"session_{sess_idx + 1}"
                 sess_turns = []
+                sess_messages = []
                 if isinstance(sess, list):
                     for t in sess:
                         if isinstance(t, dict):
@@ -189,16 +192,21 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                             content = t.get("content", "")
                             if content:
                                 sess_turns.append(f"{role}: {content}" if role else content)
+                                sess_messages.append({"role": role, "content": content})
                         elif isinstance(t, str) and t:
                             sess_turns.append(t)
+                            sess_messages.append({"role": "", "content": t})
                 elif isinstance(sess, dict):
                     c = sess.get("content", "")
                     if c:
                         sess_turns.append(c)
+                        sess_messages.append({"role": "", "content": c})
                 elif isinstance(sess, str) and sess:
                     sess_turns.append(sess)
+                    sess_messages.append({"role": "", "content": sess})
                 if sess_turns:
                     sessions_with_ids.append((sess_id, sess_turns))
+                    sessions_msg_ids.append((sess_id, sess_messages))
             flat_turns = [t for _, t in sessions_with_ids for t in t]
             all_turns.extend(flat_turns)
             questions.append({
@@ -209,6 +217,7 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                 "category": category,
                 "turns": flat_turns,
                 "_sessions": sessions_with_ids,
+                "_messages": sessions_msg_ids,
             })
 
     elif source == "locomo":
@@ -217,6 +226,7 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
         for conv in data:
             conversation = conv.get("conversation", {})
             sessions_with_ids: list[tuple[str, list[str]]] = []
+            sessions_msg_ids: list[tuple[str, list[dict]]] = []
             if isinstance(conversation, dict):
                 for key in sorted(conversation.keys()):
                     if key.endswith("_date_time"):
@@ -233,6 +243,7 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                     if sess_id is None:
                         continue
                     sess_turns = []
+                    sess_messages = []
                     if isinstance(val, list):
                         for t in val:
                             if isinstance(t, dict):
@@ -240,24 +251,35 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                                 content = t.get("text", "")
                                 if content:
                                     sess_turns.append(f"{speaker}: {content}" if speaker else content)
+                                    sess_messages.append({"role": speaker, "content": content})
+                            elif isinstance(val, str) and val:
+                                sess_turns.append(val)
+                                sess_messages.append({"role": "", "content": val})
                     elif isinstance(val, str) and val:
                         sess_turns.append(val)
+                        sess_messages.append({"role": "", "content": val})
                     if sess_turns:
                         sessions_with_ids.append((sess_id, sess_turns))
+                        sessions_msg_ids.append((sess_id, sess_messages))
             elif isinstance(conversation, list):
                 sess_turns = []
+                sess_messages = []
                 for t in conversation:
                     if isinstance(t, dict):
                         speaker = t.get("speaker", "")
                         content = t.get("text", "")
                         if content:
                             sess_turns.append(f"{speaker}: {content}" if speaker else content)
+                            sess_messages.append({"role": speaker, "content": content})
                     elif isinstance(t, str) and t:
                         sess_turns.append(t)
+                        sess_messages.append({"role": "", "content": t})
                 if sess_turns:
                     sessions_with_ids.append(("D1", sess_turns))
+                    sessions_msg_ids.append(("D1", sess_messages))
             elif isinstance(conversation, str) and conversation:
                 sessions_with_ids.append(("D1", [conversation]))
+                sessions_msg_ids.append(("D1", [{"role": "", "content": conversation}]))
             flat_turns = [t for _, t in sessions_with_ids for t in t]
             all_turns.extend(flat_turns)
 
@@ -282,15 +304,17 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                     "category": cat_map.get(cat_int, f"category_{cat_int}"),
                     "turns": flat_turns,
                     "_sessions": sessions_with_ids,
+                    "_messages": sessions_msg_ids,
                 })
 
-    for q_sessions in (q.get("_sessions", []) for q in questions):
-        for sess_id, sess_turns in q_sessions:
+    for q_sessions, q_messages in zip((q.get("_sessions", []) for q in questions), (q.get("_messages", []) for q in questions)):
+        for (sess_id, sess_turns), (_, sess_msgs) in zip(q_sessions, q_messages):
             if sess_id not in seen_session_ids:
                 fixture_sessions.append((sess_id, sess_turns))
+                fixture_messages.append((sess_id, sess_msgs))
                 seen_session_ids.add(sess_id)
 
-    return {"name": f"{source}_benchmark", "turns": all_turns, "questions": questions, "_sessions": fixture_sessions}
+    return {"name": f"{source}_benchmark", "turns": all_turns, "questions": questions, "_sessions": fixture_sessions, "_messages": fixture_messages}
 
 
 def get_fixture(name: str, fixture_path: str | None = None) -> JsonDict:
@@ -365,17 +389,25 @@ def retain_fixture(
     post_json_fn: Callable[[str, JsonDict, float], JsonDict],
     timeout_seconds: float,
 ) -> JsonDict:
-    sessions = fixture.get("_sessions")
-    if sessions:
-        # Concatenate all turns within each session into one content item.
-        # The backend's _chunk_content() will split by chunk_size (default 3000 chars),
-        # giving the LLM cross-turn context instead of isolated single-turn snippets.
+    messages_data = fixture.get("_messages")
+    sessions_data = fixture.get("_sessions")
+    if messages_data:
         items = []
-        for session_id, turns in sessions:
+        for session_id, msgs in messages_data:
+            items.append({"messages": msgs, "document_id": session_id})
+    elif sessions_data:
+        items = []
+        for session_id, turns in sessions_data:
             session_content = "\n\n".join(turns)
             items.append({"content": session_content, "document_id": session_id})
     else:
-        items = [{"content": turn} for turn in fixture["turns"]]
+        turns = fixture.get("turns", [])
+        items = []
+        for turn in turns:
+            if isinstance(turn, dict) and turn.get("role") and turn.get("content"):
+                items.append({"messages": [{"role": turn["role"], "content": turn["content"]}], "document_id": turn.get("document_id")})
+            else:
+                items.append({"content": str(turn), "document_id": turn.get("document_id") if isinstance(turn, dict) else None})
     return post_json_fn(
         f"{api_base_url}/v1/default/banks/{bank_id}/memories",
         {"items": items, "async": False},

@@ -131,7 +131,9 @@ async def retain_batch(
                             or document_id
                         )
                         if fact_doc_id:
-                            processed_fact.chunk_id = f"{bank_id}_{fact_doc_id}_{extracted_fact.chunk_index}"
+                            suffix = extracted_fact.chunk_id_suffix
+                            chunk_index_val = extracted_fact.chunk_index
+                            processed_fact.chunk_id = f"{bank_id}_{fact_doc_id}_{suffix}" if suffix else f"{bank_id}_{fact_doc_id}_{chunk_index_val}"
 
                     if document_id:
                         await chunk_storage.store_chunks_batch(conn, bank_id, document_id, chunks)

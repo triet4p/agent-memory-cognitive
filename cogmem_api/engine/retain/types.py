@@ -108,6 +108,7 @@ class RetainContentDict(TypedDict, total=False):
     """Input item format consumed by retain_batch."""
 
     content: str
+    messages: list[dict[str, str]]
     context: str
     event_date: datetime | str | None
     metadata: dict[str, object]
@@ -122,6 +123,7 @@ class RetainContent:
     """Single retain input item after normalization."""
 
     content: str
+    messages: list[dict[str, str]] | None = None
     context: str = ""
     event_date: datetime | None = None
     metadata: dict[str, object] = field(default_factory=dict)
@@ -145,8 +147,14 @@ class RetainContent:
         else:
             raise TypeError(f"Unsupported event_date type: {type(event_date).__name__}")
 
+        raw_messages = payload.get("messages")
+        messages: list[dict[str, str]] | None = None
+        if raw_messages and isinstance(raw_messages, list):
+            messages = [{"role": str(m.get("role", "")), "content": str(m.get("content", ""))} for m in raw_messages]
+
         return RetainContent(
             content=payload.get("content", ""),
+            messages=messages,
             context=payload.get("context", ""),
             event_date=parsed_event_date,
             metadata=dict(payload.get("metadata", {})),
@@ -273,6 +281,7 @@ class ExtractedFact:
     metadata: dict[str, object] = field(default_factory=dict)
     content_index: int = 0
     chunk_index: int = 0
+    chunk_id_suffix: str | None = None
     causal_relations: list[CausalRelation] = field(default_factory=list)
     action_effect_relations: list[ActionEffectRelation] = field(default_factory=list)
     transition_relations: list[TransitionRelation] = field(default_factory=list)

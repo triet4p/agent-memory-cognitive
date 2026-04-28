@@ -30,6 +30,13 @@ class VersionResponse(BaseModel):
     service: str
 
 
+class MessageInput(BaseModel):
+    """Single message in a structured conversation format."""
+
+    role: str
+    content: str
+
+
 class EntityInput(BaseModel):
     """Entity attached to a retained memory item."""
 
@@ -40,13 +47,22 @@ class EntityInput(BaseModel):
 class RetainItem(BaseModel):
     """Single retain item accepted by retain endpoint."""
 
-    content: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    content: str | None = None
+    messages: list[MessageInput] | None = None
     timestamp: datetime | str | None = None
     context: str | None = None
     metadata: dict[str, str] | None = None
     document_id: str | None = None
     entities: list[EntityInput] | None = None
     tags: list[str] | None = None
+
+    def model_post_init(self, __context) -> None:
+        has_content = bool(self.content and self.content.strip())
+        has_messages = bool(self.messages and len(self.messages) > 0)
+        if not has_content and not has_messages:
+            raise ValueError("At least one of 'content' or 'messages' must be non-empty")
 
 
 class RetainRequest(BaseModel):
@@ -158,12 +174,27 @@ def _parse_query_timestamp(value: str | None) -> datetime | None:
         raise HTTPException(status_code=400, detail=f"Invalid query_timestamp: {exc}") from exc
 
 
+def _derive_content_from_messages(messages: list[MessageInput]) -> str:
+    """Render structured messages as a plain text string for backward compat."""
+    parts = []
+    for msg in messages:
+        role_marker = f"[{msg.role}]: " if msg.role else ""
+        parts.append(f"{role_marker}{msg.content}")
+    return "\n\n".join(parts)
+
+
 def _build_retain_payload(item: RetainItem) -> dict[str, Any] | None:
-    content = item.content.strip()
+    if item.messages:
+        content = _derive_content_from_messages(item.messages)
+    else:
+        content = item.content.strip() if item.content else ""
+
     if not content:
         return None
 
     payload: dict[str, Any] = {"content": content}
+    if item.messages:
+        payload["messages"] = [{"role": m.role, "content": m.content} for m in item.messages]
     if item.context:
         payload["context"] = item.context
     if item.timestamp is not None:
@@ -319,6 +350,7 @@ def create_app(
                 cross_encoder_score=float(item.get("cross_encoder_score") or 0.0),
                 raw_snippet=item.get("raw_snippet"),
                 document_id=item.get("document_id"),
+                chunk_id=item.get("chunk_id"),
             )
             for item in recall_result.get("results", [])
             if item.get("id") and item.get("text")
