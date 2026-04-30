@@ -86,7 +86,13 @@ def parse_judge_response(raw: str) -> dict:
     import json
     import re
 
+    import logging as _logging
+    _logging.getLogger(__name__).warning("parse_judge_response raw=%r", raw[:500] if raw else raw)
+
     text = raw.strip()
+
+    # Strip <think>...</think> blocks emitted by reasoning models
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
     if text.startswith("```"):
         text = text.split("\n", 1)[1] if "\n" in text else text[3:]
@@ -103,6 +109,9 @@ def parse_judge_response(raw: str) -> dict:
         except json.JSONDecodeError:
             from json_repair import repair_json
             parsed = json.loads(repair_json(cleaned))
+
+    if isinstance(parsed, list):
+        parsed = parsed[0] if parsed else {}
 
     score = parsed.get("score", 0.0)
     try:

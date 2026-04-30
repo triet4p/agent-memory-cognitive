@@ -99,6 +99,11 @@ def build_generation_prompt(query: str, evidence: list[dict]) -> str:
         "- If MEMORIES contain partial information (e.g., some but not all items in a list),",
         "  enumerate what you found and explicitly state the list may be incomplete.",
         "- Do NOT say 'information not available' when partial evidence exists in MEMORIES.",
+        "- For 'how many' questions: scan ALL numbered MEMORIES entries. If a memory explicitly states a quantity, use that number as the answer for that item — do not count memory entries as if each were a separate object. If counting distinct real-world objects across multiple memories, deduplicate by identity before reporting the total.",
+        "- If the question asks about multiple categories (e.g., 'X and Y') and one category has no entry in MEMORIES, say 'no information about [category] was found in memory' — do NOT assert that the thing does not exist.",
+        "- Only use a memory to answer a sub-question if that memory explicitly mentions the entity being asked about. Do not use a memory about a different (even related) entity to fill in the answer.",
+        "- If MEMORIES contain no relevant information at all, say so clearly: 'I don't have information about this in memory.'",
+        "- For temporal ordering questions (which happened first/last/earlier/later): a time expression like 'N days/weeks/months ago' means the event with the LARGER number occurred FURTHER in the past and therefore happened FIRST. Apply this logic explicitly before answering.",
         "- Cite memories by index, e.g. [1] or [2].",
     ])
 

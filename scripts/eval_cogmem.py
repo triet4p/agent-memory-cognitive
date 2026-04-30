@@ -152,7 +152,12 @@ def resolve_api_base_url(cli_value: str | None = None) -> str:
 
 def post_json(url: str, payload: JsonDict, timeout_seconds: float) -> JsonDict:
     response = requests.post(url, json=payload, timeout=timeout_seconds)
+    if not response.ok:
+        print(f"[DEBUG] POST {url} -> {response.status_code}")
+        print(f"[DEBUG] payload: {payload}")
+        print(f"[DEBUG] response body: {response.text}")
     response.raise_for_status()
+    # print(response.text)
     return response.json()
 
 def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
@@ -440,10 +445,10 @@ def _build_session_recall_at_k(
         return {"recall_at_k": None, "precision_at_k": None}
     gold_set = set(gold_session_ids)
     top_k = recall_results[:k]
-    matched = [r.get("document_id") for r in top_k if r.get("document_id") in gold_set]
-    recall = 1.0 if matched else 0.0
-    precision = len(matched) / k if k > 0 else 0.0
-    return {"recall_at_k": recall, "precision_at_k": precision, "matched_session_count": len(matched), "total_gold_sessions": len(gold_session_ids)}
+    matched_unique = {r.get("document_id") for r in top_k if r.get("document_id") in gold_set}
+    recall = len(matched_unique) / len(gold_set)
+    precision = len(matched_unique) / k if k > 0 else 0.0
+    return {"recall_at_k": recall, "precision_at_k": precision, "matched_session_count": len(matched_unique), "total_gold_sessions": len(gold_session_ids)}
 
 
 def _per_category_stats(
@@ -705,6 +710,8 @@ def run_full_pipeline(
                         "fact_type": r.get("type"),
                         "score": r.get("score"),
                         "cross_encoder_score": r.get("cross_encoder_score"),
+                        "rrf_score": r.get("rrf_score"),
+                        "rrf_rank": r.get("rrf_rank"),
                         "has_snippet": r.get("raw_snippet") is not None,
                         "text": r.get("text"),
                         "raw_snippet": r.get("raw_snippet"),

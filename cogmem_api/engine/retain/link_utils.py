@@ -94,7 +94,7 @@ async def insert_links(conn, links: list[LinkRecord]) -> int:
             ($1::uuid, $2::uuid, $3, $4, COALESCE($5::uuid, $7::uuid), $6)
         ON CONFLICT DO NOTHING
         """,
-        [(*link, _PLACEHOLDER_ENTITY_ID) for link in links],
+        [(*link[:-1], min(1.0, max(0.0, link[-1])), _PLACEHOLDER_ENTITY_ID) for link in links],
     )
     return len(links)
 

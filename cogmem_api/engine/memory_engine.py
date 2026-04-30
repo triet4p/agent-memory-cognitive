@@ -614,6 +614,7 @@ class MemoryEngine:
                         merged_by_id[candidate.id] = candidate
 
             merged_candidates = sorted(merged_by_id.values(), key=lambda item: item.rrf_score, reverse=True)
+            global_rrf_rank_by_id = {c.id: rank + 1 for rank, c in enumerate(merged_candidates)}
 
             reranked_results: list[dict[str, Any]] = []
             cross_encoder_ok = False
@@ -666,6 +667,9 @@ class MemoryEngine:
                             "raw_snippet": scored_result.retrieval.raw_snippet,
                             "score": float(scored_result.combined_score),
                             "cross_encoder_score": float(scored_result.cross_encoder_score),
+                            "rrf_score": float(scored_result.candidate.rrf_score),
+                            "rrf_rank": int(scored_result.candidate.rrf_rank),
+                            "global_rrf_rank": global_rrf_rank_by_id.get(scored_result.id, 0),
                             "document_id": scored_result.candidate.retrieval.document_id,
                             "chunk_id": scored_result.candidate.retrieval.chunk_id,
                             "channel_ranks": channel_ranks,

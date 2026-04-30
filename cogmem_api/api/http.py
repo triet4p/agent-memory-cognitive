@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from cogmem_api import MemoryEngine, __version__
 from cogmem_api.engine import eval_helpers
@@ -106,6 +106,9 @@ class RecallResult(BaseModel):
     type: str
     score: float = 0.0
     cross_encoder_score: float = 0.0
+    rrf_score: float = 0.0
+    rrf_rank: int = 0
+    global_rrf_rank: int = 0
     raw_snippet: str | None = None
     document_id: str | None = None
     chunk_id: str | None = None
@@ -140,6 +143,11 @@ class JudgeRequest(BaseModel):
     gold_answer: str
     predicted_answer: str
     category: str | None = None
+
+    @field_validator("gold_answer", "predicted_answer", "question", mode="before")
+    @classmethod
+    def _coerce_str(cls, v: object) -> str:
+        return str(v) if v is not None else ""
 
 
 class JudgeResponse(BaseModel):
@@ -349,6 +357,9 @@ def create_app(
                 type=str(item.get("fact_type") or "world"),
                 score=float(item.get("score") or 0.0),
                 cross_encoder_score=float(item.get("cross_encoder_score") or 0.0),
+                rrf_score=float(item.get("rrf_score") or 0.0),
+                rrf_rank=int(item.get("rrf_rank") or 0),
+                global_rrf_rank=int(item.get("global_rrf_rank") or 0),
                 raw_snippet=item.get("raw_snippet"),
                 document_id=item.get("document_id"),
                 chunk_id=item.get("chunk_id"),
@@ -426,7 +437,14 @@ def create_app(
                 raw=parsed.get("raw", ""),
             )
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=str(exc)) from exc
+            import logging as _logging
+            _logging.getLogger(__name__).error(
+                "Judge LLM call failed | type=%s | detail=%s | raw_response=%r",
+                type(exc).__name__, exc,
+                getattr(exc, "response_text", None) or getattr(exc, "response", None),
+                exc_info=True,
+            )
+            raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc
 
     @app.get(
         "/v1/default/banks/{bank_id}/facts",

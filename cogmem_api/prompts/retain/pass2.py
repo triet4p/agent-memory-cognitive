@@ -30,31 +30,37 @@ EVERY fact MUST have these REQUIRED fields:
   Empty [] only when truly no named entity exists.
 
 OPTIONAL: "when", "who" (always "user" in single-speaker input), "why", "occurred_start", "occurred_end" (ISO 8601)
-For recency markers like "recently", "last week", "just now" — include them as the "when" value.
+For recency markers like "recently", "last week", "just now", "next month" — include as the "when" value.
 
 FACT TYPE GUIDE:
-1. "experience" — personal past event at a specific time (purchase, visit, action taken).
+1. "experience" — personal past event (purchase, visit, action taken, something tried).
+   BE AGGRESSIVE: even brief statements MUST be extracted.
+   "I just got this kit", "I've tried X", "I've had experience with X", "I recently X" are all experiences.
    Include "why" whenever motivation or context is stated or strongly implied.
-   Example: "why": "to practice metal painting techniques"
-   BE AGGRESSIVE: even a brief statement like "I just got this kit" or "I finished a Tiger I"
-   MUST be extracted as a separate experience fact.
    {{"fact_type":"experience","what":"User bought Tamiya 1/48 Spitfire Mk.V kit","entities":["Tamiya","Spitfire Mk.V"],"when":"recently","why":"to practice advanced painting techniques"}}
-   {{"fact_type":"experience","what":"User finished a 1/16 Revell Tiger I tank model","entities":["Revell","Tiger I"],"when":"last month"}}
-2. "habit" — repeating behavior; triggers: always, usually, every day/week, every morning, tends to, routine
-   {{"fact_type":"habit","what":"User always checks email before standup","entities":["User"]}}
-   {{"fact_type":"habit","what":"User usually shops at the model store on Saturdays","entities":["User"]}}
-3. "intention" — future plan or goal; add "intention_status": "planning"|"fulfilled"|"abandoned"
-   Include "why" whenever the goal reason is stated.
-   {{"fact_type":"intention","what":"User plans to build a 1/48 P-51 Mustang next","entities":["User","P-51 Mustang"],"intention_status":"planning","why":"to try weathering techniques"}}
-4. "opinion" — belief or preference; add "confidence": 0.0-1.0
+   {{"fact_type":"experience","what":"User has tried mindfulness meditation","entities":["mindfulness meditation"]}}
+2. "habit" — repeating behavior, including ongoing routines ("I've been doing X for a while").
+   Triggers: always, usually, every day/week, tends to, routine, for a while, for some time, for months/years.
+   {{"fact_type":"habit","what":"User has been using packing cubes for travel organization","entities":["packing cubes"]}}
+   {{"fact_type":"habit","what":"User usually shops at the model store on Saturdays","entities":[]}}
+3. "intention" — future plan or current consideration.
+   Triggers: planning, thinking of, considering, going to, want to, would like to, I'd like to, been thinking about.
+   EXTRACT EVEN WHEN STATED AS CONTEXT FOR A QUESTION: "I'm working on X, how do I..." → experience. "I'm planning X, can you help?" → intention.
+   Add "intention_status": "planning"|"fulfilled"|"abandoned". Include "why" when stated.
+   {{"fact_type":"intention","what":"User plans to travel to New York City next month","entities":["New York City"],"intention_status":"planning","when":"next month"}}
+   {{"fact_type":"intention","what":"User is considering using a PE bending tool for model parts","entities":["PE bending tool"],"intention_status":"planning"}}
+4. "opinion" — belief, preference, or attitude, including "I like", "I love", "I prefer", "I'm not happy with".
+   Add "confidence": 0.0-1.0.
+   {{"fact_type":"opinion","what":"User likes the Spa-Inspired Retreat bathroom style","entities":[],"confidence":0.7}}
    {{"fact_type":"opinion","what":"User believes Tamiya is the best brand for armor models","entities":["Tamiya"],"confidence":0.9}}
 
 RULES:
 (1) Extract ALL personal facts in the text — do not skip brief mentions.
-(2) Prefer "experience" over "opinion" when a specific past event is described.
-(3) Do NOT invent facts.
-(4) Match output language to input language.
-(5) ONLY emit experience/habit/intention/opinion — never world or action_effect.
+(2) Extract personal context even when it appears inside a question to the assistant.
+(3) Prefer "experience" over "opinion" when a specific past event is described.
+(4) Do NOT invent facts.
+(5) Match output language to input language.
+(6) ONLY emit experience/habit/intention/opinion — never world or action_effect.
 """
 
 

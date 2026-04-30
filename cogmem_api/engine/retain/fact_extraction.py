@@ -739,6 +739,33 @@ async def _call_llm_for_pass1(
     )
 
 
+import re as _re
+
+_P2_PERSONAL_PATTERNS = _re.compile(
+    r"\b(I(?:'m| am| was| were| have| had| 've| 'd| 'll|'ve been| am currently)"
+    r"|I(?:'ve| have) (?:tried|had|been|got|started|finished|bought|visited|used|found|built|invested|learned|discovered)"
+    r"|I (?:just|recently|also|still|always|usually|often|tend to|like|love|hate|prefer|think|believe|feel|find)"
+    r"|I (?:planted|grew|cooked|fixed|sold|made|built|bought|tried|started|finished|visited|joined|signed|switched|upgraded|moved|opened|closed)"
+    r"|I(?:'d| would) like"
+    r"|I(?:'m| am) (?:planning|thinking|considering|working|looking|hoping|going|trying)"
+    r"|my (?:bathroom|bedroom|kitchen|car|model|project|plan|goal|experience|routine|habit))\b",
+    _re.IGNORECASE,
+)
+
+
+def _neutralize_questions(text: str) -> str:
+    """Strip trailing ? so small models don't enter answer mode."""
+    return _re.sub(r'\?', '.', text)
+
+
+def _build_p2_user_message(text: str) -> str:
+    """Strip question marks, then prepend a hint when personal statements are detected."""
+    cleaned = _neutralize_questions(text)
+    if _P2_PERSONAL_PATTERNS.search(cleaned):
+        return f"[This message contains personal information about the user. Extract it.]\n{cleaned}"
+    return cleaned
+
+
 async def _call_llm_for_pass2(
     llm_config: Any,
     prompt: str,
@@ -749,7 +776,7 @@ async def _call_llm_for_pass2(
     return await _call_llm_chunk(
         llm_config=llm_config,
         prompt=prompt,
-        user_message=chunk.text,
+        user_message=_build_p2_user_message(chunk.text),
         max_completion_tokens=max_completion_tokens,
     )
 
@@ -1126,6 +1153,14 @@ async def extract_facts_from_contents(
         if llm_facts:
             extracted.extend(llm_facts)
             chunks.extend(llm_chunks)
+            continue
+
+        if content.messages:
+            logger.warning(
+                "LLM extraction returned no facts for content[%d] (len=%d, messages-mode); skipping heuristic fallback to avoid storing raw conversation text",
+                content_index,
+                len(content.content),
+            )
             continue
 
         logger.warning(
