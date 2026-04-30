@@ -128,6 +128,8 @@ class GenerateRequest(BaseModel):
     query: str
     evidence: list[dict]
     max_tokens: int = 2048
+    question_date: str | None = None
+    session_date_map: dict[str, str] | None = None
 
 
 class GenerateResponse(BaseModel):
@@ -383,7 +385,12 @@ def create_app(
         if llm_config is None:
             raise HTTPException(status_code=503, detail="Generate LLM not configured")
 
-        prompt = eval_helpers.build_generation_prompt(payload.query, payload.evidence)
+        prompt = eval_helpers.build_generation_prompt(
+            payload.query,
+            payload.evidence,
+            question_date=payload.question_date,
+            session_date_map=payload.session_date_map,
+        )
         messages = [{"role": "user", "content": prompt}]
 
         try:

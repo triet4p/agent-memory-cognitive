@@ -13,8 +13,13 @@ from cogmem_api.prompts.eval.judge import build_judge_system_prompt as _bj, pars
 from cogmem_api.prompts.eval.generate import build_generation_prompt as _bgp
 
 
-def build_generation_prompt(query: str, evidence: list[dict]) -> str:
-    return _bgp(query, evidence)
+def build_generation_prompt(
+    query: str,
+    evidence: list[dict],
+    question_date: str | None = None,
+    session_date_map: dict[str, str] | None = None,
+) -> str:
+    return _bgp(query, evidence, question_date=question_date, session_date_map=session_date_map)
 
 
 def build_judge_system_prompt(category: str | None) -> str:

@@ -46,12 +46,19 @@ def _clean_reference(raw_snippet: str) -> str:
     return _to_third_person(_extract_user_turns(raw_snippet))
 
 
-def build_generation_prompt(query: str, evidence: list[dict]) -> str:
+def build_generation_prompt(
+    query: str,
+    evidence: list[dict],
+    question_date: str | None = None,
+    session_date_map: dict[str, str] | None = None,
+) -> str:
     """Build prompt for generation step (reflect/generate endpoint).
 
     Args:
         query: The user's question
         evidence: List of recall result dicts (each has text/raw_snippet/score/etc.)
+        question_date: The date the question is being asked (from benchmark fixture)
+        session_date_map: Mapping of session_id (document_id) to its original conversation date
 
     Returns:
         Formatted prompt string for LLM generation
@@ -63,7 +70,14 @@ def build_generation_prompt(query: str, evidence: list[dict]) -> str:
         text = item.get("text", "")
         raw_snippet = item.get("raw_snippet")
 
-        memory_parts.append(f"[{idx}] {text}")
+        date_suffix = ""
+        if session_date_map:
+            doc_id = item.get("document_id", "")
+            conv_date = session_date_map.get(doc_id)
+            if conv_date:
+                date_suffix = f" | Conversation date: {conv_date}"
+
+        memory_parts.append(f"[{idx}] {text}{date_suffix}")
 
         if raw_snippet:
             cleaned = _clean_reference(raw_snippet)
@@ -74,9 +88,11 @@ def build_generation_prompt(query: str, evidence: list[dict]) -> str:
     reference_block = "\n".join(reference_parts) if reference_parts else ""
 
     sep = "=" * 60
+    current_date_line = f"Current date: {question_date}\n" if question_date else ""
     lines = [
         "You are answering a question based on a person's stored memories.",
         "Use ONLY the information provided below — do not add external knowledge.\n",
+        current_date_line,
         sep,
         f"QUESTION TO ANSWER: {query}",
         sep + "\n",
@@ -99,11 +115,13 @@ def build_generation_prompt(query: str, evidence: list[dict]) -> str:
         "- If MEMORIES contain partial information (e.g., some but not all items in a list),",
         "  enumerate what you found and explicitly state the list may be incomplete.",
         "- Do NOT say 'information not available' when partial evidence exists in MEMORIES.",
-        "- For 'how many' questions: scan ALL numbered MEMORIES entries. If a memory explicitly states a quantity, use that number as the answer for that item — do not count memory entries as if each were a separate object. If counting distinct real-world objects across multiple memories, deduplicate by identity before reporting the total.",
+        "- For 'how many' questions: if a memory explicitly states a total quantity (e.g. '5 tomato plants'), use that stated number directly — do not recount individual entries. Otherwise, first explicitly list every distinct item found across ALL numbered MEMORIES entries by name or description, then remove only items that are definitively the exact same object mentioned more than once (same name AND same context — do NOT collapse distinct items just because they share a category), then count what remains.",
         "- If the question asks about multiple categories (e.g., 'X and Y') and one category has no entry in MEMORIES, say 'no information about [category] was found in memory' — do NOT assert that the thing does not exist.",
         "- Only use a memory to answer a sub-question if that memory explicitly mentions the entity being asked about. Do not use a memory about a different (even related) entity to fill in the answer.",
         "- If MEMORIES contain no relevant information at all, say so clearly: 'I don't have information about this in memory.'",
         "- For temporal ordering questions (which happened first/last/earlier/later): a time expression like 'N days/weeks/months ago' means the event with the LARGER number occurred FURTHER in the past and therefore happened FIRST. Apply this logic explicitly before answering.",
+        "- For questions involving specific dates or elapsed time: each memory may show a 'Conversation date' — this is the actual date of that conversation. Relative words like 'today' or 'recently' in a memory refer to that conversation's date, NOT the current date. Use 'Current date' (shown above) minus 'Conversation date' to compute how long ago an event occurred.",
+        "- For knowledge-update questions (current state, most recent preference): when memories conflict, prefer the fact from the memory with the MOST RECENT 'Conversation date'.",
         "- Cite memories by index, e.g. [1] or [2].",
     ])
 

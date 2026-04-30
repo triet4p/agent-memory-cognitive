@@ -184,6 +184,11 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
             category = type_map.get(item.get("question_type", ""), item.get("question_type", "unknown"))
             sessions_raw = item.get("haystack_sessions", [])
             haystack_ids = item.get("haystack_session_ids", [])
+            haystack_dates = item.get("haystack_dates", [])
+            session_date_map = {
+                haystack_ids[i]: haystack_dates[i]
+                for i in range(min(len(haystack_ids), len(haystack_dates)))
+            }
             sessions_with_ids: list[tuple[str, list[str]]] = []
             sessions_msg_ids: list[tuple[str, list[dict]]] = []
             for sess_idx, sess in enumerate(sessions_raw):
@@ -223,6 +228,8 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                 "turns": flat_turns,
                 "_sessions": sessions_with_ids,
                 "_messages": sessions_msg_ids,
+                "question_date": item.get("question_date", ""),
+                "session_date_map": session_date_map,
             })
 
     elif source == "locomo":
@@ -666,7 +673,13 @@ def run_full_pipeline(
 
         gen_resp = post_json_fn(
             f"{api_base_url}/v1/default/banks/{bank_id}/memories/generate",
-            {"query": question["query"], "evidence": results, "max_tokens": gen_max_tokens},
+            {
+                "query": question["query"],
+                "evidence": results,
+                "max_tokens": gen_max_tokens,
+                "question_date": question.get("question_date") or None,
+                "session_date_map": question.get("session_date_map") or None,
+            },
             timeout_seconds,
         )
         generated_answer = gen_resp.get("answer", "")
