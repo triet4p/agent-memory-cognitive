@@ -1,0 +1,22 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\begin{center}
+    \Large{\textbf{ABSTRACT}}\\
+\end{center}
+\vspace{1cm}
+
+Các hệ thống tác nhân hội thoại AI hiện nay gặp phải thách thức cơ bản trong việc duy trì bộ nhớ dài hạn xuyên suốt nhiều phiên hội thoại. Khi ngữ cảnh (context window) vượt quá giới hạn, thông tin cũ bị loại bỏ khiến tác nhân mất khả năng ghi nhớ thông tin người dùng qua thời gian. Các giải pháp RAG (Retrieval-Augmented Generation) thông thường dựa trên cơ sở dữ liệu vector không đủ khả năng xử lý các truy vấn phức tạp, đặc biệt là các truy vấn đòi hỏi suy luận multi-hop hay suy luận về thói quen và quan hệ nhân quả.
+
+Đồ án này đề xuất CogMem — một khung cấu trúc bộ nhớ hội thoại dài hạn được thiết kế dựa trên các nguyên lý của khoa học nhận thức (cognitive science). CogMem bao gồm bốn đóng góp chính: (1) Cấu trúc đồ thị bộ nhớ (Memory Graph) với 6 mạng nhánh chuyên biệt (World, Experience, Opinion, Habit, Intention, Action-Effect) và 7 loại liên kết, phản ánh chính xác các phân hệ bộ nhớ trong não người; (2) Cơ sở siêu dữ liệu phi tổn hao (Lossless Node Metadata) với trường dữ liệu nguyên bản (raw\_snippet) nhằm giữ nguyên văn bản hội thoại, hạn chế tình trạng mất mát thông tin do quá trình nén của LLM; (3) Vùng đệm không gian-thời gian (Episodic Buffer) ứng dụng thuật toán lan truyền kích hoạt SUM thay cho hàm MAX, kết hợp với 3 cơ chế kiểm soát chu trình (Refractory, Firing Quota, Saturation), cho phép tích lũy bằng chứng từ nhiều hướng đồng thời; (4) Cơ chế định tuyến truy vấn thích ứng (Adaptive Query Routing) phân loại câu hỏi thành 6 loại hình (semantic, temporal, causal, prospective, preference, multi-hop) nhằm áp dụng trọng số động RRF (Reciprocal Rank Fusion).
+
+Kết quả thực nghiệm trên các benchmark LongMemEval-S và LoCoMo cho thấy kiến trúc đề xuất cải thiện đáng kể so với baseline HINDSIGHT, đặc biệt trên các category khó như multi-hop, temporal reasoning và preference retrieval.
+
+\begin{flushright}
+\begin{tabular}{@{}c@{}}
+Lê Minh Triết\\
+\textit{triet.lm220045@sis.hust.edu.vn}
+\end{tabular}
+\end{flushright}
+
+\end{document}

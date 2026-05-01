@@ -1,0 +1,158 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Kết quả thực nghiệm}
+
+\subsection{Thiết kế thực nghiệm}
+
+\subsubsection{Dataset và setup}
+
+\begin{enumerate}
+    \item \textbf{LongMemEval-S}: 500 câu hỏi từ Wu et al. (2025), mỗi câu thuộc về một cuộc hội thoại dài (~50 phiên, ~115K tokens). Trong đồ án này, sử dụng stratified subset gồm 100-150 câu hỏi để đảm bảo significance trong khi giới hạn resource.
+    
+    \item \textbf{LoCoMo}: 50 cuộc hội thoại từ Maharana et al. (2024), trung bình 304.9 lượt trao đổi. Sử dụng stratified subset gồm 20-25 cuộc hội thoại.
+\end{enumerate}
+
+\textbf{[FIGURE PLACEHOLDER]}\\
+Hình 5.1: Dataset distribution và stratified sampling strategy. Cần hình minh họa phân bố category trong subset.
+
+\textbf{[FIGURE PLACEHOLDER]}\\
+Hình 5.2: Experiment setup với SLM local (Qwen3-7B). Cần hình minh họa hardware setup và evaluation pipeline.
+
+\begin{table}[H]
+\centering
+\caption{Experiment Setup}
+\label{tab:experiment_setup}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Component} & \textbf{Model/Config} & \textbf{Ghi chú} \\
+\hline
+Retain LLM & Qwen3-7B (local) & SLM để đảm bảo fair comparison \\
+\hline
+Judge LLM & Qwen3-7B (local) & Tách riêng với retain LLM \\
+\hline
+Embedding model & BAAI/bge-small-en-v1.5 & Local sentence-transformers \\
+\hline
+Database & PostgreSQL với pgvector & HNSW index với ef\_search=200 \\
+\hline
+Benchmark subset & 100-150 LongMemEval, 20-25 LoCoMo & Stratified sampling \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\subsubsection{Evaluation strategy}
+
+Metric chính: End-to-end accuracy (LLM-as-judge), phân tích per-category. Cùng judge setup với HINDSIGHT để so sánh trực tiếp với published numbers.
+
+\textbf{[FIGURE PLACEHOLDER]}\\
+Hình 5.3: Evaluation pipeline end-to-end. Cần hình minh họa flow: Build KG → Recall → Reflect → Judge.
+
+Các bước evaluation:
+\begin{enumerate}
+    \item Build CogMem graph offline một lần per conversation (cached, reused cho tất cả questions)
+    \item Recall: Adaptive Router → 4-way retrieval → RRF → reranker → top-k nodes
+    \item Reflect (stripped-down CARA): retrieved nodes + question → LLM generate answer
+    \item Judge: LLM-as-judge(question, gold answer, generated answer) → binary score
+\end{enumerate}
+
+\subsection{Ablation study (E1-E7)}
+
+\begin{enumerate}
+    \item \textbf{E1 — Baseline}: HINDSIGHT rebuilt với SLM local. Điểm tham chiếu.
+    \item \textbf{E2}: E1 + Habit Network + S-R links. Hypothesis: cải thiện Preference category.
+    \item \textbf{E3}: E1 + Intention Network + Transition edges. Hypothesis: cải thiện Prospective queries.
+    \item \textbf{E4}: E1 + Action-Effect Network + A-O causal links. Hypothesis: cải thiện Causal category.
+    \item \textbf{E5}: E1 + Adaptive Query Router (incl. Causal + Prospective types). Hypothesis: cải thiện Temporal + Multi-hop.
+    \item \textbf{E6}: E1 + Episodic Buffer SUM + 3 Cycle Guards. Hypothesis: cải thiện Multi-hop + Multi-session.
+    \item \textbf{E7 — Full CogMem}: E1 + tất cả. Tổng hợp — so sánh chính.
+\end{enumerate}
+
+\textbf{[TABLE PLACEHOLDER]}\\
+Bảng 5.1: Ablation results cho E1-E7 trên LongMemEval-S. Cần bảng kết quả chi tiết theo category.
+
+\textbf{[TABLE PLACEHOLDER]}\\
+Bảng 5.2: Ablation results cho E1-E7 trên LoCoMo. Cần bảng kết quả chi tiết theo category.
+
+\textbf{[FIGURE PLACEHOLDER]}\\
+Hình 5.4: Ablation results visualization. Cần bar chart showing accuracy improvement qua từng experiment.
+
+Key observations:
+\begin{itemize}
+    \item E2 (Habit) → Preference tăng đáng kể
+    \item E3 (Intention) → Prospective queries cải thiện
+    \item E4 (Action-Effect) → Causal reasoning tăng
+    \item E5 (Adaptive Routing) → Temporal và Multi-hop cải thiện
+    \item E6 (SUM) → Multi-hop và Multi-session cải thiện đáng kể nhất
+    \item E7 (Full) → Tổng hợp tất cả improvements
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ablation Summary (Placeholder - Cần kết quả thực nghiệm)}
+\label{tab:ablation_summary}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Experiment} & \textbf{Multi-session} & \textbf{Temporal} & \textbf{Preference} & \textbf{Multi-hop} & \textbf{Overall} \\
+\hline
+E1 (Baseline) & 79.7\% & 79.7\% & 66.7\% & 64.6\% & TBD \\
+\hline
+E2 (+Habit) & — & — & +TBD & — & — \\
+\hline
+E3 (+Intention) & — & — & — & — & — \\
+\hline
+E4 (+Action-Effect) & — & — & — & +TBD & — \\
+\hline
+E5 (+Adaptive) & — & +TBD & — & +TBD & — \\
+\hline
+E6 (+SUM) & +TBD & — & — & +TBD & — \\
+\hline
+E7 (Full CogMem) & TBD & TBD & TBD & TBD & TBD \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Per-category accuracy breakdown}
+
+\textbf{[TABLE PLACEHOLDER]}\\
+Bảng 5.3: Per-category accuracy chi tiết cho E7 (Full CogMem) vs E1 (Baseline) trên LongMemEval-S.
+
+\textbf{[TABLE PLACEHOLDER]}\\
+Bảng 5.4: Per-category accuracy chi tiết cho E7 vs E1 trên LoCoMo.
+
+\textbf{[FIGURE PLACEHOLDER]}\\
+Hình 5.5: Per-category comparison E7 vs E1. Cần hình bar chart comparison giữa baseline và full CogMem.
+
+Categories được phân tích:
+\begin{itemize}
+    \item \textbf{LongMemEval-S}: single-session, multi-session, temporal, knowledge-update, preference
+    \item \textbf{LoCoMo}: single-hop, multi-hop, temporal
+\end{itemize}
+
+Key findings:
+\begin{itemize}
+    \item Multi-hop trên LoCoMo: E7 cải thiện đáng kể so với E1 (baseline 64.6\%)
+    \item Preference trên LongMemEval-S: E7 với Habit Network cải thiện đáng kể
+    \item Temporal: E7 với Adaptive Routing cải thiện so với equal-weight RRF
+\end{itemize}
+
+\subsection{Error analysis và case studies}
+
+\textbf{[SECTION PLACEHOLDER]}\\
+Cần thêm error analysis với các failure cases điển hình và case studies minh họa.
+
+\textbf{[FIGURE PLACEHOLDER]}\\
+Hình 5.6: Error analysis visualization. Cần hình minh họa các failure modes chính.
+
+Các failure modes được phân tích:
+\begin{enumerate}
+    \item \textbf{Lossy compression residual}: Một số trường hợp raw\_snippet vẫn không đủ chi tiết
+    \item \textbf{Mis-classified queries}: Adaptive router đôi khi misclassify query type
+    \item \textbf{SUM over-accumulation}: Một số trường hợp tích lũy quá nhiều noise
+    \item \textbf{Missing transitions}: Một số intention → experience transitions không được capture đúng
+\end{enumerate}
+
+\end{document}

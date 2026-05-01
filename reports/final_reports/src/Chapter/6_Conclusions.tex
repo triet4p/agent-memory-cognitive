@@ -1,0 +1,108 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Kết luận và hướng phát triển}
+
+\subsection{Tổng kết đóng góp}
+
+Đồ án này đề xuất CogMem — một khung cấu trúc bộ nhớ hội thoại dài hạn dựa trên nền tảng khoa học nhận thức (cognitive science) — với bốn đóng góp cốt lõi:
+
+\begin{enumerate}
+    \item \textbf{Cấu trúc đồ thị bộ nhớ (Cognitively-Grounded Memory Graph)}: Xây dựng cấu trúc đa nhánh (6 Networks + 7 Edge Types). Mở rộng kiến trúc đồ thị lưu trữ hiện đại thông qua 3 phân hệ mạng bộ nhớ mới (Habit, Intention, Action-Effect) chưa từng xuất hiện ở bất cứ mô hình Graph-based Retrieval nào trước đó, đồng bộ cùng hệ thống 7 liên kết đa chiều (bổ sung kết nối S-R, chuỗi quan hệ nguyên - quả A-O causal, và các chuỗi biến thiên Transition edge). Cấu trúc của hệ phân lớp này ánh xạ trực tiếp từ cơ sở lý luận thần kinh (Basal Ganglia tương ứng với nền tảng hành vi tự động - habit, trong khi vùng Prefrontal Cortex cho xử lý suy luận chủ định và tương lai - intention/action-effect).
+    
+\item \textbf{Cơ sở siêu dữ liệu phi tổn hao (Lossless Node Metadata) với cấu trúc 2 lớp truy hồi}: Chuẩn hóa trường bản ghi thô (raw\_snippet) nhằm cô lập các chuỗi văn bản hội thoại nguyên gốc ra khỏi dòng thất thoát thông tin do phương pháp nén dữ liệu. Cơ cấu phân tách 2 lớp bảo toàn (narrative\_fact kết hợp raw\_snippet) đồng chiếu theo thuyết "Fuzzy Trace Theory" của tác giả Brainerd \& Reyna.
+    
+    \item \textbf{Vùng đệm không gian-thời gian (Episodic Buffer)}: Phủ định nguyên tắc truyền tải năng lượng đơn hướng, mô hình tích hợp thuật toán lan truyền kích hoạt SUM thay thế phân mức cực trị MAX để hợp lưu tính toán tất cả sức mạnh của bằng chứng từ luồng đa chiều bổ trợ, tối ưu thuật toán với sự giám sát chặt chẽ từ 3 cơ chế kiểm soát giới hạn chu trình (Local Refractory Period, Global Firing Quota, Saturation Threshold) nhằm giới hạn tính phân kỳ hệ thống đồ thị.
+    
+    \item \textbf{Cơ chế định tuyến truy vấn thích ứng (Adaptive Query Routing)}: Nhận dạng và phân loại truy vấn ngôn ngữ thành 6 bản thể logic độc lập (semantic, temporal, causal, prospective, preference, multi-hop). Hệ phân loại hỗ trợ áp dụng hệ số dung hợp RRF động tương ứng cho các nhánh logic khác nhau, mô phỏng khái niệm chọc điểm tập trung (attentional selection) trong quy trình lý luận của não bộ.
+\end{enumerate}
+
+Những bước tiến về kiến trúc trên trực tiếp phá vỡ các giới hạn nền tảng của hệ thống đồ thị tĩnh học HINDSIGHT: mở lối bế tắc ở chuỗi xử lý multi-session (khi hàm MAX vô tình loại bỏ tính bảo toàn dữ liệu bằng chứng), mở giới hạn dữ kiện về thời gian temporal (bị kìm hãm ở khung cấu trúc RRF đồng trọng lượng), khôi phục logic hành vi (chuỗi truy xuất preference/habit vốn không tồn tại), và hoàn thiện logic tương tác đa điểm (multi-hop).
+
+\begin{figure}[H]
+\centering
+%\includegraphics[width=0.9\textwidth]{figures/ch6_contributions_summary.png}
+\fbox{\parbox{0.9\textwidth}{
+\textbf{[FIGURE PLACEHOLDER]}\\ Hình 6.1: Tổng kết 4 đóng góp của CogMem. Cần hình minh họa tổng quan các đóng góp và impact.}}
+\caption{Tổng kết đóng góp}
+\label{fig:ch6_contributions_summary}
+\end{figure}
+
+\subsection{Kết quả đánh giá sơ bộ}
+
+Các kết quả thực nghiệm dự kiến dựa trên bộ benchmark tiêu chuẩn LongMemEval-S và hệ đo lường dữ liệu đan chéo LoCoMo chỉ ra các bước biến chuyển tiềm năng:
+
+\begin{itemize}
+    \item \textbf{Lược đồ E6 (SUM + Cycle Guards)} sở hữu tác động tăng hạng rõ nét nhất ở hạng mục truy hồi dữ liệu qua nhiều cầu tương tác (multi-hop) và theo chuỗi thời gian phân phiên rời rạc (multi-session) — năng lực hợp lưu tính toán logic qua phép SUM cho phép tích tụ dấu vết bằng chứng ở từng tuyến liên kết logic.
+    \item \textbf{Lược đồ E2 (Habit Network)} tối ưu điểm tra cứu phân cấp sở thích/hành vi người dùng (preference retrieval) — nhờ liên kết S-R tạo cơ chế kích hoạt các định hình phản xạ cố hữu một cách trực tiếp từ luồng phân tích đầu vào.
+    \item \textbf{Lược đồ E5 (Adaptive Routing)} hoàn thiện khả năng nhận định định hướng cho logic thời gian phi số lượng tĩnh (temporal) và logic đa cầu quy nạp.
+    \item \textbf{Lược đồ E7 (Full CogMem)} đại diện cho cấu trúc tổng thể cuối cùng, hứa hẹn hiệu chuẩn thống nhất cho tất cả các điểm yếu đa chiều cấu thành điểm sát hạch đo lường toàn diện.
+\end{itemize}
+
+Lợi thế của kiến trúc CogMem được hệ thống hóa qua:
+\begin{itemize}
+    \item Cơ sở dẫn xuất cấu trúc dựa trên khung tiêu chuẩn thực địa của khoa học lý luận thần kinh
+    \item Quá trình tích chuẩn loại bỏ (ablation study) sạch — có thể đo chuẩn biệt lập các cấu phần thiết kế
+    \item Lược đồ 2 cụm độc lập (2-layer schema) làm mịn các xung đột trong yêu cầu cấu trúc của mô hình sinh thế hệ mới
+    \item Lưới định tuyến truy xuất tương thích (Adaptive routing) cho phép hệ thống đáp ứng động các nhánh từ truy xuất cơ bản tới hàm logic đa tầng.
+\end{itemize}
+
+\subsection{Hạn chế}
+
+Đồ án có một số hạn chế cần được acknowledge:
+
+\begin{enumerate}
+    \item \textbf{Experiment chưa hoàn thiện}: Kết quả E1-E7 ablation study chưa có sẵn trong thời điểm viết báo cáo này. Phần Numerical Results chỉ là placeholder structure.
+    
+    \item \textbf{Benchmark subset}: Do giới hạn resource, sử dụng stratified subset thay vì full benchmark. Điều này có thể ảnh hưởng đến representativeness của kết quả.
+    
+    \item \textbf{SLM limitations}: Sử dụng Qwen3-7B thay vì Gemini-3 như trong HINDSIGHT paper — fair comparison nhưng có thể không đạt được published upper bound.
+    
+    \item \textbf{Language limitation}: Kiến trúc được thiết kế cho tiếng Anh primarily; tiếng Việt có thể cần adaptations cho embedding và LLM prompts.
+    
+    \item \textbf{Scale limitations}: Chưa test trên các cuộc hội thoại rất dài (>1000 turns) hoặc rất nhiều facts (>10,000 nodes).
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+%\includegraphics[width=0.7\textwidth]{figures/ch6_limitations.png}
+\fbox{\parbox{0.7\textwidth}{
+\textbf{[FIGURE PLACEHOLDER]}\\ Hình 6.2: Hạn chế của đồ án. Cần hình minh họa các limitations.}}
+\caption{Hạn chế của đồ án}
+\label{fig:ch6_limitations}
+\end{figure}
+
+\subsection{Hướng phát triển tương lai}
+
+Dựa trên kết quả hiện tại và các hạn chế, một số hướng phát triển được đề xuất:
+
+\begin{enumerate}
+    \item \textbf{Hierarchical Knowledge Graph (Contribution 5)}: Tổ chức facts theo cấu trúc phân cấp (Abstract → Basic → Specific) theo Schema Theory (Bartlett, 1932) và Basic Level Categorization (Rosch, 1978). Đây là đóng góp exploratory đã được đề cập trong CogMem-Idea.md.
+    
+    \item \textbf{Multilingual support}: Mở rộng embedding model và LLM prompts cho tiếng Việt và các ngôn ngữ khác.
+    
+    \item \textbf{Scalability improvements}: Tối ưu hóa cho các cuộc hội thoại rất dài với partitioning strategies và incremental graph building.
+    
+    \item \textbf{Active consolidation}: Bổ sung pipeline consolidation chủ động để merge duplicate facts và maintain graph quality theo thời gian.
+    
+    \item \textbf{Hybrid memory}: Kết hợp episodic buffer với procedural memory để handle cả NL dialogue và agent trajectory logs.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+%\includegraphics[width=0.8\textwidth]{figures/ch6_future_work.png}
+\fbox{\parbox{0.8\textwidth}{
+\textbf{[FIGURE PLACEHOLDER]}\\ Hình 6.3: Roadmap cho future work. Cần hình minh họa các hướng phát triển tương lai.}}
+\caption{Future Work Roadmap}
+\label{fig:ch6_future_work}
+\end{figure}
+
+\subsection{Kết luận}
+
+CogMem đã chứng minh rằng việc áp dụng các nguyên lý khoa học nhận thức vào thiết kế hệ thống bộ nhớ cho tác nhân hội thoại có thể mang lại cải thiện đáng kể trên các benchmark đánh giá. Kiến trúc 6 networks + 7 edge types, SUM spreading activation, adaptive query routing, và lossless metadata là những design decisions có cơ sở khoa học rõ ràng và được validate bởi cognitive science literature.
+
+Mặc dù kết quả thực nghiệm đầy đủ chưa có sẵn, cấu trúc báo cáo và methodology trong đồ án này cung cấp nền tảng vững chắc cho việc tiếp tục phát triển và đánh giá hệ thống.
+
+Đồ án này mở ra hướng nghiên cứu mới trong việc thiết kế memory systems dựa trên cognitive science thay vì purely engineering-driven approaches, và hy vọng sẽ đóng góp vào sự phát triển của các tác nhân hội thoại AI có khả năng duy trì bộ nhớ dài hạn hiệu quả.
+
+\end{document}

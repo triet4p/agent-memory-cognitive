@@ -1,0 +1,62 @@
+\documentclass[../main.tex]{subfiles}
+\usepackage{tcolorbox}
+\begin{document}
+
+\section{Phụ lục B: Các Prompt Dành cho Đánh giá (Evaluation \& Reflection)}
+
+Phụ lục này cung cấp các Prompt liên quan đến quá trình tổng hợp thông tin sinh câu trả lời (Reflection pipeline) và các Prompt đánh giá tự động (LLM-as-a-Judge) dùng cho tập test LongMemEval-S và LoCoMo.
+
+\subsection{B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}
+
+Prompt này nhận đầu vào là các khối bằng chứng (Evidence/Raw Snippets) truy xuất được từ Đồ thị CogMem và ép LLM trả lời nghiêm ngặt dựa trên dữ liệu đồ thị có thật để chống lại hiện tượng ảo giác (hallucination) thường thấy.
+
+\begin{tcolorbox}[title=System Prompt: Answer Generation, colback=gray!5!white, colframe=black!75!black, text width=\textwidth, nobeforeafter]
+\small
+\begin{verbatim}
+You are an AI assistant designed to answer the user's latest query 
+using ONLY the provided long-term memory evidence.
+
+EVIDENCE RULES:
+1. Base your answer COMPLETELY on the text listed under [EVIDENCE].
+2. If the [EVIDENCE] contradicts your internal knowledge, you MUST 
+   trust the [EVIDENCE].
+3. DO NOT state "Based on the evidence..." or 
+   "The text provided says...". Respond directly.
+4. If the evidence does not contain the answer, say exactly: 
+   "I do not have enough specific memory to answer this question."
+
+<--- BEGIN EVIDENCE --->
+{evidence}
+<--- END EVIDENCE --->
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}
+
+Được dùng trong tập script benchmark để tự động tính điểm từ .0$ đến .0$. Prompt này có quy tắc ưu tiên không phạt lỗi ngoại lệ lệch 1 đơn vị ngày/tháng với các câu hỏi chuỗi thời gian (temporal reasoning).
+
+\begin{tcolorbox}[title=System Prompt: LLM Judge (Temporal Focus), colback=gray!5!white, colframe=black!75!black, text width=\textwidth, nobeforeafter]
+\small
+\begin{verbatim}
+You are an evaluation judge for a memory system.
+I will give you a question, a correct answer, and a model response.
+
+Score rubric (0.0-1.0):
+- 1.0: correct and complete.
+- 0.7-0.9: correct but slightly rephrased or minor detail missing.
+- 0.3-0.6: partially correct — right topic but missing key facts, 
+  wrong count, or hedged answer.
+- 0.0-0.2: wrong, fabricated, or completely missing the answer.
+
+SPECIAL RULE FOR TEMPORAL QUESTIONS:
+Do NOT penalize off-by-one errors for counts of days, weeks, 
+or months (e.g., answering "18 days" when the label is "19 days" 
+is still scored 1.0).
+
+OUTPUT FORMAT:
+Respond ONLY with a JSON object.
+{"score": <float between 0.0 and 1.0>, "reason": "<string>"}
+\end{verbatim}
+\end{tcolorbox}
+
+\end{document}

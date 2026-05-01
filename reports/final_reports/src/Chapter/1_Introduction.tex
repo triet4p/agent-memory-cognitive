@@ -1,0 +1,61 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Giới thiệu bài toán}
+
+\subsection{Bối cảnh và vấn đề}
+
+Các hệ thống tác nhân hội thoại AI (conversational AI agents) hiện tại đã đạt được những bước tiến đáng kể trong việc kết nối và xử lý thông tin ngắn hạn. Mặc dù vậy, hạn chế cốt lõi vẫn nằm ở khả năng duy trì bộ nhớ dài hạn xuyên suốt nhiều phiên hội thoại (multi-session). Khi số lượng token vượt mức giới hạn của ngữ cảnh (context window), những thông tin từ các phiên trao đổi trước đó sẽ bị loại bỏ. Điều này làm mất đi khả năng truy hồi thông tin người dùng và các cột mốc trong quá khứ — khiến tác nhân AI hành xử như thể đang làm việc với người dùng ở lần gặp đầu tiên.
+
+Vấn đề này ảnh hưởng nghiêm trọng đến hiệu suất của các ứng dụng trong thế giới thực, điển hình như trợ lý cá nhân ảo, hệ thống chăm sóc khách hàng, hay các tác nhân AI cá nhân hóa có nhiệm vụ đồng hành cùng người dùng trong dài hạn. Người dùng kỳ vọng tác nhân có thể ghi nhớ chính xác những luồng thông tin đã tương tác, bao gồm sở thích, thói quen và các kế hoạch tương lai — phương diện mà các thế hệ AI hiện tại chưa thể giải quyết một cách bền vững.
+
+\subsection{Hạn chế của các giải pháp hiện tại}
+
+Thế hệ hệ thống bộ nhớ trước đó chủ yếu sử dụng chiến pháp đơn thuần: lưu trữ nguyên trạng các bản ghi hội thoại (raw conversation logs) vào cơ sở dữ liệu vector và ứng dụng kiến trúc RAG (Retrieval-Augmented Generation) để tiến hành truy xuất. Hướng tiếp cận này mang lại nhiều hạn chế đáng kể:
+
+\begin{itemize}
+    \item \textbf{Nén cấu trúc có tổn hao (Lossy compression)}: Việc áp dụng LLM nhằm trích xuất thông tin (facts) từ lịch sử hội thoại là một quá trình nén phi tuyến và không thể đảo ngược. Các hệ thống như Mem0 cho thấy hiện tượng mất mát thông tin đáng kể khi trích xuất facts từ các biểu đồ lưu vết (trajectory) dài.
+    \item \textbf{Thiếu cấu trúc dữ liệu tường minh}: Các bản ghi dài lên đến hàng triệu token hoạt động dưới dạng dữ liệu phẳng không có sự phân loại cấu trúc, làm mất đi khả năng nhận diện chức năng của từng luồng thông tin.
+    \item \textbf{Sự thất bại của các kỹ thuật tìm kiếm truyền thống}: Các hệ thống retrieval đơn thuần không thể đáp ứng chuỗi các câu hỏi mang tính phức tạp, điển hình là các truy tìm yêu cầu lý luận multi-hop, các vấn đề về hành vi thói quen (habit) hay truy vết mang tính nhân quả (causality).
+    \item \textbf{Thiếu hệ thống ngữ nghĩa thời gian (Temporal semantics)}: Không duy trì được cơ sở để bảo toàn trật tự tuyến tính của thời gian cũng như cơ cấu nguyên nhân - kết quả giữa các cột mốc chuỗi sự kiện.
+\end{itemize}
+
+HINDSIGHT (Latimer et al., 2025) là hệ thống đạt kết quả SOTA với 91.4\% trên LongMemEval và 89.61\% trên LoCoMo. Tuy nhiên, HINDSIGHT vẫn có những điểm yếu trên các category khó: multi-session (79.7%), temporal (79.7%), preference (66.7\%) và đặc biệt là multi-hop trên LoCoMo (64.6\%).
+
+Nguyên nhân gốc rễ của các hạn chế này bao gồm: việc sử dụng phép MAX trong spreading activation thay vì SUM, không có mạng bộ nhớ cho habit/intention/action-effect, và equal-weight RRF không phân biệt query type.
+
+\subsection{Động lực và đóng góp của đồ án}
+
+Từ những hạn chế trên, đồ án này đề xuất CogMem — một khung bộ nhớ hội thoại dài hạn được xây dựng dựa trên các nguyên lý của khoa học nhận thức (cognitive science). Điểm xuất phát là quan sát: não người không lưu trữ ký ức như một danh sách phẳng, mà tổ chức theo nhiều hệ con bộ nhớ chuyên biệt, mỗi hệ phục vụ một loại truy vấn khác nhau và có cơ chất thần kinh riêng.
+
+CogMem đề xuất bốn đóng góp chính:
+
+\begin{enumerate}
+    \item \textbf{Cognitively-Grounded Memory Graph}: 6 mạng bộ nhớ (World, Experience, Opinion, Habit, Intention, Action-Effect) và 7 loại liên kết, phản ánh đúng bản chất của các quan hệ nhận thức.
+    \item \textbf{Lossless Node Metadata}: Trường raw\_snippet giữ nguyên văn bản hội thoại gốc, tránh mất mát thông tin.
+    \item \textbf{Episodic Buffer với SUM Spreading Activation}: Thay phép MAX bằng SUM để tích lũy bằng chứng từ nhiều đường, với 3 cơ chế bảo vệ chu trình.
+    \item \textbf{Adaptive Query Routing}: Phân loại truy vấn thành 6 loại và áp dụng trọng số RRF động theo từng loại.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+%\includegraphics[width=0.8\textwidth]{figures/ch1_overview.png}
+\fbox{\parbox{0.8\textwidth}{
+\textbf{[FIGURE PLACEHOLDER]}\\ Hình 1.1: Tổng quan kiến trúc CogMem với 3 pipeline chính: Retain, Recall, Reflect. Cần hình minh họa kiến trúc tổng quan của hệ thống với các thành phần chính.}}
+\caption{Tổng quan kiến trúc CogMem}
+\label{fig:ch1_overview}
+\end{figure}
+
+\subsection{Cấu trúc của đồ án}
+
+Đồ án được tổ chức như sau:
+
+\begin{itemize}
+    \item \textbf{Chương 2}: Literature Review — tổng quan các hệ thống bộ nhớ hiện tại (HINDSIGHT, HippoRAG2, Mem0, MemGPT) và các benchmark đánh giá (LongMemEval, LoCoMo).
+    \item \textbf{Chương 3}: Methodology — mô tả chi tiết 4 đóng góp chính của CogMem.
+    \item \textbf{Chương 4}: Theoretical Analysis — phân tích cơ sở khoa học nhận thức cho từng đóng góp.
+    \item \textbf{Chương 5}: Numerical Results — kết quả thực nghiệm và phân tích.
+    \item \textbf{Chương 6}: Kết luận và hướng phát triển.
+\end{itemize}
+
+\end{document}

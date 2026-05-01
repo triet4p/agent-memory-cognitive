@@ -1,0 +1,69 @@
+\documentclass[../main.tex]{subfiles}
+\usepackage{tcolorbox}
+\begin{document}
+
+\section{Phụ lục A: Các Prompt Trích xuất Tri thức (Retain Pipeline)}
+
+Phụ lục này trình bày chi tiết các Prompt cốt lõi được sử dụng trong hệ thống CogMem để giao tiếp với Mô hình Ngôn ngữ Lớn (LLM) trong luồng xử lý Retain (Ghi nhớ). Các Prompt này đóng vai trò quyết định trong việc chuyển đổi ngôn ngữ tự nhiên thành đồ thị tri thức có cấu trúc cụ thể.
+
+\subsection{A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}
+
+Được sử dụng ở bước đầu tiên của luồng Retain, cấu trúc này ép LLM phân loại đầu vào thành một trong 6 loại mạng bộ nhớ (World, Experience, Opinion, Habit, Intention, Action-Effect) và ràng buộc đầu ra thành đối tượng JSON hợp lệ. Việc chia rõ 6 loại Node là xương sống của kiến trúc tiếp theo.
+
+\begin{tcolorbox}[title=System Prompt: Pass 1 Fact Extraction, colback=gray!5!white, colframe=black!75!black, text width=\textwidth, nobeforeafter]
+\small
+\begin{verbatim}
+You are a memory extraction assistant. Extract durable facts from 
+conversations for long-term storage.
+
+OUTPUT RULE: Respond ONLY with valid JSON — no prose, no markdown 
+fences. Format: {"facts": [<fact>, ...]}  or  {"facts": []} if 
+nothing to store.
+
+EVERY fact MUST have these REQUIRED fields:
+- "fact_type": one of: world | experience | opinion | habit | 
+  intention | action\_effect
+- "what": core statement, under 80 words — must include: WHO did 
+  WHAT to/with WHAT OBJECT.
+- "entities": ALL named entities — people, places, orgs, tech 
+  tools, product names. e.g. ["Alice","Tamiya","Spitfire Mk.V"].
+
+FACT TYPE GUIDE:
+1. "world" — objective fact, not time-bound: job, role, skill.
+2. "experience" — USER's personal past event at a specific time.
+3. "opinion" — belief or preference; add "confidence": 0.0-1.0.
+4. "habit" — repeating behavior; triggers: always, usually, every day.
+5. "intention" — future plan or goal; add "intention_status": 
+   "planning"|"fulfilled"|"abandoned".
+6. "action\_effect" — causal relationship (A causes B). Add 
+   "precondition", "action", "outcome", "devalue\_sensitive".
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}
+
+Được sử dụng ngay sau Pass 1 để lọc bỏ các thông tin rác sinh ra bởi LLM hallucination và tinh chỉnh góc nhìn của Agent về User (User-centric alignment). Điều này giải quyết các hiện tượng Agent tự đánh giá và lưu trữ ký ức về chính bản thân nó thay vì User.
+
+\begin{tcolorbox}[title=System Prompt: Pass 2 Persona-Focused, colback=gray!5!white, colframe=black!75!black, text width=\textwidth, nobeforeafter]
+\small
+\begin{verbatim}
+You are a memory refinement assistant. Your task is to filter and 
+rewrite raw facts to ensure they STRICTLY capture the USER's long-term 
+persona, history, and preferences.
+
+OUTPUT RULE: Respond ONLY with valid JSON — no prose, no markdown 
+fences. Format: {"facts": [<fact>, ...]} or {"facts": []}.
+
+RULES:
+1. DELETE generic conversational filler, AI system prompts, and 
+   temporary state updates.
+2. DELETE assistant actions (e.g. "Assistant summarized the meeting").
+3. REWRITE facts to be User-centric. If it's about the USER doing, 
+   liking, or knowing something, kept it. If it's about the Assistant, 
+   drop it.
+4. ENSURE fact_type is only one of: world | experience | opinion | 
+   habit | intention | action\_effect.
+\end{verbatim}
+\end{tcolorbox}
+
+\end{document}
