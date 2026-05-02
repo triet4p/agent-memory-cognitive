@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  1 MAY 2026 18:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  2 MAY 2026 09:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1616,7 +1616,7 @@ LaTeX Font Info:    ... okay on input line 162.
 * \oddsidemargin=27.31465pt
 * \evensidemargin=-1.1381pt
 * \topmargin=-52.36449pt
-* \headheight=15.59995pt
+* \headheight=33.6pt
 * \headsep=25.0pt
 * \topskip=10.0pt
 * \footskip=30.0pt
@@ -1692,12 +1692,12 @@ Package biblatex Info: Data encoding 'utf8' specified.
 \openout5 = `main-blx.bib'.
 
 Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'main.bbl' not found.
-No file main.bbl.
+Package biblatex Info: ... file 'main.bbl' found.
+(main.bbl)
 Package biblatex Info: Reference section=0 on input line 162.
 Package biblatex Info: Reference segment=0 on input line 162.
 Package hyperref Info: Link coloring OFF on input line 162.
-(main.out) (main.out)
+ (main.out) (main.out)
 \@outlinefile=\write6
 \openout6 = `main.out'.
 
@@ -1747,51 +1747,16 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 30.
  (F:\MikTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [1
+[1
 
 {C:/Users/admin/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{F:/MikTeX/fon
-ts/enc/dvips/vntex/t5.enc}]
-! Missing } inserted.
-<inserted text> 
-                }
-l.32 \end{center}
-                 
-I've inserted something that you may have forgotten.
-(See the <inserted text> above.)
-With luck, this will get me unwedged. But if you
-really didn't forget anything, try typing `2' now; then
-my insertion and my current dilemma will both disappear.
-
-[2]) (Cover2.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
+ts/enc/dvips/vntex/t5.enc}]) (Cover2.tex
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.32 \end{center}
-                  [1]
-! Missing } inserted.
-<inserted text> 
-                }
-l.32 \end{center}
-                 
-I've inserted something that you may have forgotten.
-(See the <inserted text> above.)
-With luck, this will get me unwedged. But if you
-really didn't forget anything, try typing `2' now; then
-my insertion and my current dilemma will both disappear.
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.2}) has 
-been already used, duplicate ignored
-<to be read again> 
-                   \relax 
 l.34 \end{titlepage}
-                     [2]) (Chapter/0_2_Acknowledgment.tex) [1]
+                     [1]) (Chapter/0_2_Acknowledgment.tex) [1]
 (Chapter/0_3_Abstract.tex
 Overfull \hbox (6.61562pt too wide) in paragraph at lines 11--12
 \T5/ptm/m/n/13 Graph) vîi 6 m¤ng nh¡nh chuy¶n bi»t (World, Experience, Opinion,
@@ -1824,7 +1789,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.55 ...»©c cho Raw Snippet}{19}{subsection.4.1.2}
+l.55 ...»©c cho Raw Snippet}{21}{subsection.4.1.2}
                                                   % [1
 
 ]
@@ -1835,7 +1800,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.88 ...ng (LLM-as-a-Judge)}{35}{subsection.B.1.2}
+l.86 ...Evaluation \& Reflection)}{40}{appendix.D}
                                                   % [2])
 \tf@toc=\write7
 \openout7 = `main.toc'.
@@ -1886,33 +1851,24 @@ l.21 \end{itemize}
                    [1
 
 {F:/MikTeX/fonts/enc/dvips/base/8r.enc}]
-Overfull \hbox (35.59262pt too wide) in paragraph at lines 25--26
-\T5/ptm/m/n/13 trong spreading activation thay v¼ SUM, khæng câ m¤ng bë nhî cho
- habit/intention/action-
- []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.2}) has 
-been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.55     \item \textbf
-                      {ChÆ°Æ¡ng 3}: Methodology â€” mÃ´ táº£ chi tiáº¿t 4 Ä‘...
-[2]) [3]
+ [2])
+[3]
 CHAPTER 2.
 (Chapter/2_Literature_review.tex
-Overfull \hbox (4.01555pt too wide) in paragraph at lines 19--20
-\T5/ptm/m/it/13 Window \T5/ptm/m/n/13 sang c¡c h» thèng \T5/ptm/m/it/13 Bë nhî 
-D i h¤n b¶n ngo i (External Long-term Memory)
- []
-
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [4
 
 ]
-Overfull \hbox (8.12465pt too wide) in paragraph at lines 28--29
+Overfull \hbox (4.01555pt too wide) in paragraph at lines 23--24
+\T5/ptm/m/it/13 Window \T5/ptm/m/n/13 sang c¡c h» thèng \T5/ptm/m/it/13 Bë nhî 
+D i h¤n b¶n ngo i (External Long-term Memory)
+ []
+
+
+Overfull \hbox (8.12465pt too wide) in paragraph at lines 32--33
 \T5/ptm/b/n/13 Memory)\T5/ptm/m/n/13 : Thuëc ph¥n lo¤i bë nhî t÷íng minh (Decla
 rative memory). \T5/ptm/m/it/13 Semantic
  []
@@ -1921,302 +1877,281 @@ rative memory). \T5/ptm/m/it/13 Semantic
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [5]
-Overfull \hbox (14.64954pt too wide) in paragraph at lines 49--50
+Overfull \hbox (14.64954pt too wide) in paragraph at lines 53--54
 \T5/ptm/m/n/13 (World, Experience, Opinion, Observation), duy tr¼ quy tr¼nh ghi
  nhî (Retain pipeline)
  []
 
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 51.
+            Default family used instead on input line 55.
 
 LaTeX Font Warning: Font shape `TS1/cmr/m/n' in size <13> not available
-(Font)              size <12> substituted on input line 51.
+(Font)              size <12> substituted on input line 55.
 
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 51.
+            Default family used instead on input line 55.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 51.
+            Default family used instead on input line 55.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 51.
+            Default family used instead on input line 55.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [6]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 1810) has occurred while \output is active []
 
  [7]
-Overfull \hbox (5.6522pt too wide) in paragraph at lines 115--116
+Overfull \hbox (5.6522pt too wide) in paragraph at lines 119--120
 []\T5/ptm/b/n/13 Khuy¸t v­ng ki¸n tróc Thâi quen v  Þ ^^_ành (Missing S-R / A-O
  constructs)\T5/ptm/m/n/13 :
  []
 
-) [8]
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [8])
+[9]
 CHAPTER 3.
 (Chapter/3_Methodology.tex
-Overfull \hbox (6.9646pt too wide) in paragraph at lines 10--11
+Overfull \hbox (6.9646pt too wide) in paragraph at lines 13--14
 []\T5/ptm/m/n/13 Ki¸n tróc têng thº cõa CogMem ^^_÷ñc thi¸t k¸ vîi ba luçng xû 
 lþ ch½nh (Pipelines),
  []
 
 
-Overfull \hbox (53.18254pt too wide) in paragraph at lines 13--14
-[]\T5/ptm/b/n/13 Luçng Ghi nhî (Retain Pipeline)\T5/ptm/m/n/13 : Ti¸p nhªn luçn
-g dú li»u thæ (raw dialogue/trajectory)
+Overfull \hbox (7.35687pt too wide) in paragraph at lines 17--18
+\T5/ptm/m/n/13 Pipeline n y thüc thi thuªt to¡n Lan truy·n K½ch ho¤t theo têng 
+(SUM Spreading
  []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [9
+ [10
 
 ]
-Overfull \hbox (19.69453pt too wide) in paragraph at lines 40--41
+Overfull \hbox (19.69453pt too wide) in paragraph at lines 42--43
 []\T5/ptm/b/n/13 World Network\T5/ptm/m/n/13 : Düa tr¶n Semantic Memory (Tulvin
 g, 1972), l÷u trú ð Temporal-
  []
 
 
-Overfull \hbox (4.93959pt too wide) in paragraph at lines 50--51
+Overfull \hbox (4.93959pt too wide) in paragraph at lines 52--53
 \T5/ptm/m/n/13 2001), l÷u trú ð Prefrontal + Premotor Cortex. L÷u bë ba nh¥n qu
 £ Precondition
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 79--79
-[]|\T5/ptm/m/n/13 status:
+[11]
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 precondition: ^^_i·u
  []
 
 
+Underfull \hbox (badness 5637) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 action: h nh ^^_ëng
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 status: planning|
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 outcome: k¸t qu£
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 observation_count:
+ []
+
+
+Underfull \hbox (badness 1527) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 ref ^^_¸n Experience
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+[]|\T5/ptm/m/n/13 devalue_sensitive:
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 81--81
+\T5/ptm/m/n/13 nh¤y c£m
+ []
+
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 95.
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 96.
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [10]
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 93.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 94.
-
-[11]
-Overfull \hbox (4.95155pt too wide) in paragraph at lines 120--121
+ [12]
+Overfull \hbox (4.95155pt too wide) in paragraph at lines 122--123
 \T5/ptm/m/n/13 memory systems. C¡c typed transitions bao gçm: fulfilled_by, aba
 ndoned, triggered,
  []
 
 
-Overfull \hbox (12.26651pt too wide) in paragraph at lines 131--131
+Overfull \hbox (12.26651pt too wide) in paragraph at lines 132--132
  |[]\T5/ptm/b/n/13 ^^^âng gâp 2: Si¶u dú li»u Node phi tên hao (Lossless Node M
 etadata)
  []
 
-LaTeX Font Info:    Trying to load font information for T5+pcr on input line 13
-8.
-(F:\MikTeX\tex/latex/vntex\t5pcr.fd
-File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
-)
-Overfull \hbox (15.9758pt too wide) in paragraph at lines 141--141
-[]\T5/pcr/m/n/13 team cô r§t th¥n. M¼nh nhªn offer tø DI vîi mùc l÷ìng cao[] 
- []
-
-
-Overfull \hbox (95.66582pt too wide) in paragraph at lines 145--145
-[]\T5/pcr/m/n/13 -> "User chuyºn tø VCCorp sang DI th¡ng 4/2024, và tr½ ML Engi
-neer"[] 
- []
-
-
-Overfull \hbox (140.71086pt too wide) in paragraph at lines 146--146
-[]\T5/pcr/m/n/13 -> M§t: c£m xóc ("buçn"), lþ do g­n bâ team cô, con sè l÷ìng c
-ö thº (40%)[] 
- []
-
-
-Underfull \vbox (badness 5756) has occurred while \output is active []
-
- [12]
-Overfull \hbox (78.97379pt too wide) in paragraph at lines 168--168
-[]  \T5/pcr/m/n/13 "narrative_fact": "User chuyºn tø VCCorp sang DI th¡ng 4/202
-4",[] 
- []
-
-
-Overfull \hbox (24.19177pt too wide) in paragraph at lines 170--170
-[]  \T5/pcr/m/n/13 "raw_snippet": "Hæm nay m¼nh vøa ngh¿ vi»c ð VCCorp rçi.[] 
- []
-
-
-Overfull \hbox (15.9758pt too wide) in paragraph at lines 171--171
-[]      \T5/pcr/m/n/13 Buçn l­m v¼ team cô r§t th¥n. M¼nh nhªn offer tø DI[] 
- []
-
-
-Underfull \hbox (badness 1092) in paragraph at lines 191--191
-\T5/ptm/m/n/13 H¼nh 3.5: 2-layer node schema vîi narrative_fact v 
- []
-
-[13]
-Overfull \hbox (20.14792pt too wide) detected at line 225
+[13] [14] [15]
+Overfull \hbox (20.14792pt too wide) detected at line 230
 [][][]\OML/cmm/m/it/12 A\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 v; t \OT1/cmr/m/n/12 
 + 1) = [] []
  []
 
 
-Overfull \hbox (116.22258pt too wide) in paragraph at lines 233--246
+Overfull \hbox (116.22258pt too wide) in paragraph at lines 238--251
  [][] 
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [14]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [15])
 [16]
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+[]|\T5/ptm/m/n/13 Prefer
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+\T5/ptm/m/n/13 Action-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+\T5/ptm/m/n/13 Effect +
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+\T5/ptm/m/n/13 Transition
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+[]|\T5/ptm/m/n/13 Query
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 333--333
+\T5/ptm/m/n/13 Intention
+ []
+
+
+Overfull \hbox (11.1191pt too wide) in paragraph at lines 333--333
+\T5/ptm/m/n/13 status=planning
+ []
+
+[17]) [18]
 CHAPTER 4.
 (Chapter/4_Theoretical_analysis.tex
-Underfull \vbox (badness 1571) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [17
+ [19
 
 ]
-Overfull \hbox (11.07256pt too wide) in paragraph at lines 52--53
+Overfull \hbox (11.07256pt too wide) in paragraph at lines 53--54
 []\T5/ptm/m/n/13 Prospective memory discharge theo Brandimonte: khi mët intenti
 on ^^_÷ñc fulfilled,
  []
 
 
-Overfull \hbox (2.84561pt too wide) in paragraph at lines 54--55
+Overfull \hbox (2.84561pt too wide) in paragraph at lines 55--56
 \T5/ptm/m/n/13 typed transition edges (fulfilled_by, abandoned, triggered, enab
 led_by) model ch½nh
  []
 
-
-Overfull \hbox (113.83157pt too wide) in paragraph at lines 60--73
- [][] 
- []
-
-[18]
-Overfull \hbox (1.23077pt too wide) in paragraph at lines 90--91
+[20]
+Overfull \hbox (1.23077pt too wide) in paragraph at lines 92--93
 []\T5/ptm/m/n/13 Action-Effect Network cõa CogMem model A-O triples vîi precond
 ition, action,
  []
 
 
-Underfull \hbox (badness 1199) in paragraph at lines 123--123
-\T5/ptm/m/n/13 h¼nh minh håa gist vs verbatim v  ùng döng trong
- []
+Underfull \vbox (badness 7064) has occurred while \output is active []
 
-[19]
-Overfull \hbox (14.2446pt too wide) in paragraph at lines 161--162
+ [21]
+Overfull \hbox (14.2446pt too wide) in paragraph at lines 160--161
 []\T5/ptm/m/n/13 Wilson and Cowan (1972) mæ t£ dynamics cõa neural populations 
 vîi c¡c nonlinear
  []
 
-[20]
-Underfull \hbox (badness 1831) in paragraph at lines 175--175
-\T5/ptm/m/n/13 h¼nh minh håa saturation threshold v  stability cõa
- []
-
+[22]
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 184.
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 185.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
             Default family used instead on input line 186.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
             Default family used instead on input line 187.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 188.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 189.
-) [21]
+) [23]
 CHAPTER 5.
 (Chapter/5_Numerical_results.tex
-Overfull \hbox (11.30779pt too wide) in paragraph at lines 19--21
-\T5/ptm/m/n/13 H¼nh 5.2: Experiment setup vîi SLM local (Qwen3-7B). C¦n h¼nh mi
-nh håa hardware
- []
-
-
-Overfull \hbox (7.69255pt too wide) in paragraph at lines 47--48
+Overfull \hbox (7.69255pt too wide) in paragraph at lines 50--51
 []\T5/ptm/m/n/13 Metric ch½nh: End-to-end accuracy (LLM-as-judge), ph¥n t½ch pe
 r-category. Còng
  []
 
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 50.
+            Default family used instead on input line 58.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 50.
+            Default family used instead on input line 58.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 50.
+            Default family used instead on input line 58.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 55.
+            Default family used instead on input line 58.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 55.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 55.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 55.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 56.
-[22
+            Default family used instead on input line 59.
+[24
 
 ]
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 57.
+            Default family used instead on input line 60.
 
-Overfull \hbox (4.2327pt too wide) in paragraph at lines 57--58
+Overfull \hbox (4.2327pt too wide) in paragraph at lines 60--61
 []\T5/ptm/m/n/13 Judge: LLM-as-judge(question, gold answer, generated answer) \
 TS1/cmr/m/n/12 ^^Y \T5/ptm/m/n/13 binary score 
  []
 
 
-Overfull \hbox (3.95082pt too wide) in paragraph at lines 64--65
+Overfull \hbox (3.95082pt too wide) in paragraph at lines 67--68
 []\T5/ptm/b/n/13 E2\T5/ptm/m/n/13 : E1 + Habit Network + S-R links. Hypothesis:
  c£i thi»n Preference category. 
  []
 
 
-Overfull \hbox (13.80559pt too wide) in paragraph at lines 65--66
+Overfull \hbox (13.80559pt too wide) in paragraph at lines 68--69
 []\T5/ptm/b/n/13 E3\T5/ptm/m/n/13 : E1 + Intention Network + Transition edges. 
 Hypothesis: c£i thi»n Prospective
  []
 
 
-Overfull \hbox (7.57855pt too wide) in paragraph at lines 67--68
+Overfull \hbox (7.57855pt too wide) in paragraph at lines 70--71
 []\T5/ptm/b/n/13 E5\T5/ptm/m/n/13 : E1 + Adaptive Query Router (incl. Causal + 
 Prospective types). Hypothesis:
  []
 
-
-Overfull \hbox (14.45454pt too wide) in paragraph at lines 78--80
-\T5/ptm/m/n/13 H¼nh 5.4: Ablation results visualization. C¦n bar chart showing 
-accuracy improvement
- []
-
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 83.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 84.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 85.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
             Default family used instead on input line 86.
@@ -2226,324 +2161,464 @@ LaTeX Info: Symbol \textrightarrow not provided by
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
             Default family used instead on input line 88.
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 89.
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 90.
+LaTeX Info: Symbol \textrightarrow not provided by
+            font family ptm in TS1 encoding.
+            Default family used instead on input line 91.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [23]
-Overfull \hbox (2.32655pt too wide) in paragraph at lines 131--132
+ [25]
+Overfull \hbox (2.32655pt too wide) in paragraph at lines 134--135
 []\T5/ptm/b/n/13 LongMemEval-S\T5/ptm/m/n/13 : single-session, multi-session, t
 emporal, knowledge-update,
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 3058) has occurred while \output is active []
 
- [24]
+ [26]
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 155.
+            Default family used instead on input line 157.
 )
-[25]
+[27]
 CHAPTER 6.
 (Chapter/6_Conclusions.tex
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [26
+ [28
 
 ]
-Overfull \hbox (14.69958pt too wide) in paragraph at lines 33--34
+Overfull \hbox (14.69958pt too wide) in paragraph at lines 35--36
 []\T5/ptm/m/n/13 C¡c k¸t qu£ thüc nghi»m dü ki¸n düa tr¶n bë benchmark ti¶u chu
 ©n LongMemEval-
  []
 
-[27]
-Overfull \hbox (10.38501pt too wide) in paragraph at lines 59--60
+
+Underfull \vbox (badness 1024) has occurred while \output is active []
+
+ [29]
+Overfull \hbox (10.38501pt too wide) in paragraph at lines 61--62
 []\T5/ptm/b/n/13 SLM limitations\T5/ptm/m/n/13 : Sû döng Qwen3-7B thay v¼ Gemin
 i-3 nh÷ trong HINDSIGHT
  []
 
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 80.
+            Default family used instead on input line 81.
 LaTeX Info: Symbol \textrightarrow not provided by
             font family ptm in TS1 encoding.
-            Default family used instead on input line 80.
+            Default family used instead on input line 81.
 
-Overfull \hbox (10.68555pt too wide) in paragraph at lines 80--81
+Overfull \hbox (10.68555pt too wide) in paragraph at lines 81--82
 \T5/ptm/m/n/13 1932) v  Basic Level Categorization (Rosch, 1978). ^^^¥y l  ^^_â
 ng gâp exploratory
  []
 
-
-Underfull \vbox (badness 2894) has occurred while \output is active []
-
- [28]
+[30]
 Overfull \hbox (4.26064pt too wide) in paragraph at lines 104--105
 []\T5/ptm/m/n/13 M°c dò k¸t qu£ thüc nghi»m ^^_¦y ^^_õ ch÷a câ s®n, c§u tróc b¡
 o c¡o v  methodology
  []
 
-) [29] (Chapter/7_Reference.tex
-Overfull \hbox (8.30652pt too wide) in paragraph at lines 13--14
-[]\T5/ptm/m/n/13 Latimer, C., et al. (2025). HINDSIGHT: Long-Term Memory for Co
-nversational
+) [31] (Chapter/7_Reference.tex) [32
+
+]
+
+Package biblatex Warning: Bibliography string 'andothers' untranslated
+(biblatex)                at entry 'latimer2025hindsight' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (8.77127pt too wide) in paragraph at lines 298--298
+[]\T5/ptm/m/n/13 C. Latimer [], ``HINDSIGHT: Long-Term Memory for Conversationa
+l
  []
 
 
-Overfull \hbox (39.31158pt too wide) in paragraph at lines 17--18
-[]\T5/ptm/m/n/13 Maharana, A., et al. (2024). LoCoMo: Long-Context Memory Evalu
-ation Benchmark. 
+Package biblatex Warning: Bibliography string 'andothers' untranslated
+(biblatex)                at entry 'wu2025longmemeval' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Bibliography string 'andothers' untranslated
+(biblatex)                at entry 'maharana2024locomo' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (44.32632pt too wide) in paragraph at lines 298--298
+[]\T5/ptm/m/n/13 A. Maharana [], ``LoCoMo: Long-Context Memory Evaluation Bench
+mark,''
  []
 
 
-Overfull \hbox (14.67656pt too wide) in paragraph at lines 28--29
-[]\T5/ptm/m/n/13 Tulving, E. (1983). Elements of Episodic Memory. ^^^ành ngh¾a 
-Episodic Memory. 
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Bibliography string 'and' untranslated
+(biblatex)                at entry 'squire1991medial' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'squire1991medial' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'squire1991medial' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'squire1991medial' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Bibliography string 'and' untranslated
+(biblatex)                at entry 'dickinson1994motivational' on input line 29
+7.
+
+
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'dickinson1994motivational' on input line 29
+7.
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'dickinson1994motivational' on input line 29
+7.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'dickinson1994motivational' on input line 29
+7.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (13.28003pt too wide) in paragraph at lines 298--298
+[]\T5/ptm/m/n/13 A. Dickinson [] B. Balleine, ``Motivational Control of Goal-Di
+rected Action,''
  []
 
 
-Overfull \hbox (12.44057pt too wide) in paragraph at lines 36--37
-[]\T5/ptm/m/n/13 Brandimonte, M. A., et al. (1996). Prospective Memory. Lþ thuy
-¸t v· Prospective
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'baddeley2000episodic' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'baddeley2000episodic' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'baddeley2000episodic' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (24.54193pt too wide) in paragraph at lines 298--298
+[]\T5/ptm/m/n/13 A. D. Baddeley, ``The Episodic Buffer: A New Component of Work
+ing Memory?''
  []
 
 
-Overfull \hbox (15.05357pt too wide) in paragraph at lines 40--41
-[]\T5/ptm/m/n/13 Brainerd, C. J., & Reyna, V. F. (2004). Fuzzy Trace Theory. 2-
-layer representation
+Package biblatex Warning: Bibliography string 'andothers' untranslated
+(biblatex)                at entry 'brandimonte1996prospective' on input line 2
+97.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (6.38092pt too wide) in paragraph at lines 298--298
+[]\T5/ptm/m/n/13 M. A. Brandimonte [], \T5/ptm/m/it/13 Prospective Memory\T5/pt
+m/m/n/13 . Psychology Press, 1996. 
  []
 
 
-Overfull \hbox (15.58586pt too wide) in paragraph at lines 42--43
-[]\T5/ptm/m/n/13 Hodgkin, A. L., & Huxley, A. F. (1952). A Quantitative Descrip
-tion of Membrane
+Package biblatex Warning: Bibliography string 'andothers' untranslated
+(biblatex)                at entry 'hommel2001tec' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'hommel2001tec' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'hommel2001tec' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'hommel2001tec' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (18.1932pt too wide) in paragraph at lines 298--298
+\T5/ptm/m/n/13 for Perception and Action Planning,'' \T5/ptm/m/it/13 Behavioral
+ and Brain Sciences\T5/ptm/m/n/13 , [] 24,
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package biblatex Warning: Bibliography string 'and' untranslated
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 297.
 
- [30
 
-])
-[31]
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 297.
 
-LaTeX Warning: Empty bibliography on input line 297.
 
-[32
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (1.96921pt too wide) in paragraph at lines 298--298
+\T5/ptm/m/n/13 Operations in False Memory,'' \T5/ptm/m/it/13 Journal of Memory 
+and Language\T5/ptm/m/n/13 , [] 50,
+ []
+
+
+Package biblatex Warning: Bibliography string 'and' untranslated
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 297.
+
+
+
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 297.
+
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 297.
+
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 297.
+
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Bibliography string 'and' untranslated
+(biblatex)                at entry 'wilson1972excitatory' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'wilson1972excitatory' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'wilson1972excitatory' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'wilson1972excitatory' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Bibliography string 'andothers' untranslated
+(biblatex)                at entry 'packer2023memgpt' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'in' untranslated
+(biblatex)                at entry 'packer2023memgpt' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Overfull \hbox (1.51894pt too wide) in paragraph at lines 298--298
+[]\T5/ptm/m/n/13 F. C. Bartlett, \T5/ptm/m/it/13 Remembering: A Study in Experi
+mental and Social Psychology\T5/ptm/m/n/13 .
+ []
+
+
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'robertson2006what' on input line 297.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'robertson2006what' on input line 297.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibordinal.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibordinal.
+
+
+Package biblatex Warning: Bibliography string 'edition' untranslated
+(biblatex)                at entry 'anderson2008architecture' on input line 297
+.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+[33
+
+] [34
 
 ]
 APPENDIX A.
-(Chapter/Appendix_A.tex
-Overfull \hbox (33.07271pt too wide) in paragraph at lines 16--16
-[]\T5/pcr/m/n/11.86258 You are a memory extraction assistant. Extract durable f
-acts from 
- []
+(Chapter/Appendix_A.tex [35
 
+]
+APPENDIX B.
 
-Overfull \hbox (33.86754pt too wide) in paragraph at lines 19--19
-[]\T5/pcr/m/n/11.86258 OUTPUT RULE: Respond ONLY with valid JSON ^^V no prose, 
-no markdown[] 
- []
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 9.
 
-
-Overfull \hbox (10.92534pt too wide) in paragraph at lines 20--20
-[]\T5/pcr/m/n/11.86258 fences. Format: {"facts": [<fact>, ...]}  or  {"facts": 
-[]} if[] 
- []
-
-
-Overfull \hbox (5.9431pt too wide) in paragraph at lines 24--24
-[]\T5/pcr/m/n/11.86258 - "fact_type": one of: world | experience | opinion | ha
-bit |[] 
- []
-
-
-Overfull \hbox (27.36687pt too wide) in paragraph at lines 26--26
-[]\T5/pcr/m/n/11.86258 - "what": core statement, under 80 words ^^V must includ
-e: WHO did[] 
- []
-
-
-Overfull \hbox (6.77348pt too wide) in paragraph at lines 28--28
-[]\T5/pcr/m/n/11.86258 - "entities": ALL named entities ^^V people, places, org
-s, tech[] 
- []
-
-
-Overfull \hbox (25.59932pt too wide) in paragraph at lines 29--29
-[]  \T5/pcr/m/n/11.86258 tools, product names. e.g. ["Alice","Tamiya","Spitfire
- Mk.V"].[] 
- []
-
-
-Overfull \hbox (12.77591pt too wide) in paragraph at lines 32--32
-[]\T5/pcr/m/n/11.86258 1. "world" ^^V objective fact, not time-bound: job, role
-, skill.[] 
- []
-
-
-Overfull \hbox (25.43326pt too wide) in paragraph at lines 33--33
-[]\T5/pcr/m/n/11.86258 2. "experience" ^^V USER's personal past event at a spec
-ific time.[] 
- []
-
-
-Overfull \hbox (20.24933pt too wide) in paragraph at lines 34--34
-[]\T5/pcr/m/n/11.86258 3. "opinion" ^^V belief or preference; add "confidence":
- 0.0-1.0.[] 
- []
-
-
-Overfull \hbox (65.07788pt too wide) in paragraph at lines 35--35
-[]\T5/pcr/m/n/11.86258 4. "habit" ^^V repeating behavior; triggers: always, usu
-ally, every day.[] 
- []
-
-
-Overfull \hbox (5.96681pt too wide) in paragraph at lines 36--36
-[]\T5/pcr/m/n/11.86258 5. "intention" ^^V future plan or goal; add "intention_s
-tatus":[] 
- []
-
-
-Overfull \hbox (6.74974pt too wide) in paragraph at lines 39--39
-[]   \T5/pcr/m/n/11.86258 "precondition", "action", "outcome", "devalue\_sensit
-ive".[] 
- []
-
-
-Overfull \hbox (46.29794pt too wide) in paragraph at lines 41--42
+LaTeX Font Info:    Trying to load font information for T5+pcr on input line 17
+.
+(F:\MikTeX\tex/latex/vntex\t5pcr.fd
+File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
+)
+Overfull \hbox (46.29794pt too wide) in paragraph at lines 49--50
 [][] 
  []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [33
+ [36
 
 ]
-Overfull \hbox (31.36449pt too wide) in paragraph at lines 50--50
-[]\T5/pcr/m/n/11.86258 You are a memory refinement assistant. Your task is to f
-ilter and 
- []
-
-
-Overfull \hbox (65.04228pt too wide) in paragraph at lines 51--51
-[]\T5/pcr/m/n/11.86258 rewrite raw facts to ensure they STRICTLY capture the US
-ER's long-term[] 
- []
-
-
-Overfull \hbox (33.86754pt too wide) in paragraph at lines 54--54
-[]\T5/pcr/m/n/11.86258 OUTPUT RULE: Respond ONLY with valid JSON ^^V no prose, 
-no markdown[] 
- []
-
-
-Overfull \hbox (19.02745pt too wide) in paragraph at lines 58--58
-[]\T5/pcr/m/n/11.86258 1. DELETE generic conversational filler, AI system promp
-ts, and[] 
- []
-
-
-Overfull \hbox (69.89417pt too wide) in paragraph at lines 60--60
-[]\T5/pcr/m/n/11.86258 2. DELETE assistant actions (e.g. "Assistant summarized 
-the meeting").[] 
- []
-
-
-Overfull \hbox (39.97679pt too wide) in paragraph at lines 61--61
-[]\T5/pcr/m/n/11.86258 3. REWRITE facts to be User-centric. If it's about the U
-SER doing,[] 
- []
-
-
-Overfull \hbox (68.28084pt too wide) in paragraph at lines 62--62
-[]   \T5/pcr/m/n/11.86258 liking, or knowing something, kept it. If it's about 
-the Assistant,[] 
- []
-
-
-Overfull \hbox (40.42757pt too wide) in paragraph at lines 64--64
-[]\T5/pcr/m/n/11.86258 4. ENSURE fact_type is only one of: world | experience |
- opinion |[] 
- []
-
-
-Overfull \hbox (46.29794pt too wide) in paragraph at lines 67--68
+Overfull \hbox (46.29794pt too wide) in paragraph at lines 81--82
 [][] 
  []
 
-) [34]
-APPENDIX B.
-(Chapter/Appendix_B.tex
-Overfull \hbox (39.2887pt too wide) in paragraph at lines 16--16
-[]\T5/pcr/m/n/11.86258 You are an AI assistant designed to answer the user's la
-test query 
- []
+)
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [37]
+[38]
+APPENDIX C.
+(Chapter/Appendix_B.tex [39
+
+]
+APPENDIX D.
+
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 9.
 
 
-Overfull \hbox (47.54507pt too wide) in paragraph at lines 20--20
-[]\T5/pcr/m/n/11.86258 1. Base your answer COMPLETELY on the text listed under 
-[EVIDENCE].[] 
- []
-
-
-Overfull \hbox (40.19026pt too wide) in paragraph at lines 21--21
-[]\T5/pcr/m/n/11.86258 2. If the [EVIDENCE] contradicts your internal knowledge
-, you MUST[] 
- []
-
-
-Overfull \hbox (41.7324pt too wide) in paragraph at lines 26--26
-[]   \T5/pcr/m/n/11.86258 "I do not have enough specific memory to answer this 
-question."[] 
- []
-
-
-Overfull \hbox (46.29794pt too wide) in paragraph at lines 32--33
+Overfull \hbox (46.29794pt too wide) in paragraph at lines 40--41
 [][] 
  []
 
 
-LaTeX Warning: Command \dj invalid in math mode on input line 36.
-
-
-LaTeX Warning: Command \' invalid in math mode on input line 36.
-
-Missing character: There is no ¸ in font cmr12!
-
-Overfull \hbox (49.45493pt too wide) in paragraph at lines 42--42
-[]\T5/pcr/m/n/11.86258 I will give you a question, a correct answer, and a mode
-l response.[] 
- []
-
-
-Overfull \hbox (40.60547pt too wide) in paragraph at lines 46--46
-[]\T5/pcr/m/n/11.86258 - 0.7-0.9: correct but slightly rephrased or minor detai
-l missing.[] 
- []
-
-
-Overfull \hbox (32.6694pt too wide) in paragraph at lines 47--47
-[]\T5/pcr/m/n/11.86258 - 0.3-0.6: partially correct ^^V right topic but missing
- key facts,[] 
- []
-
-
-Overfull \hbox (16.96336pt too wide) in paragraph at lines 49--49
-[]\T5/pcr/m/n/11.86258 - 0.0-0.2: wrong, fabricated, or completely missing the 
-answer.[] 
- []
-
-
-Overfull \hbox (26.60767pt too wide) in paragraph at lines 53--53
-[]\T5/pcr/m/n/11.86258 or months (e.g., answering "18 days" when the label is "
-19 days"[] 
- []
-
-
-Overfull \hbox (46.29794pt too wide) in paragraph at lines 60--61
+Overfull \hbox (46.29794pt too wide) in paragraph at lines 76--77
 [][] 
  []
 
@@ -2556,10 +2631,10 @@ This document will not have a glossary.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [35
+ [40
 
 ]
-[36] (main.aux)
+[41] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -2569,20 +2644,23 @@ L3 programming layer <2025-12-24>
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: B3668615745F8C1746AB8866127BE373;13146.
+(rerunfilecheck)             Checksum: 265612E2CF6D92B0F5444F01D0777571;13035.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 46579 strings out of 467871
- 905651 string characters out of 5435212
- 1584335 words of memory out of 5000000
- 74498 multiletter control sequences out of 15000+600000
- 672705 words of font info for 82 fonts, out of 8000000 for 9000
+ 47166 strings out of 467871
+ 916692 string characters out of 5435212
+ 1611300 words of memory out of 5000000
+ 75031 multiletter control sequences out of 15000+600000
+ 671506 words of font info for 81 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 108i,13n,108p,2507b,746s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,13n,108p,2507b,2070s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\admin\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
 1200.pk><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><F:/MikTeX/fonts/t
 ype1/public/amsfonts/cm/cmmi12.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cm
@@ -2592,9 +2670,9 @@ pe1/public/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy1
 1/vntex/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><F:/MikT
 eX/fonts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.p
 fb><F:/MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (48 pages, 368614 bytes).
+Output written on main.pdf (51 pages, 377484 bytes).
 PDF statistics:
- 777 PDF objects out of 1000 (max. 8388607)
- 218 named destinations out of 1000 (max. 500000)
+ 847 PDF objects out of 1000 (max. 8388607)
+ 270 named destinations out of 1000 (max. 500000)
  413 words of extra memory for PDF output out of 10000 (max. 10000000)
 

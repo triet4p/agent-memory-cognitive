@@ -20,13 +20,11 @@ Thế hệ hệ thống bộ nhớ trước đó chủ yếu sử dụng chiến
     \item \textbf{Thiếu hệ thống ngữ nghĩa thời gian (Temporal semantics)}: Không duy trì được cơ sở để bảo toàn trật tự tuyến tính của thời gian cũng như cơ cấu nguyên nhân - kết quả giữa các cột mốc chuỗi sự kiện.
 \end{itemize}
 
-HINDSIGHT (Latimer et al., 2025) là hệ thống đạt kết quả SOTA với 91.4\% trên LongMemEval và 89.61\% trên LoCoMo. Tuy nhiên, HINDSIGHT vẫn có những điểm yếu trên các category khó: multi-session (79.7%), temporal (79.7%), preference (66.7\%) và đặc biệt là multi-hop trên LoCoMo (64.6\%).
-
-Nguyên nhân gốc rễ của các hạn chế này bao gồm: việc sử dụng phép MAX trong spreading activation thay vì SUM, không có mạng bộ nhớ cho habit/intention/action-effect, và equal-weight RRF không phân biệt query type.
-
 \subsection{Động lực và đóng góp của đồ án}
 
-Từ những hạn chế trên, đồ án này đề xuất CogMem — một khung bộ nhớ hội thoại dài hạn được xây dựng dựa trên các nguyên lý của khoa học nhận thức (cognitive science). Điểm xuất phát là quan sát: não người không lưu trữ ký ức như một danh sách phẳng, mà tổ chức theo nhiều hệ con bộ nhớ chuyên biệt, mỗi hệ phục vụ một loại truy vấn khác nhau và có cơ chất thần kinh riêng.
+Từ những hạn chế trên, đồ án này đề xuất CogMem — một khung bộ nhớ hội thoại dài hạn được xây dựng dựa trên các nguyên lý của khoa học nhận thức (cognitive science). 
+
+Điểm xuất phát là quan sát: não người không lưu trữ ký ức như một danh sách phẳng, mà tổ chức theo nhiều hệ con bộ nhớ chuyên biệt, mỗi hệ phục vụ một loại truy vấn khác nhau và có cơ chất thần kinh riêng.
 
 CogMem đề xuất bốn đóng góp chính:
 
@@ -37,14 +35,14 @@ CogMem đề xuất bốn đóng góp chính:
     \item \textbf{Adaptive Query Routing}: Phân loại truy vấn thành 6 loại và áp dụng trọng số RRF động theo từng loại.
 \end{enumerate}
 
-\begin{figure}[H]
-\centering
-%\includegraphics[width=0.8\textwidth]{figures/ch1_overview.png}
-\fbox{\parbox{0.8\textwidth}{
-\textbf{[FIGURE PLACEHOLDER]}\\ Hình 1.1: Tổng quan kiến trúc CogMem với 3 pipeline chính: Retain, Recall, Reflect. Cần hình minh họa kiến trúc tổng quan của hệ thống với các thành phần chính.}}
-\caption{Tổng quan kiến trúc CogMem}
-\label{fig:ch1_overview}
-\end{figure}
+% \begin{figure}[H]
+% \centering
+% %\includegraphics[width=0.8\textwidth]{figures/ch1_overview.png}
+% \fbox{\parbox{0.8\textwidth}{
+% \textbf{[FIGURE PLACEHOLDER]}\\ Hình 1.1: Tổng quan kiến trúc CogMem với 3 pipeline chính: Retain, Recall, Reflect.}}
+% \caption{Tổng quan kiến trúc CogMem}
+% \label{fig:ch1_overview}
+% \end{figure}
 
 \subsection{Cấu trúc của đồ án}
 
@@ -57,5 +55,9 @@ CogMem đề xuất bốn đóng góp chính:
     \item \textbf{Chương 5}: Numerical Results — kết quả thực nghiệm và phân tích.
     \item \textbf{Chương 6}: Kết luận và hướng phát triển.
 \end{itemize}
+
+
+\vspace{1em}
+\noindent\textit{Từ những động lực và bài toán thực tế được trình bày trong chương này, Chương 2 sẽ đi sâu vào việc khảo sát các cơ sở lý thuyết về Khoa học Nhận thức và Đồ thị Tri thức, đồng thời đánh giá các hệ thống bộ nhớ tiên tiến (SOTA) hiện nay nhằm định hình rõ những khiếm khuyết cần giải quyết.}
 
 \end{document}

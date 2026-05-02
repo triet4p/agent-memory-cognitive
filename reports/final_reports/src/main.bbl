@@ -1,0 +1,427 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{none/global//global/global/global}
+  \entry{latimer2025hindsight}{article}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=LC}{%
+         family={Latimer},
+         familyi={L\bibinitperiod},
+         given={C.},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{LC+1}
+    \strng{fullhash}{LC+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{HINDSIGHT: Long-Term Memory for Conversational Agents}
+    \field{journaltitle}{arXiv preprint arXiv:2501.00000}
+    \field{year}{2025}
+  \endentry
+
+  \entry{wu2025longmemeval}{article}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=WY}{%
+         family={Wu},
+         familyi={W\bibinitperiod},
+         given={Y.},
+         giveni={Y\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{WY+1}
+    \strng{fullhash}{WY+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{LongMemEval-S: Benchmark for Long-Term Memory in
+  Conversational Agents}
+    \field{journaltitle}{arXiv preprint arXiv:2502.00000}
+    \field{year}{2025}
+  \endentry
+
+  \entry{maharana2024locomo}{article}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=MA}{%
+         family={Maharana},
+         familyi={M\bibinitperiod},
+         given={A.},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{MA+1}
+    \strng{fullhash}{MA+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{LoCoMo: Long-Context Memory Evaluation Benchmark}
+    \field{journaltitle}{arXiv preprint arXiv:2406.00000}
+    \field{year}{2024}
+  \endentry
+
+  \entry{tulving1972episodic}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=TE}{%
+         family={Tulving},
+         familyi={T\bibinitperiod},
+         given={E.},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Academic Press}%
+    }
+    \strng{namehash}{TE1}
+    \strng{fullhash}{TE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Episodic and Semantic Memory}
+    \field{year}{1972}
+  \endentry
+
+  \entry{tulving1983elements}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=TE}{%
+         family={Tulving},
+         familyi={T\bibinitperiod},
+         given={E.},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Oxford University Press}%
+    }
+    \strng{namehash}{TE1}
+    \strng{fullhash}{TE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Elements of Episodic Memory}
+    \field{year}{1983}
+  \endentry
+
+  \entry{squire1991medial}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=SLR}{%
+         family={Squire},
+         familyi={S\bibinitperiod},
+         given={L.\bibnamedelima R.},
+         giveni={L\bibinitperiod\bibinitdelim R\bibinitperiod},
+      }}%
+      {{hash=ZMS}{%
+         family={Zola-Morgan},
+         familyi={Z\bibinithyphendelim M\bibinitperiod},
+         given={S.},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SLRZMS1}
+    \strng{fullhash}{SLRZMS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{5026}
+    \field{pages}{1380\bibrangedash 1386}
+    \field{title}{The Medial Temporal Lobe Memory System}
+    \field{volume}{253}
+    \field{journaltitle}{Science}
+    \field{year}{1991}
+  \endentry
+
+  \entry{dickinson1994motivational}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=DA}{%
+         family={Dickinson},
+         familyi={D\bibinitperiod},
+         given={A.},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=BB}{%
+         family={Balleine},
+         familyi={B\bibinitperiod},
+         given={B.},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{DABB1}
+    \strng{fullhash}{DABB1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{1}
+    \field{pages}{1\bibrangedash 18}
+    \field{title}{Motivational Control of Goal-Directed Action}
+    \field{volume}{22}
+    \field{journaltitle}{Animal Learning \& Behavior}
+    \field{year}{1994}
+  \endentry
+
+  \entry{baddeley2000episodic}{article}{}{}
+    \name{author}{1}{}{%
+      {{hash=BAD}{%
+         family={Baddeley},
+         familyi={B\bibinitperiod},
+         given={A.\bibnamedelima D.},
+         giveni={A\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BAD1}
+    \strng{fullhash}{BAD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{11}
+    \field{pages}{417\bibrangedash 423}
+    \field{title}{The Episodic Buffer: A New Component of Working Memory?}
+    \field{volume}{4}
+    \field{journaltitle}{Trends in Cognitive Sciences}
+    \field{year}{2000}
+  \endentry
+
+  \entry{brandimonte1996prospective}{book}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=BMA}{%
+         family={Brandimonte},
+         familyi={B\bibinitperiod},
+         given={M.\bibnamedelima A.},
+         giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Psychology Press}%
+    }
+    \strng{namehash}{BMA+1}
+    \strng{fullhash}{BMA+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Prospective Memory}
+    \field{year}{1996}
+  \endentry
+
+  \entry{hommel2001tec}{article}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=HB}{%
+         family={Hommel},
+         familyi={H\bibinitperiod},
+         given={B.},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HB+1}
+    \strng{fullhash}{HB+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{5}
+    \field{pages}{849\bibrangedash 878}
+    \field{title}{The Theory of Event Coding (TEC): A Framework for Perception
+  and Action Planning}
+    \field{volume}{24}
+    \field{journaltitle}{Behavioral and Brain Sciences}
+    \field{year}{2001}
+  \endentry
+
+  \entry{brainerd2004fuzzy}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=BCJ}{%
+         family={Brainerd},
+         familyi={B\bibinitperiod},
+         given={C.\bibnamedelima J.},
+         giveni={C\bibinitperiod\bibinitdelim J\bibinitperiod},
+      }}%
+      {{hash=RVF}{%
+         family={Reyna},
+         familyi={R\bibinitperiod},
+         given={V.\bibnamedelima F.},
+         giveni={V\bibinitperiod\bibinitdelim F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BCJRVF1}
+    \strng{fullhash}{BCJRVF1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{4}
+    \field{pages}{479\bibrangedash 498}
+    \field{title}{Fuzzy Trace Theory and Storage-Retrieval Operations in False
+  Memory}
+    \field{volume}{50}
+    \field{journaltitle}{Journal of Memory and Language}
+    \field{year}{2004}
+  \endentry
+
+  \entry{hodgkin1952quantitative}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=HAL}{%
+         family={Hodgkin},
+         familyi={H\bibinitperiod},
+         given={A.\bibnamedelima L.},
+         giveni={A\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+      {{hash=HAF}{%
+         family={Huxley},
+         familyi={H\bibinitperiod},
+         given={A.\bibnamedelima F.},
+         giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HALHAF1}
+    \strng{fullhash}{HALHAF1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{4}
+    \field{pages}{500\bibrangedash 544}
+    \field{title}{A Quantitative Description of Membrane Current and Its
+  Application to Conduction and Excitation in Nerve}
+    \field{volume}{117}
+    \field{journaltitle}{The Journal of Physiology}
+    \field{year}{1952}
+  \endentry
+
+  \entry{wilson1972excitatory}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=WHR}{%
+         family={Wilson},
+         familyi={W\bibinitperiod},
+         given={H.\bibnamedelima R.},
+         giveni={H\bibinitperiod\bibinitdelim R\bibinitperiod},
+      }}%
+      {{hash=CJD}{%
+         family={Cowan},
+         familyi={C\bibinitperiod},
+         given={J.\bibnamedelima D.},
+         giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{WHRCJD1}
+    \strng{fullhash}{WHRCJD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{1}
+    \field{pages}{1\bibrangedash 24}
+    \field{title}{Excitatory and Inhibitory Interactions in Localized
+  Populations of Model Neurons}
+    \field{volume}{12}
+    \field{journaltitle}{Biophysical Journal}
+    \field{year}{1972}
+  \endentry
+
+  \entry{packer2023memgpt}{inproceedings}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=PC}{%
+         family={Packer},
+         familyi={P\bibinitperiod},
+         given={C.},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{PC+1}
+    \strng{fullhash}{PC+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{NeurIPS Workshop on Memory Systems}
+    \field{title}{MemGPT: Towards LLMs as Operating Systems}
+    \field{year}{2023}
+  \endentry
+
+  \entry{rosch1978categorization}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=RE}{%
+         family={Rosch},
+         familyi={R\bibinitperiod},
+         given={E.},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Lawrence Erlbaum Associates}%
+    }
+    \strng{namehash}{RE1}
+    \strng{fullhash}{RE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Principles of Categorization}
+    \field{year}{1978}
+  \endentry
+
+  \entry{bartlett1932remembering}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=BFC}{%
+         family={Bartlett},
+         familyi={B\bibinitperiod},
+         given={F.\bibnamedelima C.},
+         giveni={F\bibinitperiod\bibinitdelim C\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Cambridge University Press}%
+    }
+    \strng{namehash}{BFC1}
+    \strng{fullhash}{BFC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Remembering: A Study in Experimental and Social Psychology}
+    \field{year}{1932}
+  \endentry
+
+  \entry{robertson2006what}{article}{}{}
+    \name{author}{1}{}{%
+      {{hash=RJ}{%
+         family={Robertson},
+         familyi={R\bibinitperiod},
+         given={J.},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{RJ1}
+    \strng{fullhash}{RJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{pages}{1\bibrangedash 18}
+    \field{title}{What is Episodic Memory?}
+    \field{volume}{12}
+    \field{journaltitle}{Psyche}
+    \field{year}{2006}
+  \endentry
+
+  \entry{anderson2008architecture}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=AJR}{%
+         family={Anderson},
+         familyi={A\bibinitperiod},
+         given={J.\bibnamedelima R.},
+         giveni={J\bibinitperiod\bibinitdelim R\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Worth Publishers}%
+    }
+    \strng{namehash}{AJR1}
+    \strng{fullhash}{AJR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{edition}{7}
+    \field{title}{Cognitive Psychology}
+    \field{year}{2008}
+  \endentry
+\enddatalist
+\endinput

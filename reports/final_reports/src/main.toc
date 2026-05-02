@@ -20,70 +20,70 @@
 \contentsline {subsubsection}{\numberline {b}Đồ thị Tri thức (Knowledge Graphs) và Chức năng Biểu diễn}{5}{subsubsection.2.1.2.2}%
 \contentsline {subsection}{\numberline {2.1.3}Tiến trình phát triển hệ thống Bộ nhớ Dài hạn cho Tác nhân}{6}{subsection.2.1.3}%
 \contentsline {subsubsection}{\numberline {a}Mạng bộ nhớ HINDSIGHT: Tiên phong trong đồ thị dị thể}{6}{subsubsection.2.1.3.1}%
-\contentsline {subsubsection}{\numberline {b}HippoRAG2: Lan truyền Kích hoạt trên Đồ thị}{6}{subsubsection.2.1.3.2}%
+\contentsline {subsubsection}{\numberline {b}HippoRAG2: Lan truyền Kích hoạt trên Đồ thị}{7}{subsubsection.2.1.3.2}%
 \contentsline {subsubsection}{\numberline {c}Các Mạng Kho phẳng và Lưu trữ Vector (Mem0, MemGPT)}{7}{subsubsection.2.1.3.3}%
-\contentsline {subsection}{\numberline {2.1.4}Điểm chuẩn kiểm chứng thực nghiệm (Evaluation Benchmarks)}{7}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.1.4}Dữ liệu đánh giá (Evaluation Benchmarks)}{7}{subsection.2.1.4}%
 \contentsline {subsubsection}{\numberline {a}LongMemEval-S (Mô phỏng đa phiên hội thoại phân tán)}{7}{subsubsection.2.1.4.1}%
 \contentsline {subsubsection}{\numberline {b}LoCoMo (Mô phỏng lập luận đồ thị Multi-hop)}{8}{subsubsection.2.1.4.2}%
 \contentsline {subsection}{\numberline {2.1.5}Hạn chế cốt lõi của các Khung hệ thống Bộ nhớ hiện nay (Problem Formulation)}{8}{subsection.2.1.5}%
-\contentsline {chapter}{\numberline {3}METHODOLOGY}{9}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Phương pháp đề xuất}{9}{section.3.1}%
-\contentsline {subsection}{\numberline {3.1.1}Tổng quan kiến trúc hệ thống CogMem}{9}{subsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.1.2}Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}{9}{subsection.3.1.2}%
-\contentsline {subsubsection}{\numberline {a}Nền tảng tâm lý}{9}{subsubsection.3.1.2.1}%
-\contentsline {subsubsection}{\numberline {b}Sáu mạng bộ nhớ}{10}{subsubsection.3.1.2.2}%
-\contentsline {subsubsection}{\numberline {c}Phân biệt Habit vs. Action-Effect}{11}{subsubsection.3.1.2.3}%
-\contentsline {subsubsection}{\numberline {d}Bảy loại liên kết (Edge Types)}{11}{subsubsection.3.1.2.4}%
-\contentsline {subsection}{\numberline {3.1.3}Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw State Snippets}{12}{subsection.3.1.3}%
-\contentsline {subsubsection}{\numberline {a}Vấn đề: Nén dữ liệu có tổn hao trong các hệ thống hiện tại}{12}{subsubsection.3.1.3.1}%
-\contentsline {subsubsection}{\numberline {b}Giải pháp: 2-Layer Node Schema}{13}{subsubsection.3.1.3.2}%
-\contentsline {subsection}{\numberline {3.1.4}Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}{14}{subsection.3.1.4}%
-\contentsline {subsubsection}{\numberline {a}Vấn đề: MAX chỉ lấy đường mạnh nhất}{14}{subsubsection.3.1.4.1}%
-\contentsline {subsubsection}{\numberline {b}Giải pháp: Phép SUM thay phép MAX}{14}{subsubsection.3.1.4.2}%
-\contentsline {subsubsection}{\numberline {c}Ba cơ chế bảo vệ chu trình (Cycle Guards)}{15}{subsubsection.3.1.4.3}%
-\contentsline {subsection}{\numberline {3.1.5}Đóng góp 4: Adaptive Query Routing}{15}{subsection.3.1.5}%
-\contentsline {subsubsection}{\numberline {a}Vấn đề: Equal-Weight RRF không phân biệt ý định truy vấn}{15}{subsubsection.3.1.5.1}%
-\contentsline {subsubsection}{\numberline {b}Giải pháp: Dynamic Channel Weights theo Query Type}{16}{subsubsection.3.1.5.2}%
-\contentsline {chapter}{\numberline {4}THEORETICAL ANALYSIS}{17}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Phân tích lý thuyết}{17}{section.4.1}%
-\contentsline {subsection}{\numberline {4.1.1}Cơ sở khoa học nhận thức cho Memory Graph (6 Networks)}{17}{subsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {a}Semantic Memory và World Network}{17}{subsubsection.4.1.1.1}%
-\contentsline {subsubsection}{\numberline {b}Episodic Memory và Experience Network}{17}{subsubsection.4.1.1.2}%
-\contentsline {subsubsection}{\numberline {c}Habit Memory và Habit Network}{17}{subsubsection.4.1.1.3}%
-\contentsline {subsubsection}{\numberline {d}Prospective Memory và Intention Network}{18}{subsubsection.4.1.1.4}%
-\contentsline {subsubsection}{\numberline {e}Theory of Event Coding (TEC) và Action-Effect Network}{19}{subsubsection.4.1.1.5}%
-\contentsline {subsection}{\numberline {4.1.2}Cơ sở khoa học nhận thức cho Raw Snippet}{19}{subsection.4.1.2}%
-\contentsline {subsection}{\numberline {4.1.3}Cơ sở khoa học nhận thức cho SUM + Cycle Guards}{20}{subsection.4.1.3}%
-\contentsline {subsubsection}{\numberline {a}Episodic Buffer của Baddeley}{20}{subsubsection.4.1.3.1}%
-\contentsline {subsubsection}{\numberline {b}Hodgkin-Huxley và Local Refractory Period}{20}{subsubsection.4.1.3.2}%
-\contentsline {subsubsection}{\numberline {c}Wilson-Cowan và Saturation Threshold}{21}{subsubsection.4.1.3.3}%
-\contentsline {subsection}{\numberline {4.1.4}Cơ sở khoa học nhận thức cho Adaptive Query Routing}{21}{subsection.4.1.4}%
-\contentsline {chapter}{\numberline {5}NUMERICAL RESULTS}{22}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Kết quả thực nghiệm}{22}{section.5.1}%
-\contentsline {subsection}{\numberline {5.1.1}Thiết kế thực nghiệm}{22}{subsection.5.1.1}%
-\contentsline {subsubsection}{\numberline {a}Dataset và setup}{22}{subsubsection.5.1.1.1}%
-\contentsline {subsubsection}{\numberline {b}Evaluation strategy}{22}{subsubsection.5.1.1.2}%
-\contentsline {subsection}{\numberline {5.1.2}Ablation study (E1-E7)}{23}{subsection.5.1.2}%
-\contentsline {subsection}{\numberline {5.1.3}Per-category accuracy breakdown}{24}{subsection.5.1.3}%
-\contentsline {subsection}{\numberline {5.1.4}Error analysis và case studies}{24}{subsection.5.1.4}%
-\contentsline {chapter}{\numberline {6}CONCLUSIONS}{26}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Kết luận và hướng phát triển}{26}{section.6.1}%
-\contentsline {subsection}{\numberline {6.1.1}Tổng kết đóng góp}{26}{subsection.6.1.1}%
-\contentsline {subsection}{\numberline {6.1.2}Kết quả đánh giá sơ bộ}{27}{subsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.1.3}Hạn chế}{28}{subsection.6.1.3}%
-\contentsline {subsection}{\numberline {6.1.4}Hướng phát triển tương lai}{28}{subsection.6.1.4}%
-\contentsline {subsection}{\numberline {6.1.5}Kết luận}{29}{subsection.6.1.5}%
-\contentsline {section}{\numberline {6.2}Tài liệu tham khảo}{30}{section.6.2}%
-\contentsline {chapter}{REFERENCE}{32}{section*.35}%
-\contentsline {chapter}{APPENDIX}{33}{section*.36}%
+\contentsline {chapter}{\numberline {3}METHODOLOGY}{10}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Phương pháp đề xuất}{10}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Tổng quan kiến trúc hệ thống CogMem}{10}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}{11}{subsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {a}Nền tảng tâm lý}{11}{subsubsection.3.1.2.1}%
+\contentsline {subsubsection}{\numberline {b}Sáu mạng bộ nhớ}{11}{subsubsection.3.1.2.2}%
+\contentsline {subsubsection}{\numberline {c}Phân biệt Habit vs. Action-Effect}{12}{subsubsection.3.1.2.3}%
+\contentsline {subsubsection}{\numberline {d}Bảy loại liên kết (Edge Types)}{13}{subsubsection.3.1.2.4}%
+\contentsline {subsection}{\numberline {3.1.3}Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw State Snippets}{13}{subsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {a}Vấn đề: Nén dữ liệu có tổn hao trong các hệ thống hiện tại}{13}{subsubsection.3.1.3.1}%
+\contentsline {subsubsection}{\numberline {b}Giải pháp: 2-Layer Node Schema}{14}{subsubsection.3.1.3.2}%
+\contentsline {subsection}{\numberline {3.1.4}Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}{15}{subsection.3.1.4}%
+\contentsline {subsubsection}{\numberline {a}Vấn đề: MAX chỉ lấy đường mạnh nhất}{15}{subsubsection.3.1.4.1}%
+\contentsline {subsubsection}{\numberline {b}Giải pháp: Phép SUM thay phép MAX}{15}{subsubsection.3.1.4.2}%
+\contentsline {subsubsection}{\numberline {c}Ba cơ chế bảo vệ chu trình (Cycle Guards)}{16}{subsubsection.3.1.4.3}%
+\contentsline {subsection}{\numberline {3.1.5}Đóng góp 4: Adaptive Query Routing}{17}{subsection.3.1.5}%
+\contentsline {subsubsection}{\numberline {a}Vấn đề: Equal-Weight RRF không phân biệt ý định truy vấn}{17}{subsubsection.3.1.5.1}%
+\contentsline {subsubsection}{\numberline {b}Giải pháp: Dynamic Channel Weights theo Query Type}{17}{subsubsection.3.1.5.2}%
+\contentsline {chapter}{\numberline {4}THEORETICAL ANALYSIS}{19}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Phân tích lý thuyết}{19}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Cơ sở khoa học nhận thức cho Memory Graph (6 Networks)}{19}{subsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {a}Semantic Memory và World Network}{19}{subsubsection.4.1.1.1}%
+\contentsline {subsubsection}{\numberline {b}Episodic Memory và Experience Network}{19}{subsubsection.4.1.1.2}%
+\contentsline {subsubsection}{\numberline {c}Habit Memory và Habit Network}{20}{subsubsection.4.1.1.3}%
+\contentsline {subsubsection}{\numberline {d}Prospective Memory và Intention Network}{20}{subsubsection.4.1.1.4}%
+\contentsline {subsubsection}{\numberline {e}Theory of Event Coding (TEC) và Action-Effect Network}{21}{subsubsection.4.1.1.5}%
+\contentsline {subsection}{\numberline {4.1.2}Cơ sở khoa học nhận thức cho Raw Snippet}{21}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}Cơ sở khoa học nhận thức cho SUM + Cycle Guards}{22}{subsection.4.1.3}%
+\contentsline {subsubsection}{\numberline {a}Episodic Buffer của Baddeley}{22}{subsubsection.4.1.3.1}%
+\contentsline {subsubsection}{\numberline {b}Hodgkin-Huxley và Local Refractory Period}{22}{subsubsection.4.1.3.2}%
+\contentsline {subsubsection}{\numberline {c}Wilson-Cowan và Saturation Threshold}{22}{subsubsection.4.1.3.3}%
+\contentsline {subsection}{\numberline {4.1.4}Cơ sở khoa học nhận thức cho Adaptive Query Routing}{23}{subsection.4.1.4}%
+\contentsline {chapter}{\numberline {5}NUMERICAL RESULTS}{24}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Kết quả thực nghiệm}{24}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Thiết kế thực nghiệm}{24}{subsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {a}Dataset và setup}{24}{subsubsection.5.1.1.1}%
+\contentsline {subsubsection}{\numberline {b}Evaluation strategy}{24}{subsubsection.5.1.1.2}%
+\contentsline {subsection}{\numberline {5.1.2}Ablation study (E1-E7)}{25}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}Per-category accuracy breakdown}{26}{subsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.1.4}Error analysis và case studies}{26}{subsection.5.1.4}%
+\contentsline {chapter}{\numberline {6}CONCLUSIONS}{28}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Kết luận và hướng phát triển}{28}{section.6.1}%
+\contentsline {subsection}{\numberline {6.1.1}Tổng kết đóng góp}{28}{subsection.6.1.1}%
+\contentsline {subsection}{\numberline {6.1.2}Kết quả đánh giá sơ bộ}{29}{subsection.6.1.2}%
+\contentsline {subsection}{\numberline {6.1.3}Hạn chế}{30}{subsection.6.1.3}%
+\contentsline {subsection}{\numberline {6.1.4}Hướng phát triển tương lai}{30}{subsection.6.1.4}%
+\contentsline {subsection}{\numberline {6.1.5}Kết luận}{31}{subsection.6.1.5}%
+\contentsline {section}{\numberline {6.2}Tài liệu tham khảo}{32}{section.6.2}%
+\contentsline {chapter}{REFERENCE}{33}{section*.35}%
+\contentsline {chapter}{APPENDIX}{35}{section*.36}%
 \ttl@change@i {\@ne }{chapter}{0.0cm}{\bfseries \vspace {0.3cm}}{{\bfseries {\scshape } \thecontentslabel .\ }}{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
 \ttl@change@v {chapter}{}{}{}\relax 
-\contentsline {chapter}{\numberline {A}GRADUATION THESIS GUIDANCE}{33}{appendix.A}%
-\contentsline {section}{\numberline {A.1}Phụ lục A: Các Prompt Trích xuất Tri thức (Retain Pipeline)}{33}{section.A.1}%
-\contentsline {subsection}{\numberline {A.1.1}A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}{33}{subsection.A.1.1}%
-\contentsline {subsection}{\numberline {A.1.2}A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{34}{subsection.A.1.2}%
-\contentsline {chapter}{\numberline {B}USE CASE DESCRIPTIONS}{35}{appendix.B}%
-\contentsline {section}{\numberline {B.1}Phụ lục B: Các Prompt Dành cho Đánh giá (Evaluation \& Reflection)}{35}{section.B.1}%
-\contentsline {subsection}{\numberline {B.1.1}B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{35}{subsection.B.1.1}%
-\contentsline {subsection}{\numberline {B.1.2}B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{35}{subsection.B.1.2}%
+\contentsline {chapter}{\numberline {A}GRADUATION THESIS GUIDANCE}{35}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Phụ lục A: Các Prompt Trích xuất Tri thức (Retain Pipeline)}{36}{appendix.B}%
+\contentsline {subsection}{\numberline {B.0.1}A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}{36}{subsection.B.0.1}%
+\contentsline {subsection}{\numberline {B.0.2}A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{37}{subsection.B.0.2}%
+\contentsline {chapter}{\numberline {C}USE CASE DESCRIPTIONS}{39}{appendix.C}%
+\contentsline {chapter}{\numberline {D}Phụ lục B: Các Prompt Dành cho Đánh giá (Evaluation \& Reflection)}{40}{appendix.D}%
+\contentsline {subsection}{\numberline {D.0.1}B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{40}{subsection.D.0.1}%
+\contentsline {subsection}{\numberline {D.0.2}B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{40}{subsection.D.0.2}%
 \contentsfinish 

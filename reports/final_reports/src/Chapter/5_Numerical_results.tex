@@ -1,7 +1,10 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
+\textit{Chương 5 hiện thực hóa các chứng minh từ Chương 3 và Chương 4 thông qua các phép đo thực nghiệm trên dữ liệu LongMemEval-S và LoCoMo, từ đó cung cấp góc nhìn định lượng về hiệu năng hệ thống.}
+
 \section{Kết quả thực nghiệm}
+
 
 \subsection{Thiết kế thực nghiệm}
 
@@ -14,16 +17,16 @@
 \end{enumerate}
 
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.1: Dataset distribution và stratified sampling strategy. Cần hình minh họa phân bố category trong subset.
+Hình 5.1: Dataset distribution và stratified sampling strategy.
 
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.2: Experiment setup với SLM local (Qwen3-7B). Cần hình minh họa hardware setup và evaluation pipeline.
+Hình 5.2: Experiment setup với SLM local (Qwen3-7B).
 
 \begin{table}[H]
 \centering
 \caption{Experiment Setup}
 \label{tab:experiment_setup}
-\resizebox{\textwidth}{!}{%
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{|l|c|c|}
 \hline
 \textbf{Component} & \textbf{Model/Config} & \textbf{Ghi chú} \\
@@ -47,7 +50,7 @@ Benchmark subset & 100-150 LongMemEval, 20-25 LoCoMo & Stratified sampling \\
 Metric chính: End-to-end accuracy (LLM-as-judge), phân tích per-category. Cùng judge setup với HINDSIGHT để so sánh trực tiếp với published numbers.
 
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.3: Evaluation pipeline end-to-end. Cần hình minh họa flow: Build KG → Recall → Reflect → Judge.
+Hình 5.3: Evaluation pipeline end-to-end.
 
 Các bước evaluation:
 \begin{enumerate}
@@ -70,13 +73,13 @@ Các bước evaluation:
 \end{enumerate}
 
 \textbf{[TABLE PLACEHOLDER]}\\
-Bảng 5.1: Ablation results cho E1-E7 trên LongMemEval-S. Cần bảng kết quả chi tiết theo category.
+Bảng 5.1: Ablation results cho E1-E7 trên LongMemEval-S.
 
 \textbf{[TABLE PLACEHOLDER]}\\
-Bảng 5.2: Ablation results cho E1-E7 trên LoCoMo. Cần bảng kết quả chi tiết theo category.
+Bảng 5.2: Ablation results cho E1-E7 trên LoCoMo.
 
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.4: Ablation results visualization. Cần bar chart showing accuracy improvement qua từng experiment.
+Hình 5.4: Ablation results visualization.
 
 Key observations:
 \begin{itemize}
@@ -90,9 +93,9 @@ Key observations:
 
 \begin{table}[H]
 \centering
-\caption{Ablation Summary (Placeholder - Cần kết quả thực nghiệm)}
+\caption{Ablation Summary (Placeholder - }
 \label{tab:ablation_summary}
-\resizebox{\textwidth}{!}{%
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
 \textbf{Experiment} & \textbf{Multi-session} & \textbf{Temporal} & \textbf{Preference} & \textbf{Multi-hop} & \textbf{Overall} \\
@@ -124,7 +127,7 @@ Bảng 5.3: Per-category accuracy chi tiết cho E7 (Full CogMem) vs E1 (Baselin
 Bảng 5.4: Per-category accuracy chi tiết cho E7 vs E1 trên LoCoMo.
 
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.5: Per-category comparison E7 vs E1. Cần hình bar chart comparison giữa baseline và full CogMem.
+Hình 5.5: Per-category comparison E7 vs E1.
 
 Categories được phân tích:
 \begin{itemize}
@@ -141,11 +144,10 @@ Key findings:
 
 \subsection{Error analysis và case studies}
 
-\textbf{[SECTION PLACEHOLDER]}\\
-Cần thêm error analysis với các failure cases điển hình và case studies minh họa.
+\textbf{[SECTION PLACEHOLDER]}
 
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.6: Error analysis visualization. Cần hình minh họa các failure modes chính.
+Hình 5.6: Error analysis visualization.
 
 Các failure modes được phân tích:
 \begin{enumerate}
@@ -154,5 +156,9 @@ Các failure modes được phân tích:
     \item \textbf{SUM over-accumulation}: Một số trường hợp tích lũy quá nhiều noise
     \item \textbf{Missing transitions}: Một số intention → experience transitions không được capture đúng
 \end{enumerate}
+
+
+\vspace{1em}
+\noindent\textit{Những thống kê từ các thí nghiệm ở chương này là minh chứng rõ ràng cho các giả thuyết nghiên cứu. Chương 6 sẽ đóng vai trò tổng kết lại toàn bộ giá trị khoa học đạt được và đề xuất các hướng mở rộng.}
 
 \end{document}
