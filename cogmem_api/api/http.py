@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Literal
@@ -385,11 +386,20 @@ def create_app(
         if llm_config is None:
             raise HTTPException(status_code=503, detail="Generate LLM not configured")
 
+        include_snippets = os.environ.get("COGMEM_API_GENERATE_INCLUDE_SNIPPETS", "true").lower() != "false"
         prompt = eval_helpers.build_generation_prompt(
             payload.query,
             payload.evidence,
             question_date=payload.question_date,
             session_date_map=payload.session_date_map,
+            include_snippets=include_snippets,
+        )
+        import logging as _logging
+        _logging.getLogger(__name__).info(
+            "[generate] include_snippets=%s | evidence=%d items | prompt_chars=%d",
+            include_snippets,
+            len(payload.evidence),
+            len(prompt),
         )
         messages = [{"role": "user", "content": prompt}]
 

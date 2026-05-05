@@ -2,12 +2,12 @@
 # Runs recall-only pipeline for each conversation index 0-11
 
 param(
-    [string]$VERSION = "v10",
+    [string]$VERSION = "v13",
     [string]$PROFILE_ = "E7",
     [string]$FIXTURE = "longmemeval",
     [int]$TIMEOUT_MS = 15000,
     [int]$START_INDEX = 0,
-    [int]$END_INDEX = 2
+    [int]$END_INDEX = 11
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,20 +31,21 @@ $failed = 0
 
 for ($N = $START_INDEX; $N -le $END_INDEX; $N++) {
     $current++
-    $bankE567 = "COGMEM_EXP_${VERSION}_e567_c{0:D3}" -f $N
+    $bankE567 = "COGMEM_EXP_v11_e567_c{0:D3}" -f $N
 
     Write-Host "[$current/$total] ConvIdx=$N | Bank=$bankE567" -ForegroundColor Yellow
 
     try {
         uv run python -m scripts.eval_cogmem `
-            --pipeline recall `
+            --pipeline full `
             --profile $PROFILE_ `
             --fixture $FIXTURE `
             --conv-index $N `
             --bank-id $bankE567 `
             --checkpoint-dir $CHECKPOINT_DIR `
             --output-dir $OUTPUT_DIR `
-            --api-timeout $TIMEOUT_MS
+            --api-timeout $TIMEOUT_MS `
+            --skip-retain
 
         Write-Host "[$current/$total] ConvIdx=$N PASSED" -ForegroundColor Green
     }

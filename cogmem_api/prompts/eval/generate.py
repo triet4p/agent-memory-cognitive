@@ -51,6 +51,7 @@ def build_generation_prompt(
     evidence: list[dict],
     question_date: str | None = None,
     session_date_map: dict[str, str] | None = None,
+    include_snippets: bool = True,
 ) -> str:
     """Build prompt for generation step (reflect/generate endpoint).
 
@@ -79,7 +80,7 @@ def build_generation_prompt(
 
         memory_parts.append(f"[{idx}] {text}{date_suffix}")
 
-        if raw_snippet:
+        if include_snippets and raw_snippet:
             cleaned = _clean_reference(raw_snippet)
             if cleaned:
                 reference_parts.append(f"[{idx}-ref] {cleaned}")
@@ -115,7 +116,7 @@ def build_generation_prompt(
         "- If MEMORIES contain partial information (e.g., some but not all items in a list),",
         "  enumerate what you found and explicitly state the list may be incomplete.",
         "- Do NOT say 'information not available' when partial evidence exists in MEMORIES.",
-        "- For 'how many' questions: if a memory explicitly states a total quantity (e.g. '5 tomato plants'), use that stated number directly — do not recount individual entries. Otherwise, first explicitly list every distinct item found across ALL numbered MEMORIES entries by name or description, then remove only items that are definitively the exact same object mentioned more than once (same name AND same context — do NOT collapse distinct items just because they share a category), then count what remains.",
+        "- For 'how many' questions: if a memory explicitly states a total quantity (e.g. '5 tomato plants'), use that stated number directly — do not recount individual entries. Otherwise, first explicitly list every distinct item found across ALL numbered MEMORIES entries by name or description, then deduplicate by physical object identity: if two or more entries describe the same specific named item at different lifecycle stages (e.g., 'Revell F-15 Eagle kit' mentioned as both 'picked up at a hobby store' and 'completed the build' — these refer to the same kit), count it once. Do NOT collapse different items just because they share a category (e.g., three different pieces of furniture — a bookshelf, a kitchen table, and a coffee table — are three separate items even though they are all furniture). Count what remains after deduplication.",
         "- If the question asks about multiple categories (e.g., 'X and Y') and one category has no entry in MEMORIES, say 'no information about [category] was found in memory' — do NOT assert that the thing does not exist.",
         "- Only use a memory to answer a sub-question if that memory explicitly mentions the entity being asked about. Do not use a memory about a different (even related) entity to fill in the answer.",
         "- If MEMORIES contain no relevant information at all, say so clearly: 'I don't have information about this in memory.'",

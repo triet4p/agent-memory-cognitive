@@ -18,8 +18,9 @@ def build_generation_prompt(
     evidence: list[dict],
     question_date: str | None = None,
     session_date_map: dict[str, str] | None = None,
+    include_snippets: bool = True,
 ) -> str:
-    return _bgp(query, evidence, question_date=question_date, session_date_map=session_date_map)
+    return _bgp(query, evidence, question_date=question_date, session_date_map=session_date_map, include_snippets=include_snippets)
 
 
 def build_judge_system_prompt(category: str | None) -> str:
