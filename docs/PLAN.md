@@ -2365,6 +2365,380 @@ assert prompt.index("MEMORIES") < prompt.index("REFERENCES")  # MEMORIES trướ
 
 ---
 
+## Sprint S27 — Relationship Completeness: Entity Blocklist + Cross-Session Links + Pass 3 🔄
+
+**Mục tiêu sprint:**
+Giải quyết dứt điểm 3 tầng vấn đề về relationship trong graph memory:
+1. **Tầng 1 — Entity hub noise:** Entity "User" kết nối toàn bộ facts với nhau → graph activation không phân biệt được → blocklist các entity generic.
+2. **Tầng 2 — Inter-session:** Mọi 7 loại edge hiện tại đều intra-session. Cross-session chỉ có entity hub "User" (vô nghĩa). Bổ sung semantic + entity cross-session links.
+3. **Tầng 3 — Intra-session inter-chunk causal/transition:** Causal/transition chỉ hoạt động trong phạm vi 1 LLM call (1 chunk). Pass 3 bổ sung quan hệ cross-chunk trong session.
+
+**Phụ thuộc:** S26 complete.
+
+**Bối cảnh:** Phân tích trên bank `COGMEM_EXP_v11_e567_c003` cho thấy Casper mattress fact (CE score 0.998, tồn tại trong bank) bị rank 168/600+ trong RRF vì: 0 cross-session links, 0 temporal links (relative date), 68 entity links toàn qua hub "User". Graph BFS không có đường nào từ recalled furniture facts → mattress. Fix: cross-session semantic ANN links sẽ tạo đường lan truyền từ IKEA bookshelf/coffee table → mattress.
+
+---
+
+### Task 789 — Entity blocklist: lọc generic entities khỏi link creation
+
+**Vấn đề:**
+
+`process_entities_batch()` trong [cogmem_api/engine/retain/entity_processing.py](cogmem_api/engine/retain/entity_processing.py) tạo entity link cho mọi shared entity kể cả "User". Vì 100% facts đều có entity "User" → hub gần fully-connected (~N² edges) → BFS spreading activation uniform noise, không phân biệt được path thực sự có nghĩa.
+
+**Fix:**
+
+Thêm `_ENTITY_BLOCKLIST: frozenset[str]` tại đầu `entity_processing.py`:
+
+```python
+_ENTITY_BLOCKLIST: frozenset[str] = frozenset({
+    "user", "the user", "i", "me", "my", "we", "our",
+})
+```
+
+Trong `process_entities_batch()`, lọc entity trước khi tạo link:
+
+```python
+for entity in fact.entities:
+    normalized = _normalize_entity_name(entity)
+    if entity and entity.strip() and normalized not in _ENTITY_BLOCKLIST:
+        merged_entities.add(entity.strip())
+```
+
+**File:**
+- [cogmem_api/engine/retain/entity_processing.py](cogmem_api/engine/retain/entity_processing.py) — `_ENTITY_BLOCKLIST` constant + `process_entities_batch()` filter loop
+
+**Verification:**
+```python
+# Mô phỏng 2 facts đều có entity "User" + "West Elm"
+fact_a.entities = ["User", "West Elm", "coffee table"]
+fact_b.entities = ["User", "West Elm", "living room"]
+links = process_entities_batch(...)
+# Phải: link qua "West Elm" và "coffee table"/"living room" EXISTS
+# Phải: KHÔNG có link qua "User"
+assert all(link.entity_id != resolve_entity_id(bank_id, "User") for link in links)
+assert any(link.entity_id == resolve_entity_id(bank_id, "West Elm") for link in links)
+```
+
+**Artifact:** `tests/artifacts/test_task789_entity_blocklist.py`
+
+---
+
+### Task 790 — Phase B: Cross-session semantic links via pgvector ANN
+
+**Vấn đề:**
+
+`create_semantic_links_batch()` trong [cogmem_api/engine/retain/link_creation.py](cogmem_api/engine/retain/link_creation.py) chỉ compare embeddings TRONG batch hiện tại. Một session chứa trung bình 15–30 facts. Cross-session semantic similarity không bao giờ được tính → graph không có đường kết nối cross-session cho BFS activation spreading.
+
+**Fix — thêm `create_cross_bank_semantic_links_batch()` vào `link_creation.py`:**
+
+```python
+async def create_cross_bank_semantic_links_batch(
+    conn, bank_id: str, unit_ids: list[str], embeddings: list[list[float]],
+    threshold: float = 0.6, top_k: int = 10
+) -> int:
+    """Cross-session: for each new fact, find top-k similar existing facts via ANN."""
+    from cogmem_api.engine.memory_engine import fq_table
+    links: list[link_utils.LinkRecord] = []
+    exclude_set = unit_ids  # don't link to self or within-batch (already handled)
+
+    for unit_id, embedding in zip(unit_ids, embeddings):
+        rows = await conn.fetch(
+            f"""
+            SELECT id::text, 1 - (embedding <=> $1::vector) AS similarity
+            FROM {fq_table("memory_units")}
+            WHERE bank_id = $2
+              AND id::text != ALL($3::text[])
+              AND 1 - (embedding <=> $1::vector) >= $4
+            ORDER BY embedding <=> $1::vector
+            LIMIT $5
+            """,
+            embedding, bank_id, exclude_set, threshold, top_k,
+        )
+        for row in rows:
+            target_id = str(row["id"])
+            sim = float(row["similarity"])
+            links.append((unit_id, target_id, "semantic", None, None, sim))
+            links.append((target_id, unit_id, "semantic", None, None, sim))  # bidirectional
+
+    return await link_utils.insert_links(conn, links)
+```
+
+**Wire vào `orchestrator.py`** — thêm call SAU block in-batch link creation hiện tại:
+
+```python
+# Phase B: cross-session links (after in-batch links complete)
+await link_creation.create_cross_bank_semantic_links_batch(
+    conn, bank_id, created_unit_ids, embeddings_for_links
+)
+```
+
+**Config (tunable qua env):**
+- `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD` (default: `0.6`)
+- `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_TOP_K` (default: `10`)
+
+**Files:**
+- [cogmem_api/engine/retain/link_creation.py](cogmem_api/engine/retain/link_creation.py) — thêm `create_cross_bank_semantic_links_batch()`
+- [cogmem_api/engine/retain/orchestrator.py](cogmem_api/engine/retain/orchestrator.py) — wire Phase B call trong `_db_write_work()`
+
+**Verification:**
+```python
+# Sau khi retain session A (có "bought IKEA bookshelf")
+# Retain session B (có "bought Casper mattress")
+# → expect: semantic link EXISTS giữa bookshelf fact và mattress fact
+# (cả 2 đều là "furniture purchase" semantically)
+rels = GET /banks/{bank_id}/relationships/by-type/semantic
+mattress_id = "..."
+bookshelf_id = "..."
+cross_session_links = [r for r in rels if
+    (r["from_unit_id"] == mattress_id and r["to_unit_id"] == bookshelf_id) or
+    (r["from_unit_id"] == bookshelf_id and r["to_unit_id"] == mattress_id)]
+assert len(cross_session_links) > 0
+```
+
+**Artifact:** `tests/artifacts/test_task790_cross_bank_semantic.py`
+
+---
+
+### Task 791 — Phase B: Cross-session entity links (non-hub entities)
+
+**Vấn đề:**
+
+Entity links trong `process_entities_batch()` chỉ pair units TRONG batch hiện tại. Nếu session A có fact "User drinks coffee every morning" với entity "coffee" và session B có fact "User bought a French press for coffee", chúng KHÔNG được link qua entity "coffee" vì 2 retain_batch() riêng biệt. Sau Task 789 (loại "User" hub), entity links intra-session đã sạch — nhưng cross-session vẫn thiếu.
+
+**Fix — thêm `build_cross_bank_entity_links()` vào `entity_processing.py`:**
+
+```python
+async def build_cross_bank_entity_links(
+    conn, bank_id: str, new_unit_ids: list[str], new_facts: list[ProcessedFact]
+) -> list[EntityLink]:
+    """Cross-session: find existing units sharing non-blocked entities with new facts."""
+    from cogmem_api.engine.memory_engine import fq_table
+    links: list[EntityLink] = []
+
+    for new_uid, fact in zip(new_unit_ids, new_facts):
+        for entity_name in fact.entities:
+            normalized = _normalize_entity_name(entity_name)
+            if not normalized or normalized in _ENTITY_BLOCKLIST:
+                continue
+            entity_id = _resolve_entity_id(bank_id, entity_name)
+            # Find existing units connected through this entity (from previous sessions)
+            rows = await conn.fetch(
+                f"""
+                SELECT DISTINCT from_unit_id::text AS uid
+                FROM {fq_table("memory_links")}
+                WHERE entity_id = $1::uuid
+                  AND link_type = 'entity'
+                  AND from_unit_id::text != ALL($2::text[])
+                """,
+                entity_id, new_unit_ids,
+            )
+            for row in rows:
+                existing_uid = str(row["uid"])
+                links.append(EntityLink(from_unit_id=new_uid, to_unit_id=existing_uid, entity_id=entity_id))
+                links.append(EntityLink(from_unit_id=existing_uid, to_unit_id=new_uid, entity_id=entity_id))
+
+    return links
+```
+
+**Wire vào `orchestrator.py`** — trong Phase B block sau Task 790:
+
+```python
+cross_entity_links = await entity_processing.build_cross_bank_entity_links(
+    conn, bank_id, created_unit_ids, processed_facts
+)
+await entity_processing.insert_entity_links_batch(conn, cross_entity_links)
+```
+
+**Files:**
+- [cogmem_api/engine/retain/entity_processing.py](cogmem_api/engine/retain/entity_processing.py) — thêm `build_cross_bank_entity_links()`
+- [cogmem_api/engine/retain/orchestrator.py](cogmem_api/engine/retain/orchestrator.py) — wire Phase B entity call
+
+**Lưu ý:** Task này chỉ có ý nghĩa khi facts có specific named entities (người, địa điểm, sản phẩm có tên). Với furniture facts trong c003 (chỉ có "West Elm", "IKEA", "Casper"), cross-session entity links sẽ kết nối: mọi fact liên quan đến "West Elm" với nhau — hữu ích nhưng không phải fix chính cho c003.
+
+**Artifact:** `tests/artifacts/test_task791_cross_bank_entity.py`
+
+---
+
+### Task 792 — Pass 3: Intra-session inter-chunk relationship identification
+
+**Vấn đề:**
+
+Causal/transition/action_effect relations chỉ hoạt động INTRA-CHUNK vì `target_index` trong prompt là index trong kết quả của 1 LLM call. Pass 1 chunk 0 và Pass 1 chunk 1 có index space riêng → không có causal link cross-chunk dù 2 facts rõ ràng là nguyên nhân-kết quả.
+
+Ví dụ: Session về diet → chunk 0 extract "User had back pain" (experience), chunk 1 extract "User started yoga" (habit). Causal link "yoga caused by back pain" không được tạo vì 2 index space.
+
+**Fix — Pass 3 LLM call sau `dedup_facts()` trong `fact_extraction.py`:**
+
+Sau khi `dedup_facts(facts_p1, facts_p2)` → `final_facts`, nếu `len(final_facts) >= 2` và `config.pass3_enabled`:
+1. Build Pass 3 prompt: danh sách numbered facts + yêu cầu identify relations
+2. LLM call → JSON `{"relations": [{"source": 0, "target": 3, "type": "causal", "strength": 0.8}, ...]}`
+3. Merge results: ghi `edge_intent` vào `final_facts[source_index]`
+
+**Pass 3 prompt (`cogmem_api/prompts/retain/pass3.py`):**
+
+```python
+def build_pass3_prompt(facts: list[str]) -> str:
+    """Identify relationships between extracted facts (intra-session, cross-chunk)."""
+    numbered = "\n".join(f"[{i}] {text}" for i, text in enumerate(facts))
+    return f"""You are identifying relationships between memory facts extracted from a conversation.
+
+FACTS:
+{numbered}
+
+Identify only HIGH-CONFIDENCE relationships between facts:
+- "causal": fact A directly caused or triggered fact B (A must precede or motivate B)
+- "fulfilled_by": an intention [A] was fulfilled/completed by an experience [B]
+- "a_o_causal": an action [A] produced an observable outcome [B]
+
+Return JSON only:
+{{"relations": [
+  {{"source": <int>, "target": <int>, "type": "causal|fulfilled_by|a_o_causal", "strength": 0.7}},
+  ...
+]}}
+
+Rules:
+- source and target are 0-based indices into the FACTS list above
+- Only include relations with strength >= 0.6
+- "causal": source_index < target_index (cause precedes effect)
+- "fulfilled_by": source must be intention, target must be experience
+- "a_o_causal": source must be action_effect type
+- If no clear relationships exist, return {{"relations": []}}
+"""
+```
+
+**Integration trong `fact_extraction.py`:**
+- Sau `dedup_facts()`: check `config.pass3_enabled` (default True)
+- Call Pass 3 LLM nếu `len(final_facts) >= 2`
+- Parse output → update `fact.causal_relations` / `fact.transition_relations` / `fact.action_effect_relations`
+- Existing `_db_write_work()` đã dùng các fields này để tạo links → không cần sửa `link_creation.py`
+
+**Config:**
+- `COGMEM_API_RETAIN_PASS3_ENABLED` (default: `true`)
+- `COGMEM_API_RETAIN_PASS3_MAX_FACTS` (default: `30` — skip Pass 3 nếu session quá dài)
+
+**Files:**
+- `cogmem_api/prompts/retain/pass3.py` — prompt mới
+- [cogmem_api/engine/retain/fact_extraction.py](cogmem_api/engine/retain/fact_extraction.py) — thêm `_run_pass3()` + integrate sau `dedup_facts()`
+- [cogmem_api/engine/retain/types.py](cogmem_api/engine/retain/types.py) — config field `pass3_enabled: bool = True`
+
+**Lưu ý về SLM capability:** Ministral-3B với ~20 facts (input ~500 tokens) + structured output là task đơn giản hơn Pass 1/2 nhiều. Rủi ro chính là hallucination (bịa relations không có) → threshold 0.6 + rule constraints giúp giảm.
+
+**Artifact:** `tests/artifacts/test_task792_pass3_relations.py`
+
+---
+
+### Task 793 — Phase B: Cross-session temporal, s_r_link, a_o_causal, transition
+
+**Vấn đề:**
+
+Sau Task 790–791, inter-session còn 4 loại edge chưa có:
+- `temporal`: facts từ session khác cùng khoảng thời gian không được link
+- `s_r_link`: habit fact session A không link được tới experience facts session B dù share entity
+- `a_o_causal`: action_effect fact session A không link tới outcome facts session B
+- `transition`: intention fact session A không có đường kết nối tới experience (fulfilled) session B
+
+**Fix — thêm `create_cross_bank_structural_links_batch()` vào `link_creation.py`:**
+
+**Temporal cross-session:**
+```python
+# For each new fact with non-null event_date, query existing facts within ±24h
+SELECT id::text FROM {fq_table("memory_units")}
+WHERE bank_id = $1
+  AND id::text != ALL($2::text[])
+  AND event_date IS NOT NULL
+  AND ABS(EXTRACT(EPOCH FROM (event_date - $3))) <= $4  -- window_seconds = 86400
+```
+Build bidirectional temporal links với weight = `max(0.3, 1.0 - delta/window)`.
+
+**s_r_link cross-session:**
+```python
+# For each new habit fact, find existing non-habit facts sharing non-blocked entities
+# (mirrors create_habit_sr_links_batch but queries DB instead of iterating in-memory list)
+SELECT DISTINCT ml.from_unit_id::text, mu.fact_type
+FROM {fq_table("memory_links")} ml
+JOIN {fq_table("memory_units")} mu ON mu.id = ml.from_unit_id
+WHERE ml.entity_id = ANY($1::uuid[])  -- entity IDs of new habit fact (non-blocked)
+  AND ml.link_type = 'entity'
+  AND mu.fact_type != 'habit'
+  AND ml.from_unit_id::text != ALL($2::text[])
+```
+
+**a_o_causal cross-session:**
+```python
+# For each new action_effect fact, find existing non-action_effect facts sharing entities
+# Same SQL as s_r_link but filter fact_type != 'action_effect'
+```
+
+**transition cross-session (heuristic):**
+```python
+# For each new experience fact, find existing intention facts (status='planning')
+# sharing non-blocked entities → create tentative fulfilled_by edge (weight capped 0.7)
+SELECT ml.from_unit_id::text
+FROM {fq_table("memory_links")} ml
+JOIN {fq_table("memory_units")} mu ON mu.id = ml.from_unit_id
+WHERE ml.entity_id = ANY($1::uuid[])
+  AND ml.link_type = 'entity'
+  AND mu.fact_type = 'intention'
+  AND mu.metadata->>'intention_status' = 'planning'
+  AND ml.from_unit_id::text != ALL($2::text[])
+```
+Weight = 0.7 (heuristic, không có LLM confirmation). Điều này chỉ tạo `transition` edge — không update `intention_status` (cần LLM để confirm, out of scope cho sprint này).
+
+**Wire vào `orchestrator.py`** trong Phase B block:
+```python
+await link_creation.create_cross_bank_structural_links_batch(
+    conn, bank_id, created_unit_ids, processed_facts
+)
+```
+
+**Files:**
+- [cogmem_api/engine/retain/link_creation.py](cogmem_api/engine/retain/link_creation.py) — thêm `create_cross_bank_structural_links_batch()`
+- [cogmem_api/engine/retain/orchestrator.py](cogmem_api/engine/retain/orchestrator.py) — wire Task 793 call
+
+**Artifact:** `tests/artifacts/test_task793_cross_bank_structural.py`
+
+---
+
+### Coverage Matrix sau S27
+
+| Edge type | Intra-chunk | Inter-chunk intra-session | Inter-session |
+|-----------|-------------|--------------------------|---------------|
+| `entity` | ✅ hiện tại | ✅ hiện tại | ✅ Task 791 |
+| `semantic` | ✅ hiện tại | ✅ hiện tại | ✅ Task 790 |
+| `temporal` | ✅ hiện tại | ✅ hiện tại | ✅ Task 793 |
+| `causal` | ✅ hiện tại | ✅ Task 792 (Pass 3) | ❌ excluded (LLM target_index fundamentally intra-session) |
+| `s_r_link` | ✅ hiện tại | ✅ hiện tại (entity fallback) | ✅ Task 793 |
+| `a_o_causal` | ✅ hiện tại | ✅ hiện tại (entity fallback) | ✅ Task 793 |
+| `transition` | ✅ hiện tại | ✅ Task 792 (Pass 3) | ✅ Task 793 (heuristic) |
+
+---
+
+### Verification Sprint S27
+
+**Thứ tự chạy test:**
+```bash
+uv run python tests/artifacts/test_task789_entity_blocklist.py
+uv run python tests/artifacts/test_task790_cross_bank_semantic.py
+uv run python tests/artifacts/test_task791_cross_bank_entity.py
+uv run python tests/artifacts/test_task792_pass3_relations.py
+```
+
+**Integration check — c003 mattress recall:**
+1. Re-retain bank với S27 changes: `DELETE /banks/COGMEM_EXP_v11_e567_c003` → re-run retain
+2. Query: `GET /banks/.../relationships/by-type/semantic` → check mattress↔bookshelf cross-session link EXISTS
+3. Recall query "what furniture have I bought or assembled?":
+   - Mattress phải xuất hiện trong top-25 (hiện tại rank 168)
+   - Target: rank ≤ 25
+4. Re-run v13 eval batch với bank mới → expect c003 pass (score 1.0 thay vì 0.0)
+
+**Exit gate Sprint S27:**
+1. Tất cả 4 artifact tests PASS.
+2. Cross-session semantic links tồn tại giữa furniture facts trong c003 bank.
+3. Entity "User" không xuất hiện trong bất kỳ entity link nào (verified qua relationships API).
+4. Recall rank của mattress fact ≤ 25 sau re-retain.
+
+---
+
 ## Sprint S-final — Full Ablation Dry Run Gate 🔄
 
 Mục tiêu sprint:
@@ -2449,6 +2823,7 @@ Rủi ro và fallback:
 | Eval Readiness | S24.8 | hot fix chunk id, judge rubric, entity diagnostics | ✅ Done | 775-777 |
 | Eval Readiness | S25 | 2-Pass Speaker-Aware Extraction + Prompt Centralization | 🔄 Pending | 778-785 |
 | Eval Readiness | S26 | Recall + generation fixes: query routing, channel trace, prompt format | 🔄 Pending | 786-788 |
+| Eval Readiness | S27 | Relationship completeness: entity blocklist + cross-session links + Pass 3 | 🔄 Pending | 789-793 |
 | Eval Readiness | S-final | Full ablation dry run gate (E1-E7) | 🔄 Pending | 761-763 |
 
 ---
@@ -2472,6 +2847,7 @@ Sprint 0 -> S1 -> S2 -> S3 -> S4 -> S5 -> S6 -> Backfill B1-B5 -> S7 (tasks 001-
 → **S24.5-S24.8 (tasks 764-777):** Eval pipeline correctness + quality fixes ✅ DONE
 → **S25 (tasks 778-785):** 2-Pass Speaker-Aware Extraction + Prompt Centralization 🔄 Pending
 → **S26 (tasks 786-788):** Recall + Generation Fixes: Query Routing, Channel Trace, Prompt Format 🔄 Pending
+→ **S27 (tasks 789-793):** Relationship Completeness: Entity Blocklist + Cross-Session Links + Pass 3 🔄 Pending
 → **S-final (tasks 761-763):** Full Ablation Dry Run Gate 🔄 Pending
 
 ### Future (Dependent on S-final PASS)
@@ -2484,8 +2860,9 @@ Hard rules:
 4. S23 dependency: S22 PASS ✅
 5. S24 dependency: S23 PASS + task 757 hotfixes PASS
 6. S25 dependency: S24.8 PASS
-7. S-final dependency: S25 PASS
-8. C5 deferred: không chặn eval trong vòng này
+7. S27 dependency: S26 PASS
+8. S-final dependency: S27 PASS
+9. C5 deferred: không chặn eval trong vòng này
 
 ---
 

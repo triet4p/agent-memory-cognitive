@@ -333,7 +333,7 @@ def get_fixture(name: str, fixture_path: str | None = None) -> JsonDict:
     if name == "short":
         return SHORT_DIALOGUE_FIXTURE
     if name == "longmemeval":
-        path = fixture_path or str(Path(__file__).parent.parent / "data" / "longmemeval_s_distilled_small.json")
+        path = fixture_path or str(Path(__file__).parent.parent / "data" / "longmemeval_s_distilled.json")
         return _make_benchmark_fixture(path, "longmemeval")
     if name == "locomo":
         path = fixture_path or str(Path(__file__).parent.parent / "data" / "locomo_distilled.json")

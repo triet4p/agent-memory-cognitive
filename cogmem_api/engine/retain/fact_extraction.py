@@ -24,6 +24,7 @@ from cogmem_api.engine.llm_wrapper import OutputTooLongError, parse_llm_json
 from cogmem_api.engine.response_models import TokenUsage
 from cogmem_api.prompts.retain.pass1 import build_pass1_prompt
 from cogmem_api.prompts.retain.pass2 import build_pass2_prompt, PASS2_ALLOWED_FACT_TYPES
+from cogmem_api.prompts.retain.pass3 import build_pass3_prompt
 from .types import (
     ActionEffectRelation,
     CausalRelation,
@@ -350,55 +351,6 @@ def _fallback_fact_splits(text: str) -> list[str]:
     return candidates[:3]
 
 
-def _sentence_split_for_legacy(text: str) -> list[str]:
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    return [s.strip() for s in sentences if s.strip()]
-
-
-def _parse_legacy_text(text: str) -> list[dict[str, str]]:
-    """Parse plain text content into role-tagged message dicts.
-
-    Detects [user]: and [assistant]: markers from the text.
-    Falls back to treating entire text as a single user turn if no markers found.
-    """
-    if not text.strip():
-        return []
-
-    lines = text.split("\n")
-    messages: list[dict[str, str]] = []
-    current_role = "user"
-    current_content: list[str] = []
-
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        user_match = re.match(r"^\[user\]\s*:\s*(.*)$", line, re.IGNORECASE)
-        assistant_match = re.match(r"^\[assistant\]\s*:\s*(.*)$", line, re.IGNORECASE)
-        if user_match:
-            if current_content:
-                messages.append({"role": current_role, "content": " ".join(current_content)})
-                current_content = []
-            current_role = "user"
-            current_content.append(user_match.group(1))
-        elif assistant_match:
-            if current_content:
-                messages.append({"role": current_role, "content": " ".join(current_content)})
-                current_content = []
-            current_role = "assistant"
-            current_content.append(assistant_match.group(1))
-        else:
-            current_content.append(line)
-
-    if current_content:
-        messages.append({"role": current_role, "content": " ".join(current_content)})
-
-    if not messages:
-        messages.append({"role": "user", "content": text.strip()})
-
-    return messages
-
-
 def _chunk_content(text: str, max_chars: int) -> list[str]:
     if max_chars <= 0 or len(text) <= max_chars:
         return [text]
@@ -425,10 +377,6 @@ def _chunk_content(text: str, max_chars: int) -> list[str]:
         chunks.append(" ".join(current))
 
     return chunks or [text]
-
-
-def _build_prompt(config: Any) -> tuple[str, str]:
-    raise NotImplementedError("fact_extraction._build_prompt was removed; use build_pass1_prompt from cogmem_api.prompts.retain.pass1")
 
 
 async def _call_llm_chunk(
@@ -781,6 +729,107 @@ async def _call_llm_for_pass2(
     )
 
 
+async def _run_pass3(
+    facts: list[ExtractedFact],
+    llm_config: Any,
+    max_completion_tokens: int,
+    content_index: int,
+) -> None:
+    """Pass 3: identify cross-chunk relationships in the merged session fact list.
+
+    Mutates `facts` in-place by appending to causal_relations, transition_relations,
+    and action_effect_relations based on LLM output. Called after dedup_facts().
+    """
+    if llm_config is None or not hasattr(llm_config, "call"):
+        return
+
+    fact_items = [(f.fact_text, f.fact_type) for f in facts]
+    prompt = build_pass3_prompt(fact_items)
+
+    try:
+        response = await llm_config.call(
+            messages=[{"role": "user", "content": prompt}],
+            scope="retain_pass3_relations",
+            temperature=0.1,
+            max_completion_tokens=max_completion_tokens,
+            return_usage=True,
+            skip_validation=True,
+        )
+    except TypeError:
+        response = await llm_config.call(
+            messages=[{"role": "user", "content": prompt}],
+            scope="retain_pass3_relations",
+            temperature=0.1,
+            max_completion_tokens=max_completion_tokens,
+        )
+    except Exception as exc:
+        logger.warning("[retain][pass3][idx=%d] LLM call failed, skipping: %s", content_index, exc)
+        return
+
+    payload: Any
+    if isinstance(response, tuple) and len(response) == 2:
+        payload, _ = response
+    else:
+        payload = response
+
+    if isinstance(payload, str):
+        try:
+            payload = parse_llm_json(payload)
+        except Exception as exc:
+            logger.warning("[retain][pass3][idx=%d] JSON parse failed: %s | raw=%.200r", content_index, exc, payload)
+            return
+
+    if not isinstance(payload, dict):
+        return
+
+    relations = payload.get("relations")
+    if not isinstance(relations, list):
+        return
+
+    n = len(facts)
+    for rel in relations:
+        if not isinstance(rel, dict):
+            continue
+        try:
+            source = int(rel["source"])
+            target = int(rel["target"])
+            rel_type = str(rel.get("type", "")).strip().lower()
+            strength = float(rel.get("strength", 0.7))
+        except (KeyError, TypeError, ValueError):
+            continue
+
+        if source < 0 or source >= n or target < 0 or target >= n or source == target:
+            continue
+        if strength < 0.6:
+            continue
+
+        if rel_type == "causal":
+            if source >= target:
+                continue
+            # Store on the effect fact (target/higher index), pointing to the cause (source/lower index).
+            # Matches create_causal_links_batch semantics: effect.causal_relations.target = cause < effect.
+            facts[target].causal_relations.append(
+                CausalRelation(target_fact_index=source, relation_type="caused_by", strength=strength)
+            )
+        elif rel_type == "fulfilled_by":
+            if facts[source].fact_type != "intention" or facts[target].fact_type != "experience":
+                continue
+            facts[source].transition_relations.append(
+                TransitionRelation(target_fact_index=target, transition_type="fulfilled_by", strength=strength)
+            )
+        elif rel_type == "a_o_causal":
+            if facts[source].fact_type != "action_effect":
+                continue
+            facts[source].action_effect_relations.append(
+                ActionEffectRelation(target_fact_index=target, relation_type="a_o_causal", strength=strength)
+            )
+
+    logger.info(
+        "[retain][pass3][idx=%d] Applied relations from %d candidates",
+        content_index, len(relations),
+    )
+
+
 async def _extract_facts_with_llm(
     content: RetainContent,
     content_index: int,
@@ -920,6 +969,14 @@ async def _extract_facts_with_llm(
             "[retain][idx=%d] DEDUP DONE — p1=%d p2=%d final=%d",
             content_index, len(facts_p1), len(facts_p2), len(final_facts),
         )
+
+        pass3_enabled = bool(getattr(config, "retain_pass3_enabled", True))
+        pass3_max_facts = int(getattr(config, "retain_pass3_max_facts", 30) or 30)
+        if pass3_enabled and len(final_facts) >= 2 and len(final_facts) <= pass3_max_facts:
+            logger.info("[retain][idx=%d] PASS 3 START — %d facts", content_index, len(final_facts))
+            await _run_pass3(final_facts, llm_config, max_tokens, content_index)
+            logger.info("[retain][idx=%d] PASS 3 END", content_index)
+
         final_chunks = all_chunks_p1 + all_chunks_p2
         return final_facts, final_chunks, usage
 
@@ -1151,6 +1208,16 @@ async def extract_facts_from_contents(
         usage = usage + llm_usage
 
         if llm_facts:
+            offset = len(extracted)
+            if offset > 0:
+                for fact in llm_facts:
+                    for rel in fact.causal_relations:
+                        rel.target_fact_index += offset
+                    for rel in fact.transition_relations:
+                        if rel.target_fact_index is not None:
+                            rel.target_fact_index += offset
+                    for rel in fact.action_effect_relations:
+                        rel.target_fact_index += offset
             extracted.extend(llm_facts)
             chunks.extend(llm_chunks)
             continue

@@ -167,6 +167,18 @@ async def retain_batch(
                 await link_creation.create_transition_links_batch(conn, created_unit_ids, processed_facts)
                 await link_creation.create_causal_links_batch(conn, created_unit_ids, processed_facts)
 
+                # Phase B: cross-session links
+                await link_creation.create_cross_bank_semantic_links_batch(
+                    conn, bank_id, created_unit_ids, embeddings_for_links
+                )
+                cross_entity_links = await entity_processing.build_cross_bank_entity_links(
+                    conn, bank_id, created_unit_ids, processed_facts
+                )
+                await entity_processing.insert_entity_links_batch(conn, cross_entity_links)
+                await link_creation.create_cross_bank_structural_links_batch(
+                    conn, bank_id, created_unit_ids, processed_facts
+                )
+
                 if outbox_callback:
                     await outbox_callback(conn)
 

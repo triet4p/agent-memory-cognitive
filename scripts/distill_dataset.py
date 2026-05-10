@@ -163,6 +163,57 @@ def small_subset_score(item):
     return score, session_gap, conflict_density, entity_overlap
 
 
+def build_lme_eval_set(lme_items, target_total=35):
+    """Build 35-item eval set directly from the full 500-item source.
+
+    Hard types sorted by small_subset_score descending (most discriminating first).
+    Easy types sorted by haystack size ascending (fewer sessions = simpler needle-in-haystack).
+
+    Quotas: MS=8, KU=8, TR=7, single-user=6, single-pref=4, single-assistant=2
+    """
+    quotas = {
+        "multi-session": 8,
+        "knowledge-update": 8,
+        "temporal-reasoning": 7,
+        "single-session-user": 6,
+        "single-session-preference": 4,
+        "single-session-assistant": 2,
+    }
+
+    selected = []
+    selected_ids = set()
+
+    # Hard types: highest complexity score first
+    for q_type in ("multi-session", "knowledge-update", "temporal-reasoning"):
+        candidates = [x for x in lme_items if x.get("question_type") == q_type]
+        candidates.sort(key=lambda x: small_subset_score(x)[0], reverse=True)
+        need = quotas[q_type]
+        for item in candidates:
+            qid = item.get("question_id")
+            if qid in selected_ids:
+                continue
+            selected.append(item)
+            selected_ids.add(qid)
+            if sum(1 for s in selected if s.get("question_type") == q_type) >= need:
+                break
+
+    # Easy types: smallest haystack first (simplest retrieval task)
+    for q_type in ("single-session-user", "single-session-preference", "single-session-assistant"):
+        candidates = [x for x in lme_items if x.get("question_type") == q_type]
+        candidates.sort(key=lambda x: len(x.get("haystack_session_ids", [])))
+        need = quotas[q_type]
+        for item in candidates:
+            qid = item.get("question_id")
+            if qid in selected_ids:
+                continue
+            selected.append(item)
+            selected_ids.add(qid)
+            if sum(1 for s in selected if s.get("question_type") == q_type) >= need:
+                break
+
+    return selected
+
+
 def build_lme_small_subset(lme_items, target_total=12):
     preferred_counts = {
         "multi-session": 5,
@@ -249,33 +300,24 @@ def main():
     if lme_path.exists():
         with open(lme_path, "r", encoding="utf-8") as f:
             lme_data = json.load(f)
-        
-        random.seed(42) # Đảm bảo reproducible
-        random.shuffle(lme_data)
 
-        quotas = {
-            "knowledge-update": scaled_quota(35),
-            "temporal-reasoning": scaled_quota(35),
-            "multi-session": scaled_quota(35),
-            "abstention": scaled_quota(20),
-            "prospective": scaled_quota(15),
-            "single-session": scaled_quota(15),
-        }
-        lme_counts = defaultdict(int)
-        lme_distilled = [item for item in lme_data if is_extremely_hard_lme(item, lme_counts, quotas)]
-        
+        # Build 35-item eval set directly from full 500-item source
+        lme_distilled = build_lme_eval_set(lme_data, target_total=35)
+        distilled_counts = Counter(item.get("question_type", "unknown") for item in lme_distilled)
+        abs_count = sum(1 for item in lme_distilled if item.get("question_id", "").endswith("_abs"))
+
         with open("data/longmemeval_s_distilled.json", "w", encoding="utf-8") as f:
             json.dump(lme_distilled, f, indent=2, ensure_ascii=False)
-        print(f"✅ LongMemEval Distilled: {len(lme_distilled)} samples saved.")
-        print(f"   Breakdown: {dict(lme_counts)}")
-        print(f"   Quotas (scale={scale:.3f}): {quotas}")
+        print(f"[OK] LongMemEval Distilled: {len(lme_distilled)} samples saved.")
+        print(f"   Breakdown: {dict(distilled_counts)}")
+        print(f"   Abstention items (_abs): {abs_count}")
 
-        # 1.1 Tạo tập nhỏ 10-12 conversations, nghiêng mạnh về MS/KU/TR
+        # 1.1 Tạo tập nhỏ 12 conversations từ pool 35 (backward compat với eval_cogmem.py)
         lme_small = build_lme_small_subset(lme_distilled, target_total=12)
         small_counts = Counter(item.get("question_type", "unknown") for item in lme_small)
         with open("data/longmemeval_s_distilled_small.json", "w", encoding="utf-8") as f:
             json.dump(lme_small, f, indent=2, ensure_ascii=False)
-        print(f"✅ LongMemEval Small: {len(lme_small)} conversations saved.")
+        print(f"[OK] LongMemEval Small: {len(lme_small)} conversations saved.")
         print(f"   Small breakdown: {dict(small_counts)}")
 
     # 2. Xử lý LoCoMo
@@ -302,7 +344,7 @@ def main():
             json.dump(locomo_distilled, f, indent=2, ensure_ascii=False)
         
         total_qa = sum(len(s["qa"]) for s in locomo_distilled)
-        print(f"✅ LoCoMo Distilled: {len(locomo_distilled)} convs (full), {total_qa} total QAs saved.")
+        print(f"[OK] LoCoMo Distilled: {len(locomo_distilled)} convs (full), {total_qa} total QAs saved.")
 
 if __name__ == "__main__":
     main()

@@ -9,6 +9,13 @@ from cogmem_api.engine.memory_engine import fq_table
 from . import link_utils
 from .types import EntityLink, ProcessedFact
 
+# Generic pronouns / placeholders that appear in virtually every fact.
+# Including them in entity links creates a near-fully-connected hub that
+# dilutes BFS spreading-activation signal.
+_ENTITY_BLOCKLIST: frozenset[str] = frozenset({
+    "user", "the user", "i", "me", "my", "we", "our",
+})
+
 
 def _normalize_entity_name(entity: str) -> str:
     return entity.strip().lower()
@@ -39,7 +46,7 @@ async def process_entities_batch(
         merged_entities: set[str] = set()
 
         for entity in fact.entities:
-            if entity and entity.strip():
+            if entity and entity.strip() and _normalize_entity_name(entity) not in _ENTITY_BLOCKLIST:
                 merged_entities.add(entity.strip())
 
         if user_entities_per_content:
@@ -69,6 +76,12 @@ async def process_entities_batch(
             f"VALUES ($1::uuid, $2, $3, '{{}}'::jsonb) ON CONFLICT (id) DO NOTHING",
             [(eid, name, bank_id) for eid, name in entity_name_map.items()],
         )
+        if unit_entity_pairs:
+            await conn.executemany(
+                f"INSERT INTO {fq_table('unit_entities')} (unit_id, entity_id) "
+                f"VALUES ($1::uuid, $2::uuid) ON CONFLICT DO NOTHING",
+                unit_entity_pairs,
+            )
 
     links: list[EntityLink] = []
     for entity_id, linked_units in entity_index.items():
@@ -76,6 +89,55 @@ async def process_entities_batch(
             for target_id in linked_units[i + 1 :]:
                 links.append(EntityLink(from_unit_id=source_id, to_unit_id=target_id, entity_id=entity_id))
                 links.append(EntityLink(from_unit_id=target_id, to_unit_id=source_id, entity_id=entity_id))
+
+    return links
+
+
+async def build_cross_bank_entity_links(
+    conn,
+    bank_id: str,
+    new_unit_ids: list[str],
+    new_facts: list[ProcessedFact],
+) -> list[EntityLink]:
+    """Cross-session: for each non-blocked entity in new facts, find existing units
+    in the bank that share that entity and create bidirectional entity links."""
+    if not new_unit_ids or not new_facts:
+        return []
+
+    links: list[EntityLink] = []
+    seen_pairs: set[tuple[str, str]] = set()
+
+    for new_uid, fact in zip(new_unit_ids, new_facts):
+        for entity_name in fact.entities:
+            normalized = _normalize_entity_name(entity_name)
+            if not normalized or normalized in _ENTITY_BLOCKLIST:
+                continue
+
+            entity_id = _resolve_entity_id(bank_id, entity_name)
+
+            if hasattr(conn, "get_entity_unit_ids"):
+                existing_uids = await conn.get_entity_unit_ids(entity_id, new_unit_ids)
+            else:
+                rows = await conn.fetch(
+                    f"""
+                    SELECT DISTINCT unit_id::text AS uid
+                    FROM {fq_table("unit_entities")}
+                    WHERE entity_id = $1::uuid
+                      AND unit_id::text != ALL($2::text[])
+                    """,
+                    entity_id,
+                    new_unit_ids,
+                )
+                existing_uids = [str(row["uid"]) for row in rows]
+
+            for existing_uid in existing_uids:
+                pair = (new_uid, existing_uid)
+                reverse = (existing_uid, new_uid)
+                if pair not in seen_pairs:
+                    seen_pairs.add(pair)
+                    seen_pairs.add(reverse)
+                    links.append(EntityLink(from_unit_id=new_uid, to_unit_id=existing_uid, entity_id=entity_id))
+                    links.append(EntityLink(from_unit_id=existing_uid, to_unit_id=new_uid, entity_id=entity_id))
 
     return links
 

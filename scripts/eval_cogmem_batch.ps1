@@ -2,12 +2,12 @@
 # Runs recall-only pipeline for each conversation index 0-11
 
 param(
-    [string]$VERSION = "v13",
+    [string]$VERSION = "v14",
     [string]$PROFILE_ = "E7",
     [string]$FIXTURE = "longmemeval",
     [int]$TIMEOUT_MS = 15000,
-    [int]$START_INDEX = 0,
-    [int]$END_INDEX = 11
+    [int]$START_INDEX = 10,
+    [int]$END_INDEX = 19
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,7 +31,7 @@ $failed = 0
 
 for ($N = $START_INDEX; $N -le $END_INDEX; $N++) {
     $current++
-    $bankE567 = "COGMEM_EXP_v11_e567_c{0:D3}" -f $N
+    $bankE567 = "COGMEM_EXP__e567_c{0:D3}" -f $N
 
     Write-Host "[$current/$total] ConvIdx=$N | Bank=$bankE567" -ForegroundColor Yellow
 
