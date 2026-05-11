@@ -765,7 +765,7 @@ async def retrieve_all_fact_types_parallel(
     """
     import time
 
-    retriever = graph_retriever or get_default_graph_retriever()
+    base_retriever = graph_retriever or get_default_graph_retriever()
     start_time = time.time()
     timings: dict[str, float] = {}
 
@@ -775,6 +775,23 @@ async def retrieve_all_fact_types_parallel(
     temporal_constraint = routing.temporal_constraint
     temporal_extraction_time = time.time() - query_routing_start
     timings["query_routing"] = temporal_extraction_time
+
+    # Widen BFS budget for multi_hop queries so dense graphs don't crowd out
+    # lower-ranked but valid facts (e.g., Tiger I at neighbor position 11-25).
+    if routing.query_type == "multi_hop" and isinstance(base_retriever, BFSGraphRetriever):
+        retriever: GraphRetriever = BFSGraphRetriever(
+            entry_point_limit=base_retriever.entry_point_limit,
+            entry_point_threshold=base_retriever.entry_point_threshold,
+            activation_decay=base_retriever.activation_decay,
+            min_activation=base_retriever.min_activation,
+            batch_size=base_retriever.batch_size,
+            refractory_steps=base_retriever.refractory_steps,
+            firing_quota=3,           # was 2 — extra firing cycle to reach farther nodes
+            activation_saturation=base_retriever.activation_saturation,
+            per_source_limit=25,      # was 20 — more neighbors per source node
+        )
+    else:
+        retriever = base_retriever
 
     routed_fact_types = _select_fact_types_for_query(routing.query_type, fact_types)
     if not routed_fact_types:

@@ -91,6 +91,7 @@ class BFSGraphRetriever(GraphRetriever):
         refractory_steps: int = 1,
         firing_quota: int = 2,
         activation_saturation: float = 2.0,
+        per_source_limit: int = 20,
     ):
         """
         Initialize BFS graph retriever.
@@ -104,6 +105,7 @@ class BFSGraphRetriever(GraphRetriever):
             refractory_steps: Minimum steps before a node can fire again
             firing_quota: Maximum number of times a node can fire
             activation_saturation: Upper bound (A_max) for node activation
+            per_source_limit: Max neighbors fetched per source node in each batch
         """
         self.entry_point_limit = entry_point_limit
         self.entry_point_threshold = entry_point_threshold
@@ -113,6 +115,7 @@ class BFSGraphRetriever(GraphRetriever):
         self.refractory_steps = max(0, refractory_steps)
         self.firing_quota = max(1, firing_quota)
         self.activation_saturation = max(min_activation, activation_saturation)
+        self.per_source_limit = max(1, per_source_limit)
 
     @property
     def name(self) -> str:
@@ -276,7 +279,7 @@ class BFSGraphRetriever(GraphRetriever):
 
             # Batch fetch neighbors
             if batch_nodes and budget_remaining > 0:
-                max_neighbors = len(batch_nodes) * 20
+                max_neighbors = len(batch_nodes) * self.per_source_limit
                 neighbors = await conn.fetch(
                     f"""
                     SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,

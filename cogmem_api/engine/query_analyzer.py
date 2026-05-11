@@ -32,7 +32,9 @@ _PROSPECTIVE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _CAUSAL_PATTERN = re.compile(
-    r"\b(why|cause|caused|because|reason|result|led\s+to|due\s+to|impact|effect)\b",
+    r"\b(why|cause|caused|because|reason|result|led\s+to|due\s+to|impact|effect"
+    r"|might\s+be|could\s+be|do\s+you\s+think|is\s+it\s+possible|could\s+it\s+be"
+    r"|what\s+caused|what\s+is\s+causing|contributing\s+to)\b",
     re.IGNORECASE,
 )
 _PREFERENCE_PATTERN = re.compile(

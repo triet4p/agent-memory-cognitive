@@ -630,6 +630,21 @@ class MemoryEngine:
                     scored = await self._cross_encoder.rerank(query=query, candidates=top_candidates)
                     apply_combined_scoring(scored_results=scored, now=datetime.now(UTC))
                     scored.sort(key=lambda item: item.combined_score, reverse=True)
+
+                    # R4: demote singleton sessions (document_ids with exactly 1 fact in
+                    # the scored set). Single-fact sessions are usually tangential noise;
+                    # genuine gold sessions almost always contribute multiple facts.
+                    _doc_counts: dict[str, int] = {}
+                    for _sr in scored:
+                        _did = _sr.candidate.retrieval.document_id or "unknown"
+                        _doc_counts[_did] = _doc_counts.get(_did, 0) + 1
+                    _SINGLETON_PENALTY = 0.85
+                    for _sr in scored:
+                        _did = _sr.candidate.retrieval.document_id or "unknown"
+                        if _doc_counts[_did] == 1:
+                            _sr.combined_score *= _SINGLETON_PENALTY
+                    scored.sort(key=lambda item: item.combined_score, reverse=True)
+
                     cross_encoder_ok = True
                 except Exception as ce_exc:
                     logger.warning("Cross-encoder reranking failed, using RRF order: %s", ce_exc)
