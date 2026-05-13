@@ -94,9 +94,14 @@ def build_generation_prompt(
         doc_id = item.get("document_id", "")
         if session_order and doc_id in session_order:
             ordinal, total = session_order[doc_id]
-            recency = "more recent" if ordinal == total else "older" if total > 1 and ordinal == 1 else f"{ordinal}/{total}"
+            if ordinal == total:
+                recency_tag = " (most recent)"
+            elif total > 1 and ordinal == 1:
+                recency_tag = " (oldest)"
+            else:
+                recency_tag = ""
             conv_date = session_date_map.get(doc_id, "")  # type: ignore[union-attr]
-            date_suffix = f" | Session {ordinal}/{total} ({recency}){f' | Date: {conv_date}' if conv_date else ''}"
+            date_suffix = f" | Session {ordinal}/{total}{recency_tag}{f' | Date: {conv_date}' if conv_date else ''}"
         elif session_date_map:
             conv_date = session_date_map.get(doc_id, "")
             if conv_date:
@@ -140,16 +145,15 @@ def build_generation_prompt(
         "- If MEMORIES contain partial information (e.g., some but not all items in a list),",
         "  enumerate what you found and explicitly state the list may be incomplete.",
         "- Do NOT say 'information not available' when partial evidence exists in MEMORIES.",
-        "- For 'how many' questions: if a memory explicitly states a total quantity (e.g. '5 tomato plants'), use that stated number directly — do not recount individual entries. Otherwise, first explicitly list every distinct item found across ALL numbered MEMORIES entries by name or description, then deduplicate by physical object identity: if two or more entries describe the same specific named item at different lifecycle stages (e.g., 'Revell F-15 Eagle kit' mentioned as both 'picked up at a hobby store' and 'completed the build' — these refer to the same kit), count it once. Do NOT collapse different items just because they share a category (e.g., three different pieces of furniture — a bookshelf, a kitchen table, and a coffee table — are three separate items even though they are all furniture). Count what remains after deduplication.",
-        "- If the question asks about multiple categories (e.g., 'X and Y') and one category has no entry in MEMORIES, say 'no information about [category] was found in memory' — do NOT assert that the thing does not exist.",
-        "- Only use a memory to answer a sub-question if that memory explicitly mentions the entity being asked about. Do not use a memory about a different (even related) entity to fill in the answer.",
-        "- If a recalled memory describes an item by a different name or label than the entity in the question (e.g., 'flea market item' vs 'painting', 'portable charger' vs 'power bank'), use context clues from other memories or the question to determine whether they refer to the same thing before concluding no information exists.",
+        "- For 'how many' questions: if a memory explicitly states a total quantity, use that stated number directly — do not recount individual entries. Otherwise, list every distinct item found across ALL numbered MEMORIES, then deduplicate by physical object identity. Two entries refer to the same object if they describe the same physical item — even when one session uses a proper name and another uses a generic description, or when they describe the same object at different lifecycle stages — match by shared attributes (size, type, location, context). Do NOT collapse distinct items just because they belong to the same category. Count what remains after deduplication.",
+        "- If the question asks about multiple categories and one category has no entry in MEMORIES, say 'no information about [category] was found in memory' — do NOT assert that the thing does not exist.",
+        "- Match recalled memories to the question's subject flexibly: if a memory refers to the relevant item by a generic description (e.g., how it was acquired, its appearance, its category, or its location) rather than the exact name used in the question, use all available contextual evidence to determine whether they refer to the same object. Treat the memory as relevant if context supports the match. Only dismiss a memory as irrelevant if it clearly concerns a different entity with no plausible overlap.",
         "- When the question asks for tips, recommendations, or a list of tools/apps/resources: enumerate ALL relevant items mentioned across ALL numbered MEMORIES, not just the first one encountered.",
         "- MEMORIES are listed in order of relevance (most relevant first). For specific suggestions or recommendations, prioritize facts from the top-ranked memories.",
         "- If MEMORIES contain no relevant information at all, say so clearly: 'I don't have information about this in memory.'",
         "- For temporal ordering questions (which happened first/last/earlier/later): a time expression like 'N days/weeks/months ago' means the event with the LARGER number occurred FURTHER in the past and therefore happened FIRST. Apply this logic explicitly before answering.",
-        "- For questions involving specific dates or elapsed time: each memory may show a 'Conversation date' — this is the actual date of that conversation. Relative words like 'today' or 'recently' in a memory refer to that conversation's date, NOT the current date. Use 'Current date' (shown above) minus 'Conversation date' to compute how long ago an event occurred.",
-        "- For knowledge-update questions (current state, most recent preference): when memories from different sessions conflict, prefer the fact labeled 'Session N/N (more recent)' over 'Session 1/N (older)'. Higher session number = more recent conversation. If session labels are absent, prefer the fact with the most recent 'Conversation date'.",
+        "- For questions involving specific dates or elapsed time: each memory may show a 'Conversation date' — this is the actual date of that conversation. Relative words like 'today' or 'recently' in a memory refer to that conversation's date, NOT the current date. For questions asking how long ago an event occurred relative to now: use 'Current date' minus the memory's 'Conversation date'. For questions asking about the gap between two past events: compute the difference between the two relevant 'Conversation dates', not from Current date.",
+        "- For knowledge-update questions (current state, most recent preference): when memories from different sessions conflict, prefer the fact labeled 'Session N/N (most recent)' over 'Session 1/N (oldest)'. Higher session number = more recent conversation. If session labels are absent, prefer the fact with the most recent 'Conversation date'. IMPORTANT: For questions asking about the 'most recent X' or 'latest X', do NOT compute actual event dates from relative phrases like 'recently' or 'last month' — those phrases are anchored to the Conversation date of that session and may predate events discussed in later sessions. Instead, identify which session (highest ordinal / latest Conversation date) contains a fact about X, and treat that session's knowledge as authoritative.",
         "- Cite memories by index, e.g. [1] or [2].",
     ])
 

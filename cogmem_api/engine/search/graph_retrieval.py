@@ -92,6 +92,7 @@ class BFSGraphRetriever(GraphRetriever):
         firing_quota: int = 2,
         activation_saturation: float = 2.0,
         per_source_limit: int = 20,
+        cross_fact_type: bool = False,
     ):
         """
         Initialize BFS graph retriever.
@@ -106,6 +107,9 @@ class BFSGraphRetriever(GraphRetriever):
             firing_quota: Maximum number of times a node can fire
             activation_saturation: Upper bound (A_max) for node activation
             per_source_limit: Max neighbors fetched per source node in each batch
+            cross_fact_type: If True, neighbor traversal ignores fact_type boundary so
+                             activation can flow between world/experience/etc. nodes;
+                             final results are post-filtered back to the target fact_type.
         """
         self.entry_point_limit = entry_point_limit
         self.entry_point_threshold = entry_point_threshold
@@ -116,6 +120,7 @@ class BFSGraphRetriever(GraphRetriever):
         self.firing_quota = max(1, firing_quota)
         self.activation_saturation = max(min_activation, activation_saturation)
         self.per_source_limit = max(1, per_source_limit)
+        self.cross_fact_type = cross_fact_type
 
     @property
     def name(self) -> str:
@@ -204,15 +209,17 @@ class BFSGraphRetriever(GraphRetriever):
         )
 
         if not entry_points:
-            logger.debug(
-                f"[BFS] No entry points found for fact_type={fact_type} (tags={tags}, tags_match={tags_match})"
+            logger.info(
+                f"[BFS] No entry points found for fact_type={fact_type} threshold={self.entry_point_threshold}"
             )
             return []
 
-        logger.debug(
+        logger.info(
             f"[BFS] Found {len(entry_points)} entry points for fact_type={fact_type} "
-            f"(tags={tags}, tags_match={tags_match})"
+            f"threshold={self.entry_point_threshold} per_source={self.per_source_limit} quota={self.firing_quota}"
         )
+        for ep in entry_points:
+            logger.info(f"  [EP] sim={float(ep['similarity']):.4f} doc={ep['document_id']} text={ep['text'][:50]}")
 
         # Step 2: SUM spreading activation with cycle guards.
         # - Refractory: node cannot fire in consecutive steps.
@@ -280,25 +287,44 @@ class BFSGraphRetriever(GraphRetriever):
             # Batch fetch neighbors
             if batch_nodes and budget_remaining > 0:
                 max_neighbors = len(batch_nodes) * self.per_source_limit
-                neighbors = await conn.fetch(
-                    f"""
-                    SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
-                           mu.mentioned_at, mu.fact_type,
-                           mu.document_id, mu.chunk_id,
-                           ml.weight, ml.link_type, ml.from_unit_id
-                     FROM {fq_table("memory_links")} ml
-                     JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
-                     WHERE ml.from_unit_id = ANY($1::uuid[])
-                       AND ml.weight >= $2
-                       AND mu.fact_type = $3
-                     ORDER BY ml.weight DESC
-                     LIMIT $4
-                    """,
-                    batch_nodes,
-                    self.min_activation,
-                    fact_type,
-                    max_neighbors,
-                )
+                if self.cross_fact_type:
+                    neighbors = await conn.fetch(
+                        f"""
+                        SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
+                               mu.mentioned_at, mu.fact_type,
+                               mu.document_id, mu.chunk_id,
+                               ml.weight, ml.link_type, ml.from_unit_id
+                         FROM {fq_table("memory_links")} ml
+                         JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
+                         WHERE ml.from_unit_id = ANY($1::uuid[])
+                           AND ml.weight >= $2
+                         ORDER BY ml.weight DESC
+                         LIMIT $3
+                        """,
+                        batch_nodes,
+                        self.min_activation,
+                        max_neighbors,
+                    )
+                else:
+                    neighbors = await conn.fetch(
+                        f"""
+                        SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
+                               mu.mentioned_at, mu.fact_type,
+                               mu.document_id, mu.chunk_id,
+                               ml.weight, ml.link_type, ml.from_unit_id
+                         FROM {fq_table("memory_links")} ml
+                         JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
+                         WHERE ml.from_unit_id = ANY($1::uuid[])
+                           AND ml.weight >= $2
+                           AND mu.fact_type = $3
+                         ORDER BY ml.weight DESC
+                         LIMIT $4
+                        """,
+                        batch_nodes,
+                        self.min_activation,
+                        fact_type,
+                        max_neighbors,
+                    )
 
                 for n in neighbors:
                     neighbor_id = str(n["id"])
@@ -327,6 +353,12 @@ class BFSGraphRetriever(GraphRetriever):
                     )
 
         results = sorted(results_by_id.values(), key=lambda r: r.activation or 0.0, reverse=True)
+        if self.cross_fact_type and fact_type:
+            before = len(results)
+            results = [r for r in results if r.fact_type == fact_type]
+            logger.info(f"[BFS] cross_fact_type post-filter: {before} → {len(results)} (kept fact_type={fact_type})")
+        logger.info(f"[BFS] fact_type={fact_type}: {len(results)} results, top activations: "
+                    + str([(r.document_id, round(r.activation or 0, 4)) for r in results[:5]]))
 
         # Apply tags filtering (BFS may traverse into memories that don't match tags criteria)
         if tags:

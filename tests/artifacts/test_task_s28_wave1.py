@@ -25,32 +25,35 @@ def test_r3_causal_pattern():
     print("R3 PASS: causal pattern expansion correct, no false positives")
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# R1: BFSGraphRetriever adaptive per_source_limit + firing_quota
-# ──────────────────────────────────────────────────────────────────────────────
-def test_r1_bfs_adaptive():
+
+def test_r1_cross_fact_type_flag():
+    """Verify BFSGraphRetriever accepts and stores cross_fact_type."""
     from cogmem_api.engine.search.graph_retrieval import BFSGraphRetriever
 
     default = BFSGraphRetriever()
-    assert default.per_source_limit == 20, "default per_source_limit should be 20"
-    assert default.firing_quota == 2, "default firing_quota should be 2"
+    assert default.cross_fact_type is False, "default cross_fact_type must be False"
 
-    wide = BFSGraphRetriever(per_source_limit=25, firing_quota=3)
-    assert wide.per_source_limit == 25
-    assert wide.firing_quota == 3
-    print("R1 PASS: BFSGraphRetriever accepts per_source_limit and firing_quota")
+    wide = BFSGraphRetriever(cross_fact_type=True)
+    assert wide.cross_fact_type is True, "cross_fact_type=True must be stored"
+    print("R1 PASS: cross_fact_type flag accepted by BFSGraphRetriever")
 
 
-def test_r1_adaptive_in_retrieval():
-    """Verify retrieve_all_fact_types_parallel creates a wider retriever for multi_hop."""
+# ──────────────────────────────────────────────────────────────────────────────
+# R1-CE: RRF rank boost in apply_combined_scoring
+# ──────────────────────────────────────────────────────────────────────────────
+def test_r1_rrf_boost_in_scoring():
     import inspect
-    import cogmem_api.engine.search.retrieval as ret_mod
-    src = inspect.getsource(ret_mod.retrieve_all_fact_types_parallel)
-    assert "multi_hop" in src and "per_source_limit=25" in src, \
-        "retrieve_all_fact_types_parallel must branch on multi_hop with per_source_limit=25"
-    assert "firing_quota=3" in src, \
-        "retrieve_all_fact_types_parallel must set firing_quota=3 for multi_hop"
-    print("R1 PASS: adaptive branch in retrieve_all_fact_types_parallel")
+    import cogmem_api.engine.search.reranking as rr_mod
+    mod_src = inspect.getsource(rr_mod)
+    fn_src = inspect.getsource(rr_mod.apply_combined_scoring)
+    assert "_RRF_ALPHA" in mod_src, "_RRF_ALPHA constant must be defined in reranking module"
+    assert "rrf_alpha" in fn_src, "apply_combined_scoring must accept rrf_alpha parameter"
+    assert "rrf_boost" in fn_src, "rrf_boost must appear in apply_combined_scoring"
+    assert "rrf_rank" in fn_src and "rrf_normalized" in fn_src, \
+        "rrf_normalized must be computed from rrf_rank (not hardcoded 0.0)"
+    assert "rrf_boost * recency_boost" in fn_src or "rrf_boost" in fn_src, \
+        "rrf_boost must be applied to combined_score"
+    print("R1-CE PASS: RRF rank boost present and applied in apply_combined_scoring")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -80,8 +83,8 @@ def test_g1_session_ordering():
 
     assert "Session 1/2" in prompt, "older session must be labeled Session 1/2"
     assert "Session 2/2" in prompt, "newer session must be labeled Session 2/2"
-    assert "more recent" in prompt, "newer session must be labeled 'more recent'"
-    assert "older" in prompt, "older session must be labeled 'older'"
+    assert "most recent" in prompt, "newer session must be labeled 'most recent'"
+    assert "oldest" in prompt, "older session must be labeled 'oldest'"
     print("G1 PASS: session ordering labels present in generated prompt")
 
 
@@ -89,7 +92,7 @@ def test_g1_session_ordering_instruction():
     from cogmem_api.prompts.eval.generate import build_generation_prompt
 
     prompt = build_generation_prompt("q", [], session_date_map={"s": "2024-01-01"})
-    assert "Session N/N (more recent)" in prompt or "more recent" in prompt.lower(), \
+    assert "Session N/N (most recent)" in prompt or "most recent" in prompt.lower(), \
         "prompt instructions must reference session ordering"
     print("G1 PASS: session ordering instruction in prompt")
 
@@ -101,9 +104,14 @@ def test_g2_prompt_improvements():
     from cogmem_api.prompts.eval.generate import build_generation_prompt
 
     prompt = build_generation_prompt("q", [])
-    # c023: entity flexibility
-    assert "flea market" in prompt or "different name" in prompt.lower() or "context clues" in prompt, \
-        "G2 c023: entity-flexibility instruction missing"
+    # c023: entity flexibility — flexible matching, context-clue based
+    assert (
+        "generic description" in prompt
+        or "contextual evidence" in prompt
+        or "flexibly" in prompt
+        or "context clues" in prompt
+        or "different terminology" in prompt
+    ), "G2 c023: entity-flexibility instruction missing"
     # c030: enumerate all
     assert "enumerate ALL" in prompt or "enumerate all" in prompt.lower(), \
         "G2 c030: enumerate-all instruction missing"

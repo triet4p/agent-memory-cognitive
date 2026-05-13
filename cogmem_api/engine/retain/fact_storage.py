@@ -152,10 +152,11 @@ async def get_facts(
     *,
     keyword: str | None = None,
     fact_type: str | None = None,
+    document_id: str | None = None,
     limit: int = 100,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """Query memory units by keyword (text search) and/or fact_type filter."""
+    """Query memory units by keyword (text search), fact_type, and/or document_id filter."""
     conditions = ["bank_id = $1"]
     params: list[Any] = [bank_id]
     param_idx = 2
@@ -168,6 +169,11 @@ async def get_facts(
     if fact_type:
         conditions.append(f"fact_type = ${param_idx}")
         params.append(fact_type)
+        param_idx += 1
+
+    if document_id:
+        conditions.append(f"document_id = ${param_idx}")
+        params.append(document_id)
         param_idx += 1
 
     params.extend([limit, offset])
@@ -270,6 +276,86 @@ def _row_to_fact_dict(row) -> dict[str, Any]:
         "metadata": row["metadata"],
         "tags": row["tags"] or [],
         "embedding": row["embedding"],
+    }
+
+
+async def search_relationships(
+    conn,
+    bank_id: str,
+    *,
+    keyword: str | None = None,
+    link_type: str | None = None,
+    from_fact_type: str | None = None,
+    to_fact_type: str | None = None,
+    limit: int = 200,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Search memory_links with optional filters on keyword, link_type, and fact_types.
+
+    keyword: substring matched (case-insensitive) against from_text OR to_text.
+    link_type: exact match on ml.link_type (entity, semantic, causal, temporal, s_r_link, a_o_causal, transition).
+    from_fact_type: exact match on source fact type.
+    to_fact_type: exact match on target fact type.
+    """
+    conditions = ["mu_from.bank_id = $1", "mu_to.bank_id = $1"]
+    params: list = [bank_id]
+
+    if link_type:
+        params.append(link_type)
+        conditions.append(f"ml.link_type = ${len(params)}")
+
+    if from_fact_type:
+        params.append(from_fact_type)
+        conditions.append(f"mu_from.fact_type = ${len(params)}")
+
+    if to_fact_type:
+        params.append(to_fact_type)
+        conditions.append(f"mu_to.fact_type = ${len(params)}")
+
+    if keyword:
+        params.append(f"%{keyword}%")
+        idx = len(params)
+        conditions.append(
+            f"(mu_from.text ILIKE ${idx} OR mu_to.text ILIKE ${idx}"
+            f" OR mu_from.document_id ILIKE ${idx} OR mu_to.document_id ILIKE ${idx})"
+        )
+
+    where = " AND ".join(conditions)
+    params += [limit, offset]
+    lim_idx = len(params) - 1
+    off_idx = len(params)
+
+    query = f"""
+        SELECT ml.from_unit_id::text, ml.to_unit_id::text, ml.link_type,
+               ml.transition_type, ml.weight,
+               mu_from.text AS from_text, mu_from.fact_type AS from_fact_type,
+               mu_from.document_id AS from_document_id,
+               mu_to.text AS to_text, mu_to.fact_type AS to_fact_type,
+               mu_to.document_id AS to_document_id
+        FROM {fq_table("memory_links")} ml
+        JOIN {fq_table("memory_units")} mu_from ON mu_from.id = ml.from_unit_id
+        JOIN {fq_table("memory_units")} mu_to ON mu_to.id = ml.to_unit_id
+        WHERE {where}
+        ORDER BY ml.weight DESC
+        LIMIT ${lim_idx} OFFSET ${off_idx}
+    """
+    rows = await conn.fetch(query, *params)
+    return [_row_to_link_dict_extended(row) for row in rows]
+
+
+def _row_to_link_dict_extended(row) -> dict[str, Any]:
+    return {
+        "from_unit_id": row["from_unit_id"],
+        "from_document_id": row.get("from_document_id"),
+        "from_fact_type": row["from_fact_type"],
+        "from_text": row["from_text"],
+        "to_unit_id": row["to_unit_id"],
+        "to_document_id": row.get("to_document_id"),
+        "to_fact_type": row["to_fact_type"],
+        "to_text": row["to_text"],
+        "link_type": row["link_type"],
+        "transition_type": row["transition_type"],
+        "weight": float(row["weight"]) if row["weight"] is not None else None,
     }
 
 

@@ -14,6 +14,10 @@ UTC = timezone.utc
 # so the max combined boost is (1 + alpha/2)^2 ≈ +21% and min is (1 - alpha/2)^2 ≈ -19%.
 _RECENCY_ALPHA: float = 0.2
 _TEMPORAL_ALPHA: float = 0.2
+# RRF rank boost: reciprocal form 1/(1+rank) rewards top-ranked candidates from the
+# merged RRF pool, re-incorporating channel contribution signals (especially graph BFS)
+# that CE vocabulary mismatch would otherwise suppress.
+_RRF_ALPHA: float = 1.5
 
 
 def apply_combined_scoring(
@@ -21,19 +25,19 @@ def apply_combined_scoring(
     now: datetime,
     recency_alpha: float = _RECENCY_ALPHA,
     temporal_alpha: float = _TEMPORAL_ALPHA,
+    rrf_alpha: float = _RRF_ALPHA,
 ) -> None:
     """Apply combined scoring to a list of ScoredResults in-place.
 
-    Uses the cross-encoder score as the primary relevance signal, with recency
-    and temporal proximity applied as multiplicative boosts. This ensures the
-    influence of these secondary signals is always proportional to the base
-    relevance score, regardless of the cross-encoder model's score calibration.
+    Uses the cross-encoder score as the primary relevance signal, with recency,
+    temporal proximity, and RRF rank applied as multiplicative boosts.
 
     Formula::
 
-        recency_boost  = 1 + recency_alpha  * (recency  - 0.5)   # in [1-α/2, 1+α/2]
-        temporal_boost = 1 + temporal_alpha * (temporal - 0.5)   # in [1-α/2, 1+α/2]
-        combined_score = cross_encoder_score_normalized * recency_boost * temporal_boost
+        rrf_boost      = 1 + rrf_alpha     / (1 + rrf_rank)       # convex decay; rank 0→max, rank 300→~1
+        recency_boost  = 1 + recency_alpha  * (recency  - 0.5)    # in [1-α/2, 1+α/2]
+        temporal_boost = 1 + temporal_alpha * (temporal - 0.5)    # in [1-α/2, 1+α/2]
+        combined_score = CE_normalized * rrf_boost * recency_boost * temporal_boost
 
     Temporal proximity is treated as neutral (0.5) when not set by temporal retrieval,
     so temporal_boost collapses to 1.0 for non-temporal queries.
@@ -43,6 +47,7 @@ def apply_combined_scoring(
         now: Current UTC datetime for recency calculation.
         recency_alpha: Max relative recency adjustment (default 0.2 → ±10%).
         temporal_alpha: Max relative temporal adjustment (default 0.2 → ±10%).
+        rrf_alpha: RRF rank boost strength (default 1.5; rank-6 → +21%, rank-15 → +9%).
     """
     if now.tzinfo is None:
         now = now.replace(tzinfo=UTC)
@@ -60,13 +65,15 @@ def apply_combined_scoring(
         # Temporal proximity: meaningful only for temporal queries; neutral otherwise.
         sr.temporal = sr.retrieval.temporal_proximity if sr.retrieval.temporal_proximity is not None else 0.5
 
-        # RRF: kept at 0.0 for trace continuity but excluded from scoring.
-        # RRF is batch-relative (min-max normalised) and redundant after reranking.
-        sr.rrf_normalized = 0.0
+        # RRF rank boost: reciprocal of (1 + rrf_rank) re-incorporates channel contribution
+        # (especially graph BFS activation) that CE vocabulary mismatch can suppress.
+        rrf_normalized = 1.0 / (1.0 + sr.candidate.rrf_rank)
+        sr.rrf_normalized = rrf_normalized
+        rrf_boost = 1.0 + rrf_alpha * rrf_normalized
 
         recency_boost = 1.0 + recency_alpha * (sr.recency - 0.5)
         temporal_boost = 1.0 + temporal_alpha * (sr.temporal - 0.5)
-        sr.combined_score = sr.cross_encoder_score_normalized * recency_boost * temporal_boost
+        sr.combined_score = sr.cross_encoder_score_normalized * rrf_boost * recency_boost * temporal_boost
         sr.weight = sr.combined_score
 
 

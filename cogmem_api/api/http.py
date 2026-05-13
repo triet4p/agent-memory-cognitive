@@ -466,7 +466,10 @@ def create_app(
     @app.get(
         "/v1/default/banks/{bank_id}/facts",
         summary="List facts with optional filters",
-        description="Returns memory units filtered by keyword and/or fact type, with pagination.",
+        description=(
+            "Returns memory units filtered by keyword, fact_type, and/or document_id (session ID), "
+            "with pagination. document_id matches the session identifier stored on each memory unit."
+        ),
         operation_id="list_facts",
         tags=["Memory"],
     )
@@ -474,6 +477,7 @@ def create_app(
         bank_id: str,
         keyword: str | None = None,
         type: str | None = None,
+        document_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
@@ -490,6 +494,7 @@ def create_app(
                 bank_id,
                 keyword=keyword,
                 fact_type=type,
+                document_id=document_id,
                 limit=limit,
                 offset=offset,
             )
@@ -539,6 +544,47 @@ def create_app(
 
         async with acquire_with_retry(pool) as conn:
             links = await get_relationships(conn, bank_id, limit=limit, offset=offset)
+        return links
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/relationships/search",
+        summary="Search relationships with filters",
+        description=(
+            "Filter memory links by keyword (matched on from/to text or document_id), "
+            "link_type (entity, semantic, causal, temporal, s_r_link, a_o_causal, transition), "
+            "from_fact_type, and/or to_fact_type. "
+            "Useful for debugging graph structure without full pagination."
+        ),
+        operation_id="search_relationships",
+        tags=["Memory"],
+    )
+    async def search_relationships(
+        bank_id: str,
+        keyword: str | None = None,
+        link_type: str | None = None,
+        from_fact_type: str | None = None,
+        to_fact_type: str | None = None,
+        limit: int = 200,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        pool = app.state.memory.pool
+        if pool is None:
+            raise HTTPException(status_code=503, detail="Database pool not initialized")
+
+        from cogmem_api.engine.db_utils import acquire_with_retry
+        from cogmem_api.engine.retain.fact_storage import search_relationships as _search_rels
+
+        async with acquire_with_retry(pool) as conn:
+            links = await _search_rels(
+                conn,
+                bank_id,
+                keyword=keyword,
+                link_type=link_type,
+                from_fact_type=from_fact_type,
+                to_fact_type=to_fact_type,
+                limit=limit,
+                offset=offset,
+            )
         return links
 
     @app.get(

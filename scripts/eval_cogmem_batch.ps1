@@ -6,14 +6,14 @@ param(
     [string]$PROFILE_ = "E7",
     [string]$FIXTURE = "longmemeval",
     [int]$TIMEOUT_MS = 15000,
-    [int]$START_INDEX = 10,
-    [int]$END_INDEX = 19
+    [int]$START_INDEX = 0,
+    [int]$END_INDEX = 34
 )
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "Continue"
 
-$CHECKPOINT_DIR = "experiments/${VERSION}/checkpoints"
+$CHECKPOINT_DIR = "experiments/${VERSION}/checkpoints_5"
 $OUTPUT_DIR = "experiments/${VERSION}/"
 
 Write-Host "=== CogMem Batch Eval ===" -ForegroundColor Cyan
@@ -31,7 +31,11 @@ $failed = 0
 
 for ($N = $START_INDEX; $N -le $END_INDEX; $N++) {
     $current++
-    $bankE567 = "COGMEM_EXP__e567_c{0:D3}" -f $N
+    if ($VERSION -eq "v14" -and $N -ge 10 -and $N -le 19) {
+        $bankE567 = "COGMEM_EXP__e567_c{0:D3}" -f $N
+    } else {
+        $bankE567 = "COGMEM_EXP_${VERSION}_e567_c{0:D3}" -f $N
+    }
 
     Write-Host "[$current/$total] ConvIdx=$N | Bank=$bankE567" -ForegroundColor Yellow
 
