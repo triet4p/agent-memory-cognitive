@@ -13,7 +13,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "Continue"
 
-$CHECKPOINT_DIR = "experiments/${VERSION}/checkpoints_5"
+$CHECKPOINT_DIR = "experiments/${VERSION}/checkpoints-s29-wave2a"
 $OUTPUT_DIR = "experiments/${VERSION}/"
 
 Write-Host "=== CogMem Batch Eval ===" -ForegroundColor Cyan

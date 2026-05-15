@@ -38,7 +38,13 @@ _CAUSAL_PATTERN = re.compile(
     re.IGNORECASE,
 )
 _PREFERENCE_PATTERN = re.compile(
-    r"\b(prefer|preference|favorite|favourite|like|dislike|love|hate|usually\s+choose)\b",
+    r"\b(prefer|preference|favorite|favourite|like|dislike|love|hate|usually\s+choose"
+    r"|any\s+tips|helpful\s+tips"
+    r"|what\s+(?:should|would|do)\s+you\s+recommend"
+    r"|remind\s+me\s+(?:of|about)"
+    r"|wondering\s+if"
+    r"|thinking\s+of\s+\w+ing"
+    r"|do\s+you\s+have)\b",
     re.IGNORECASE,
 )
 _MULTI_HOP_PATTERN = re.compile(
@@ -47,6 +53,10 @@ _MULTI_HOP_PATTERN = re.compile(
 )
 _TEMPORAL_HINT_PATTERN = re.compile(
     r"\b(when|today|yesterday|last|week|month|year|morning|afternoon|night|ago|before|after|during)\b",
+    re.IGNORECASE,
+)
+_TEMPORAL_ANCHOR_PATTERN = re.compile(
+    r"\b(ago|since)\b",
     re.IGNORECASE,
 )
 
@@ -104,7 +114,12 @@ def classify_query_type(query: str, temporal_constraint: TemporalConstraint | No
         return "causal"
     if _PREFERENCE_PATTERN.search(text):
         return "preference"
-    if _MULTI_HOP_PATTERN.search(text):
+    # Strong temporal anchors (ago, since) take priority over multi_hop.
+    # c019: "How many days ago..." -> temporal, not multi_hop.
+    mh_match = _MULTI_HOP_PATTERN.search(text)
+    if mh_match and _TEMPORAL_ANCHOR_PATTERN.search(text):
+        return "temporal"
+    if mh_match:
         return "multi_hop"
     if _TEMPORAL_HINT_PATTERN.search(text):
         return "temporal"

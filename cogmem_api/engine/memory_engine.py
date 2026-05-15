@@ -645,6 +645,35 @@ class MemoryEngine:
                             _sr.combined_score *= _SINGLETON_PENALTY
                     scored.sort(key=lambda item: item.combined_score, reverse=True)
 
+                    # C-1: Multi-channel-strong CE floor — promote consensus-strong facts
+                    # that were suppressed by extreme CE scores into the top-k window.
+                    # Rule: semantic_rank <= 5 AND bm25_rank <= 10 AND graph_rank <= 10
+                    # -> force final rank <= top_k (or 15 if top_k is None).
+                    # Uses the recall's top_k so the floor matches COGMEM_API_EVAL_RECALL_TOP_K env var.
+                    _CONSENSUS_FLOOR_RANK = top_k if top_k is not None else 15
+                    if len(scored) > _CONSENSUS_FLOOR_RANK:
+                        _ce_promotions = 0
+                        for _sr in scored:
+                            _raw = _sr.candidate.source_ranks
+                            _sem = _raw.get("semantic_rank")
+                            _bm = _raw.get("bm25_rank")
+                            _gr = _raw.get("graph_rank")
+                            if _sem is not None and _bm is not None and _gr is not None:
+                                if _sem <= 5 and _bm <= 10 and _gr <= 10:
+                                    _ce_promotions += 1
+                        if _ce_promotions > 0:
+                            _threshold = scored[_CONSENSUS_FLOOR_RANK - 1].combined_score
+                            for _sr in scored:
+                                _raw = _sr.candidate.source_ranks
+                                _sem = _raw.get("semantic_rank")
+                                _bm = _raw.get("bm25_rank")
+                                _gr = _raw.get("graph_rank")
+                                if _sem is not None and _bm is not None and _gr is not None:
+                                    if _sem <= 5 and _bm <= 10 and _gr <= 10:
+                                        if _sr.combined_score < _threshold:
+                                            _sr.combined_score = _threshold * 1.01
+                            scored.sort(key=lambda item: item.combined_score, reverse=True)
+
                     cross_encoder_ok = True
                 except Exception as ce_exc:
                     logger.warning("Cross-encoder reranking failed, using RRF order: %s", ce_exc)

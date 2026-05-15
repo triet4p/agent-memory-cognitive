@@ -286,14 +286,14 @@ End-to-end:
 
 | Gate | Condition | Status |
 |------|-----------|--------|
-| W2A-R1 | `_PREFERENCE_PATTERN` expanded; static sweep 35 queries — only c030/c031/c032/c033 reclassify | 🔄 Pending |
-| W2A-R2 | temporal before multi_hop; c019 reclassifies | 🔄 Pending |
-| W2A-G1 | persona-separation instruction in generate.py | 🔄 Pending |
-| W2A-G2 | scale-variant collapse instruction in generate.py | 🔄 Pending |
-| W2A-G3 | day-arithmetic instruction in generate.py | 🔄 Pending |
-| W2A-G4 | entity-aliasing instruction strengthened in generate.py | 🔄 Pending |
-| W2A-C1 | consensus floor post-CE re-rank implemented | 🔄 Pending |
-| W2A-artifact | test_task_s29_wave2a.py: all static checks PASS | 🔄 Pending |
+| W2A-R1 | `_PREFERENCE_PATTERN` expanded; static sweep 35 queries — only c030/c031/c032/c033 reclassify | ✅ Done |
+| W2A-R2 | temporal before multi_hop; c019 reclassifies | ✅ Done |
+| W2A-G1 | persona-separation instruction in generate.py | ✅ Done |
+| W2A-G2 | scale-variant collapse instruction in generate.py | ✅ Done |
+| W2A-G3 | day-arithmetic instruction in generate.py | ✅ Done |
+| W2A-G4 | entity-aliasing instruction strengthened in generate.py | ✅ Done |
+| W2A-C1 | consensus floor post-CE re-rank implemented | ✅ Done |
+| W2A-artifact | test_task_s29_wave2a.py: all static checks PASS | ✅ Done |
 | W2A-eval | ≥27/35 PASS on v14 banks (no PASS-case regression) | 🔄 Pending |
 | W2B-T1 | retain prompt updated; unit test on 3 sessions extracts Luna/power-bank/Memrise/Celeste-10h/Jen | 🔄 Pending |
 | W2B-T2 | entity blocklist updated; generic nouns blocked | 🔄 Pending |
