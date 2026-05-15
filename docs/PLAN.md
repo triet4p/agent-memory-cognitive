@@ -32,11 +32,12 @@ Mục tiêu điều phối:
 - S26 (recall quality + channel trace + generation prompt): Pending 🔄
 - S27 (relationship completeness): Pending 🔄
 - S28 Wave 1 (recall + generation fixes, no re-retain): ✅ Done — R1-CE, R3, R4, G1, G2
-- S28-Diag (systematic diagnostic toàn bộ 35 cases trước Wave-2): 🔄 In progress — `cogmem-audit` skill built
-- S28 Wave 2 (R2+R2b+T1+G3+G4, v15 banks): Pending 🔄
+- S28-Diag (audit + diagnose): Systematic diagnostic trước Wave-2 | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md)
+- S29 (Wave 2A: R-1/R-2/G-1..G-4/C-1 routing+generation fixes, no re-retain): Pending 🔄
+- S29 (Wave 2B: T-1/T-2/G-5/G-6 retain+graph fixes, v15 re-retain): Pending 🔄
 - S-final (E1-E7 ablation dry run): Pending 🔄
 
-**Next immediate action:** Run `cogmem-audit` trên toàn bộ 35 cases (c000–c034) → root cause map + statistical comparison PASS vs FAIL → sau đó Wave-2 (R2+R2b+T1+G3+G4 cùng lúc, cần re-retain v15).
+**Next immediate action:** S29 Wave 2A — implement routing & generation fixes (R-1, R-2, G-1..G-4, C-1) on existing v14 banks. Target: ≥27 PASS gate. Full plan in [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md).
 
 ---
 
@@ -86,8 +87,11 @@ Mục tiêu điều phối:
 | S26 | Recall quality: query routing fix, 4-channel trace, generation prompt | 786-788 | ✅ Done | [s26-recall-quality.md](sprint-plans/s26-recall-quality.md) |
 | S27 | Relationship completeness: entity blocklist + cross-session links + Pass 3 | 789-793 | ✅ Done | [s27-relationship-completeness.md](sprint-plans/s27-relationship-completeness.md) |
 | S28 Wave 1 | R1-CE (RRF boost), R3 (causal routing), R4 (singleton penalty), G1 (session order), G2 (prompt) | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
-| S28-Diag | Systematic diagnostic: cogmem-audit skill, 35 cases → root cause map + PASS vs FAIL comparison trước Wave-2 | — | 🔄 In progress | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
-| S28 Wave 2 | R2+R2b+T1 (recall/retain fixes) + G3+G4 (generation fixes) + v15 re-retain | — | 🔄 Pending | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
+| S28-Diag Part 1 | cogmem-audit: audit 35 cases → per-case reports | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
+| S28-Diag Part 2 | cogmem-verify: verify which cases are truly PASS/FAIL vs expected | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
+| S28-Diag Part 3 | cogmem-diagnose: classify failure types + PASS/FAIL comparison → Wave-2 priority | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
+| S29 Wave 2A | R-1/R-2 (routing), G-1..G-4 (generation), C-1 (CE floor) — no re-retain, v14 banks | — | 🔄 Pending | [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md) |
+| S29 Wave 2B | T-1 (retain prompt), T-2 (entity blocklist), G-5 (semantic cap), G-6 (temporal weights) — v15 re-retain | — | 🔄 Pending | [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md) |
 | S-final | Full ablation dry run gate (E1-E7) | 761-763 | 🔄 Pending | [s-final-ablation.md](sprint-plans/s-final-ablation.md) |
 
 ---
@@ -111,12 +115,14 @@ Sprint 0 → S7 + Backfill B1-B5 (tasks 001-703)
 → S26 (tasks 786-788)
 → S27 (tasks 789-793)
 → S28 Wave 1 ✅
+→ S28-Diag Parts 1-3 ✅ (audit + verify + diagnose — 24/35 PASS confirmed, 11 FAIL classified)
+→ S28 Wave 2: MOVED TO S29 (re-scoped into 11 targeted fixes, Wave 2A + Wave 2B)
 ```
 
 ### 🔄 Remaining (in order)
 ```
-S28-Diag: Run cogmem-audit on 11 FAIL cases → root cause map
-→ S28 Wave 2: R2+R2b+T1 (recall/retain) + G3+G4 (generation) + v15 re-retain
+→ S29 Wave 2A: R-1/R-2 (routing) + G-1..G-4 (generation) + C-1 (CE floor) on v14 banks
+→ S29 Wave 2B: T-1/T-2 (retain+entity) + G-5/G-6 (link creation) → v15 re-retain
 → S-final (tasks 761-763): Full Ablation Dry Run Gate
 ```
 

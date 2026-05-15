@@ -2,8 +2,8 @@
 
 **Trạng thái:**
 - Wave 1: ✅ Done — R1-CE, R3, R4, G1, G2
-- S28-Diag: 🔄 In progress — `cogmem-audit` skill built, chờ chạy trên toàn bộ 35 cases
-- Wave 2: 🔄 Pending (R2+R2b+T1+G3+G4, cần re-retain v15, sau Diag)
+- S28-Diag Parts 1-3: ✅ Done — audit (35 reports) + verify (VERDICTS.md) + diagnose (DIAGNOSIS.md)
+- Wave 2: 🔄 PAUSED — re-plan after diagnostic analysis. Key findings: 24/35 PASS confirmed, 11 FAIL classified by root cause. Cross-session entity link over-bridging + BM25 gap are primary blockers.
 
 **Phụ thuộc:** S27 complete ✅
 
@@ -33,7 +33,12 @@
 
 ## Diagnostic Sprint — S28-Diag 🔄
 
-**Mục tiêu:** Chạy audit trên toàn bộ 35 cases (c000–c034) để có dữ liệu thực nghiệm đầy đủ trước Wave-2. Không chỉ FAIL — PASS cases cũng cần audit để hiểu điều gì đang hoạt động đúng và tránh regression. Sau đó tổng hợp root cause map + statistical comparison PASS vs FAIL → thiết kế Wave-2 fix đúng hướng.
+**Trạng thái:**
+- Part 1 (cogmem-audit): ✅ Done — 35 reports in `diagnostic_s28/`
+- Part 2 (cogmem-verify): ✅ Done — VERDICTS.md (24 PASS, 11 FAIL, 0 Missing)
+- Part 3 (cogmem-diagnose): ✅ Done — DIAGNOSIS.md (281 lines, 11 FAIL classified by root cause)
+
+**Mục tiêu:** Chạy audit trên toàn bộ 35 cases (c000–c034) để có dữ liệu thực nghiệm đầy đủ trước Wave-2. Không chỉ FAIL — PASS cases cũng cần audit để hiểu điều gì đang hoạt động đúng và tránh regression.
 
 **Công cụ:** `cogmem-audit` skill tại `.claude/skills/cogmem-audit/`
 
@@ -49,7 +54,49 @@
 **API changes supporting S28-Diag:**
 - `GET /v1/default/banks/{bank_id}/facts?document_id={session_id}&limit=100` — filter facts by session ID (mới thêm 2026-05-13 vào `fact_storage.py` và `http.py`)
 
-**Output:** `experiments/v14/diagnostic_s28/` — per-case reports + SUMMARY.md với root cause frequency table
+**Output Part 1:** `experiments/v14/diagnostic_s28/` — per-case reports + SUMMARY.md với root cause frequency table
+
+---
+
+### S28-Diag Part 2 — cogmem-verify 🔄
+
+**Công cụ:** `cogmem-verify` skill tại `.claude/skills/cogmem-verify/`
+
+**Mục tiêu:** Xác định chính xác case nào là **truly PASS** (eval correct + recall correct), **truly FAIL** (eval wrong vì recall hoặc generation issue), hoặc **mislabeled** (eval PASS nhưng recall miss — có thể là eval lucky). Dùng checkpoint gold answers để verify recall quality per case.
+
+**Input:** `experiments/v14/checkpoints_5/` (gold answers)
+
+**Output:** `experiments/v14/diagnostic_s28/verification.md`:
+- Table: case_id | eval_result | recall_evidence | truly_pass/truly_fail/mislabeled
+- Phân biệt: recall miss vs generation error vs eval lucky
+
+**Flow verify:**
+1. Load eval result từ checkpoint
+2. Kiểm tra recall evidence cho mỗi case (top-25 recall quality)
+3. So sánh eval result vs recall evidence
+4. Classify: truly_pass / truly_fail / mislabeled
+
+---
+
+### S28-Diag Part 3 — cogmem-diagnose 🔄
+
+**Công cụ:** `cogmem-diagnose` skill tại `.claude/skills/cogmem-diagnose/`
+
+**Mục tiêu:** Dựa trên Part 1 (audit reports) + Part 2 (verified PASS/FAIL classification), chạy diagnose trên các FAIL cases để phân loại failure types và xác định Wave-2 fix priority. Có thể chạy trên cả PASS cases nếu cần.
+
+**Input:** `experiments/v14/diagnostic_s28/` (Part 1 audit reports + Part 2 verification.md) + `experiments/v14/checkpoints_5/` (gold answers)
+
+**Output:** `experiments/v14/diagnostic_s28/DIAGNOSIS.md`:
+- Failure type classification table (embedding gap, graph isolation, recall fail, generation error)
+- PASS vs FAIL discriminating factors
+- Wave-2 fix recommendations prioritized by impact
+
+**Flow chẩn đoán:**
+1. Load verified results từ Part 2 + audit reports từ Part 1
+2. For each truly_fail case → classify root cause type
+3. Aggregate frequency table
+4. Compare truly_pass vs truly_fail cases → identify discriminating factors
+5. Draft Wave-2 fix recommendations
 
 ---
 
@@ -138,67 +185,15 @@
 
 ---
 
-## Wave 2 — Cần re-retain (v15) 🔄
+## Wave 2 — MOVED TO S29
 
-> **Dependency:** Chạy S28-Diag trước để xác nhận root cause, sau đó implement toàn bộ Wave-2 (R2+R2b+T1+G3+G4) cùng lúc trước khi re-retain.
+All Wave 2 tasks have been re-scoped and moved to a separate sprint **S29** based on S28-Diag findings. See [s29-recall-retain-routing-generation-quality.md](s29-recall-retain-routing-generation-quality.md).
 
-### Task G3 — Scale Variant Dedup Instruction
-
-**File:** `cogmem_api/prompts/eval/generate.py`
-
-**Target:** c001 — model đếm Revell F-15 Eagle 1/72 và 1/48 là 2 kits riêng → tổng 6 thay vì 5.
-
-**Thay đổi:** Thêm instruction: "When counting model kits or similar items, scale versions of the same kit name (e.g., 1/72 and 1/48 of the same model) count as one kit unless the user explicitly purchased both separately."
-
----
-
-### Task G4 — Explicit-Instance Counting Instruction
-
-**File:** `cogmem_api/prompts/eval/generate.py`
-
-**Target:** c000 — model đếm 5 projects thay vì 2, vì tính cả general leadership role facts.
-
-**Thay đổi:** Thêm instruction: "When counting distinct projects or events, count only instances where the user explicitly identifies a specific named project they personally led or managed. General statements about the user's role or responsibilities do not count as separate projects."
-
----
-
-### Task R2 — Cross-Session Semantic Threshold Tighten
-
-**File:** `cogmem_api/engine/retain/link_creation.py`
-
-**Root cause:** S27 threshold=0.6 tạo quá nhiều cross-session semantic links → BFS budget bị phân tán → Tiger I activation yếu (rrf_rank tăng từ 13→18 so với v11), noise session c007 được activated cao.
-
-**Thay đổi:** `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD` default 0.6 → **0.75**.
-
-**Expected impact:**
-- c001: Tiger I rrf_rank 18 → giảm cross-session competition → về ~13 → kết hợp R1-CE boost vào top-25
-- c007: `81b971b8_2` wedding session mất cross-session link → drop khỏi top-25
-
-**Cần re-retain toàn bộ → v15 banks.**
-
----
-
-### Task R2b — Entity Extraction: Model Kit Names (Wave-2)
-
-**File:** `cogmem_api/prompts/retain/pass1.py`
-
-**Root cause:** Thiếu entity link "Tiger I tank" nối AK Interactive fact và Tiger I diorama fact trong session `_3` → BFS không lan activation từ entry point sang Tiger I.
-
-**Thay đổi:** Thêm extraction guideline: "For hobby/collecting facts, extract specific product model names, brand names, and item identifiers as named entities. These should be consistent across facts referencing the same product."
-
-**Verify:** Sau re-retain, CURL `GET /relationships/search?keyword=Tiger+I` để confirm entity links tồn tại.
-
----
-
-### Task T1 — Retain Assistant Recommendations (c033)
-
-**File:** `cogmem_api/prompts/retain/pass1.py`
-
-**Root cause:** "Memrise" (assistant recommendation) không có trong bank — retain fail, không phải recall fail.
-
-**Thay đổi:** Extraction guideline: "Also extract factual recommendations, app names, or tool names provided by the assistant that the user would benefit from remembering."
-
-**Fact type:** `world` (third-party factual info).
+Diagnostic confirmed:
+- 24/35 PASS (confirmed working)
+- 11/35 FAIL classified by root cause (8 mechanisms)
+- Primary blockers: cross-session entity over-bridging (generic nouns treated as entities), BM25 gap for specific named products, temporal link weight uniformity, preference routing blind spot
+- S29 scope: 11 targeted fixes (R-1, R-2, G-1..G-4, C-1, T-1, T-2, G-5, G-6) split into Wave 2A (no re-retain) and Wave 2B (v15 re-retain). Target: ≥32/35 PASS.
 
 ---
 
@@ -207,10 +202,12 @@
 | Gate | Condition | Status |
 |------|-----------|--------|
 | W1-artifact | 7/7 artifact checks PASS | ✅ |
-| W1-G3 | G3 instruction added + test | 🔄 |
-| W1-G4 | G4 instruction added + test | 🔄 |
-| W2-R2 | threshold 0.75 implemented | 🔄 |
-| W2-retain | v15 banks re-retained | 🔄 |
-| W2-eval | Full batch ≥ 30/35 true PASS | 🔄 |
-| verify-c014 | Generate endpoint trả lời 120 (không phải 125) | 🔄 |
-| verify-c001 | Tiger I xuất hiện trong top-25 cho eval query | 🔄 |
+| W1-G1 | Session ordering in generation prompt | ✅ |
+| W1-G2 | Generation prompt improvements (c023/c030/c032) | ✅ |
+| W1-R1-CE | RRF rank boost in scoring | ✅ |
+| W1-R3 | Causal pattern expansion | ✅ |
+| W1-R4 | Singleton session penalty | ✅ |
+| Diag-Part1 | cogmem-audit: 35 case reports generated | ✅ |
+| Diag-Part2 | cogmem-verify: VERDICTS.md (24 PASS / 11 FAIL confirmed) | ✅ |
+| Diag-Part3 | cogmem-diagnose: DIAGNOSIS.md (281 lines, root cause classified) | ✅ |
+| W2-plan | Wave 2 re-scoped → moved to S29 | ✅ |
