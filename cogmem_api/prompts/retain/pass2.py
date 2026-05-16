@@ -54,6 +54,13 @@ FACT TYPE GUIDE:
    {{"fact_type":"opinion","what":"User likes the Spa-Inspired Retreat bathroom style","entities":[],"confidence":0.7}}
    {{"fact_type":"opinion","what":"User believes Tamiya is the best brand for armor models","entities":["Tamiya"],"confidence":0.9}}
 
+PERSONAL EXTRACTION CHECKLIST — Always extract as separate facts:
+1. Named pets, people, products, apps, places the user mentions about themselves (e.g., "Luna", "Jen", "TripIt", "Memrise", "power bank") — store as "experience" or "opinion" facts.
+2. Explicit user purchases/acquisitions ("I bought X", "I picked up X") — store as "experience".
+3. Explicit numeric values in user utterances (durations: "took me 10 hours", quantities, prices) — store as "experience" with numeric detail in "what".
+4. Recent user actions ("I deep cleaned the living room", "I attended X") — store as "experience" with "occurred_*" dates.
+5. User mentions of specific apps/products they use or consider — store as "experience" or "intention".
+
 RULES:
 (1) Extract ALL personal facts in the text — do not skip brief mentions.
 (2) Extract personal context even when it appears inside a question to the assistant.

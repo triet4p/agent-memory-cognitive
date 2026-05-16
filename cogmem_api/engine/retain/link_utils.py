@@ -42,7 +42,12 @@ def build_temporal_links(unit_dates: dict[str, datetime], window_hours: int = 24
             if delta > window:
                 continue
 
-            weight = max(0.3, 1.0 - (delta.total_seconds() / window.total_seconds()))
+            # Use 1-hour (3600s) denominator for intra-session differentiation
+            # instead of the 24-hour window: same-session facts (delta_s ≈ 0)
+            # were all getting weight ≈ 1.0, making BFS treat all temporal
+            # neighbors identically. Now weights span 0.3-1.0.
+            decay_denominator = min(window.total_seconds(), 3600.0)
+            weight = max(0.3, 1.0 - (delta.total_seconds() / decay_denominator))
             links.append((left_id, right_id, "temporal", None, None, weight))
             links.append((right_id, left_id, "temporal", None, None, weight))
 

@@ -61,6 +61,13 @@ RELATIONS (only when facts in same response are linked):
 - "action_effect_relations": [{{"target_index":<int>,"relation_type":"a_o_causal","strength":0.9}}]
 - "transition_relations": [{{"target_index":<int>,"transition_type":"fulfilled_by"|"triggered"|"enabled_by"|"revised_to"|"contradicted_by","strength":0.9}}]
 
+EXTRACTION CHECKLIST — Always extract as separate facts:
+1. Named pets, people, products, apps, places mentioned by the user (e.g., "Luna", "Jen", "TripIt", "Memrise", "power bank") — store as "world" facts with the entity tagged.
+2. Explicit user purchases/acquisitions ("I bought X", "I picked up X") — store as "experience" facts.
+3. Explicit numeric values in user utterances about themselves (durations: "took me 10 hours", quantities, prices) — store as "experience" with numeric metadata in "what".
+4. Recent user actions affecting their environment ("I deep cleaned the living room", "I attended X") — store as "experience" with "occurred_*" dates.
+5. Assistant recommendations of specific named tools/apps/products — store as "world" facts ("Assistant recommended X for purpose Y").
+
 RULES: (1) Extract ALL facts in the text. (2) Prefer "experience" over "world" when a time is mentioned. (3) Do NOT invent facts. (4) Match output language to input language.
 
 This is Pass 1 of a 2-pass extraction pipeline. A second pass focuses on user-only segments for personal facts. Prioritize cross-turn synthesis facts and assistant-side facts here.

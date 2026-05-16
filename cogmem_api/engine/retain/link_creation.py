@@ -8,10 +8,10 @@ from cogmem_api.engine.memory_engine import fq_table
 
 from . import link_utils
 from .types import ProcessedFact, TRANSITION_EDGE_RULES, clamp_relation_strength
-from .entity_processing import _normalize_entity_name, _resolve_entity_id, _ENTITY_BLOCKLIST
+from .entity_processing import _resolve_entity_id, _is_allowed_entity
 
-_CROSS_BANK_SEMANTIC_THRESHOLD = float(os.environ.get("COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD", "0.6"))
-_CROSS_BANK_SEMANTIC_TOP_K = int(os.environ.get("COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_TOP_K", "10"))
+_CROSS_BANK_SEMANTIC_THRESHOLD = float(os.environ.get("COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD", "0.75"))
+_CROSS_BANK_SEMANTIC_TOP_K = int(os.environ.get("COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_TOP_K", "4"))
 
 
 async def create_temporal_links_batch(conn, bank_id: str, unit_ids: list[str]) -> int:
@@ -301,8 +301,7 @@ async def create_cross_bank_structural_links_batch(
 
         non_blocked_entity_ids = []
         for entity_name in fact.entities:
-            normalized = _normalize_entity_name(entity_name)
-            if normalized and normalized not in _ENTITY_BLOCKLIST:
+            if entity_name and entity_name.strip() and _is_allowed_entity(entity_name):
                 non_blocked_entity_ids.append(_resolve_entity_id(bank_id, entity_name))
 
         if not non_blocked_entity_ids:

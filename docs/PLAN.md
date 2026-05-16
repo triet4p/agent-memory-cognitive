@@ -91,7 +91,7 @@ Mục tiêu điều phối:
 | S28-Diag Part 2 | cogmem-verify: verify which cases are truly PASS/FAIL vs expected | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
 | S28-Diag Part 3 | cogmem-diagnose: classify failure types + PASS/FAIL comparison → Wave-2 priority | — | ✅ Done | [s28-recall-generation-quality.md](sprint-plans/s28-recall-generation-quality.md) |
 | S29 Wave 2A | R-1/R-2 (routing), G-1..G-4 (generation), C-1 (CE floor) — no re-retain, v14 banks | — | ✅ Done | [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md) |
-| S29 Wave 2B | T-1 (retain prompt), T-2 (entity blocklist), G-5 (semantic cap), G-6 (temporal weights) — v15 re-retain | — | 🔄 Pending | [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md) |
+| S29 Wave 2B | T-1 (retain prompt), T-2 (entity blocklist), G-5 (semantic cap), G-6 (temporal weights) — code done, awaiting v15 re-retain | — | ✅ Code Done / 🔄 Re-retain Pending | [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md) |
 | S-final | Full ablation dry run gate (E1-E7) | 761-763 | 🔄 Pending | [s-final-ablation.md](sprint-plans/s-final-ablation.md) |
 
 ---

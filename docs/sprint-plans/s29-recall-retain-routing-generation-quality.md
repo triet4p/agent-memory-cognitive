@@ -295,9 +295,10 @@ End-to-end:
 | W2A-C1 | consensus floor post-CE re-rank implemented | ✅ Done |
 | W2A-artifact | test_task_s29_wave2a.py: all static checks PASS | ✅ Done |
 | W2A-eval | ≥27/35 PASS on v14 banks (no PASS-case regression) | 🔄 Pending |
-| W2B-T1 | retain prompt updated; unit test on 3 sessions extracts Luna/power-bank/Memrise/Celeste-10h/Jen | 🔄 Pending |
-| W2B-T2 | entity blocklist updated; generic nouns blocked | 🔄 Pending |
-| W2B-G5 | cross-session semantic threshold 0.6→0.75, top_k 10→4 | 🔄 Pending |
+| W2B-T1 | retain prompt updated; unit test on 3 sessions extracts Luna/power-bank/Memrise/Celeste-10h/Jen | ✅ Done |
+| W2B-T2 | entity blocklist updated; generic nouns blocked + ProperCase heuristic | ✅ Done |
+| W2B-G5 | cross-session semantic threshold 0.6→0.75, top_k 10→4; BFS semantic weight squared | ✅ Done |
+| W2B-G6 | temporal link denominator 86400→3600 for intra-session differentiation | ✅ Done |
+| W2B-artifact | test_s29_t1..g6 separate per-task artifact tests all PASS | ✅ Done |
 | W2B-reretain | v15 banks re-retained | 🔄 Pending |
-| W2B-artifact | test_task_s29_wave2b.py: all checks PASS | 🔄 Pending |
 | W2B-eval | ≥32/35 PASS truthful via cogmem-verify on v15 banks | 🔄 Pending |

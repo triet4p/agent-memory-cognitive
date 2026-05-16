@@ -331,16 +331,20 @@ class BFSGraphRetriever(GraphRetriever):
                     parent_id = str(n["from_unit_id"])
                     parent_activation = batch_activations.get(parent_id, 0.5)
 
-                    # Boost causal links
+                    # Link-type-specific weight adjustments
                     link_type = n["link_type"]
                     base_weight = n["weight"]
 
                     if link_type == "causal":
-                        causal_boost = 2.0
+                        link_boost = 2.0
+                    elif link_type == "semantic":
+                        # Square semantic weight to amplify differentiation:
+                        # 0.75²=0.56 vs 0.62²=0.38 (vs entity 1.0²=1.0).
+                        link_boost = base_weight
                     else:
-                        causal_boost = 1.0
+                        link_boost = 1.0
 
-                    effective_weight = base_weight * causal_boost
+                    effective_weight = base_weight * link_boost
                     propagated = parent_activation * effective_weight * self.activation_decay
 
                     if propagated <= self.min_activation:

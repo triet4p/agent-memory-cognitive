@@ -14,11 +14,44 @@ from .types import EntityLink, ProcessedFact
 # dilutes BFS spreading-activation signal.
 _ENTITY_BLOCKLIST: frozenset[str] = frozenset({
     "user", "the user", "i", "me", "my", "we", "our",
+    # Generic event/concept nouns (S29 T-2) — shared vocabulary across
+    # sessions that creates false cross-session bridges in BFS.
+    "wedding", "project", "team", "class", "meeting", "birthday",
+    "dinner", "trip", "cake", "model kit",
+})
+
+# All-lowercase single words in this set are never proper nouns.
+# Entities matching this pattern without possessive/modifier get blocked.
+_GENERIC_NOUN_SET: frozenset[str] = frozenset({
+    "wedding", "project", "team", "class", "meeting", "birthday",
+    "dinner", "trip", "cake", "kit", "event", "party", "concert",
+    "session", "course", "lesson", "workshop", "seminar",
+    "app", "tool", "game", "movie", "book", "website",
 })
 
 
 def _normalize_entity_name(entity: str) -> str:
     return entity.strip().lower()
+
+
+def _is_allowed_entity(entity_name: str) -> bool:
+    """Check if an entity name should be kept (not blocked).
+
+    Blocks entities that:
+    1. Are in the explicit blocklist (exact match after normalization).
+    2. Are all-lowercase, lack a possessive modifier (no \"'s\"), and match
+       a known generic noun — these are not proper nouns.
+    """
+    normalized = _normalize_entity_name(entity_name)
+    if normalized in _ENTITY_BLOCKLIST:
+        return False
+    # Heuristic: all-lowercase entities without possessive modifier that
+    # match a generic noun are unlikely to be true named entities.
+    if not any(c.isupper() for c in entity_name) and "'s" not in entity_name:
+        words = normalized.split()
+        if any(w in _GENERIC_NOUN_SET for w in words):
+            return False
+    return True
 
 
 def _resolve_entity_id(bank_id: str, entity_name: str) -> str:
@@ -46,7 +79,7 @@ async def process_entities_batch(
         merged_entities: set[str] = set()
 
         for entity in fact.entities:
-            if entity and entity.strip() and _normalize_entity_name(entity) not in _ENTITY_BLOCKLIST:
+            if entity and entity.strip() and _is_allowed_entity(entity):
                 merged_entities.add(entity.strip())
 
         if user_entities_per_content:
@@ -109,8 +142,7 @@ async def build_cross_bank_entity_links(
 
     for new_uid, fact in zip(new_unit_ids, new_facts):
         for entity_name in fact.entities:
-            normalized = _normalize_entity_name(entity_name)
-            if not normalized or normalized in _ENTITY_BLOCKLIST:
+            if not entity_name or not entity_name.strip() or not _is_allowed_entity(entity_name):
                 continue
 
             entity_id = _resolve_entity_id(bank_id, entity_name)
