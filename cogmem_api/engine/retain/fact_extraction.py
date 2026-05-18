@@ -88,6 +88,124 @@ _SUPPORTED_TRANSITION_TYPES: set[str] = {
     "contradicted_by",
 }
 
+# --- Date normalization helpers ------------------------------------------
+
+_MONTH_MAP: dict[str, int] = {
+    "january": 1, "february": 2, "march": 3, "april": 4,
+    "may": 5, "june": 6, "july": 7, "august": 8,
+    "september": 9, "october": 10, "november": 11, "december": 12,
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4,
+    "jun": 6, "jul": 7, "aug": 8,
+    "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+_MO = (
+    r"(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|"
+    r"jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|"
+    r"nov(?:ember)?|dec(?:ember)?)"
+)
+
+_DATE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    # ISO 8601 with optional time: 2023-04-06 or 2023-04-06T10:00:00Z
+    ("iso", re.compile(
+        r"(?<!\d)(\d{4})-(\d{2})-(\d{2})"
+        r"(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?"
+        r"(?!\d)"
+    )),
+    # Named month MDY: April 6, 2023 | Apr. 6 2023 | Apr 6, 2023
+    ("named_mdy", re.compile(
+        r"(?<!\w)" + _MO + r"\.?\s+(\d{1,2}),?\s+(\d{4})(?!\d)",
+        re.IGNORECASE,
+    )),
+    # Named month DMY: 6 April 2023 | 6 Apr 2023
+    ("named_dmy", re.compile(
+        r"(?<!\d)(\d{1,2})\s+" + _MO + r"\s+(\d{4})(?!\d)",
+        re.IGNORECASE,
+    )),
+    # US slash: M/D/YYYY or MM/DD/YYYY
+    ("us_slash", re.compile(r"(?<!\d)(\d{1,2})/(\d{1,2})/(\d{4})(?!\d)")),
+    # US dash: M-D-YYYY (1-2 digit month, distinct from 4-digit ISO year prefix)
+    ("us_dash", re.compile(r"(?<!\d)(\d{1,2})-(\d{1,2})-(\d{4})(?!\d)")),
+]
+
+
+def _try_parse_date(pattern_type: str, groups: tuple[str, ...]) -> "date | None":
+    try:
+        if pattern_type == "iso":
+            return date(int(groups[0]), int(groups[1]), int(groups[2]))
+        if pattern_type == "named_mdy":
+            month = _MONTH_MAP.get(groups[0].lower())
+            if month is None:
+                return None
+            return date(int(groups[2]), month, int(groups[1]))
+        if pattern_type == "named_dmy":
+            month = _MONTH_MAP.get(groups[1].lower())
+            if month is None:
+                return None
+            return date(int(groups[2]), month, int(groups[0]))
+        if pattern_type in ("us_slash", "us_dash"):
+            m, d, y = int(groups[0]), int(groups[1]), int(groups[2])
+            if not (1 <= m <= 12 and 1 <= d <= 31):
+                return None
+            return date(y, m, d)
+    except (ValueError, IndexError):
+        return None
+    return None
+
+
+def _relative_date_label(d: "date", today: "date") -> str | None:
+    delta = (d - today).days
+    if delta == 0:
+        return "today"
+    if delta == -1:
+        return "yesterday"
+    if -7 <= delta <= -2:
+        return "past week"
+    if delta == 1:
+        return "tomorrow"
+    if 2 <= delta <= 7:
+        return "next week"
+    return None
+
+
+def normalize_dates_in_fact_text(text: str, today: "date | None" = None) -> str:
+    """Replace absolute dates within ±7 days of today with relative labels.
+
+    Only replaces dates inside the window: today/yesterday/past week/tomorrow/next week.
+    Dates outside ±7 days are left unchanged. Handles ISO 8601, named-month,
+    US slash, and US dash formats.
+    """
+    if today is None:
+        today = date.today()
+
+    replacements: list[tuple[int, int, str]] = []
+    covered: set[int] = set()
+
+    for pattern_type, pattern in _DATE_PATTERNS:
+        for m in pattern.finditer(text):
+            span = set(range(m.start(), m.end()))
+            if span & covered:
+                continue
+            parsed = _try_parse_date(pattern_type, m.groups())
+            if parsed is None:
+                continue
+            # Claim span regardless of label so lower-priority patterns don't
+            # re-match the same characters (e.g. us_dash re-matching ISO dates).
+            covered |= span
+            label = _relative_date_label(parsed, today)
+            if label is None:
+                continue
+            replacements.append((m.start(), m.end(), label))
+
+    replacements.sort(key=lambda x: x[0], reverse=True)
+    result = text
+    for start, end, replacement in replacements:
+        result = result[:start] + replacement + result[end:]
+    return result
+
+
+# -------------------------------------------------------------------------
+
 
 def _safe_datetime(value: datetime | None) -> datetime | None:
     if value is None:
@@ -512,6 +630,8 @@ def _normalize_llm_facts(
             if why:
                 parts.append(why)
             fact_text = " | ".join(parts)
+
+        fact_text = normalize_dates_in_fact_text(fact_text)
 
         raw_fact_type = str(payload.get("fact_type", "")).strip().lower()
         if raw_fact_type == "assistant":
@@ -1043,6 +1163,7 @@ def _extract_seeded_facts(
         fact_text = str(payload.get("text") or payload.get("fact") or payload.get("what") or "").strip()
         if not fact_text:
             continue
+        fact_text = normalize_dates_in_fact_text(fact_text)
 
         requested_type = str(payload.get("fact_type", "")).strip() if payload.get("fact_type") else ""
         if requested_type:
