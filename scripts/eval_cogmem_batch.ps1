@@ -1,14 +1,14 @@
-# Batch evaluation script for CogMem E7 profile across LongMemEval-S conversations
-# Runs recall-only pipeline for each conversation index 0-11
+# Batch evaluation script for CogMem E8 profile across LongMemEval-S conversations
+# Runs recall-only pipeline for each conversation index 0-34
 
 param(
-    [string]$VERSION = "v15",
-    [string]$PROFILE_ = "E7",
+    [string]$VERSION = "v16",
+    [string]$PROFILE_ = "E11",
     [string]$FIXTURE = "longmemeval",
     [int]$TIMEOUT_MS = 15000,
-    [int]$START_INDEX = 0,
+    [int]$START_INDEX = 16,
     [int]$END_INDEX = 34,
-    [int]$SLEEP_SECONDS = 120
+    [int]$SLEEP_SECONDS = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,7 +52,7 @@ function Start-SleepWithKeepAlive {
     }
 }
 
-$CHECKPOINT_DIR = "experiments/${VERSION}/checkpoints-s29-wave2b"
+$CHECKPOINT_DIR = "experiments/${VERSION}/checkpoints-cross-fact-type/"
 $OUTPUT_DIR = "experiments/${VERSION}/"
 
 Write-Host "=== CogMem Batch Eval ===" -ForegroundColor Cyan
@@ -70,25 +70,27 @@ $failed = 0
 
 for ($N = $START_INDEX; $N -le $END_INDEX; $N++) {
     $current++
-    if ($VERSION -eq "v14" -and $N -ge 10 -and $N -le 19) {
-        $bankE567 = "COGMEM_EXP__e567_c{0:D3}" -f $N
-    } else {
-        $bankE567 = "COGMEM_EXP_${VERSION}_e567_c{0:D3}" -f $N
-    }
+    # if ($VERSION -eq "v14" -and $N -ge 10 -and $N -le 19) {
+    #     $bankE567 = "COGMEM_EXP__e567_c{0:D3}" -f $N
+    # } else {
+    #     $bankE567 = "COGMEM_EXP_${VERSION}_e567_c{0:D3}" -f $N
+    # }
+
+    $bankE567 = "COGMEM_${VERSION}_c{0:D3}" -f $N
 
     Write-Host "[$current/$total] ConvIdx=$N | Bank=$bankE567" -ForegroundColor Yellow
 
     try {
         uv run python -m scripts.eval_cogmem `
-            --pipeline recall `
+            --pipeline full `
             --profile $PROFILE_ `
             --fixture $FIXTURE `
             --conv-index $N `
             --bank-id $bankE567 `
             --checkpoint-dir $CHECKPOINT_DIR `
             --output-dir $OUTPUT_DIR `
-            --api-timeout $TIMEOUT_MS
-            # --skip-retain
+            --api-timeout $TIMEOUT_MS `
+            --skip-retain
 
         Write-Host "[$current/$total] ConvIdx=$N PASSED" -ForegroundColor Green
     }

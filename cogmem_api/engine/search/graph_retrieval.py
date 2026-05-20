@@ -48,6 +48,7 @@ class GraphRetriever(ABC):
         tags: list[str] | None = None,  # Visibility scope tags for filtering
         tags_match: TagsMatch = "any",  # How to match tags: 'any' (OR) or 'all' (AND)
         tag_groups: list[TagGroup] | None = None,  # Compound boolean tag filter groups
+        allowed_fact_types: list[str] | None = None,  # Restrict BFS traversal to these types (ablation)
     ) -> tuple[list[RetrievalResult], MPFPTimings | None]:
         """
         Retrieve relevant facts via graph traversal.
@@ -140,6 +141,7 @@ class BFSGraphRetriever(GraphRetriever):
         tags: list[str] | None = None,
         tags_match: TagsMatch = "any",
         tag_groups: list[TagGroup] | None = None,
+        allowed_fact_types: list[str] | None = None,
     ) -> tuple[list[RetrievalResult], MPFPTimings | None]:
         """
         Retrieve facts using BFS spreading activation.
@@ -164,6 +166,7 @@ class BFSGraphRetriever(GraphRetriever):
                 tags=tags,
                 tags_match=tags_match,
                 tag_groups=tag_groups,
+                allowed_fact_types=allowed_fact_types,
             )
             return results, None
 
@@ -177,6 +180,7 @@ class BFSGraphRetriever(GraphRetriever):
         tags: list[str] | None = None,
         tags_match: TagsMatch = "any",
         tag_groups: list[TagGroup] | None = None,
+        allowed_fact_types: list[str] | None = None,
     ) -> list[RetrievalResult]:
         """Internal implementation with connection."""
         from .tags import build_tag_groups_where_clause, build_tags_where_clause_simple
@@ -288,23 +292,47 @@ class BFSGraphRetriever(GraphRetriever):
             if batch_nodes and budget_remaining > 0:
                 max_neighbors = len(batch_nodes) * self.per_source_limit
                 if self.cross_fact_type:
-                    neighbors = await conn.fetch(
-                        f"""
-                        SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
-                               mu.mentioned_at, mu.fact_type,
-                               mu.document_id, mu.chunk_id,
-                               ml.weight, ml.link_type, ml.from_unit_id
-                         FROM {fq_table("memory_links")} ml
-                         JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
-                         WHERE ml.from_unit_id = ANY($1::uuid[])
-                           AND ml.weight >= $2
-                         ORDER BY ml.weight DESC
-                         LIMIT $3
-                        """,
-                        batch_nodes,
-                        self.min_activation,
-                        max_neighbors,
-                    )
+                    # When allowed_fact_types is set (ablation mode), restrict traversal
+                    # to only permitted types so excluded types (e.g. habit in E8) are not
+                    # used as intermediate relay nodes in the BFS graph.
+                    if allowed_fact_types is not None:
+                        neighbors = await conn.fetch(
+                            f"""
+                            SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
+                                   mu.mentioned_at, mu.fact_type,
+                                   mu.document_id, mu.chunk_id,
+                                   ml.weight, ml.link_type, ml.from_unit_id
+                             FROM {fq_table("memory_links")} ml
+                             JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
+                             WHERE ml.from_unit_id = ANY($1::uuid[])
+                               AND ml.weight >= $2
+                               AND mu.fact_type = ANY($4::text[])
+                             ORDER BY ml.weight DESC
+                             LIMIT $3
+                            """,
+                            batch_nodes,
+                            self.min_activation,
+                            max_neighbors,
+                            allowed_fact_types,
+                        )
+                    else:
+                        neighbors = await conn.fetch(
+                            f"""
+                            SELECT mu.id, mu.text, mu.context, mu.occurred_start, mu.occurred_end,
+                                   mu.mentioned_at, mu.fact_type,
+                                   mu.document_id, mu.chunk_id,
+                                   ml.weight, ml.link_type, ml.from_unit_id
+                             FROM {fq_table("memory_links")} ml
+                             JOIN {fq_table("memory_units")} mu ON ml.to_unit_id = mu.id
+                             WHERE ml.from_unit_id = ANY($1::uuid[])
+                               AND ml.weight >= $2
+                             ORDER BY ml.weight DESC
+                             LIMIT $3
+                            """,
+                            batch_nodes,
+                            self.min_activation,
+                            max_neighbors,
+                        )
                 else:
                     neighbors = await conn.fetch(
                         f"""

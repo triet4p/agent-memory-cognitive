@@ -87,6 +87,38 @@ ABLATION_PROFILES: dict[str, AblationProfile] = {
         adaptive_router_enabled=True,
         sum_activation_enabled=True,
     ),
+    "E8": AblationProfile(
+        profile_id="E8",
+        description="E7 − habit (recall excludes habit type)",
+        enabled_networks=("world", "experience", "opinion", "intention", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "intention", "action_effect"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+    ),
+    "E9": AblationProfile(
+        profile_id="E9",
+        description="E7 − intention (recall excludes intention type)",
+        enabled_networks=("world", "experience", "opinion", "habit", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "action_effect"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+    ),
+    "E10": AblationProfile(
+        profile_id="E10",
+        description="E7 − action_effect (recall excludes action_effect type)",
+        enabled_networks=("world", "experience", "opinion", "habit", "intention"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "intention"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+    ),
+    "E11": AblationProfile(
+        profile_id="E11",
+        description="E7 − all 3 CogMem types (world/experience/opinion only)",
+        enabled_networks=("world", "experience", "opinion"),
+        recall_fact_types=("world", "experience", "opinion"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+    ),
 }
 
 

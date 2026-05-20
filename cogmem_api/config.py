@@ -45,6 +45,7 @@ ENV_MPFP_TOP_K_NEIGHBORS = "COGMEM_API_MPFP_TOP_K_NEIGHBORS"
 ENV_BFS_REFRACTORY_STEPS = "COGMEM_API_BFS_REFRACTORY_STEPS"
 ENV_BFS_FIRING_QUOTA = "COGMEM_API_BFS_FIRING_QUOTA"
 ENV_BFS_ACTIVATION_SATURATION = "COGMEM_API_BFS_ACTIVATION_SATURATION"
+ENV_BFS_CROSS_FACT_TYPE = "COGMEM_API_BFS_CROSS_FACT_TYPE"
 
 ENV_EMBEDDINGS_PROVIDER = "COGMEM_API_EMBEDDINGS_PROVIDER"
 ENV_EMBEDDINGS_LOCAL_MODEL = "COGMEM_API_EMBEDDINGS_LOCAL_MODEL"
@@ -113,6 +114,7 @@ DEFAULT_RERANKER_MAX_CANDIDATES = 300
 DEFAULT_BFS_REFRACTORY_STEPS = 1
 DEFAULT_BFS_FIRING_QUOTA = 2
 DEFAULT_BFS_ACTIVATION_SATURATION = 2.0
+DEFAULT_BFS_CROSS_FACT_TYPE = False
 DEFAULT_JUDGE_LLM_PROVIDER = "openai"
 DEFAULT_JUDGE_LLM_MODEL = "minimax-m2.7"
 DEFAULT_JUDGE_LLM_BASE_URL = None
@@ -271,6 +273,7 @@ class CogMemConfig:
     bfs_refractory_steps: int = DEFAULT_BFS_REFRACTORY_STEPS
     bfs_firing_quota: int = DEFAULT_BFS_FIRING_QUOTA
     bfs_activation_saturation: float = DEFAULT_BFS_ACTIVATION_SATURATION
+    bfs_cross_fact_type: bool = DEFAULT_BFS_CROSS_FACT_TYPE
     judge_llm_provider: str = DEFAULT_JUDGE_LLM_PROVIDER
     judge_llm_model: str = DEFAULT_JUDGE_LLM_MODEL
     judge_llm_api_key: str | None = None
@@ -388,6 +391,7 @@ def get_config() -> CogMemConfig:
                 DEFAULT_BFS_ACTIVATION_SATURATION,
                 minimum=0.1,
             ),
+            bfs_cross_fact_type=_read_bool(ENV_BFS_CROSS_FACT_TYPE, DEFAULT_BFS_CROSS_FACT_TYPE),
             judge_llm_provider=runtime.judge_llm_provider,
             judge_llm_model=runtime.judge_llm_model,
             judge_llm_api_key=runtime.judge_llm_api_key,

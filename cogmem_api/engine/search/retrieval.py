@@ -253,8 +253,9 @@ def get_default_graph_retriever() -> GraphRetriever:
                 refractory_steps=config.bfs_refractory_steps,
                 firing_quota=config.bfs_firing_quota,
                 activation_saturation=config.bfs_activation_saturation,
+                cross_fact_type=config.bfs_cross_fact_type,
             )
-            logger.info("Using BFS graph retriever")
+            logger.info(f"Using BFS graph retriever (cross_fact_type={config.bfs_cross_fact_type})")
         elif retriever_type == "link_expansion":
             _default_graph_retriever = LinkExpansionRetriever()
             logger.info("Using LinkExpansion graph retriever")
@@ -264,6 +265,7 @@ def get_default_graph_retriever() -> GraphRetriever:
                 refractory_steps=config.bfs_refractory_steps,
                 firing_quota=config.bfs_firing_quota,
                 activation_saturation=config.bfs_activation_saturation,
+                cross_fact_type=config.bfs_cross_fact_type,
             )
     return _default_graph_retriever
 
@@ -277,6 +279,7 @@ def make_graph_retriever(name: str) -> GraphRetriever:
             refractory_steps=config.bfs_refractory_steps,
             firing_quota=config.bfs_firing_quota,
             activation_saturation=config.bfs_activation_saturation,
+            cross_fact_type=config.bfs_cross_fact_type,
         )
     if key == "mpfp":
         return MPFPGraphRetriever()
@@ -287,6 +290,7 @@ def make_graph_retriever(name: str) -> GraphRetriever:
         refractory_steps=config.bfs_refractory_steps,
         firing_quota=config.bfs_firing_quota,
         activation_saturation=config.bfs_activation_saturation,
+        cross_fact_type=config.bfs_cross_fact_type,
     )
 
 
@@ -849,6 +853,7 @@ async def retrieve_all_fact_types_parallel(
             tags=tags,
             tags_match=tags_match,
             tag_groups=tag_groups,
+            allowed_fact_types=routed_fact_types,
         )
         return ft, results, time.time() - graph_start, mpfp_timing
 

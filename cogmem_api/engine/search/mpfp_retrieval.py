@@ -506,6 +506,7 @@ class MPFPGraphRetriever(GraphRetriever):
         tags: list[str] | None = None,
         tags_match: TagsMatch = "any",
         tag_groups: list[TagGroup] | None = None,
+        allowed_fact_types: list[str] | None = None,  # Not used by MPFP; accepted for interface compatibility
     ) -> tuple[list[RetrievalResult], MPFPTimings | None]:
         """
         Retrieve facts using MPFP algorithm with lazy edge loading.
