@@ -1,0 +1,20 @@
+{
+  "scenario_id": "pilot_intention_01",
+  "target_type": "intention",
+  "topic": "learning Rust before Q3 to optimize an inference server",
+  "gold_fact": {
+    "text": "User planned to finish the Rust async course by end of September but later abandoned it after priorities shifted to the data pipeline.",
+    "fact_type": "intention",
+    "session_index": 1,
+    "metadata": {"intention_status": "abandoned"}
+  },
+  "question": "Did the user finish the Rust async course they planned to complete?",
+  "gold_answer": "No — they abandoned it after their priorities shifted.",
+  "traps": [
+    {"trap_type": "stale-intention", "description": "An early session states the September plan with confidence; a later session quietly drops it without announcing failure.", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1]},
+  "shared_context": {"course": "Rust async course", "deadline": "end of September", "reason_dropped": "priorities shifted to the data pipeline"},
+  "question_date": "2026-05-21",
+  "rationale": "Answer depends on resolving the intention's final status (abandoned). A world/experience/opinion store records the plan was stated but cannot represent its lifecycle resolution."
+}

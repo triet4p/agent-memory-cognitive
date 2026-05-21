@@ -1,0 +1,21 @@
+{
+  "scenario_id": "pilot_action_effect_02",
+  "target_type": "action_effect",
+  "topic": "home sourdough baking through changing seasons",
+  "gold_fact": {
+    "text": "When the kitchen is warmer than 26C, the user cuts the bulk ferment to 3 hours, which gives a tighter, less gummy crumb.",
+    "fact_type": "action_effect",
+    "session_index": 4,
+    "metadata": {"precondition": "kitchen temperature above 26C", "action": "cut the bulk ferment to 3 hours", "outcome": "tighter, less gummy crumb", "confidence": 0.85}
+  },
+  "question": "When the kitchen is too warm, what does the user change in their sourdough process and what is the effect?",
+  "gold_answer": "They shorten the bulk ferment to 3 hours, which yields a tighter, less gummy crumb.",
+  "traps": [
+    {"trap_type": "contradiction", "description": "Earlier the user preferred long 6-hour ferments, which could mislead toward the wrong action.", "session_index": 1},
+    {"trap_type": "volume", "description": "Multiple unrelated baking notes (flour brand, hydration) without causal structure.", "session_index": 7}
+  ],
+  "session_plan": {"total_sessions": 9, "gold_session_indices": [4]},
+  "shared_context": {"trigger": "kitchen above 26C", "fix": "cut bulk ferment to 3 hours", "result": "tighter, less gummy crumb", "old_preference": "long 6-hour ferments"},
+  "question_date": "2026-05-21",
+  "rationale": "Answer requires the conditional action and its outcome together; the earlier preference is a distractor that a w/e/o store cannot override with a causal rule."
+}

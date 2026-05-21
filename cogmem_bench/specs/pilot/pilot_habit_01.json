@@ -1,0 +1,21 @@
+{
+  "scenario_id": "pilot_habit_01",
+  "target_type": "habit",
+  "topic": "building a sustainable morning routine while working from home",
+  "gold_fact": {
+    "text": "Every morning before work the user does a 20-minute mobility routine; it recurs across many sessions as a daily habit.",
+    "fact_type": "habit",
+    "session_index": 2,
+    "metadata": {"frequency": "daily"}
+  },
+  "question": "What does the user usually do each morning before work?",
+  "gold_answer": "A 20-minute mobility routine.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "A single session describes a one-off long hike, which superficially looks like exercise but is not the recurring morning routine.", "session_index": 5},
+    {"trap_type": "volume", "description": "Several scattered mentions of different one-time activities to dilute the recurring signal.", "session_index": 6}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [2]},
+  "shared_context": {"routine": "20-minute mobility routine", "timing": "every morning before work", "one_off_distractor": "a single long weekend hike"},
+  "question_date": "2026-05-21",
+  "rationale": "Answer requires aggregating repeated occurrences into a habit pattern; a single one-off mention is insufficient, and a w/e/o store has no repetition semantics."
+}

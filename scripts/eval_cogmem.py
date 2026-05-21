@@ -28,6 +28,8 @@ class AblationProfile:
     recall_fact_types: tuple[str, ...]
     adaptive_router_enabled: bool
     sum_activation_enabled: bool
+    skip_reranker: bool = False
+    graph_only: bool = False
 
 
 ABLATION_PROFILES: dict[str, AblationProfile] = {
@@ -118,6 +120,58 @@ ABLATION_PROFILES: dict[str, AblationProfile] = {
         recall_fact_types=("world", "experience", "opinion"),
         adaptive_router_enabled=True,
         sum_activation_enabled=True,
+    ),
+    # Graph-only ablation profiles (E7G–E11G): semantic/BM25/temporal weights zeroed,
+    # CE reranker skipped — pure BFS graph activation ranking.
+    "E7G": AblationProfile(
+        profile_id="E7G",
+        description="E7 graph-only (no CE, graph channel only)",
+        enabled_networks=("world", "experience", "opinion", "habit", "intention", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "intention", "action_effect"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+        skip_reranker=True,
+        graph_only=True,
+    ),
+    "E8G": AblationProfile(
+        profile_id="E8G",
+        description="E7G − habit (graph-only, no CE)",
+        enabled_networks=("world", "experience", "opinion", "intention", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "intention", "action_effect"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+        skip_reranker=True,
+        graph_only=True,
+    ),
+    "E9G": AblationProfile(
+        profile_id="E9G",
+        description="E7G − intention (graph-only, no CE)",
+        enabled_networks=("world", "experience", "opinion", "habit", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "action_effect"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+        skip_reranker=True,
+        graph_only=True,
+    ),
+    "E10G": AblationProfile(
+        profile_id="E10G",
+        description="E7G − action_effect (graph-only, no CE)",
+        enabled_networks=("world", "experience", "opinion", "habit", "intention"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "intention"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+        skip_reranker=True,
+        graph_only=True,
+    ),
+    "E11G": AblationProfile(
+        profile_id="E11G",
+        description="E7G − all 3 CogMem types (graph-only, no CE)",
+        enabled_networks=("world", "experience", "opinion"),
+        recall_fact_types=("world", "experience", "opinion"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=True,
+        skip_reranker=True,
+        graph_only=True,
     ),
 }
 
@@ -388,6 +442,8 @@ def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
         "trace": True,
         "adaptive_router": profile.adaptive_router_enabled,
         "graph_retriever": "bfs" if profile.sum_activation_enabled else "link_expansion",
+        "skip_reranker": profile.skip_reranker,
+        "graph_only": profile.graph_only,
     }
     return payload
 

@@ -136,6 +136,27 @@ COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS  # default: 13000
 COGMEM_API_DATABASE_URL        # default: pg0 (embedded postgres)
 ```
 
+Benchmark construction (`cogmem_bench/`, Sprint 32) uses a **separate, stronger** cross-model
+generator (e.g. Minimax-M2) for conversation generation, distinct from the Ministral
+retain/answer model:
+
+```
+COGMEM_BENCH_GEN_LLM_BASE_URL  # generator OpenAI-compatible endpoint ending /v1 (Minimax-M2)
+COGMEM_BENCH_GEN_LLM_MODEL     # default: minimax-m2
+COGMEM_BENCH_GEN_LLM_API_KEY   # default: ollama
+COGMEM_BENCH_GEN_LLM_TIMEOUT   # default: 600s
+COGMEM_BENCH_GEN_LAST_K_VERBATIM  # recent sessions passed verbatim for cross-session consistency; default 2 (CLI --last-k overrides)
+```
+
+Pipeline (manual scripts; only spec authoring is agent-driven via the `cogmem-bench-author` skill):
+```
+uv run python -m cogmem_bench.generate            # step 2: Minimax renders specs -> data/bench/work
+uv run python -m cogmem_bench.gate                # step 3: embedding + discrimination gates -> yield report
+```
+`generate` is multi-call (one LLM call per session) and needs only `COGMEM_BENCH_GEN_LLM_*`;
+`gate` needs a running `cogmem-api` with Ministral. Add `--dry-run` to `generate` for an
+offline wiring check.
+
 ### REST API
 
 `cogmem_api/api/http.py` — FastAPI app mounted at `/v1/{agent_name}`:

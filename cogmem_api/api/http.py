@@ -97,6 +97,8 @@ class RecallRequest(BaseModel):
     query_timestamp: str | None = None
     adaptive_router: bool = True
     graph_retriever: str | None = None
+    skip_reranker: bool = False
+    graph_only: bool = False
 
 
 class RecallResult(BaseModel):
@@ -349,6 +351,8 @@ def create_app(
                 question_date=question_date,
                 adaptive_router=payload.adaptive_router,
                 graph_retriever_override=payload.graph_retriever,
+                skip_reranker=payload.skip_reranker,
+                graph_only=payload.graph_only,
             )
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc

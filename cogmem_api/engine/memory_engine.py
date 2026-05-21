@@ -556,6 +556,8 @@ class MemoryEngine:
         question_date: datetime | None = None,
         adaptive_router: bool = True,
         graph_retriever_override: str | None = None,
+        skip_reranker: bool = False,
+        graph_only: bool = False,
     ) -> dict[str, Any]:
         from cogmem_api.engine.retain import embedding_utils
         from cogmem_api.engine.retain.types import COGMEM_FACT_TYPES
@@ -582,8 +584,13 @@ class MemoryEngine:
             )
             query_embedding_str = str(query_embedding[0]) if query_embedding else "[]"
 
-            from cogmem_api.engine.query_analyzer import FlatQueryAnalyzer
-            query_analyzer_override = None if adaptive_router else FlatQueryAnalyzer()
+            from cogmem_api.engine.query_analyzer import FlatQueryAnalyzer, GraphOnlyQueryAnalyzer
+            if graph_only:
+                query_analyzer_override = GraphOnlyQueryAnalyzer()
+            elif not adaptive_router:
+                query_analyzer_override = FlatQueryAnalyzer()
+            else:
+                query_analyzer_override = None
             graph_retriever = make_graph_retriever(graph_retriever_override) if graph_retriever_override else None
 
             retrieval_result = await retrieve_all_fact_types_parallel(
@@ -622,47 +629,48 @@ class MemoryEngine:
                 candidate_limit = min(len(merged_candidates), self._engine_config.reranker_max_candidates)
                 top_candidates = merged_candidates[:candidate_limit]
 
-                try:
-                    if self._cross_encoder is None:
-                        self._cross_encoder = CrossEncoderReranker()
+                if skip_reranker:
+                    from cogmem_api.engine.search.types import ScoredResult
+                    scored = [
+                        ScoredResult(candidate=c, cross_encoder_score=0.0, cross_encoder_score_normalized=c.rrf_score)
+                        for c in top_candidates
+                    ]
+                    for sr in scored:
+                        sr.combined_score = sr.candidate.rrf_score
+                        sr.weight = sr.combined_score
+                    cross_encoder_ok = True
+                else:
+                    try:
+                        if self._cross_encoder is None:
+                            self._cross_encoder = CrossEncoderReranker()
 
-                    await self._cross_encoder.ensure_initialized()
-                    scored = await self._cross_encoder.rerank(query=query, candidates=top_candidates)
-                    apply_combined_scoring(scored_results=scored, now=datetime.now(UTC))
-                    scored.sort(key=lambda item: item.combined_score, reverse=True)
+                        await self._cross_encoder.ensure_initialized()
+                        scored = await self._cross_encoder.rerank(query=query, candidates=top_candidates)
+                        apply_combined_scoring(scored_results=scored, now=datetime.now(UTC))
+                        scored.sort(key=lambda item: item.combined_score, reverse=True)
 
-                    # R4: demote singleton sessions (document_ids with exactly 1 fact in
-                    # the scored set). Single-fact sessions are usually tangential noise;
-                    # genuine gold sessions almost always contribute multiple facts.
-                    _doc_counts: dict[str, int] = {}
-                    for _sr in scored:
-                        _did = _sr.candidate.retrieval.document_id or "unknown"
-                        _doc_counts[_did] = _doc_counts.get(_did, 0) + 1
-                    _SINGLETON_PENALTY = 0.85
-                    for _sr in scored:
-                        _did = _sr.candidate.retrieval.document_id or "unknown"
-                        if _doc_counts[_did] == 1:
-                            _sr.combined_score *= _SINGLETON_PENALTY
-                    scored.sort(key=lambda item: item.combined_score, reverse=True)
-
-                    # C-1: Multi-channel-strong CE floor — promote consensus-strong facts
-                    # that were suppressed by extreme CE scores into the top-k window.
-                    # Rule: semantic_rank <= 5 AND bm25_rank <= 10 AND graph_rank <= 10
-                    # -> force final rank <= top_k (or 15 if top_k is None).
-                    # Uses the recall's top_k so the floor matches COGMEM_API_EVAL_RECALL_TOP_K env var.
-                    _CONSENSUS_FLOOR_RANK = top_k if top_k is not None else 15
-                    if len(scored) > _CONSENSUS_FLOOR_RANK:
-                        _ce_promotions = 0
+                        # R4: demote singleton sessions (document_ids with exactly 1 fact in
+                        # the scored set). Single-fact sessions are usually tangential noise;
+                        # genuine gold sessions almost always contribute multiple facts.
+                        _doc_counts: dict[str, int] = {}
                         for _sr in scored:
-                            _raw = _sr.candidate.source_ranks
-                            _sem = _raw.get("semantic_rank")
-                            _bm = _raw.get("bm25_rank")
-                            _gr = _raw.get("graph_rank")
-                            if _sem is not None and _bm is not None and _gr is not None:
-                                if _sem <= 5 and _bm <= 10 and _gr <= 10:
-                                    _ce_promotions += 1
-                        if _ce_promotions > 0:
-                            _threshold = scored[_CONSENSUS_FLOOR_RANK - 1].combined_score
+                            _did = _sr.candidate.retrieval.document_id or "unknown"
+                            _doc_counts[_did] = _doc_counts.get(_did, 0) + 1
+                        _SINGLETON_PENALTY = 0.85
+                        for _sr in scored:
+                            _did = _sr.candidate.retrieval.document_id or "unknown"
+                            if _doc_counts[_did] == 1:
+                                _sr.combined_score *= _SINGLETON_PENALTY
+                        scored.sort(key=lambda item: item.combined_score, reverse=True)
+
+                        # C-1: Multi-channel-strong CE floor — promote consensus-strong facts
+                        # that were suppressed by extreme CE scores into the top-k window.
+                        # Rule: semantic_rank <= 5 AND bm25_rank <= 10 AND graph_rank <= 10
+                        # -> force final rank <= top_k (or 15 if top_k is None).
+                        # Uses the recall's top_k so the floor matches COGMEM_API_EVAL_RECALL_TOP_K env var.
+                        _CONSENSUS_FLOOR_RANK = top_k if top_k is not None else 15
+                        if len(scored) > _CONSENSUS_FLOOR_RANK:
+                            _ce_promotions = 0
                             for _sr in scored:
                                 _raw = _sr.candidate.source_ranks
                                 _sem = _raw.get("semantic_rank")
@@ -670,22 +678,32 @@ class MemoryEngine:
                                 _gr = _raw.get("graph_rank")
                                 if _sem is not None and _bm is not None and _gr is not None:
                                     if _sem <= 5 and _bm <= 10 and _gr <= 10:
-                                        if _sr.combined_score < _threshold:
-                                            _sr.combined_score = _threshold * 1.01
-                            scored.sort(key=lambda item: item.combined_score, reverse=True)
+                                        _ce_promotions += 1
+                            if _ce_promotions > 0:
+                                _threshold = scored[_CONSENSUS_FLOOR_RANK - 1].combined_score
+                                for _sr in scored:
+                                    _raw = _sr.candidate.source_ranks
+                                    _sem = _raw.get("semantic_rank")
+                                    _bm = _raw.get("bm25_rank")
+                                    _gr = _raw.get("graph_rank")
+                                    if _sem is not None and _bm is not None and _gr is not None:
+                                        if _sem <= 5 and _bm <= 10 and _gr <= 10:
+                                            if _sr.combined_score < _threshold:
+                                                _sr.combined_score = _threshold * 1.01
+                                scored.sort(key=lambda item: item.combined_score, reverse=True)
 
-                    cross_encoder_ok = True
-                except Exception as ce_exc:
-                    logger.warning("Cross-encoder reranking failed, using RRF order: %s", ce_exc)
-                    # Wrap RRF-ordered candidates as ScoredResult stubs so the loop below works uniformly.
-                    from cogmem_api.engine.search.types import ScoredResult
-                    scored = [
-                        ScoredResult(candidate=c, cross_encoder_score=0.0, cross_encoder_score_normalized=c.rrf_score)
-                        for c in top_candidates
-                    ]
-                    for sr in scored:
-                        sr.combined_score = sr.cross_encoder_score_normalized
-                        sr.weight = sr.combined_score
+                        cross_encoder_ok = True
+                    except Exception as ce_exc:
+                        logger.warning("Cross-encoder reranking failed, using RRF order: %s", ce_exc)
+                        # Wrap RRF-ordered candidates as ScoredResult stubs so the loop below works uniformly.
+                        from cogmem_api.engine.search.types import ScoredResult
+                        scored = [
+                            ScoredResult(candidate=c, cross_encoder_score=0.0, cross_encoder_score_normalized=c.rrf_score)
+                            for c in top_candidates
+                        ]
+                        for sr in scored:
+                            sr.combined_score = sr.cross_encoder_score_normalized
+                            sr.weight = sr.combined_score
 
                 _ALL_CHANNELS = ("semantic", "bm25", "graph", "temporal")
 

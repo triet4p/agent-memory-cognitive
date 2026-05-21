@@ -640,3 +640,20 @@ class FlatQueryAnalyzer(QueryAnalyzer):
             query_type="semantic",
             rrf_weights={ch: 1.0 for ch in ("semantic", "bm25", "graph", "temporal")},
         )
+
+
+class GraphOnlyQueryAnalyzer(QueryAnalyzer):
+    """Returns graph-only RRF weights: graph=1.0, all other channels=0.0.
+
+    Pair with skip_reranker=True for pure graph ablation.
+    """
+
+    def load(self) -> None:
+        pass
+
+    def analyze(self, query: str, reference_date: datetime | None = None) -> QueryAnalysis:
+        return QueryAnalysis(
+            temporal_constraint=None,
+            query_type="multi_hop",
+            rrf_weights={"semantic": 0.0, "bm25": 0.0, "graph": 1.0, "temporal": 0.0},
+        )

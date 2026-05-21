@@ -3,10 +3,10 @@
 
 param(
     [string]$VERSION = "v16",
-    [string]$PROFILE_ = "E11",
+    [string]$PROFILE_ = "E11G",
     [string]$FIXTURE = "longmemeval",
     [int]$TIMEOUT_MS = 15000,
-    [int]$START_INDEX = 16,
+    [int]$START_INDEX = 0,
     [int]$END_INDEX = 34,
     [int]$SLEEP_SECONDS = 0
 )
