@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_07",
+  "target_type": "intention",
+  "topic": "improving a home network setup",
+  "gold_fact": {
+    "text": "User planned to set up a home NAS for backups but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to build a home NAS for centralized backups. State ONLY the intention; do not indicate whether it was built."},
+      {"session_index": 4, "reveal": "In passing, the user notes the NAS project is still on the shelf - they haven't bought or set anything up. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What hardware project did the user intend to set up but has not?",
+  "gold_answer": "A home NAS (for backups).",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to upgrade the router and then DOES install the new one, to tempt answering the router.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions the new router is installed and working great (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "set up a home NAS", "fulfilled_decoy": "router upgrade (installed)"},
+  "question_date": "2026-05-24",
+  "rationale": "The NAS plan exists only as an intention; the installed router is a fulfilled decoy with a real event."
+}

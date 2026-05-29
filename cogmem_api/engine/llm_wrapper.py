@@ -27,8 +27,13 @@ class OutputTooLongError(Exception):
 
 
 def parse_llm_json(raw: str) -> Any:
-    """Parse JSON with tolerance for fenced blocks and control chars."""
+    """Parse JSON with tolerance for fenced blocks, <think> blocks, and control chars."""
     text = raw.strip()
+
+    # Strip reasoning blocks emitted by thinking models (Minimax-M2, R1, etc.) so json_repair
+    # doesn't accidentally pick up fake JSON-like snippets inside the reasoning.
+    if "<think>" in text:
+        text = re.sub(r"<think>.*?</think>\s*", "", text, flags=re.DOTALL).strip()
 
     if text.startswith("```"):
         text = text.split("\n", 1)[1] if "\n" in text else text[3:]

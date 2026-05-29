@@ -3,19 +3,22 @@
   "target_type": "habit",
   "topic": "building a sustainable morning routine while working from home",
   "gold_fact": {
-    "text": "Every morning before work the user does a 20-minute mobility routine; it recurs across many sessions as a daily habit.",
+    "text": "Every morning before work the user does a 20-minute mobility routine; it recurs across sessions as a daily habit.",
     "fact_type": "habit",
-    "session_index": 2,
-    "metadata": {"frequency": "daily"}
+    "metadata": {"frequency": "daily"},
+    "fragments": [
+      {"session_index": 1, "reveal": "On this day the user mentions, in passing, that they did their 20-minute mobility routine this morning before starting work. Present it as a single occurrence today — do NOT say 'every morning' or claim it is a daily habit."},
+      {"session_index": 3, "reveal": "On another day the user again mentions doing the 20-minute mobility routine this morning before work. A single occurrence — do NOT generalize to 'daily'."},
+      {"session_index": 5, "reveal": "On yet another day the user mentions doing the same 20-minute mobility routine this morning. A single occurrence — do NOT state the frequency."}
+    ]
   },
   "question": "What does the user usually do each morning before work?",
   "gold_answer": "A 20-minute mobility routine.",
   "traps": [
-    {"trap_type": "type-confusion", "description": "A single session describes a one-off long hike, which superficially looks like exercise but is not the recurring morning routine.", "session_index": 5},
-    {"trap_type": "volume", "description": "Several scattered mentions of different one-time activities to dilute the recurring signal.", "session_index": 6}
+    {"trap_type": "type-confusion", "description": "A single session describes a one-off long weekend hike, which looks like exercise but is not the recurring morning routine.", "session_index": 6}
   ],
-  "session_plan": {"total_sessions": 8, "gold_session_indices": [2]},
-  "shared_context": {"routine": "20-minute mobility routine", "timing": "every morning before work", "one_off_distractor": "a single long weekend hike"},
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 3, 5]},
+  "shared_context": {"routine": "20-minute mobility routine", "timing": "in the morning before work", "one_off_distractor": "a single long weekend hike"},
   "question_date": "2026-05-21",
-  "rationale": "Answer requires aggregating repeated occurrences into a habit pattern; a single one-off mention is insufficient, and a w/e/o store has no repetition semantics."
+  "rationale": "The frequency=daily habit must be inferred by AGGREGATING the three single occurrences (sessions 1,3,5). No single session states 'every morning', so a system that only recalls one instance cannot answer 'usually'."
 }

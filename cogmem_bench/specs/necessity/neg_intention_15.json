@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_15",
+  "target_type": "intention",
+  "topic": "reading goals for the year",
+  "gold_fact": {
+    "text": "User planned to read War and Peace but never started; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to finally read War and Peace. State ONLY the intention; do not indicate whether they started."},
+      {"session_index": 4, "reveal": "In passing, the user admits War and Peace is still sitting unopened on the shelf. STRICT: it remains unstarted."}
+    ]
+  },
+  "question": "What book did the user intend to read but has not started?",
+  "gold_answer": "War and Peace.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to finish an audiobook and then DOES finish it, to tempt answering the audiobook.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions they finished the audiobook during their commute (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "read War and Peace", "fulfilled_decoy": "finish an audiobook (finished)"},
+  "question_date": "2026-05-24",
+  "rationale": "The War and Peace plan exists only as an intention; the finished audiobook is a fulfilled decoy with a real event."
+}

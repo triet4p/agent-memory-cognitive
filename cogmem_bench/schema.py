@@ -24,12 +24,37 @@ TargetType = Literal["habit", "intention", "action_effect"]
 TrapType = Literal["type-confusion", "stale-intention", "contradiction", "volume"]
 
 
-class GoldFact(BaseModel):
-    """The single discriminating fact whose metadata the gold answer depends on."""
+class GoldFragment(BaseModel):
+    """One distributed piece of the gold fact, embedded in a single session.
 
-    text: str = Field(..., description="Canonical fact the conversation must embed.")
+    No fragment may state the whole gold fact or the answer — the benchmark answer must
+    require *combining* fragments across sessions (lifecycle: plan + resolution; causal:
+    precondition + action/outcome; habit: several individual occurrences).
+    """
+
+    session_index: int = Field(..., ge=0, description="Session that carries this piece.")
+    reveal: str = Field(
+        ...,
+        description="The partial info this session embeds. Must NOT be the full fact/answer.",
+    )
+
+
+class GoldFact(BaseModel):
+    """The discriminating fact whose metadata the gold answer depends on.
+
+    `text` + `metadata` are the canonical truth used by the judge and the embedding gate.
+    `fragments` are how that truth is *distributed* across sessions for generation — no
+    single session is self-sufficient, so a world/experience/opinion-only system that can
+    only recall isolated sentences cannot answer.
+    """
+
+    text: str = Field(..., description="Canonical fact (judge/embedding-gate reference; never shown verbatim to the generator).")
     fact_type: TargetType = Field(..., description="Must match the spec's target_type.")
-    session_index: int = Field(..., ge=0, description="Which session carries this fact.")
+    fragments: list[GoldFragment] = Field(
+        ...,
+        min_length=2,
+        description="Distributed pieces across >=2 sessions; the answer requires combining them.",
+    )
     metadata: dict[str, object] = Field(
         default_factory=dict,
         description=(
@@ -39,6 +64,10 @@ class GoldFact(BaseModel):
             "habit -> {'frequency'} (the repetition/aggregation descriptor)."
         ),
     )
+
+    @property
+    def fragment_indices(self) -> list[int]:
+        return sorted({f.session_index for f in self.fragments})
 
     @model_validator(mode="after")
     def _require_type_metadata(self) -> "GoldFact":
@@ -72,7 +101,7 @@ class SessionPlan(BaseModel):
     """How the 7-10 sessions are laid out: which carry gold vs distractor."""
 
     total_sessions: int = Field(..., ge=7, le=10)
-    gold_session_indices: list[int] = Field(..., min_length=1, max_length=3)
+    gold_session_indices: list[int] = Field(..., min_length=2, max_length=5)
     session_topics: list[str] | None = Field(
         None, description="Optional per-session topic guidance; if set, length must equal total_sessions."
     )
@@ -122,8 +151,15 @@ class ScenarioSpec(BaseModel):
             raise ValueError(
                 f"gold_fact.fact_type ({self.gold_fact.fact_type}) must equal target_type ({self.target_type})"
             )
-        if self.gold_fact.session_index not in self.session_plan.gold_session_indices:
-            raise ValueError("gold_fact.session_index must be one of session_plan.gold_session_indices")
+        frag_idxs = self.gold_fact.fragment_indices
+        for idx in frag_idxs:
+            if not (0 <= idx < self.session_plan.total_sessions):
+                raise ValueError(f"gold fragment session_index {idx} out of range for total_sessions")
+        if frag_idxs != sorted(self.session_plan.gold_session_indices):
+            raise ValueError(
+                f"gold fragment indices {frag_idxs} must equal session_plan.gold_session_indices "
+                f"{sorted(self.session_plan.gold_session_indices)}"
+            )
         return self
 
 

@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_11",
+  "target_type": "intention",
+  "topic": "retirement and investment planning",
+  "gold_fact": {
+    "text": "User planned to open a Roth IRA but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to open a Roth IRA this year. State ONLY the intention; do not indicate whether it was opened."},
+      {"session_index": 4, "reveal": "In passing, the user admits they still haven't opened the Roth IRA. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What retirement account did the user intend to open but has not?",
+  "gold_answer": "A Roth IRA.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to refinance the mortgage and then DOES close the refinance, to tempt answering the refinance.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions the mortgage refinance closed and lowered their rate (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "open a Roth IRA", "fulfilled_decoy": "refinance the mortgage (closed)"},
+  "question_date": "2026-05-24",
+  "rationale": "The Roth IRA plan exists only as an intention; the closed refinance is a fulfilled decoy with a real event."
+}

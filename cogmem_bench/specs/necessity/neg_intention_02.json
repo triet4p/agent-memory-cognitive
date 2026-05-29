@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_02",
+  "target_type": "intention",
+  "topic": "trying to add hobbies and activities outside of work",
+  "gold_fact": {
+    "text": "User planned to take a pottery class but never enrolled; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 2, "reveal": "The user states the PLAN to sign up for a pottery class. State ONLY the intention; do not indicate whether they enrolled."},
+      {"session_index": 6, "reveal": "In passing, the user says they keep meaning to sign up for pottery but haven't yet. STRICT: it remains undone — do NOT describe attending or enrolling."}
+    ]
+  },
+  "question": "Which activity did the user intend to take up but has not actually started?",
+  "gold_answer": "A pottery class (they never enrolled).",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user states a different plan — to join a gym — which they then DO act on (start going), to tempt answering the gym.", "session_index": 1},
+    {"trap_type": "type-confusion", "description": "The user mentions they've been going to the gym regularly now (the decoy plan was fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [2, 6]},
+  "shared_context": {"unfulfilled_plan": "take a pottery class", "fulfilled_decoy": "join a gym"},
+  "question_date": "2026-05-21",
+  "rationale": "Answering requires the intention (planned pottery) plus its unresolved status; the plan is intention-typed (filtered in w/e/o recall) and there is no experience of the non-enrollment. The fulfilled gym plan is a distractor with a real event."
+}

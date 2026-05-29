@@ -20,6 +20,7 @@ from cogmem_bench.schema import (
     GeneratedConversation,
     GeneratedSession,
     GoldFact,
+    GoldFragment,
     Message,
     ScenarioSpec,
     SessionPlan,
@@ -36,8 +37,11 @@ def _intention_spec() -> ScenarioSpec:
         gold_fact=GoldFact(
             text="User planned to finish the Rust async course by end of September but later abandoned it.",
             fact_type="intention",
-            session_index=1,
             metadata={"intention_status": "abandoned"},
+            fragments=[
+                GoldFragment(session_index=1, reveal="user states the plan to finish the Rust course by September"),
+                GoldFragment(session_index=4, reveal="user mentions they dropped the course"),
+            ],
         ),
         question="Did the user follow through on finishing the Rust async course?",
         gold_answer="No — they abandoned it.",
@@ -45,7 +49,7 @@ def _intention_spec() -> ScenarioSpec:
             Trap(
                 trap_type="stale-intention",
                 description="An earlier session states the plan confidently; a later one quietly drops it.",
-                session_index=4,
+                session_index=3,
             )
         ],
         session_plan=SessionPlan(total_sessions=8, gold_session_indices=[1, 4]),
@@ -64,10 +68,14 @@ def test_round_trip() -> None:
     print("[ok] ScenarioSpec round-trip (incl. shared_context)")
 
 
+def _frags() -> list[GoldFragment]:
+    return [GoldFragment(session_index=0, reveal="piece A"), GoldFragment(session_index=1, reveal="piece B")]
+
+
 def test_gold_fact_type_metadata_validation() -> None:
     # intention without status -> reject
     try:
-        GoldFact(text="x", fact_type="intention", session_index=0, metadata={})
+        GoldFact(text="x", fact_type="intention", fragments=_frags(), metadata={})
     except ValidationError:
         print("[ok] intention without intention_status rejected")
     else:
@@ -78,7 +86,7 @@ def test_gold_fact_type_metadata_validation() -> None:
         GoldFact(
             text="x",
             fact_type="action_effect",
-            session_index=0,
+            fragments=_frags(),
             metadata={"precondition": "latency>100ms", "action": "switch to int8"},
         )
     except ValidationError:
@@ -88,11 +96,22 @@ def test_gold_fact_type_metadata_validation() -> None:
 
     # habit missing frequency -> reject
     try:
-        GoldFact(text="x", fact_type="habit", session_index=0, metadata={})
+        GoldFact(text="x", fact_type="habit", fragments=_frags(), metadata={})
     except ValidationError:
         print("[ok] habit without frequency rejected")
     else:
         raise AssertionError("expected ValidationError for habit missing frequency")
+
+    # fewer than 2 fragments -> reject
+    try:
+        GoldFact(
+            text="x", fact_type="habit", metadata={"frequency": "daily"},
+            fragments=[GoldFragment(session_index=0, reveal="only one")],
+        )
+    except ValidationError:
+        print("[ok] single-fragment gold_fact rejected (needs >=2)")
+    else:
+        raise AssertionError("expected ValidationError for <2 fragments")
 
 
 def test_cross_field_validation() -> None:
@@ -103,20 +122,36 @@ def test_cross_field_validation() -> None:
             target_type="habit",
             topic="t",
             gold_fact=GoldFact(
-                text="x", fact_type="intention", session_index=0, metadata={"intention_status": "planning"}
+                text="x", fact_type="intention", metadata={"intention_status": "planning"}, fragments=_frags()
             ),
             question="q",
             gold_answer="a",
-            session_plan=SessionPlan(total_sessions=7, gold_session_indices=[0]),
+            session_plan=SessionPlan(total_sessions=7, gold_session_indices=[0, 1]),
         )
     except ValidationError:
         print("[ok] target_type / gold_fact.fact_type mismatch rejected")
     else:
         raise AssertionError("expected ValidationError for type mismatch")
 
+    # fragment indices must equal gold_session_indices
+    try:
+        ScenarioSpec(
+            scenario_id="bad2",
+            target_type="habit",
+            topic="t",
+            gold_fact=GoldFact(text="x", fact_type="habit", metadata={"frequency": "daily"}, fragments=_frags()),
+            question="q",
+            gold_answer="a",
+            session_plan=SessionPlan(total_sessions=7, gold_session_indices=[0, 3]),
+        )
+    except ValidationError:
+        print("[ok] fragment indices != gold_session_indices rejected")
+    else:
+        raise AssertionError("expected ValidationError for fragment/session-index mismatch")
+
     # session_plan rejects out-of-range gold index
     try:
-        SessionPlan(total_sessions=7, gold_session_indices=[9])
+        SessionPlan(total_sessions=7, gold_session_indices=[1, 9])
     except ValidationError:
         print("[ok] out-of-range gold_session_index rejected")
     else:

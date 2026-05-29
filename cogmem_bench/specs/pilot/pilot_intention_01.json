@@ -5,16 +5,19 @@
   "gold_fact": {
     "text": "User planned to finish the Rust async course by end of September but later abandoned it after priorities shifted to the data pipeline.",
     "fact_type": "intention",
-    "session_index": 1,
-    "metadata": {"intention_status": "abandoned"}
+    "metadata": {"intention_status": "abandoned"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN: they intend to finish the Rust async course by end of September. State only the plan — its outcome is unknown at this point."},
+      {"session_index": 5, "reveal": "The user mentions they have stopped working on the Rust async course because their focus shifted to the data pipeline — without explicitly labeling it 'abandoned'. Do NOT restate the original September deadline here."}
+    ]
   },
   "question": "Did the user finish the Rust async course they planned to complete?",
   "gold_answer": "No — they abandoned it after their priorities shifted.",
   "traps": [
-    {"trap_type": "stale-intention", "description": "An early session states the September plan with confidence; a later session quietly drops it without announcing failure.", "session_index": 5}
+    {"trap_type": "stale-intention", "description": "A mid conversation re-affirms enthusiasm for Rust generally, which could mislead a system into thinking the course was completed.", "session_index": 3}
   ],
-  "session_plan": {"total_sessions": 8, "gold_session_indices": [1]},
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 5]},
   "shared_context": {"course": "Rust async course", "deadline": "end of September", "reason_dropped": "priorities shifted to the data pipeline"},
   "question_date": "2026-05-21",
-  "rationale": "Answer depends on resolving the intention's final status (abandoned). A world/experience/opinion store records the plan was stated but cannot represent its lifecycle resolution."
+  "rationale": "Answer requires linking the plan (session 1) to its later resolution (session 5) and resolving intention_status=abandoned. Neither session alone answers it: session 1 is only a plan; session 5 is a drop that only resolves the plan when combined."
 }

@@ -5,17 +5,20 @@
   "gold_fact": {
     "text": "When the kitchen is warmer than 26C, the user cuts the bulk ferment to 3 hours, which gives a tighter, less gummy crumb.",
     "fact_type": "action_effect",
-    "session_index": 4,
-    "metadata": {"precondition": "kitchen temperature above 26C", "action": "cut the bulk ferment to 3 hours", "outcome": "tighter, less gummy crumb", "confidence": 0.85}
+    "metadata": {"precondition": "kitchen temperature above 26C", "action": "cut the bulk ferment to 3 hours", "outcome": "tighter, less gummy crumb", "confidence": 0.85},
+    "fragments": [
+      {"session_index": 4, "reveal": "The user notes ONLY the PRECONDITION: their kitchen often sits above 26C in the afternoons and they worry the heat makes the dough over-proof. STRICT: do NOT mention any change they make, any bulk-ferment timing, shorter/longer ferments, or any effect on the crumb/gumminess — describe only the warm-kitchen problem itself."},
+      {"session_index": 7, "reveal": "The user mentions the ACTION and OUTCOME: cutting the bulk ferment to 3 hours gave a tighter, less gummy crumb. Refer to the warm kitchen only obliquely ('on those hot days'); do NOT restate the 26C threshold."}
+    ]
   },
   "question": "When the kitchen is too warm, what does the user change in their sourdough process and what is the effect?",
   "gold_answer": "They shorten the bulk ferment to 3 hours, which yields a tighter, less gummy crumb.",
   "traps": [
     {"trap_type": "contradiction", "description": "Earlier the user preferred long 6-hour ferments, which could mislead toward the wrong action.", "session_index": 1},
-    {"trap_type": "volume", "description": "Multiple unrelated baking notes (flour brand, hydration) without causal structure.", "session_index": 7}
+    {"trap_type": "volume", "description": "Multiple unrelated baking notes (flour brand, hydration) without causal structure.", "session_index": 6}
   ],
-  "session_plan": {"total_sessions": 9, "gold_session_indices": [4]},
+  "session_plan": {"total_sessions": 9, "gold_session_indices": [4, 7]},
   "shared_context": {"trigger": "kitchen above 26C", "fix": "cut bulk ferment to 3 hours", "result": "tighter, less gummy crumb", "old_preference": "long 6-hour ferments"},
   "question_date": "2026-05-21",
-  "rationale": "Answer requires the conditional action and its outcome together; the earlier preference is a distractor that a w/e/o store cannot override with a causal rule."
+  "rationale": "Answer requires linking the precondition (session 4: warm kitchen) to the action+outcome (session 7: 3-hour ferment -> tighter crumb). Neither alone gives the conditional rule; the earlier 6-hour preference is a distractor."
 }

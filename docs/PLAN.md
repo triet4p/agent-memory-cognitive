@@ -36,8 +36,12 @@ Mục tiêu điều phối:
 - S29 (Wave 2A: R-1/R-2/G-1..G-4/C-1 routing+generation fixes, no re-retain): Pending 🔄
 - S29 (Wave 2B: T-1/T-2/G-5/G-6 retain+graph fixes, v15 re-retain): Pending 🔄
 - S-final (E1-E7 ablation dry run): Pending 🔄
+- S31 (graph-only ablation E7G–E11G): ✅ Done — verdicts verified (benchmark-fit problem identified: LongMemEval lacks prospective/causal/habitual categories)
+- S32 (benchmark-construction foundation + 6-case pilot): ✅ Done — `cogmem_bench/` package + 3 skills → 1 (author only) + multi-call generation + frozen pilot verified
+- S33 (intention necessity — retain-level cách B + Minimax strict extractor): ✅ Done — 2/16 cases discriminate after full confound chain removed (router bias → flat; recall-time leakage → retain-level paired banks; extractor leakage → Minimax + strict-typing). Intention necessary in sparse-context edge cases (~12.5%); redundant in rich-context conversations (observational state facts leak hợp lệ qua experience).
+- S34 (action_effect necessity — agentic AI workload): 🔄 Planned after S33
 
-**Next immediate action:** S29 Wave 2A ✅ Done — routing & generation fixes implemented (R-1, R-2, G-1..G-4, C-1) on v14 banks. Run full 35-case eval to verify ≥27 PASS gate. Then proceed to Wave 2B (v15 re-retain). Full plan in [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md).
+**Next immediate action:** S34 — design agentic-workload generation framework (single-agent tool-use traces); author specs for causal rules where action+outcome do NOT naturally appear as conversational experience; run paired-bank gate with E7F vs E10F. Full plan in [s34-bench-action-effect-agentic.md](sprint-plans/s34-bench-action-effect-agentic.md).
 
 ---
 
@@ -94,6 +98,15 @@ Mục tiêu điều phối:
 | S29 Wave 2B | T-1 (retain prompt), T-2 (entity blocklist), G-5 (semantic cap), G-6 (temporal weights) — code done, awaiting v15 re-retain | — | ✅ Code Done / 🔄 Re-retain Pending | [s29-recall-retain-routing-generation-quality.md](sprint-plans/s29-recall-retain-routing-generation-quality.md) |
 | S-final | Full ablation dry run gate (E1-E7) | 761-763 | 🔄 Pending | [s-final-ablation.md](sprint-plans/s-final-ablation.md) |
 
+### 🔬 Phase F — Cognitive-Node Ablation Study
+
+| Sprint | Mô tả | Tasks | Trạng thái | File chi tiết |
+|--------|-------|-------|------------|---------------|
+| S31 | Graph-only ablation E7G–E11G (isolate node-type graph contribution) | — | ✅ Done | [s31-graph-only-ablation.md](sprint-plans/s31-graph-only-ablation.md) |
+| S32 | Benchmark-construction foundation + 6-case pilot (cogmem_bench package, multi-call generation, 1 agent skill + manual scripts) | S32-T1..T5 | ✅ Done | [s32-bench-construction.md](sprint-plans/s32-bench-construction.md) |
+| S33 | Intention necessity — retain-level ablation (cách B) + Minimax strict extractor + flat router + manual verdict | S33-T1..T4 | ✅ Done (2/16 discriminate; intention necessary in sparse-context, redundant in rich-context) | [s33-bench-discrimination.md](sprint-plans/s33-bench-discrimination.md) |
+| S34 | Action_effect necessity — agentic AI workload (tool-use traces) + cách B + McNemar | S34-T1..T5 | 🔄 Planned (after S33) | [s34-bench-action-effect-agentic.md](sprint-plans/s34-bench-action-effect-agentic.md) |
+
 ---
 
 ## 4) Canonical Execution Order
@@ -124,6 +137,14 @@ Sprint 0 → S7 + Backfill B1-B5 (tasks 001-703)
 → S29 Wave 2A: R-1/R-2 (routing) + G-1..G-4 (generation) + C-1 (CE floor) on v14 banks ✅
 → S29 Wave 2B: T-1/T-2 (retain+entity) + G-5/G-6 (link creation) → v15 re-retain 🔄 Pending
 → S-final (tasks 761-763): Full Ablation Dry Run Gate
+```
+
+### 🔬 Phase F — Cognitive-Node Ablation Study (parallel track)
+```
+→ S31: Graph-only ablation E7G–E11G ✅ (benchmark-fit problem found)
+→ S32: cogmem_bench foundation + pilot ✅
+→ S33: intention necessity (cách B retain-level + Minimax strict extractor + flat router) ✅ — 2/16 discriminate (intention necessary in sparse-context)
+→ S34: action_effect necessity in agentic workload (tool-use traces) 🔄 Planned
 ```
 
 ### Hard dependency rules

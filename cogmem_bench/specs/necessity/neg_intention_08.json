@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_08",
+  "target_type": "intention",
+  "topic": "getting personal finances in order",
+  "gold_fact": {
+    "text": "User planned to write a will but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to finally write a will. State ONLY the intention; do not indicate whether it was drafted."},
+      {"session_index": 4, "reveal": "In passing, the user admits the will is still on the to-do list, untouched. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What legal/financial task did the user intend to do but has not completed?",
+  "gold_answer": "Write a will.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to open a brokerage account and then DOES open and fund it, to tempt answering the brokerage account.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions the brokerage account is open and they made a first deposit (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "write a will", "fulfilled_decoy": "open a brokerage account (done, funded)"},
+  "question_date": "2026-05-24",
+  "rationale": "The will plan exists only as an intention; the funded brokerage account is a fulfilled decoy with a real event."
+}

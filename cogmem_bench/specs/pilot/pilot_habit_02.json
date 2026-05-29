@@ -3,10 +3,14 @@
   "target_type": "habit",
   "topic": "managing weekly meal planning and grocery logistics",
   "gold_fact": {
-    "text": "The user batch-cooks meals for the week every Sunday; this recurs as a weekly habit across multiple sessions.",
+    "text": "The user batch-cooks meals for the week every Sunday; this recurs across sessions as a weekly habit.",
     "fact_type": "habit",
-    "session_index": 1,
-    "metadata": {"frequency": "weekly"}
+    "metadata": {"frequency": "weekly"},
+    "fragments": [
+      {"session_index": 1, "reveal": "On this day (a Sunday) the user mentions they spent the day batch-cooking meals for the week. Present it as a single occurrence this Sunday — do NOT say 'every Sunday' or claim it is a weekly habit."},
+      {"session_index": 3, "reveal": "On another Sunday the user again mentions batch-cooking meals for the week. A single occurrence — do NOT generalize to 'weekly'."},
+      {"session_index": 5, "reveal": "On yet another Sunday the user mentions batch-cooking their meals again. A single occurrence — do NOT state the frequency."}
+    ]
   },
   "question": "What does the user typically do on Sundays?",
   "gold_answer": "Batch-cooks meals for the week.",
@@ -14,8 +18,8 @@
     {"trap_type": "type-confusion", "description": "One session mentions a special one-time Sunday brunch with friends, not the recurring batch-cooking.", "session_index": 4},
     {"trap_type": "contradiction", "description": "User once says they were too busy to cook one particular Sunday, which could mislead a system into denying the habit.", "session_index": 6}
   ],
-  "session_plan": {"total_sessions": 8, "gold_session_indices": [1]},
-  "shared_context": {"activity": "batch-cooks meals for the week", "timing": "every Sunday", "one_off_distractor": "a one-time Sunday brunch with friends"},
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 3, 5]},
+  "shared_context": {"activity": "batch-cooking meals for the week", "timing": "on Sundays", "one_off_distractor": "a one-time Sunday brunch with friends"},
   "question_date": "2026-05-21",
-  "rationale": "Answer requires recognizing a recurring weekly behaviour despite a one-off exception; a w/e/o store cannot aggregate repetitions into a habit."
+  "rationale": "The frequency=weekly habit must be inferred by AGGREGATING three single Sunday occurrences (sessions 1,3,5), despite a one-off brunch and a skipped Sunday. No single session states 'every Sunday'."
 }

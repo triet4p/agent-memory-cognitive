@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_12",
+  "target_type": "intention",
+  "topic": "picking up creative hobbies",
+  "gold_fact": {
+    "text": "User planned to learn to sketch but never started; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to learn to sketch/draw. State ONLY the intention; do not indicate whether they started."},
+      {"session_index": 4, "reveal": "In passing, the user admits they bought a sketchbook but never actually started drawing. STRICT: it remains unstarted."}
+    ]
+  },
+  "question": "What creative skill did the user intend to pick up but has not started?",
+  "gold_answer": "Sketching / drawing.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to take a photography workshop and then DOES attend it, to tempt answering photography.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions the photography workshop was great and they completed it (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "learn to sketch", "fulfilled_decoy": "photography workshop (attended)"},
+  "question_date": "2026-05-24",
+  "rationale": "The sketching plan exists only as an intention (owning a sketchbook is not doing it); the attended workshop is a fulfilled decoy."
+}

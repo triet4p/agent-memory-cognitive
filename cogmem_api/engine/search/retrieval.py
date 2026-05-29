@@ -75,9 +75,15 @@ class MultiFactTypeRetrievalResult:
 
 
 def _select_fact_types_for_query(query_type: QueryType, fact_types: list[str]) -> list[str]:
-    """Apply query-type aware fact-type routing policy."""
+    """Apply query-type aware fact-type routing policy.
+
+    Falls back to all available types when the preferred type is absent (e.g. an ablation
+    profile that removed it) — otherwise recall would return nothing, masking whether the
+    answer is genuinely unrecoverable from the remaining types.
+    """
     if query_type == "prospective":
-        return [fact_type for fact_type in fact_types if fact_type == "intention"]
+        routed = [fact_type for fact_type in fact_types if fact_type == "intention"]
+        return routed if routed else list(fact_types)
     return list(fact_types)
 
 

@@ -71,7 +71,14 @@ def _keywords(text: str) -> set[str]:
 
 
 def soft_validate_embedding(conv: GeneratedConversation, spec: ScenarioSpec) -> tuple[bool, str]:
-    """Cheap pre-retain drift check: does the gold session text overlap the gold fact?
+    """Cheap pre-retain checks for the distributed gold fact.
+
+    Two things matter for a discriminating case:
+      - UNION of the gold-fragment sessions must cover the gold-fact keywords (the pieces
+        are present somewhere).
+      - NO single gold session should be self-sufficient (anti-leak) — otherwise a
+        world/experience/opinion-only system answers from one recalled sentence and the
+        case won't discriminate. This is a WARNING, not a hard fail.
 
     NOT the authoritative embedding gate (that retains + checks fact_type in gate.py).
     """
@@ -81,46 +88,78 @@ def soft_validate_embedding(conv: GeneratedConversation, spec: ScenarioSpec) -> 
     if not gold_kw:
         return True, "no gold keywords to check"
     gold_ids = set(conv.gold_session_ids)
-    gold_text = " ".join(m.content for s in conv.sessions if s.session_id in gold_ids for m in s.messages)
-    coverage = len(gold_kw & _keywords(gold_text)) / len(gold_kw)
-    if coverage < 0.3:
-        return False, f"gold-session keyword coverage {coverage:.0%} < 30% (likely drift)"
-    return True, f"gold-session keyword coverage {coverage:.0%}"
+    gold_sessions = [s for s in conv.sessions if s.session_id in gold_ids]
+
+    union_text = " ".join(m.content for s in gold_sessions for m in s.messages)
+    union_cov = len(gold_kw & _keywords(union_text)) / len(gold_kw)
+
+    per_session_cov = [
+        len(gold_kw & _keywords(" ".join(m.content for m in s.messages))) / len(gold_kw)
+        for s in gold_sessions
+    ]
+    max_single = max(per_session_cov) if per_session_cov else 0.0
+
+    if union_cov < 0.5:
+        return False, f"union gold coverage {union_cov:.0%} < 50% across {len(gold_sessions)} fragment sessions (drift)"
+    leak = " ⚠ possible leak: one session covers {:.0%} (≥80%) — may not discriminate".format(max_single) if max_single >= 0.8 else ""
+    return True, f"union gold coverage {union_cov:.0%}, max single-session {max_single:.0%}{leak}"
 
 
 async def generate_conversation(
     spec: ScenarioSpec,
     llm: _Caller,
     *,
-    gold_tokens: int = 3500,
-    filler_tokens: int = 1800,
+    gold_tokens: int = 16000,
+    filler_tokens: int = 8000,
     temperature: float = 0.7,
     last_k_verbatim: int = 2,
+    max_retries: int = 3,
 ) -> GeneratedConversation:
     """Generate the conversation session-by-session (one LLM call per session).
 
     Consistency across calls is maintained by (1) `spec.shared_context` injected into every
     prompt, (2) model-emitted one-line recaps of older sessions, and (3) the last
     `last_k_verbatim` sessions passed verbatim for tight local continuity.
+
+    Each session call is retried up to `max_retries` times on transient failures (empty/
+    malformed output, truncation, API hiccup); per-session progress is logged.
     """
     plan = spec.session_plan
-    dates = plan.dates or [None] * plan.total_sessions
+    total = plan.total_sessions
+    dates = plan.dates or [None] * total
 
     sessions: list[GeneratedSession] = []
     recaps: list[str] = []  # aligned to session index
-    for i in range(plan.total_sessions):
+    for i in range(total):
         role = session_role(spec, i)
         split = max(0, i - last_k_verbatim)
         older_recaps = recaps[:split]
         recent_sessions = [(f"Session {j}", sessions[j].messages) for j in range(split, i)]
         prompt = build_session_prompt(spec, i, role, older_recaps, recent_sessions)
         max_tokens = gold_tokens if role in ("gold", "trap") else filler_tokens
-        raw = await llm.call(
-            messages=[{"role": "user", "content": prompt}],
-            temperature=temperature,
-            max_completion_tokens=max_tokens,
-        )
-        model_recap, messages = parse_session_response(str(raw or ""))
+
+        model_recap: str | None = None
+        messages: list[Message] | None = None
+        last_exc: Exception | None = None
+        for attempt in range(1, max_retries + 1):
+            print(f"    [{spec.scenario_id}] session {i + 1}/{total} ({role}) attempt {attempt}/{max_retries} ...")
+            try:
+                raw = await llm.call(
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=temperature,
+                    max_completion_tokens=max_tokens,
+                )
+                model_recap, messages = parse_session_response(str(raw or ""))
+                print(f"    [{spec.scenario_id}] session {i + 1}/{total} ({role}) ok — {len(messages)} msgs")
+                break
+            except Exception as exc:  # noqa: BLE001 — retry any transient generation failure
+                last_exc = exc
+                print(f"    [{spec.scenario_id}] session {i + 1}/{total} ({role}) attempt {attempt} FAILED: {type(exc).__name__}: {exc}")
+        if messages is None:
+            raise RuntimeError(
+                f"session {i} of {spec.scenario_id} failed after {max_retries} attempts: {last_exc}"
+            ) from last_exc
+
         sessions.append(
             GeneratedSession(
                 session_id=_session_id(spec, i),

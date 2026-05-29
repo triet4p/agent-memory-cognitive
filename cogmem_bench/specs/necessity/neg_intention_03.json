@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_03",
+  "target_type": "intention",
+  "topic": "growing a personal brand as a developer",
+  "gold_fact": {
+    "text": "User planned to write a blog post series on Rust async but never started it; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to write a multi-part blog series on Rust async. State ONLY the intention; do not indicate whether any post was written."},
+      {"session_index": 4, "reveal": "In passing, the user admits the blog series is still just an idea — they haven't written a word yet. STRICT: it remains unstarted."}
+    ]
+  },
+  "question": "What writing project did the user plan but has not started?",
+  "gold_answer": "A blog post series on Rust async.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to give a meetup talk and then DOES give it, to tempt answering the talk.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user recaps that the meetup talk went well (decoy plan fulfilled).", "session_index": 6}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "write a Rust async blog series", "fulfilled_decoy": "give a meetup talk"},
+  "question_date": "2026-05-21",
+  "rationale": "The unstarted blog series is an unresolved intention; the plan is intention-typed (filtered in w/e/o recall) and no experience records the non-writing. The completed meetup talk is a fulfilled distractor."
+}

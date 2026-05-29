@@ -5,17 +5,20 @@
   "gold_fact": {
     "text": "User planned to switch to a standing desk by March and did follow through, buying and setting one up.",
     "fact_type": "intention",
-    "session_index": 2,
-    "metadata": {"intention_status": "fulfilled"}
+    "metadata": {"intention_status": "fulfilled"},
+    "fragments": [
+      {"session_index": 2, "reveal": "The user states the PLAN: they intend to switch to a standing desk by March. State only the intention; whether it happens is unknown here."},
+      {"session_index": 5, "reveal": "The user mentions, in passing, that they finally got the standing desk delivered and set up last weekend. Do NOT restate the original 'by March' plan here."}
+    ]
   },
   "question": "Did the user end up switching to a standing desk like they intended?",
   "gold_answer": "Yes — they followed through and set one up.",
   "traps": [
-    {"trap_type": "contradiction", "description": "User earlier voices doubt about standing desks being worth it, which could mislead a system into saying they did not switch.", "session_index": 0},
-    {"trap_type": "stale-intention", "description": "A separate unrelated plan (new monitor) is mentioned and never completed, to tempt confusion about which plan was fulfilled.", "session_index": 4}
+    {"trap_type": "contradiction", "description": "An early session voices doubt about whether standing desks are worth it, to tempt a 'no' answer.", "session_index": 0},
+    {"trap_type": "stale-intention", "description": "A parallel plan to buy a new monitor is mentioned and never completed, to tempt confusion about which plan was fulfilled.", "session_index": 4}
   ],
-  "session_plan": {"total_sessions": 8, "gold_session_indices": [2]},
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [2, 5]},
   "shared_context": {"item": "standing desk", "deadline": "March", "parallel_unfinished_plan": "new monitor"},
   "question_date": "2026-05-21",
-  "rationale": "Answer requires the intention's fulfilled status; the earlier doubt (opinion) and a parallel unfulfilled plan are distractors a w/e/o store cannot disambiguate by lifecycle."
+  "rationale": "Answer requires linking the plan (session 2) to the later fulfillment (session 5) and resolving intention_status=fulfilled, disambiguating from the unfinished monitor plan. Neither gold session alone answers it."
 }

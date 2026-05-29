@@ -121,6 +121,43 @@ ABLATION_PROFILES: dict[str, AblationProfile] = {
         adaptive_router_enabled=True,
         sum_activation_enabled=True,
     ),
+    # Flat-router variants (E7F/E8F/E9F/E10F): identical to E7/E8/E9/E10 but with
+    # adaptive_router_enabled=False so retrieval uses FlatQueryAnalyzer — no per-query-type
+    # fact-type routing. Used by the cogmem_bench necessity benchmark to remove the
+    # "prospective → intention-only" router bias from the comparison (the full vs ablated
+    # arms share identical router behaviour, so any discrimination is content-level).
+    "E7F": AblationProfile(
+        profile_id="E7F",
+        description="E7 with flat router (adaptive_router_enabled=False)",
+        enabled_networks=("world", "experience", "opinion", "habit", "intention", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "intention", "action_effect"),
+        adaptive_router_enabled=False,
+        sum_activation_enabled=True,
+    ),
+    "E8F": AblationProfile(
+        profile_id="E8F",
+        description="E8 (− habit) with flat router",
+        enabled_networks=("world", "experience", "opinion", "intention", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "intention", "action_effect"),
+        adaptive_router_enabled=False,
+        sum_activation_enabled=True,
+    ),
+    "E9F": AblationProfile(
+        profile_id="E9F",
+        description="E9 (− intention) with flat router",
+        enabled_networks=("world", "experience", "opinion", "habit", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "action_effect"),
+        adaptive_router_enabled=False,
+        sum_activation_enabled=True,
+    ),
+    "E10F": AblationProfile(
+        profile_id="E10F",
+        description="E10 (− action_effect) with flat router",
+        enabled_networks=("world", "experience", "opinion", "habit", "intention"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "intention"),
+        adaptive_router_enabled=False,
+        sum_activation_enabled=True,
+    ),
     # Graph-only ablation profiles (E7G–E11G): semantic/BM25/temporal weights zeroed,
     # CE reranker skipped — pure BFS graph activation ranking.
     "E7G": AblationProfile(

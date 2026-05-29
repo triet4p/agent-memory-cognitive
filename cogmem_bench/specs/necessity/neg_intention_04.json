@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_04",
+  "target_type": "intention",
+  "topic": "reorganizing personal knowledge management tools",
+  "gold_fact": {
+    "text": "User planned to migrate their notes to Obsidian but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 2, "reveal": "The user states the PLAN to migrate all their notes into Obsidian. State ONLY the intention; do not indicate whether the migration happened."},
+      {"session_index": 5, "reveal": "In passing, the user notes the Obsidian migration is still pending — they keep putting it off. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What migration did the user intend to do but has not completed?",
+  "gold_answer": "Migrating their notes to Obsidian.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to switch to a mechanical keyboard and then DOES buy and use one, to tempt answering the keyboard.", "session_index": 1},
+    {"trap_type": "type-confusion", "description": "The user mentions they've been loving the new mechanical keyboard (decoy plan fulfilled).", "session_index": 6}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [2, 5]},
+  "shared_context": {"unfulfilled_plan": "migrate notes to Obsidian", "fulfilled_decoy": "switch to a mechanical keyboard"},
+  "question_date": "2026-05-21",
+  "rationale": "The pending Obsidian migration is an unresolved intention; the plan is intention-typed (filtered in w/e/o recall) and there is no experience of the non-migration. The fulfilled keyboard switch is a distractor with a real event."
+}

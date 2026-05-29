@@ -363,13 +363,18 @@ class MemoryEngine:
         return dt.astimezone(UTC).strftime("%Y-%m-%d")
 
     def _build_retain_llm_config(self) -> LLMConfig | None:
-        if not self._runtime_config.llm_base_url:
+        # Optional COGMEM_API_RETAIN_LLM_* override (stronger extractor for benchmark runs);
+        # falls back to the main COGMEM_API_LLM_* if any retain-specific field is unset.
+        model = self._runtime_config.retain_llm_model or self._runtime_config.llm_model
+        base_url = self._runtime_config.retain_llm_base_url or self._runtime_config.llm_base_url
+        api_key = self._runtime_config.retain_llm_api_key or self._runtime_config.llm_api_key
+        if not base_url:
             return None
         return LLMConfig(
             provider=self._runtime_config.llm_provider,
-            model=self._runtime_config.llm_model,
-            api_key=self._runtime_config.llm_api_key,
-            base_url=self._runtime_config.llm_base_url,
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
             timeout=self._runtime_config.retain_llm_timeout,
         )
 
@@ -408,6 +413,7 @@ class MemoryEngine:
         document_tags: list[str] | None = None,
         return_usage: bool = False,
         operation_id: str | None = None,
+        enabled_fact_types: tuple[str, ...] | None = None,
     ):
         from cogmem_api.engine.retain.orchestrator import retain_batch
 
@@ -432,6 +438,7 @@ class MemoryEngine:
             document_tags=document_tags,
             operation_id=operation_id,
             schema=self.database_schema,
+            enabled_fact_types=enabled_fact_types,
         )
         if return_usage:
             return unit_ids, usage

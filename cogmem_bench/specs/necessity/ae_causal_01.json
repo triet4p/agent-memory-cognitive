@@ -1,0 +1,24 @@
+{
+  "scenario_id": "ae_causal_01",
+  "target_type": "action_effect",
+  "topic": "tuning a self-hosted LLM inference server for latency",
+  "gold_fact": {
+    "text": "When inference latency exceeds 100ms, the user switches the model to int8 quantization, which drops latency to about 45ms.",
+    "fact_type": "action_effect",
+    "metadata": {"precondition": "inference latency exceeds 100ms", "action": "switch the model to int8 quantization", "outcome": "latency drops to about 45ms"},
+    "fragments": [
+      {"session_index": 3, "reveal": "The user describes the PRECONDITION only: under load their latency crosses the 100ms ceiling they care about. STRICT: do NOT mention int8 or any resulting latency."},
+      {"session_index": 6, "reveal": "The user mentions the ACTION and OUTCOME: switching to int8 quantization brought latency to about 45ms. Refer to the trigger only vaguely ('when it spikes'); do NOT restate 100ms."}
+    ]
+  },
+  "question": "What does the user do when inference latency exceeds 100ms, and what is the result?",
+  "gold_answer": "Switch the model to int8 quantization; latency drops to about 45ms.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "A one-off session where the user once restarted the service after a spike (an experience, not the recurring causal rule).", "session_index": 1},
+    {"trap_type": "volume", "description": "Several unrelated tuning tips (batch size, caching) without precondition-action-outcome structure.", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [3, 6]},
+  "shared_context": {"trigger": "latency above 100ms", "fix": "int8 quantization", "result": "about 45ms"},
+  "question_date": "2026-05-24",
+  "rationale": "Causal phrasing (not 'what will they do') routes to causal, boosting action_effect. Answer requires linking precondition (session 3) to action+outcome (session 6); E10 (no action_effect) must fail if the rule is only stored as action_effect."
+}

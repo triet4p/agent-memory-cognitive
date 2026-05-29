@@ -16,15 +16,33 @@ ENV_GEN_MODEL = "COGMEM_BENCH_GEN_LLM_MODEL"
 ENV_GEN_API_KEY = "COGMEM_BENCH_GEN_LLM_API_KEY"
 ENV_GEN_TIMEOUT = "COGMEM_BENCH_GEN_LLM_TIMEOUT"
 ENV_GEN_LAST_K_VERBATIM = "COGMEM_BENCH_GEN_LAST_K_VERBATIM"
+ENV_GEN_MAX_TOKENS = "COGMEM_BENCH_GEN_MAX_TOKENS"               # gold/trap sessions
+ENV_GEN_FILLER_MAX_TOKENS = "COGMEM_BENCH_GEN_FILLER_MAX_TOKENS"  # filler sessions
+ENV_GEN_MAX_RETRIES = "COGMEM_BENCH_GEN_MAX_RETRIES"             # per-session retry attempts
 
 DEFAULT_GEN_MODEL = "minimax-m2"
 DEFAULT_GEN_TIMEOUT = 600.0
 DEFAULT_LAST_K_VERBATIM = 2
+# Reasoning generators (Minimax-M2) emit long <think> blocks before the JSON; the budget
+# caps total output INCLUDING reasoning, so it must be generous to avoid finish_reason=length.
+DEFAULT_GOLD_MAX_TOKENS = 16000
+DEFAULT_FILLER_MAX_TOKENS = 8000
+DEFAULT_MAX_RETRIES = 3
 
 
 def _env(name: str) -> str | None:
     value = os.getenv(name)
     return value.strip() if value and value.strip() else None
+
+
+def _int_env(name: str, default: int) -> int:
+    raw = _env(name)
+    if not raw:
+        return default
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return default
 
 
 def resolve_generation_llm() -> LLMConfig:
@@ -67,3 +85,21 @@ def resolve_last_k_verbatim(override: int | None = None) -> int:
         return max(0, int(raw))
     except ValueError:
         return DEFAULT_LAST_K_VERBATIM
+
+
+def resolve_max_tokens(gold_override: int | None = None, filler_override: int | None = None) -> tuple[int, int]:
+    """Per-session generation token budgets (gold/trap, filler).
+
+    Precedence per budget: CLI override > env > default. Defaults are large because the
+    budget caps total output including the model's <think> reasoning.
+    """
+    gold = gold_override if gold_override is not None else _int_env(ENV_GEN_MAX_TOKENS, DEFAULT_GOLD_MAX_TOKENS)
+    filler = filler_override if filler_override is not None else _int_env(ENV_GEN_FILLER_MAX_TOKENS, DEFAULT_FILLER_MAX_TOKENS)
+    return gold, filler
+
+
+def resolve_max_retries(override: int | None = None) -> int:
+    """Per-session generation retry attempts. Precedence: CLI override > env > default (3)."""
+    if override is not None:
+        return max(1, override)
+    return _int_env(ENV_GEN_MAX_RETRIES, DEFAULT_MAX_RETRIES)

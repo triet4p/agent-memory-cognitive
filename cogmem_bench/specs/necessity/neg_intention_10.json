@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_10",
+  "target_type": "intention",
+  "topic": "spring cleaning and home organization",
+  "gold_fact": {
+    "text": "User planned to declutter the garage but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to declutter and reorganize the garage. State ONLY the intention; do not indicate whether it happened."},
+      {"session_index": 4, "reveal": "In passing, the user admits the garage is still a mess - they never got to it. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What cleanup did the user intend to do but has not done?",
+  "gold_answer": "Declutter the garage.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to sell their old bike and then DOES sell it, to tempt answering the bike.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions they sold the old bike over the weekend (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "declutter the garage", "fulfilled_decoy": "sell the old bike (sold)"},
+  "question_date": "2026-05-24",
+  "rationale": "The garage plan exists only as an intention; selling the bike is a fulfilled decoy with a real event."
+}

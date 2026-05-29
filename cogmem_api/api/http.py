@@ -73,6 +73,9 @@ class RetainRequest(BaseModel):
 
     items: list[RetainItem]
     async_: bool = Field(default=False, alias="async")
+    # Optional: S33 retain-level ablation. When set, facts of types NOT in this allowlist
+    # are dropped after extraction (and not stored). Default None = keep all 6 types.
+    enabled_fact_types: list[str] | None = None
 
 
 class RetainResponse(BaseModel):
@@ -322,7 +325,11 @@ def create_app(
             raise HTTPException(status_code=400, detail="Async retain is not available in CogMem runtime yet.")
 
         try:
-            unit_ids = await app.state.memory.retain_batch_async(bank_id=bank_id, contents=contents)
+            unit_ids = await app.state.memory.retain_batch_async(
+                bank_id=bank_id,
+                contents=contents,
+                enabled_fact_types=tuple(payload.enabled_fact_types) if payload.enabled_fact_types else None,
+            )
             return RetainResponse(success=True, bank_id=bank_id, items_count=len(contents), unit_ids=unit_ids)
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc

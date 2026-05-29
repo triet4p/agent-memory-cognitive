@@ -136,6 +136,18 @@ COGMEM_API_RETAIN_MAX_COMPLETION_TOKENS  # default: 13000
 COGMEM_API_DATABASE_URL        # default: pg0 (embedded postgres)
 ```
 
+S33 plug-in toggles (all optional, off by default — production behavior unchanged):
+```
+COGMEM_API_RETAIN_LLM_BASE_URL   # separate LLM endpoint for RETAIN only (fallback to main LLM)
+COGMEM_API_RETAIN_LLM_MODEL      # e.g. minimax-m2 for stronger extraction in ablation tests
+COGMEM_API_RETAIN_LLM_API_KEY
+COGMEM_API_RETAIN_STRICT_TYPING  # 'true' → adds strict-typing addendum to extraction prompt
+                                 #   when used with enabled_fact_types on the retain payload
+```
+Retain payload also accepts `enabled_fact_types: [str]` (drops extracted facts whose type is
+not allowed). `cogmem_bench.gate` exposes `--retain-level-ablation` to wire this into paired
+banks (`<bank>_full` + `<bank>_ablated`) per case.
+
 Benchmark construction (`cogmem_bench/`, Sprint 32) uses a **separate, stronger** cross-model
 generator (e.g. Minimax-M2) for conversation generation, distinct from the Ministral
 retain/answer model:
@@ -146,6 +158,9 @@ COGMEM_BENCH_GEN_LLM_MODEL     # default: minimax-m2
 COGMEM_BENCH_GEN_LLM_API_KEY   # default: ollama
 COGMEM_BENCH_GEN_LLM_TIMEOUT   # default: 600s
 COGMEM_BENCH_GEN_LAST_K_VERBATIM  # recent sessions passed verbatim for cross-session consistency; default 2 (CLI --last-k overrides)
+COGMEM_BENCH_GEN_MAX_TOKENS        # gold/trap session output budget; default 16000 (CLI --max-tokens; large because it includes <think>)
+COGMEM_BENCH_GEN_FILLER_MAX_TOKENS # filler session output budget; default 8000 (CLI --filler-max-tokens)
+COGMEM_BENCH_GEN_MAX_RETRIES       # per-session retry attempts on transient/parse failures; default 3 (CLI --max-retries)
 ```
 
 Pipeline (manual scripts; only spec authoring is agent-driven via the `cogmem-bench-author` skill):

@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_09",
+  "target_type": "intention",
+  "topic": "looking after mental wellbeing",
+  "gold_fact": {
+    "text": "User planned to start therapy but never booked it; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to start seeing a therapist. State ONLY the intention; do not indicate whether they booked anything."},
+      {"session_index": 4, "reveal": "In passing, the user admits they still haven't booked a therapist - it keeps slipping. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What did the user intend to start for their wellbeing but has not begun?",
+  "gold_answer": "Therapy (seeing a therapist).",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to join a book club and then DOES attend it, to tempt answering the book club.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions they went to their first book club meeting and enjoyed it (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "start therapy", "fulfilled_decoy": "join a book club (attended)"},
+  "question_date": "2026-05-24",
+  "rationale": "The therapy plan exists only as an intention; attending the book club is a fulfilled decoy with a real event."
+}

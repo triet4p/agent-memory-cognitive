@@ -950,11 +950,38 @@ async def _run_pass3(
     )
 
 
+_ALL_FACT_TYPES: tuple[str, ...] = ("world", "experience", "opinion", "habit", "intention", "action_effect")
+
+
+def _strict_typing_addendum(enabled_fact_types: tuple[str, ...] | None, strict_typing: bool) -> str:
+    """Optional prompt addendum that instructs strict typing under ablation mode.
+
+    Returns empty string when either flag is off, so this is a no-op by default and the
+    existing prompts are unchanged for production runs.
+    """
+    if not strict_typing or not enabled_fact_types:
+        return ""
+    allowed = list(enabled_fact_types)
+    disabled = [t for t in _ALL_FACT_TYPES if t not in allowed]
+    if not disabled:
+        return ""
+    return (
+        "\n\nSTRICT TYPING (ablation mode): only emit facts whose `fact_type` is in "
+        f"{allowed}. Do NOT extract facts of these types: {disabled}. CRITICAL — do NOT "
+        "recast a disabled-type fact as another type to sneak it through. For example, if "
+        "`intention` is disabled, do NOT phrase a plan-not-done (e.g. \"user has been "
+        "meaning to do X but hasn't\") as an `experience` or `opinion` fact — skip it "
+        "entirely. Dropping such facts is correct and expected."
+    )
+
+
 async def _extract_facts_with_llm(
     content: RetainContent,
     content_index: int,
     llm_config: Any,
     config: Any,
+    enabled_fact_types: tuple[str, ...] | None = None,
+    strict_typing: bool = False,
 ) -> tuple[list[ExtractedFact], list[ChunkMetadata], TokenUsage]:
     usage = TokenUsage()
     if llm_config is None or not hasattr(llm_config, "call"):
@@ -969,9 +996,14 @@ async def _extract_facts_with_llm(
         content_index, bool(content.messages), two_pass_enabled,
     )
 
+    addendum = _strict_typing_addendum(enabled_fact_types, strict_typing)
+
     if content.messages and two_pass_enabled:
         pass1_prompt, mode = build_pass1_prompt(config)
         pass2_prompt = build_pass2_prompt()
+        if addendum:
+            pass1_prompt = pass1_prompt + addendum
+            pass2_prompt = pass2_prompt + addendum
 
         p1_chunks = chunk_for_pass1(content.messages, max_chars=int(getattr(config, "retain_pass1_chunk_chars", 10000) or 10000))
         raw_p2_roles = getattr(config, "retain_pass2_target_roles", "user")
@@ -1105,6 +1137,8 @@ async def _extract_facts_with_llm(
         content_index, bool(content.messages), two_pass_enabled,
     )
     prompt, mode = build_pass1_prompt(config)
+    if addendum:
+        prompt = prompt + addendum
     chunk_size = int(getattr(config, "retain_chunk_size", 3000) or 3000)
     content_chunks = _chunk_content(content.content, chunk_size)
 
@@ -1300,8 +1334,16 @@ async def extract_facts_from_contents(
     pool=None,
     operation_id: str | None = None,
     schema: str | None = None,
+    enabled_fact_types: tuple[str, ...] | None = None,
 ) -> tuple[list[ExtractedFact], list[ChunkMetadata], TokenUsage]:
-    """Extract facts from normalized retain content list."""
+    """Extract facts from normalized retain content list.
+
+    `enabled_fact_types` (optional, default None): when set together with
+    `config.retain_strict_typing`, the extraction prompt instructs the LLM to type strictly
+    (only allowed types; do not recast disabled-type content into other types). The actual
+    drop of disallowed-type facts happens in retain_batch (orchestrator). Backward-compatible:
+    default behavior is unchanged when arg omitted or strict-typing flag off.
+    """
     del agent_name, pool, operation_id, schema
 
     extracted: list[ExtractedFact] = []
@@ -1325,6 +1367,8 @@ async def extract_facts_from_contents(
             content_index=content_index,
             llm_config=llm_config,
             config=config,
+            enabled_fact_types=enabled_fact_types,
+            strict_typing=bool(getattr(config, "retain_strict_typing", False)),
         )
         usage = usage + llm_usage
 

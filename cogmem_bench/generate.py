@@ -36,7 +36,17 @@ def _dry_run(specs: list[ScenarioSpec]) -> int:
     return 0
 
 
-def generate_all(specs_dir: Path, out_dir: Path, *, only: str | None, dry_run: bool, last_k: int | None = None) -> int:
+def generate_all(
+    specs_dir: Path,
+    out_dir: Path,
+    *,
+    only: str | None,
+    dry_run: bool,
+    last_k: int | None = None,
+    max_tokens: int | None = None,
+    filler_max_tokens: int | None = None,
+    max_retries: int | None = None,
+) -> int:
     specs = load_specs(specs_dir)
     if only:
         specs = [s for s in specs if s.scenario_id == only]
@@ -46,18 +56,32 @@ def generate_all(specs_dir: Path, out_dir: Path, *, only: str | None, dry_run: b
     if dry_run:
         return _dry_run(specs)
 
-    from .config import resolve_generation_llm, resolve_last_k_verbatim
+    from .config import resolve_generation_llm, resolve_last_k_verbatim, resolve_max_retries, resolve_max_tokens
 
     gen_llm = resolve_generation_llm()
     last_k_verbatim = resolve_last_k_verbatim(last_k)
-    print(f"[config] last_k_verbatim={last_k_verbatim}")
+    gold_tokens, filler_tokens = resolve_max_tokens(max_tokens, filler_max_tokens)
+    retries = resolve_max_retries(max_retries)
+    print(f"[config] last_k_verbatim={last_k_verbatim}, gold_tokens={gold_tokens}, filler_tokens={filler_tokens}, max_retries={retries}, llm={gen_llm}")
     work_dir = out_dir / "work"
     work_dir.mkdir(parents=True, exist_ok=True)
 
     written = 0
+    failed: list[str] = []
     for spec in specs:
         print(f"\n=== generating {spec.scenario_id} ({spec.target_type}, {spec.session_plan.total_sessions} sessions) ===")
-        conv = asyncio.run(generate_conversation(spec, gen_llm, last_k_verbatim=last_k_verbatim))
+        try:
+            conv = asyncio.run(
+                generate_conversation(
+                    spec, gen_llm,
+                    gold_tokens=gold_tokens, filler_tokens=filler_tokens,
+                    last_k_verbatim=last_k_verbatim, max_retries=retries,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 — keep going; report at the end
+            print(f"  !! {spec.scenario_id} FAILED after retries: {type(exc).__name__}: {exc}")
+            failed.append(spec.scenario_id)
+            continue
         ok, detail = soft_validate_embedding(conv, spec)
         path = write_distilled_fixture([conv], work_dir / f"{spec.scenario_id}.json")
         written += 1
@@ -65,8 +89,10 @@ def generate_all(specs_dir: Path, out_dir: Path, *, only: str | None, dry_run: b
         print(f"  soft embedding: {flag} — {detail}")
         print(f"  wrote {path}")
     print(f"\nGenerated {written}/{len(specs)} conversations into {work_dir}")
+    if failed:
+        print(f"FAILED ({len(failed)}): {', '.join(failed)} — re-run with --only <id> or raise --max-retries / --max-tokens")
     print("Next: uv run python -m cogmem_bench.gate")
-    return 0
+    return 1 if failed else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -76,9 +102,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--only", default=None, help="generate a single scenario_id")
     ap.add_argument("--last-k", type=int, default=None,
                     help="recent sessions passed verbatim (overrides COGMEM_BENCH_GEN_LAST_K_VERBATIM; default 2)")
+    ap.add_argument("--max-tokens", type=int, default=None,
+                    help="max completion tokens for gold/trap sessions (overrides COGMEM_BENCH_GEN_MAX_TOKENS; default 16000)")
+    ap.add_argument("--filler-max-tokens", type=int, default=None,
+                    help="max completion tokens for filler sessions (overrides COGMEM_BENCH_GEN_FILLER_MAX_TOKENS; default 8000)")
+    ap.add_argument("--max-retries", type=int, default=None,
+                    help="per-session retry attempts (overrides COGMEM_BENCH_GEN_MAX_RETRIES; default 3)")
     ap.add_argument("--dry-run", action="store_true", help="render prompts only; no LLM calls")
     args = ap.parse_args(argv)
-    return generate_all(Path(args.specs_dir), Path(args.out_dir), only=args.only, dry_run=args.dry_run, last_k=args.last_k)
+    return generate_all(
+        Path(args.specs_dir), Path(args.out_dir), only=args.only, dry_run=args.dry_run,
+        last_k=args.last_k, max_tokens=args.max_tokens, filler_max_tokens=args.filler_max_tokens,
+        max_retries=args.max_retries,
+    )
 
 
 if __name__ == "__main__":

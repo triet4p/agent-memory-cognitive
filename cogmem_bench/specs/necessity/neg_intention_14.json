@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_14",
+  "target_type": "intention",
+  "topic": "household sustainability efforts",
+  "gold_fact": {
+    "text": "User planned to start composting but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to start composting kitchen scraps. State ONLY the intention; do not indicate whether they started."},
+      {"session_index": 4, "reveal": "In passing, the user admits they still haven't set up composting. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What sustainability habit did the user intend to start but has not?",
+  "gold_answer": "Composting.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to install smart plugs and then DOES install them, to tempt answering smart plugs.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions the smart plugs are installed and tracking energy use (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "start composting", "fulfilled_decoy": "install smart plugs (installed)"},
+  "question_date": "2026-05-24",
+  "rationale": "The composting plan exists only as an intention; the installed smart plugs are a fulfilled decoy with a real event."
+}

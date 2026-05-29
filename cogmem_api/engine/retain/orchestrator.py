@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -13,6 +14,8 @@ from cogmem_api.engine.db_utils import acquire_with_retry, retry_with_backoff
 from cogmem_api.engine.response_models import TokenUsage
 from . import chunk_storage, embedding_processing, entity_processing, fact_extraction, fact_storage, link_creation
 from .types import ProcessedFact, RetainContent, RetainContentDict, coerce_fact_type
+
+logger = logging.getLogger(__name__)
 
 
 def utcnow() -> datetime:
@@ -70,8 +73,15 @@ async def retain_batch(
     operation_id: str | None = None,
     schema: str | None = None,
     outbox_callback: Callable[["asyncpg.Connection"], Awaitable[None]] | None = None,
+    enabled_fact_types: tuple[str, ...] | None = None,
 ) -> tuple[list[list[str]], TokenUsage]:
-    """Process a retain batch end-to-end and return unit IDs per content item."""
+    """Process a retain batch end-to-end and return unit IDs per content item.
+
+    `enabled_fact_types` (optional, default None = no filtering): when set, facts whose
+    type is not in the allowlist are DROPPED after extraction (and edges referencing them
+    naturally never created). Used by the S33 retain-level ablation. Backward-compatible:
+    omitting this arg preserves existing behavior.
+    """
     if not contents_dicts:
         return [], TokenUsage()
 
@@ -92,7 +102,22 @@ async def retain_batch(
         pool=pool,
         operation_id=operation_id,
         schema=schema,
+        enabled_fact_types=enabled_fact_types,
     )
+
+    # Drop facts whose type is not in the allowlist (S33 retain-level ablation). No-op when
+    # enabled_fact_types is None (default). Edges referencing dropped facts are naturally
+    # never created downstream.
+    if enabled_fact_types is not None:
+        allowed = set(enabled_fact_types)
+        before = len(extracted_facts)
+        extracted_facts = [f for f in extracted_facts if coerce_fact_type(f.fact_type) in allowed]
+        dropped = before - len(extracted_facts)
+        if dropped:
+            logger.info(
+                "[retain] enabled_fact_types filter dropped %d/%d facts (allowed=%s) for bank %s",
+                dropped, before, sorted(allowed), bank_id,
+            )
 
     if fact_type_override:
         forced = coerce_fact_type(fact_type_override)

@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_01",
+  "target_type": "intention",
+  "topic": "maintaining a side-project backend over several months",
+  "gold_fact": {
+    "text": "User planned to set up automated database backups but has not followed through; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to set up automated database backups for the side project. State ONLY the intention — do not indicate whether it was ever done."},
+      {"session_index": 5, "reveal": "In passing, the user notes they still haven't gotten around to the automated backups — it's still on the to-do list. STRICT: do NOT describe actually doing it; it remains undone."}
+    ]
+  },
+  "question": "What has the user planned to do for the project but has not yet followed through on?",
+  "gold_answer": "Set up automated database backups.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user states a DIFFERENT plan — adding CI to the repo — which they later DO complete, to tempt answering CI or conflating completion.", "session_index": 3},
+    {"trap_type": "type-confusion", "description": "The user mentions they finished setting up CI (the decoy plan was fulfilled, unlike backups).", "session_index": 6}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 5]},
+  "shared_context": {"unfulfilled_plan": "set up automated database backups", "fulfilled_decoy": "add CI to the repo"},
+  "question_date": "2026-05-21",
+  "rationale": "The plan is an intention-typed fact (filtered out in w/e/o-only recall), and there is no experience event for the non-action. Only an intention node tracking unresolved status can name the unfulfilled plan; a w/e/o system sees only the completed decoy's event."
+}

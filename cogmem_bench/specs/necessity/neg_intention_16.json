@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_16",
+  "target_type": "intention",
+  "topic": "travel and language plans",
+  "gold_fact": {
+    "text": "User planned to plan a trip to Japan but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to start planning a trip to Japan. State ONLY the intention; do not indicate whether any planning happened."},
+      {"session_index": 4, "reveal": "In passing, the user admits the Japan trip is still just a someday idea - no dates, no bookings. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What trip did the user intend to plan but has not?",
+  "gold_answer": "A trip to Japan.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans a weekend cabin getaway and then DOES book and take it, to tempt answering the cabin trip.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions the weekend cabin getaway was booked and they went (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "plan a trip to Japan", "fulfilled_decoy": "weekend cabin getaway (booked and taken)"},
+  "question_date": "2026-05-24",
+  "rationale": "The Japan trip plan exists only as an intention; the completed cabin getaway is a fulfilled decoy with a real event."
+}

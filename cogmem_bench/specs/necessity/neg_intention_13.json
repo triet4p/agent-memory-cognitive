@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_13",
+  "target_type": "intention",
+  "topic": "building an online presence",
+  "gold_fact": {
+    "text": "User planned to build a personal website but never did; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to build a personal portfolio website. State ONLY the intention; do not indicate whether it was built."},
+      {"session_index": 4, "reveal": "In passing, the user admits the personal website is still just an idea - nothing built. STRICT: it remains undone."}
+    ]
+  },
+  "question": "What did the user intend to build online but has not?",
+  "gold_answer": "A personal (portfolio) website.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans to update their LinkedIn and then DOES overhaul it, to tempt answering LinkedIn.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user mentions they finished revamping their LinkedIn profile (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "build a personal website", "fulfilled_decoy": "overhaul LinkedIn (done)"},
+  "question_date": "2026-05-24",
+  "rationale": "The website plan exists only as an intention; the LinkedIn overhaul is a fulfilled decoy with a real event."
+}

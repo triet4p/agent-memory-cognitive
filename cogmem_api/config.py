@@ -70,6 +70,12 @@ ENV_GENERATE_LLM_MODEL = "COGMEM_API_GENERATE_LLM_MODEL"
 ENV_GENERATE_LLM_BASE_URL = "COGMEM_API_GENERATE_LLM_BASE_URL"
 ENV_GENERATE_LLM_API_KEY = "COGMEM_API_GENERATE_LLM_API_KEY"
 ENV_GENERATE_LLM_TIMEOUT = "COGMEM_API_GENERATE_LLM_TIMEOUT"
+# Optional separate retain LLM (fallback to main COGMEM_API_LLM_* if unset).
+# Used by S33 to extract with a stronger model (Minimax) while generate/judge stay on Ministral.
+ENV_RETAIN_LLM_MODEL = "COGMEM_API_RETAIN_LLM_MODEL"
+ENV_RETAIN_LLM_BASE_URL = "COGMEM_API_RETAIN_LLM_BASE_URL"
+ENV_RETAIN_LLM_API_KEY = "COGMEM_API_RETAIN_LLM_API_KEY"
+ENV_RETAIN_STRICT_TYPING = "COGMEM_API_RETAIN_STRICT_TYPING"
 
 DEFAULT_EMBEDDING_DIMENSION = 384
 EMBEDDING_DIMENSION = DEFAULT_EMBEDDING_DIMENSION
@@ -236,6 +242,10 @@ class CogMemRuntimeConfig:
     generate_llm_base_url: str | None = None
     generate_llm_api_key: str | None = None
     generate_llm_timeout: float | None = None
+    retain_llm_model: str | None = None
+    retain_llm_base_url: str | None = None
+    retain_llm_api_key: str | None = None
+    retain_strict_typing: bool = False
 
 
 @dataclass(frozen=True)
@@ -284,6 +294,10 @@ class CogMemConfig:
     generate_llm_base_url: str | None = None
     generate_llm_api_key: str | None = None
     generate_llm_timeout: float | None = None
+    retain_llm_model: str | None = None
+    retain_llm_base_url: str | None = None
+    retain_llm_api_key: str | None = None
+    retain_strict_typing: bool = False
 
 
 _cached_config: CogMemConfig | None = None
@@ -339,6 +353,10 @@ def _get_raw_config() -> CogMemRuntimeConfig:
         generate_llm_base_url=_read_optional_str(ENV_GENERATE_LLM_BASE_URL),
         generate_llm_api_key=_read_optional_str(ENV_GENERATE_LLM_API_KEY),
         generate_llm_timeout=_read_float(ENV_GENERATE_LLM_TIMEOUT, None, minimum=0.1) if os.getenv(ENV_GENERATE_LLM_TIMEOUT) else None,
+        retain_llm_model=_read_optional_str(ENV_RETAIN_LLM_MODEL),
+        retain_llm_base_url=_read_optional_str(ENV_RETAIN_LLM_BASE_URL),
+        retain_llm_api_key=_read_optional_str(ENV_RETAIN_LLM_API_KEY),
+        retain_strict_typing=_read_bool(ENV_RETAIN_STRICT_TYPING, False),
     )
 
 

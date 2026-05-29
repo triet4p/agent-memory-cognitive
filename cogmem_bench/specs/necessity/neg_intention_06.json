@@ -1,0 +1,24 @@
+{
+  "scenario_id": "neg_intention_06",
+  "target_type": "intention",
+  "topic": "fitness goals over a busy spring",
+  "gold_fact": {
+    "text": "User planned to run a half-marathon but never began training; it remains an unfulfilled plan.",
+    "fact_type": "intention",
+    "metadata": {"intention_status": "planning"},
+    "fragments": [
+      {"session_index": 1, "reveal": "The user states the PLAN to run a half-marathon this year. State ONLY the intention; do not indicate whether they trained or ran."},
+      {"session_index": 4, "reveal": "In passing, the user admits they still haven't started any half-marathon training. STRICT: it remains unstarted."}
+    ]
+  },
+  "question": "What race did the user plan to do but has not trained for or started?",
+  "gold_answer": "A half-marathon.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "The user plans a charity 5k and then DOES run it, to tempt answering the 5k.", "session_index": 2},
+    {"trap_type": "type-confusion", "description": "The user recaps that the charity 5k went well and they finished it (decoy fulfilled).", "session_index": 5}
+  ],
+  "session_plan": {"total_sessions": 7, "gold_session_indices": [1, 4]},
+  "shared_context": {"unfulfilled_plan": "run a half-marathon", "fulfilled_decoy": "charity 5k (completed)"},
+  "question_date": "2026-05-24",
+  "rationale": "The half-marathon plan exists only as an intention; the completed 5k is a fulfilled decoy with a real event."
+}

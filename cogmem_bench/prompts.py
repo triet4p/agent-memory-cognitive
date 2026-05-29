@@ -10,8 +10,6 @@ fact, gold answer, and discriminating metadata are fixed in the spec.
 
 from __future__ import annotations
 
-import json
-
 from .schema import Message, ScenarioSpec
 
 # Per-target-type guidance: how to embed the discriminating fact so a
@@ -46,7 +44,7 @@ Role = str  # "gold" | "trap" | "filler"
 
 
 def session_role(spec: ScenarioSpec, session_index: int) -> Role:
-    if session_index == spec.gold_fact.session_index:
+    if session_index in spec.gold_fact.fragment_indices:
         return "gold"
     trap_idxs = {t.session_index for t in spec.traps if t.session_index is not None}
     if session_index in trap_idxs:
@@ -109,14 +107,20 @@ RECENT SESSIONS (verbatim — maintain exact continuity with these, reuse the sa
 """
 
     if role == "gold":
-        gold_meta = json.dumps(spec.gold_fact.metadata, ensure_ascii=False)
-        directive = f"""THIS SESSION CARRIES THE GOLD FACT:
-  fact: {spec.gold_fact.text}
-  type: {spec.gold_fact.fact_type}
-  structured metadata the benchmark answer depends on: {gold_meta}
+        fragment = next((f for f in spec.gold_fact.fragments if f.session_index == session_index), None)
+        reveal = fragment.reveal if fragment else ""
+        directive = f"""THIS SESSION CARRIES **ONE PIECE** OF THE ANSWER — NOT THE WHOLE THING.
 
-HOW TO EMBED IT:
-  {_TYPE_GUIDANCE[spec.target_type]}
+  Embed ONLY this piece, naturally and in passing:
+    {reveal}
+
+  HOW to phrase it: {_TYPE_GUIDANCE[spec.target_type]}
+
+  CRITICAL — do NOT make this session self-sufficient:
+  - Do NOT state the full fact, the other pieces, or the answer.
+  - Other pieces live in other sessions; the benchmark answer must require COMBINING them.
+  - Refer to shared entities by the SAME names as the canonical facts above so the pieces
+    link up across sessions.
 """
     elif role == "trap":
         matching = [t for t in spec.traps if t.session_index == session_index]
@@ -127,6 +131,11 @@ HOW TO EMBED IT:
         directive = f"""THIS SESSION IS A DISTRACTOR/TRAP. It must be on-topic but must NOT let the
 benchmark question be answered from it alone:
 {traps_lines}
+
+  IMPORTANT — if a trap above describes a plan the user COMPLETED / followed through on
+  (a "fulfilled decoy"), render a concrete COMPLETION event: show the user actually doing or
+  finishing it (past tense, done), NOT merely intending it. It must read as unmistakably
+  DONE, so it is clearly distinct from any still-pending plan elsewhere.
 """
     else:
         directive = (
@@ -138,6 +147,10 @@ benchmark question be answered from it alone:
   - Do NOT mention the benchmark, the question, the gold answer, or any
     "status/precondition/outcome/frequency" labels verbatim.
   - Keep it natural: indirection, coreference, realistic detail.
+  - ASSISTANT turns must be substantially LONGER and more detailed than user turns:
+    the user writes a short message (1-3 sentences); the assistant replies with a rich,
+    multi-sentence, genuinely helpful response (explanations, options, follow-up questions),
+    like a real chat assistant. Do not make them similar lengths.
 
 OUTPUT — return ONLY a JSON object for THIS ONE session, no prose:
 {
