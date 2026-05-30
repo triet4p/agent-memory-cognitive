@@ -1,0 +1,48 @@
+{
+  "scenario_id": "agentic_ae_01_http_429",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI coding agent maintaining a Python service that calls the Stripe REST API",
+  "tools_used": ["bash", "read_file", "write_file", "http_get"],
+  "episodes": [
+    "Routine: agent calls `/v1/customers` with httpx to verify Stripe credentials are valid.",
+    "First exposure: agent runs a backfill script that hammers POST `/v1/invoices`; Stripe returns HTTP 429 with `Retry-After: 8` header; agent retries naively with no delay and gets 429 again; ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent reformats a logger module with ruff.",
+    "Filler: agent edits internal CHANGELOG.md.",
+    "Trap episode: agent debugs a DIFFERENT 5xx error (Stripe 502 caused by a malformed JSON body); fixes by adding `Idempotency-Key` header — completed and confirmed. NOT the gold rule.",
+    "Filler: agent updates an unrelated cron schedule in deployment.yaml.",
+    "Application episode: agent runs the same backfill script again; sees the same 429 + `Retry-After: 8`; immediately implements an exponential-backoff retry that reads the `Retry-After` header value as the sleep duration; on next run the script completes with 200 across all calls.",
+    "Filler: agent writes a release note for the next minor version."
+  ],
+  "gold_action_tokens": ["Retry-After", "sleep(int(resp.headers", "exponential backoff respecting"],
+  "gold_fact": {
+    "text": "When the Stripe API returns HTTP 429 with a Retry-After header, the agent retries with backoff equal to the Retry-After header value, and the subsequent calls return 200.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "Stripe API returns HTTP 429 with Retry-After header",
+      "action": "retry with exponential backoff respecting the Retry-After header (sleep(int(resp.headers['Retry-After'])) before retry)",
+      "outcome": "subsequent requests return 200",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs the backfill script and gets a verbatim HTTP 429 with `Retry-After: 8`. Agent tries naive immediate retry which also returns 429. Ends episode WITHOUT fixing. STRICT: do NOT mention sleep, exponential backoff, or reading the Retry-After header value programmatically. Episode reads as unresolved observation."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User refers to it as 'the same 429 again'. Agent narrates 'right, the rate limit pattern' and IMMEDIATELY writes EXACTLY ONE Python snippet that does `sleep(int(resp.headers['Retry-After']))` then retries — this is the exponential backoff respecting the Retry-After header. The single subsequent run returns 200 across all calls. STRICT: NO naive retry attempt this episode, NO 'maybe the limit reset by itself' speculation, do NOT restate the verbatim `Retry-After: 8` header line."}
+    ]
+  },
+  "question": "What does the agent do when the Stripe API returns HTTP 429 with a Retry-After header, and what is the result?",
+  "gold_answer": "Retry with exponential backoff respecting the Retry-After header (sleep for Retry-After seconds before retrying); the subsequent calls return 200.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for a Stripe 502 (different status code) fixed by adding Idempotency-Key header. Fully observed precondition->action->outcome but UNRELATED to 429.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "api_host": "api.stripe.com",
+    "endpoint_429": "POST /v1/invoices",
+    "rate_limit_header": "Retry-After: 8",
+    "gold_action_snippet": "sleep(int(resp.headers['Retry-After']))",
+    "trap_failure": "Stripe 502 caused by malformed JSON, fixed by adding Idempotency-Key header"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Causal phrasing routes to causal channel, boosts action_effect x1.35. Precondition (session 1) and action+outcome (session 6) in separate episodes. Trap is a different status code with a different fix — tempts w/e/o-only system into picking the wrong rule."
+}

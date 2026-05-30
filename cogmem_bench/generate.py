@@ -19,7 +19,7 @@ from pathlib import Path
 
 from .datasets import DEFAULT_OUT_DIR, PILOT_SPECS_DIR, load_specs
 from .fixtures import write_distilled_fixture
-from .generation import generate_conversation, soft_validate_embedding
+from .generation import generate_conversation, soft_validate_embedding, soft_validate_no_action_leak
 from .prompts import build_session_prompt, session_role
 from .schema import ScenarioSpec
 
@@ -83,10 +83,13 @@ def generate_all(
             failed.append(spec.scenario_id)
             continue
         ok, detail = soft_validate_embedding(conv, spec)
+        leak_ok, leak_detail = soft_validate_no_action_leak(conv, spec)
         path = write_distilled_fixture([conv], work_dir / f"{spec.scenario_id}.json")
         written += 1
         flag = "ok" if ok else "DRIFT — review/regenerate"
         print(f"  soft embedding: {flag} — {detail}")
+        leak_flag = "ok" if leak_ok else "LEAK — hand-edit or regenerate"
+        print(f"  action-token leak: {leak_flag} — {leak_detail}")
         print(f"  wrote {path}")
     print(f"\nGenerated {written}/{len(specs)} conversations into {work_dir}")
     if failed:

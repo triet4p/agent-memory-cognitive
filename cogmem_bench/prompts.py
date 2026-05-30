@@ -92,7 +92,14 @@ def build_session_prompt(
       - `spec.shared_context`: canonical facts injected into every session.
       - `prior_recaps`: one-line recaps of older sessions (model-emitted).
       - `recent_sessions`: the last K sessions verbatim, for tight local continuity.
+
+    Branches on `spec.workload`: 'chat' (S33 human-AI dialogue) or 'agentic' (S34
+    single-agent tool-use trace with inline [tool: ...] / [output: ...] tags).
     """
+    if spec.workload == "agentic":
+        return _build_agentic_session_prompt(
+            spec, session_index, role, prior_recaps, recent_sessions or []
+        )
     total = spec.session_plan.total_sessions
     header = f"""You are simulating one session of a long-running, natural USER/ASSISTANT chat history used to build a memory benchmark. Produce realistic, varied dialogue — NOT a summary.
 
@@ -160,5 +167,129 @@ OUTPUT — return ONLY a JSON object for THIS ONE session, no prose:
     {"role": "assistant", "content": "..."}
   ]
 }
+"""
+    return header + "\n" + directive + "\n" + footer
+
+
+# ── Agentic workload (S34) ─────────────────────────────────────────────────
+#
+# One session = one task episode in a single-agent tool-use trace. Conventions:
+#   user      = task assignment / operator instruction (terse).
+#   assistant = the agent's chain — narration + inline tool calls + outcome reasoning.
+# Tool I/O is rendered INLINE inside assistant content using strict tags:
+#   [tool: <name>] <args / command>
+#   [output] <verbatim tool output, possibly multi-line> [/output]
+# This format is structured enough for retain extraction yet still reads as natural text.
+
+_AGENTIC_TOOL_FORMAT = """TOOL I/O FORMAT (inline, inside the assistant turn — exact tags, do NOT vary):
+  [tool: <tool_name>] <args or command, single line>
+  [output] <tool output, may span multiple lines> [/output]
+
+  After each [output] block the assistant briefly interprets the result in natural prose
+  before deciding the next step. The assistant turn weaves narration + 1-3 tool blocks +
+  interpretation; it is substantially longer than the user turn (which is just the task).
+  Only invoke tools from the spec's allowed inventory."""
+
+_AGENTIC_TYPE_GUIDANCE = (
+    "This is an AGENTIC AI memory trace. The discriminating fact is a CAUSAL RULE "
+    "(precondition -> action -> outcome) the agent could learn from this episode. The "
+    "rule's pieces are split across episodes (see the fragment hint below) so a single "
+    "episode read as raw experience is NOT enough — the rule itself is the answer."
+)
+
+
+def _agentic_canonical_block(spec: ScenarioSpec) -> str:
+    tools = ", ".join(spec.tools_used or []) or "(none declared)"
+    parts = [f"ALLOWED TOOLS (only these may appear in [tool: ...] tags): {tools}"]
+    if spec.shared_context:
+        facts = "\n".join(f"  - {k}: {v}" for k, v in spec.shared_context.items())
+        parts.append(
+            "CANONICAL FACTS (every episode must agree — same names, error strings, commands):\n"
+            f"{facts}"
+        )
+    return "\n\n".join(parts) + "\n\n"
+
+
+def _build_agentic_session_prompt(
+    spec: ScenarioSpec,
+    session_index: int,
+    role: Role,
+    prior_recaps: list[str],
+    recent_sessions: list[tuple[str, list[Message]]],
+) -> str:
+    total = spec.session_plan.total_sessions
+    episodes = spec.episodes or []
+    episode_desc = episodes[session_index] if session_index < len(episodes) else "(no episode description)"
+
+    header = f"""You are simulating ONE EPISODE of a long-running single-agent tool-use trace, used to build a memory benchmark. Produce a realistic agent transcript — narration + inline tool calls — NOT a summary.
+
+OVERALL TOPIC (every episode stays consistent): {spec.topic}
+This is EPISODE {session_index + 1} of {total}.
+
+EPISODE TASK (what the agent is asked to do this run):
+  {episode_desc}
+
+{_agentic_canonical_block(spec)}EARLIER EPISODES (recaps — stay consistent; do not contradict):
+{_older_recap_block(prior_recaps)}
+
+RECENT EPISODES (verbatim — reuse the same tool names, error strings, file paths):
+{_recent_verbatim_block(recent_sessions)}
+"""
+
+    if role == "gold":
+        fragment = next((f for f in spec.gold_fact.fragments if f.session_index == session_index), None)
+        reveal = fragment.reveal if fragment else ""
+        directive = f"""THIS EPISODE CARRIES **ONE PIECE** OF THE CAUSAL RULE — NOT THE WHOLE RULE.
+
+  Embed ONLY this piece, naturally and through the agent's tool use:
+    {reveal}
+
+  HOW to phrase it: {_AGENTIC_TYPE_GUIDANCE}
+
+  CRITICAL — do NOT make this episode self-sufficient:
+  - Do NOT show the FULL precondition->action->outcome triple inside this single episode.
+  - The other piece(s) live in other episodes; the benchmark answer requires the agent
+    GENERALIZING across episodes (the rule itself), not recalling one event.
+  - Refer to shared entities (error strings, tool names, commands) EXACTLY as named in
+    the canonical facts so the pieces link up across episodes.
+"""
+    elif role == "trap":
+        matching = [t for t in spec.traps if t.session_index == session_index]
+        traps_lines = "\n".join(
+            f"  - [{t.trap_type}] {t.description} (hint: {_TRAP_GUIDANCE.get(t.trap_type, '')})"
+            for t in matching
+        ) or "  - (distractor episode, on-topic but answer-irrelevant)"
+        directive = f"""THIS EPISODE IS A DISTRACTOR/TRAP. The agent does work that is on-topic but
+must NOT let the benchmark question be answered from this episode alone:
+{traps_lines}
+
+  If a trap describes an alternate causal rule the agent CONFIRMED works (a "fulfilled
+  decoy"), render it as a concrete observed precondition->action->outcome inside this
+  episode — clearly DIFFERENT from the gold rule, to tempt the wrong answer.
+"""
+    else:
+        directive = (
+            "THIS EPISODE IS FILLER: routine on-topic agent work (different task domain). "
+            "It must NOT touch the gold causal rule's precondition, action, or outcome.\n"
+        )
+
+    footer = f"""{_AGENTIC_TOOL_FORMAT}
+
+HARD RULES:
+  - Do NOT mention the benchmark, the question, the gold answer, or label parts as
+    'precondition/action/outcome' verbatim.
+  - Tool outputs must be realistic (actual-looking error messages, exit codes, paths).
+  - ASSISTANT turn is substantially LONGER than the user turn: narration + 1-3 inline
+    [tool: ...] / [output] [/output] blocks + interpretation between them.
+  - User turn is terse (1-3 sentences): the task assignment for this episode.
+
+OUTPUT — return ONLY a JSON object for THIS ONE episode, no prose:
+{{
+  "recap": "one sentence summarizing what this episode established (tools used, errors seen, outcome — later episodes must stay consistent)",
+  "messages": [
+    {{"role": "user", "content": "..."}},
+    {{"role": "assistant", "content": "narration ... [tool: bash] pytest tests/api/\\n[output]\\n...verbatim output...\\n[/output]\\n interpretation ..."}}
+  ]
+}}
 """
     return header + "\n" + directive + "\n" + footer

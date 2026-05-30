@@ -414,6 +414,7 @@ class MemoryEngine:
         return_usage: bool = False,
         operation_id: str | None = None,
         enabled_fact_types: tuple[str, ...] | None = None,
+        agentic_transcript: bool = False,
     ):
         from cogmem_api.engine.retain.orchestrator import retain_batch
 
@@ -439,6 +440,7 @@ class MemoryEngine:
             operation_id=operation_id,
             schema=self.database_schema,
             enabled_fact_types=enabled_fact_types,
+            agentic_transcript=agentic_transcript,
         )
         if return_usage:
             return unit_ids, usage

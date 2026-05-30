@@ -378,6 +378,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--api", default=DEFAULT_API)
     ap.add_argument("--out-dir", default=str(DEFAULT_OUT))
     ap.add_argument("--gate-dir", default=str(REPO_ROOT / "data" / "bench" / "gate_detail"))
+    ap.add_argument(
+        "--specs-dir",
+        default=str(REPO_ROOT / "cogmem_bench" / "specs" / "necessity"),
+        help="dir containing <scenario>.json (default necessity for S33; pass agentic for S34)",
+    )
     args = ap.parse_args(argv)
 
     sid = args.scenario
@@ -389,7 +394,10 @@ def main(argv: list[str] | None = None) -> int:
 
     # Deterministic session enumeration from the spec (works for both banks regardless of
     # which fact types remain in the ablated bank).
-    spec_path = REPO_ROOT / "cogmem_bench" / "specs" / "necessity" / f"{sid}.json"
+    spec_path = Path(args.specs_dir) / f"{sid}.json"
+    if not spec_path.exists():
+        print(f"missing spec file: {spec_path}", file=sys.stderr)
+        return 1
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
     total = int(spec["session_plan"]["total_sessions"])
     session_ids = [f"{sid}_s{i}" for i in range(total)]

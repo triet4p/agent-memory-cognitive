@@ -1,0 +1,49 @@
+{
+  "scenario_id": "agentic_ae_09_kube_imagepull",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI platform agent rolling out container images to a private Kubernetes cluster",
+  "tools_used": ["bash", "kubectl", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `kubectl get deploy -n payments` to inventory deployments in the payments namespace.",
+    "First exposure: agent runs `kubectl apply -f orders-deployment.yaml`; pods enter ImagePullBackOff; `kubectl describe pod` shows verbatim `Failed to pull image \"registry.corp/payments/orders-svc:v2.3.4\": unauthorized: authentication required`. Agent tries `kubectl rollout restart`; pods still ImagePullBackOff. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent edits a HorizontalPodAutoscaler min/max replicas value.",
+    "Filler: agent edits a NetworkPolicy egress rule label selector.",
+    "Trap episode: agent debugs a DIFFERENT pod failure (`CrashLoopBackOff` from a missing ENV var); fixes by adding the missing ENV to the deployment spec — completed and confirmed. NOT the gold rule.",
+    "Filler: agent fixes a typo in a Helm chart NOTES.txt.",
+    "Application episode: agent reruns `kubectl apply -f orders-deployment.yaml`; same ImagePullBackOff; immediately runs EXACTLY ONE chained command `kubectl create secret docker-registry regcorp-pullsecret --docker-server=registry.corp --docker-username=$REG_USER --docker-password=$REG_PASS -n payments && kubectl patch sa default -n payments -p '{\"imagePullSecrets\":[{\"name\":\"regcorp-pullsecret\"}]}'` then deletes the failing pods; new pods reach Running with `Successfully pulled image`.",
+    "Filler: agent adjusts a Prometheus alert rule threshold."
+  ],
+  "gold_action_tokens": ["regcorp-pullsecret", "kubectl create secret docker-registry regcorp-pullsecret", "imagePullSecrets"],
+  "gold_fact": {
+    "text": "When pods enter ImagePullBackOff with 'unauthorized: authentication required' pulling from registry.corp, the agent creates a docker-registry secret named regcorp-pullsecret in the payments namespace and patches the default service account to use it as an imagePullSecret, and the pods then reach Running with the image pulled.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "pods ImagePullBackOff with 'unauthorized: authentication required' pulling registry.corp/payments/orders-svc:v2.3.4",
+      "action": "kubectl create secret docker-registry regcorp-pullsecret --docker-server=registry.corp ... && kubectl patch sa default -n payments to use regcorp-pullsecret as imagePullSecrets",
+      "outcome": "pods reach Running with successful image pull",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `kubectl apply` and pods ImagePullBackOff; `kubectl describe pod` shows verbatim `unauthorized: authentication required` for `registry.corp/payments/orders-svc:v2.3.4`. Tries `kubectl rollout restart` (no help). Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention regcorp-pullsecret, docker-registry secret, or imagePullSecrets."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'pods are stuck in ImagePullBackOff again on registry.corp'. Agent narrates 'right, the pull-secret + sa patch pattern' and IMMEDIATELY runs EXACTLY ONE chained `kubectl create secret docker-registry regcorp-pullsecret --docker-server=registry.corp --docker-username=$REG_USER --docker-password=$REG_PASS -n payments && kubectl patch sa default -n payments -p '{\"imagePullSecrets\":[{\"name\":\"regcorp-pullsecret\"}]}'` then deletes failing pods; new pods reach Running. STRICT: NO rollout restart this episode, do NOT restate verbatim 'unauthorized: authentication required'."}
+    ]
+  },
+  "question": "What does the agent do when pods enter ImagePullBackOff with 'unauthorized: authentication required' pulling from registry.corp, and what is the result?",
+  "gold_answer": "Create a docker-registry secret regcorp-pullsecret in the payments namespace and patch the default service account to use it as an imagePullSecret; the pods then reach Running with the image pulled.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for CrashLoopBackOff (missing ENV var) fixed by adding ENV. UNRELATED to ImagePullBackOff.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "namespace": "payments",
+    "image": "registry.corp/payments/orders-svc:v2.3.4",
+    "verbatim_error": "Failed to pull image: unauthorized: authentication required",
+    "gold_secret_name": "regcorp-pullsecret",
+    "gold_sa_patch": "imagePullSecrets",
+    "trap_failure": "CrashLoopBackOff from missing ENV var, fixed by adding ENV to deployment"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Distinctive secret name 'regcorp-pullsecret' + the patch JSON pattern are improbable in HPA / Prometheus filler episodes."
+}

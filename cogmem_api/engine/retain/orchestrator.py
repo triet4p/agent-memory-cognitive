@@ -74,6 +74,7 @@ async def retain_batch(
     schema: str | None = None,
     outbox_callback: Callable[["asyncpg.Connection"], Awaitable[None]] | None = None,
     enabled_fact_types: tuple[str, ...] | None = None,
+    agentic_transcript: bool = False,
 ) -> tuple[list[list[str]], TokenUsage]:
     """Process a retain batch end-to-end and return unit IDs per content item.
 
@@ -81,6 +82,11 @@ async def retain_batch(
     type is not in the allowlist are DROPPED after extraction (and edges referencing them
     naturally never created). Used by the S33 retain-level ablation. Backward-compatible:
     omitting this arg preserves existing behavior.
+
+    `agentic_transcript` (optional, default False): when True, the Pass 1 extraction prompt
+    receives the S34 agentic-transcript addendum (instructs the LLM how to read inline
+    [tool:]/[output] tags and map them onto action_effect facts). Used by S34 only;
+    chat retains stay byte-identical when off.
     """
     if not contents_dicts:
         return [], TokenUsage()
@@ -103,6 +109,7 @@ async def retain_batch(
         operation_id=operation_id,
         schema=schema,
         enabled_fact_types=enabled_fact_types,
+        agentic_transcript=agentic_transcript,
     )
 
     # Drop facts whose type is not in the allowlist (S33 retain-level ablation). No-op when

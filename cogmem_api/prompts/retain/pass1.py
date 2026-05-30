@@ -71,7 +71,37 @@ EXTRACTION CHECKLIST — Always extract as separate facts:
 RULES: (1) Extract ALL facts in the text. (2) Prefer "experience" over "world" when a time is mentioned. (3) Do NOT invent facts. (4) Match output language to input language.
 
 This is Pass 1 of a 2-pass extraction pipeline. A second pass focuses on user-only segments for personal facts. Prioritize cross-turn synthesis facts and assistant-side facts here.
-{mission_section}{mode_section}"""
+{mission_section}{mode_section}{agentic_section}"""
+
+# S34 — optional addendum: when the input is an AGENTIC AI tool-use trace (assistant
+# turns contain inline [tool: ...] / [output] [/output] tags), instruct the extractor
+# how to read those tags and how to map them onto an action_effect fact. Appended only
+# when the retain caller passes agentic_transcript=True; default off so all chat retains
+# (S33 and earlier) are byte-identical to before.
+_AGENTIC_TRANSCRIPT_ADDENDUM = """
+
+AGENTIC TRANSCRIPT MODE — this conversation is an AI agent's tool-use trace.
+Assistant turns embed inline tool I/O using these exact tags:
+  [tool: <name>] <args or command on the same line>
+  [output] <verbatim tool output, may span lines> [/output]
+
+Read tool I/O as OBSERVED REALITY (not user speech). When an assistant tool action under
+an observable precondition produces an outcome, extract ONE action_effect fact with:
+  - "precondition": the observable state / error / signal that triggered the action
+    (e.g. a verbatim error string from a prior [output] block, or a stated test failure).
+  - "action": the tool invocation — tool name + the discriminating args/flags
+    (e.g. "rerun pytest with PYTEST_DISABLE_NETWORK_CACHE=1 -p no:cacheprovider").
+  - "outcome": what the tool output / state showed afterward (e.g. "the suite passes").
+  - "confidence": 0.6-0.95 based on how cleanly the precondition->action->outcome chain
+    is visible in this transcript.
+  - "devalue_sensitive": false (rules from agent traces are durable).
+
+Entity rule for agentic traces: use the VERBATIM tokens that appear in [tool: ...] and
+[output] blocks (tool names, file paths, error class names, host:port, env var names,
+CLI flags) as entities so the rule links across episodes by entity overlap.
+
+Do NOT emit a separate experience fact for "the agent observed X" when X is already the
+precondition of an action_effect — the action_effect carries the observation."""
 
 _CONCISE_MODE = """
 MODE: concise
@@ -100,12 +130,15 @@ MODE: verbose
 """
 
 
-def build_pass1_prompt(config: object) -> tuple[str, str]:
+def build_pass1_prompt(config: object, *, agentic_transcript: bool = False) -> tuple[str, str]:
     """Build Pass 1 prompt and mode string from config.
 
     Args:
         config: Runtime config object with retain_extraction_mode, retain_mission,
                 retain_custom_instructions attributes.
+        agentic_transcript: When True, append the S34 agentic-transcript addendum that
+                instructs the extractor how to read inline [tool:]/[output] tags and map
+                them onto action_effect facts. Default False — chat retains unchanged.
 
     Returns:
         (prompt_string, mode_name) tuple
@@ -134,7 +167,16 @@ def build_pass1_prompt(config: object) -> tuple[str, str]:
     else:
         mode_section = _CONCISE_MODE
 
-    return _BASE_PROMPT.format(mission_section=mission_section, mode_section=mode_section), mode
+    agentic_section = _AGENTIC_TRANSCRIPT_ADDENDUM if agentic_transcript else ""
+
+    return (
+        _BASE_PROMPT.format(
+            mission_section=mission_section,
+            mode_section=mode_section,
+            agentic_section=agentic_section,
+        ),
+        mode,
+    )
 
 
 def _normalized_optional_text(value: str | None) -> str | None:

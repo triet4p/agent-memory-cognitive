@@ -39,9 +39,9 @@ Mục tiêu điều phối:
 - S31 (graph-only ablation E7G–E11G): ✅ Done — verdicts verified (benchmark-fit problem identified: LongMemEval lacks prospective/causal/habitual categories)
 - S32 (benchmark-construction foundation + 6-case pilot): ✅ Done — `cogmem_bench/` package + 3 skills → 1 (author only) + multi-call generation + frozen pilot verified
 - S33 (intention necessity — retain-level cách B + Minimax strict extractor): ✅ Done — 2/16 cases discriminate after full confound chain removed (router bias → flat; recall-time leakage → retain-level paired banks; extractor leakage → Minimax + strict-typing). Intention necessary in sparse-context edge cases (~12.5%); redundant in rich-context conversations (observational state facts leak hợp lệ qua experience).
-- S34 (action_effect necessity — agentic AI workload): 🔄 Planned after S33
+- S34 (action_effect necessity — agentic AI workload): ✅ Done — 5/12 cases discriminate (http_429, docker_pull, playwright_wait, git_lockfile, azure_token) after full confound chain (paired banks + agentic_transcript Pass1 hint + strict typing + leak detector). McNemar p≈0.22 (not significant, n=12). Action_effect necessary in cases where causal rule resists `world` re-typing; redundant where Minimax compresses rule to "X is resolved by Y" objective-knowledge form. Conditional on conversational density (parallel với S33 intention finding).
 
-**Next immediate action:** S34 — design agentic-workload generation framework (single-agent tool-use traces); author specs for causal rules where action+outcome do NOT naturally appear as conversational experience; run paired-bank gate with E7F vs E10F. Full plan in [s34-bench-action-effect-agentic.md](sprint-plans/s34-bench-action-effect-agentic.md).
+**Next immediate action:** Phase F cognitive-node ablation complete (S31→S34). Possible follow-ups: (a) strengthen S34 strict-typing addendum to block `"X is resolved by Y"` `world` pattern and re-gate 5 leaked ablated banks (estimated 7-8/12 → significance); (b) habit network ablation (S35, if pursued); (c) write up cross-sprint narrative tying S33+S34 findings (typed networks conditionally necessary, workload+extractor-dependent).
 
 ---
 
@@ -105,7 +105,7 @@ Mục tiêu điều phối:
 | S31 | Graph-only ablation E7G–E11G (isolate node-type graph contribution) | — | ✅ Done | [s31-graph-only-ablation.md](sprint-plans/s31-graph-only-ablation.md) |
 | S32 | Benchmark-construction foundation + 6-case pilot (cogmem_bench package, multi-call generation, 1 agent skill + manual scripts) | S32-T1..T5 | ✅ Done | [s32-bench-construction.md](sprint-plans/s32-bench-construction.md) |
 | S33 | Intention necessity — retain-level ablation (cách B) + Minimax strict extractor + flat router + manual verdict | S33-T1..T4 | ✅ Done (2/16 discriminate; intention necessary in sparse-context, redundant in rich-context) | [s33-bench-discrimination.md](sprint-plans/s33-bench-discrimination.md) |
-| S34 | Action_effect necessity — agentic AI workload (tool-use traces) + cách B + McNemar | S34-T1..T5 | 🔄 Planned (after S33) | [s34-bench-action-effect-agentic.md](sprint-plans/s34-bench-action-effect-agentic.md) |
+| S34 | Action_effect necessity — agentic AI workload (tool-use traces) + cách B + McNemar | S34-T1..T5 | ✅ Done (5/12 discriminate; conditional on extractor + density) | [s34-bench-action-effect-agentic.md](sprint-plans/s34-bench-action-effect-agentic.md) |
 
 ---
 
@@ -144,7 +144,7 @@ Sprint 0 → S7 + Backfill B1-B5 (tasks 001-703)
 → S31: Graph-only ablation E7G–E11G ✅ (benchmark-fit problem found)
 → S32: cogmem_bench foundation + pilot ✅
 → S33: intention necessity (cách B retain-level + Minimax strict extractor + flat router) ✅ — 2/16 discriminate (intention necessary in sparse-context)
-→ S34: action_effect necessity in agentic workload (tool-use traces) 🔄 Planned
+→ S34: action_effect necessity in agentic workload (tool-use traces) ✅ — 5/12 discriminate (conditional on density + extractor)
 ```
 
 ### Hard dependency rules

@@ -1,0 +1,47 @@
+{
+  "scenario_id": "agentic_ae_05_git_lockfile",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI release agent rebasing feature branches in a Node monorepo",
+  "tools_used": ["bash", "git", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `git status` and `git log --oneline -5` on the feature branch to confirm it is up to date.",
+    "First exposure: agent runs `git rebase origin/main`; rebase stops at verbatim `CONFLICT (content): Merge conflict in package-lock.json`. Agent tries `git checkout HEAD -- package-lock.json && git rebase --continue` which leaves the lockfile out of sync with package.json — `npm ci` then fails. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent edits a GitHub Action workflow to bump node version.",
+    "Filler: agent updates a CODEOWNERS file.",
+    "Trap episode: agent debugs a DIFFERENT git error (`fatal: refusing to merge unrelated histories` on a doc-only branch); fixes with `git pull origin main --allow-unrelated-histories` — completed and confirmed. NOT the gold rule.",
+    "Filler: agent edits a CONTRIBUTING.md section.",
+    "Application episode: agent reruns `git rebase origin/main`; sees the same package-lock.json conflict; immediately runs EXACTLY ONE composed command `git checkout --theirs package-lock.json && npm install --package-lock-only && git add package-lock.json && git rebase --continue`; rebase finishes and `npm ci` then passes.",
+    "Filler: agent posts a brief PR comment."
+  ],
+  "gold_action_tokens": ["git checkout --theirs package-lock.json", "npm install --package-lock-only", "--theirs package-lock.json"],
+  "gold_fact": {
+    "text": "When `git rebase origin/main` produces a 'Merge conflict in package-lock.json', the agent runs `git checkout --theirs package-lock.json && npm install --package-lock-only && git add package-lock.json && git rebase --continue`, and the rebase finishes and `npm ci` then passes.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "git rebase origin/main produces 'CONFLICT (content): Merge conflict in package-lock.json'",
+      "action": "git checkout --theirs package-lock.json && npm install --package-lock-only && git add package-lock.json && git rebase --continue",
+      "outcome": "rebase finishes and npm ci passes",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `git rebase origin/main`, sees verbatim `CONFLICT (content): Merge conflict in package-lock.json`. Tries `git checkout HEAD -- package-lock.json && git rebase --continue` which leaves the lockfile out of sync — `npm ci` then fails. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention --theirs or --package-lock-only."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the package-lock conflict during rebase is back'. Agent narrates 'right, the --theirs + regenerate-lockfile pattern' and IMMEDIATELY runs EXACTLY ONE chained command `git checkout --theirs package-lock.json && npm install --package-lock-only && git add package-lock.json && git rebase --continue`. Rebase finishes; `npm ci` then passes. STRICT: NO HEAD checkout attempt this episode, do NOT restate the verbatim 'CONFLICT (content)' line."}
+    ]
+  },
+  "question": "What does the agent do when `git rebase origin/main` produces a merge conflict in package-lock.json, and what is the result?",
+  "gold_answer": "Run `git checkout --theirs package-lock.json && npm install --package-lock-only && git add package-lock.json && git rebase --continue`; the rebase finishes and `npm ci` then passes.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for a DIFFERENT git error ('refusing to merge unrelated histories') fixed with --allow-unrelated-histories. UNRELATED to lockfile conflicts.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "conflict_file": "package-lock.json",
+    "verbatim_error": "CONFLICT (content): Merge conflict in package-lock.json",
+    "gold_chain": "git checkout --theirs package-lock.json && npm install --package-lock-only && git add package-lock.json && git rebase --continue",
+    "trap_failure": "'fatal: refusing to merge unrelated histories' fixed with git pull --allow-unrelated-histories"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Distinctive `--theirs package-lock.json` token is highly improbable in filler episodes (CODEOWNERS / CONTRIBUTING.md edits)."
+}

@@ -76,6 +76,10 @@ class RetainRequest(BaseModel):
     # Optional: S33 retain-level ablation. When set, facts of types NOT in this allowlist
     # are dropped after extraction (and not stored). Default None = keep all 6 types.
     enabled_fact_types: list[str] | None = None
+    # Optional: S34 agentic-transcript mode. When True, the Pass 1 extraction prompt receives
+    # an addendum teaching it to read inline [tool:]/[output] tags as observed reality and
+    # map them onto action_effect facts. Default False — chat retains unchanged.
+    agentic_transcript: bool = False
 
 
 class RetainResponse(BaseModel):
@@ -329,6 +333,7 @@ def create_app(
                 bank_id=bank_id,
                 contents=contents,
                 enabled_fact_types=tuple(payload.enabled_fact_types) if payload.enabled_fact_types else None,
+                agentic_transcript=payload.agentic_transcript,
             )
             return RetainResponse(success=True, bank_id=bank_id, items_count=len(contents), unit_ids=unit_ids)
         except RuntimeError as exc:

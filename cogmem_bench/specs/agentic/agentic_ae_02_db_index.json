@@ -1,0 +1,49 @@
+{
+  "scenario_id": "agentic_ae_02_db_index",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI database-ops agent tuning a Postgres-backed orders service",
+  "tools_used": ["bash", "psql", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `psql -c '\\dt'` to inventory tables in the orders database.",
+    "First exposure: agent runs the `monthly_revenue_by_user` query; psql `\\timing` reports 5,847ms; EXPLAIN ANALYZE shows a Seq Scan on the `orders` table for 12M rows. Agent narrates puzzlement, tries `VACUUM ANALYZE orders` (which does NOT fix it), ends episode WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent writes a small Alembic migration to add a `nullable=True` column.",
+    "Filler: agent updates the orders-svc README with new sample env vars.",
+    "Trap episode: agent debugs a DIFFERENT slow query (the `user_login_history` query timing out at 8s); fixes by rewriting a correlated subquery into a JOIN — completed and confirmed sub-second. NOT the gold rule.",
+    "Filler: agent bumps a docker base image to python:3.12-slim.",
+    "Application episode: agent reruns the same `monthly_revenue_by_user` query; sees the same Seq Scan + 5s+ timing; immediately runs ONE `CREATE INDEX idx_orders_user_created ON orders (user_id, created_at)`; the same query re-EXPLAINed shows Index Scan and \\timing reports 87ms.",
+    "Filler: agent edits the on-call runbook to mention the new index."
+  ],
+  "gold_action_tokens": ["idx_orders_user_created", "CREATE INDEX idx_orders_user_created ON orders", "(user_id, created_at)"],
+  "gold_fact": {
+    "text": "When the monthly_revenue_by_user query runs in over 5 seconds and EXPLAIN shows a Seq Scan on the orders table, the agent creates a composite index idx_orders_user_created on (user_id, created_at), and the query then completes in around 87ms via Index Scan.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "monthly_revenue_by_user query takes >5s; EXPLAIN shows Seq Scan on orders table",
+      "action": "CREATE INDEX idx_orders_user_created ON orders (user_id, created_at)",
+      "outcome": "query completes around 87ms via Index Scan",
+      "confidence": 0.95,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs monthly_revenue_by_user query, gets 5,847ms timing, EXPLAIN ANALYZE shows verbatim 'Seq Scan on orders' for 12M rows. Agent tries VACUUM ANALYZE which doesn't help. Ends WITHOUT creating any index. STRICT: do NOT mention CREATE INDEX, composite index, or (user_id, created_at)."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the slow report query is back at 5s+'. Agent narrates 'right, the missing index pattern' and IMMEDIATELY runs EXACTLY ONE `psql -c 'CREATE INDEX idx_orders_user_created ON orders (user_id, created_at)'`. Reruns the same query, sees Index Scan + 87ms in psql \\timing. STRICT: NO VACUUM attempt this episode, NO baseline EXPLAIN before the index, NO speculation 'maybe just rerun'. Do NOT restate the verbatim 'Seq Scan on orders' phrase."}
+    ]
+  },
+  "question": "What does the agent do when the monthly_revenue_by_user query runs in over 5 seconds with a Seq Scan on the orders table, and what is the result?",
+  "gold_answer": "Create a composite index idx_orders_user_created on (user_id, created_at); the query then completes in around 87ms via Index Scan.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for a different slow query (user_login_history) fixed by rewriting a correlated subquery into a JOIN. UNRELATED to monthly_revenue_by_user.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "database": "orders Postgres database, 12M rows",
+    "slow_query": "monthly_revenue_by_user",
+    "diagnostic": "EXPLAIN ANALYZE shows Seq Scan on orders",
+    "gold_index_name": "idx_orders_user_created",
+    "gold_index_columns": "(user_id, created_at)",
+    "trap_failure": "user_login_history query slow due to correlated subquery, fixed by rewriting to JOIN"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Distinctive gold_action_tokens (idx_orders_user_created, user_id+created_at) very unlikely in filler episodes. Causal phrasing ensures action_effect boost."
+}

@@ -1,0 +1,47 @@
+{
+  "scenario_id": "agentic_ae_06_node_oom",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI build agent compiling a large TypeScript monorepo via webpack",
+  "tools_used": ["bash", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `npm run --workspaces -- --version` to confirm Node and tool versions across workspaces.",
+    "First exposure: agent runs `npm run build:prod`; build crashes mid-way with verbatim `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory`. Agent tries running `npm run build:prod -- --max-workers=1` which still OOMs. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent reformats a tsconfig.json paths block.",
+    "Filler: agent edits a workspace's package.json description field.",
+    "Trap episode: agent debugs a DIFFERENT build failure (`Module not found: Can't resolve 'lodash/get'` because the dep is dev-only); fixes by moving lodash from devDependencies to dependencies — completed and confirmed. NOT the gold rule.",
+    "Filler: agent edits a husky pre-commit hook.",
+    "Application episode: agent reruns `npm run build:prod`; sees the same heap OOM; immediately runs EXACTLY ONE `NODE_OPTIONS='--max-old-space-size=8192' npm run build:prod`; the build completes with `webpack compiled successfully in 142s`.",
+    "Filler: agent posts a changelog entry."
+  ],
+  "gold_action_tokens": ["NODE_OPTIONS='--max-old-space-size=8192'", "--max-old-space-size=8192", "max-old-space-size"],
+  "gold_fact": {
+    "text": "When `npm run build:prod` crashes with 'JavaScript heap out of memory', the agent reruns the build with `NODE_OPTIONS='--max-old-space-size=8192' npm run build:prod`, and the build completes successfully.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "npm run build:prod crashes with 'FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory'",
+      "action": "rerun with NODE_OPTIONS='--max-old-space-size=8192' prefix",
+      "outcome": "the build completes successfully",
+      "confidence": 0.95,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `npm run build:prod`, sees verbatim `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory`. Tries `--max-workers=1` which also OOMs. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention NODE_OPTIONS or --max-old-space-size."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the prod build is OOMing again on the build server'. Agent narrates 'right, the heap-size pattern' and IMMEDIATELY runs EXACTLY ONE `NODE_OPTIONS='--max-old-space-size=8192' npm run build:prod`. Output shows `webpack compiled successfully in 142s`. STRICT: NO --max-workers attempt this episode, NO baseline run, do NOT restate the verbatim heap-out-of-memory error string."}
+    ]
+  },
+  "question": "What does the agent do when `npm run build:prod` crashes with 'JavaScript heap out of memory', and what is the result?",
+  "gold_answer": "Rerun the build with `NODE_OPTIONS='--max-old-space-size=8192' npm run build:prod`; the build completes successfully.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for a DIFFERENT build error (Module not found: lodash/get) fixed by moving the dep to dependencies. UNRELATED to OOM.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "build_command": "npm run build:prod",
+    "verbatim_error": "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory",
+    "gold_env_prefix": "NODE_OPTIONS='--max-old-space-size=8192'",
+    "trap_failure": "'Module not found: Can't resolve lodash/get' fixed by moving lodash to dependencies"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "--max-old-space-size=8192 is unique to Node memory tuning — very unlikely in unrelated filler tasks."
+}

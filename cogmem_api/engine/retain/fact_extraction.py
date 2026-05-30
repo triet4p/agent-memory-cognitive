@@ -982,6 +982,7 @@ async def _extract_facts_with_llm(
     config: Any,
     enabled_fact_types: tuple[str, ...] | None = None,
     strict_typing: bool = False,
+    agentic_transcript: bool = False,
 ) -> tuple[list[ExtractedFact], list[ChunkMetadata], TokenUsage]:
     usage = TokenUsage()
     if llm_config is None or not hasattr(llm_config, "call"):
@@ -999,7 +1000,7 @@ async def _extract_facts_with_llm(
     addendum = _strict_typing_addendum(enabled_fact_types, strict_typing)
 
     if content.messages and two_pass_enabled:
-        pass1_prompt, mode = build_pass1_prompt(config)
+        pass1_prompt, mode = build_pass1_prompt(config, agentic_transcript=agentic_transcript)
         pass2_prompt = build_pass2_prompt()
         if addendum:
             pass1_prompt = pass1_prompt + addendum
@@ -1136,7 +1137,7 @@ async def _extract_facts_with_llm(
         "[retain][idx=%d] SINGLE-PASS (legacy) — messages_present=%s two_pass_enabled=%s",
         content_index, bool(content.messages), two_pass_enabled,
     )
-    prompt, mode = build_pass1_prompt(config)
+    prompt, mode = build_pass1_prompt(config, agentic_transcript=agentic_transcript)
     if addendum:
         prompt = prompt + addendum
     chunk_size = int(getattr(config, "retain_chunk_size", 3000) or 3000)
@@ -1335,6 +1336,7 @@ async def extract_facts_from_contents(
     operation_id: str | None = None,
     schema: str | None = None,
     enabled_fact_types: tuple[str, ...] | None = None,
+    agentic_transcript: bool = False,
 ) -> tuple[list[ExtractedFact], list[ChunkMetadata], TokenUsage]:
     """Extract facts from normalized retain content list.
 
@@ -1343,6 +1345,11 @@ async def extract_facts_from_contents(
     (only allowed types; do not recast disabled-type content into other types). The actual
     drop of disallowed-type facts happens in retain_batch (orchestrator). Backward-compatible:
     default behavior is unchanged when arg omitted or strict-typing flag off.
+
+    `agentic_transcript` (optional, default False): when True, the Pass 1 prompt receives
+    the S34 agentic-transcript addendum that teaches the extractor to read inline
+    [tool:]/[output] tags as observed reality and map them onto action_effect facts.
+    Off by default so chat retains (S33 and earlier) are byte-identical to before.
     """
     del agent_name, pool, operation_id, schema
 
@@ -1369,6 +1376,7 @@ async def extract_facts_from_contents(
             config=config,
             enabled_fact_types=enabled_fact_types,
             strict_typing=bool(getattr(config, "retain_strict_typing", False)),
+            agentic_transcript=agentic_transcript,
         )
         usage = usage + llm_usage
 

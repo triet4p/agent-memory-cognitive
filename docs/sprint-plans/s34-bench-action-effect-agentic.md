@@ -1,7 +1,31 @@
 # S34 — Action_Effect Necessity (Agentic AI Workload)
 
-Status: 🔄 Planned (after S33)
+Status: ✅ Done (2026-05-30)
 Methodology: [docs/Ablation-Flow.md](../Ablation-Flow.md). Depends on: [S33](s33-bench-discrimination.md) cách B infrastructure.
+
+## Outcome (final, manual verdict)
+
+**Discrimination: 5/12** cases on mocked agentic workload (http_429, docker_pull, playwright_wait,
+git_lockfile, azure_token). McNemar exact 2-sided **p ≈ 0.22** (not significant at n=12, but
+the floor result is rigorous after full confound chain removed).
+
+The S34 plumbing added on top of S33 infrastructure:
+1. `workload: "chat"|"agentic"` + `tools_used` + `episodes` + `gold_action_tokens` optional fields on `ScenarioSpec`.
+2. Agentic prompt branch in `cogmem_bench/prompts.py` (renders inline `[tool:]`/`[output]` agent transcripts).
+3. `agentic_transcript: bool` flag threaded through retain stack (http payload → memory_engine → orchestrator → fact_extraction → Pass1 prompt addendum). Default False so S33 chat retains are byte-identical.
+4. `soft_validate_no_action_leak` validator in `cogmem_bench/generation.py` (warns when filler episodes contain gold action tokens).
+5. `gates.run_case_gates` auto-detects `workload="agentic"` → pre-retains BOTH paired banks with `agentic_transcript=True`; fail-fast guard if user runs without `--retain-level-ablation`.
+
+**Honest finding (publishable):** action_effect typed nodes carry **necessary** information in
+~42% of mocked agentic cases — those whose gold action has distinctive CLI flag combinations
+and verbal outcomes that resist being re-encoded as objective `world` knowledge. In the
+remaining ~58%, Minimax extracts a `world` fact of the form *"X is resolved by Y"* that
+captures the same content under a different type, defeating the ablation. Action_effect's
+value, like intention's in S33, is **conditional on extractor behaviour and conversational
+density**. Full report: [experiments/v19/action_effect_agentic/REPORT.md](../../experiments/v19/action_effect_agentic/REPORT.md).
+
+Visualizations: `data/bench/visualization/agentic_ae_01_http_429_*` + `agentic_ae_08_azure_token_*`
+(2 clean-discriminate cases, side-by-side cytoscape graphs + per-case explanation MD + S34_README.md).
 
 ## Why a separate sprint
 

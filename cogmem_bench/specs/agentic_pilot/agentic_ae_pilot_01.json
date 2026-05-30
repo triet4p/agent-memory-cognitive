@@ -1,0 +1,65 @@
+{
+  "scenario_id": "agentic_ae_pilot_01",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI coding agent maintaining a Python service backed by a flaky CI suite",
+  "tools_used": ["bash", "read_file", "write_file", "grep"],
+  "episodes": [
+    "Routine task: agent runs `pytest tests/api/` to verify the build is green before opening a PR.",
+    "First exposure: agent runs the integration tests; they fail with a network-related error from the Stripe SDK; agent observes the symptom but does NOT yet apply a fix.",
+    "Unrelated task: agent refactors a small utility function and runs unit tests to verify (no network involved).",
+    "Filler/maintenance: agent edits the README and lints the project.",
+    "Trap episode: a DIFFERENT intermittent failure (a real bug in a deserializer) is fixed by changing the code — completed and confirmed. NOT the gold rule.",
+    "Filler: agent writes a small data migration script.",
+    "Application episode: integration tests fail again with the SAME network-related Stripe error; agent applies a specific mitigation and confirms the suite then passes.",
+    "Filler/maintenance: agent updates dependency versions in pyproject.toml."
+  ],
+  "gold_fact": {
+    "text": "When the integration test suite fails with a Stripe network timeout (requests.exceptions.ConnectionError on api.stripe.com), the agent reruns pytest with PYTEST_DISABLE_NETWORK_CACHE=1 and -p no:cacheprovider, which makes the suite pass.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "integration tests fail with requests.exceptions.ConnectionError on api.stripe.com",
+      "action": "rerun pytest with PYTEST_DISABLE_NETWORK_CACHE=1 -p no:cacheprovider",
+      "outcome": "the integration suite passes",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {
+        "session_index": 1,
+        "reveal": "PRECONDITION ONLY. The agent runs `pytest tests/integration/` and gets a verbatim `requests.exceptions.ConnectionError: HTTPSConnectionPool(host='api.stripe.com', port=443): Read timed out.` Agent narrates puzzlement, tries one obvious thing (e.g. ping or retry once) that does NOT work, and ENDS the episode WITHOUT applying the gold mitigation. STRICT: do NOT mention PYTEST_DISABLE_NETWORK_CACHE, no:cacheprovider, or that any rerun made it pass. The episode must read as an unresolved observation."
+      },
+      {
+        "session_index": 6,
+        "reveal": "ACTION+OUTCOME ONLY. The user prompt refers to the failure as 'that flaky one again from the staging pipeline' WITHOUT restating the error. The agent narrates 'right, the known Stripe timeout pattern' and IMMEDIATELY runs EXACTLY ONE mitigation command: `[tool: bash] PYTEST_DISABLE_NETWORK_CACHE=1 pytest tests/integration/ -p no:cacheprovider` whose [output] shows ALL 14 tests PASS in one go. Agent narrates 'the mitigation worked' and ENDS the episode. STRICT — these are FORBIDDEN in this episode: (a) NO baseline rerun without flags, (b) NO intermediate failed attempt with the flags, (c) NO 'let me try once more' loop, (d) NO speculation that 'maybe it's just intermittent / rerunning was enough', (e) do NOT restate the verbatim `requests.exceptions.ConnectionError` or `api.stripe.com` host string. Total tool invocations in this episode: EXACTLY ONE (just the mitigation that passes)."
+      }
+    ]
+  },
+  "question": "When the agent encounters a Stripe network timeout (requests.exceptions.ConnectionError on api.stripe.com) during the integration test suite, what does the agent do, and what is the result?",
+  "gold_answer": "Rerun pytest with PYTEST_DISABLE_NETWORK_CACHE=1 and -p no:cacheprovider; the suite passes.",
+  "traps": [
+    {
+      "trap_type": "type-confusion",
+      "description": "Episode 4 is a fulfilled-decoy rule on a different failure: a JSON deserializer bug fixed by editing schema.py. The agent observed the bug, edited the file, and the test passed — fully observed precondition->action->outcome, but for an UNRELATED failure. Designed to tempt a w/e/o-only system into answering with the deserializer fix instead of the network mitigation.",
+      "session_index": 4
+    },
+    {
+      "trap_type": "volume",
+      "description": "Episodes 3 and 7 perform routine pytest runs that succeed without any special flags — to make it tempting to summarize as 'pytest just works' without the conditional rule.",
+      "session_index": 3
+    }
+  ],
+  "session_plan": {
+    "total_sessions": 8,
+    "gold_session_indices": [1, 6]
+  },
+  "shared_context": {
+    "service": "billing-svc (Python FastAPI service)",
+    "test_command": "pytest tests/integration/",
+    "stripe_error": "requests.exceptions.ConnectionError: HTTPSConnectionPool(host='api.stripe.com', port=443): Read timed out.",
+    "gold_action_flags": "PYTEST_DISABLE_NETWORK_CACHE=1 and -p no:cacheprovider",
+    "trap_failure": "JSON deserializer bug in models/schema.py (KeyError on 'subscription_id')"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Causal phrasing ('what does the agent do when X, and the result?') routes to causal, boosting action_effect x1.35. Precondition (session 1) and action+outcome (session 6) live in separate episodes. The session-1 episode is INTENTIONALLY UNRESOLVED so reading it as raw experience yields 'agent saw the error and couldn't fix it' — wrong. Only the generalized action_effect rule combines them. Trap episode 4 provides a clean fulfilled-decoy rule for a different failure to tempt a w/e/o-only system."
+}

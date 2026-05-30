@@ -132,6 +132,19 @@ def run_case_gates(
     recall_results and generated_answer (judge.correct is unreliable; verify the answer
     against the gold by hand, cogmem-verify style).
     """
+    is_agentic = getattr(spec, "workload", "chat") == "agentic"
+
+    # S34 sanity (fail fast, before any fixture I/O): agentic specs need the paired-bank
+    # flow so the agentic_transcript flag can be threaded into retain. Without
+    # --retain-level-ablation, retain happens inside run_pipeline (eval_cogmem) which
+    # doesn't expose the flag, so the addendum would be silently lost.
+    if is_agentic and not retain_level_ablation and not skip_retain:
+        raise ValueError(
+            f"spec {spec.scenario_id!r} has workload='agentic'; gate requires "
+            "--retain-level-ablation (or --skip-retain on already-populated banks) so the "
+            "agentic_transcript flag can reach the Pass-1 retain prompt."
+        )
+
     # Imported lazily so the module stays importable offline (no requests at import time).
     from scripts.eval_cogmem import (  # type: ignore
         _benchmark_item_as_fixture,
@@ -147,32 +160,50 @@ def run_case_gates(
     ablation_profile = _ABLATION_ARM.get(spec.target_type, "E11")
 
     # Resolve bank ids per mode and pre-retain the ablated bank if needed (S33 cách B).
+    # For agentic specs (S34): also pre-retain the FULL bank with agentic_transcript=True so
+    # the Pass-1 prompt receives the inline-tool-tag addendum (run_pipeline below cannot
+    # pass this flag, so we skip its retain step).
     if retain_level_ablation:
         bank_full = f"{bank_id}_full"
         bank_ablated = f"{bank_id}_ablated"
         if not skip_retain:
-            # Pre-retain ablated bank with enabled_fact_types = the ablated profile's
-            # allowed type list, so disabled-type facts are dropped at extraction.
             from scripts.eval_cogmem import ABLATION_PROFILES  # type: ignore
 
             allowed = list(ABLATION_PROFILES[ablation_profile].recall_fact_types)
             items_data = mini.get("_messages") or [
                 (sid, [{"role": "", "content": t} for t in turns]) for sid, turns in mini.get("_sessions", [])
             ]
-            payload = {
-                "items": [{"messages": msgs, "document_id": sid} for sid, msgs in items_data],
+            base_items = [{"messages": msgs, "document_id": sid} for sid, msgs in items_data]
+
+            # Full bank: pre-retain only for agentic (to inject the agentic-transcript addendum
+            # into Pass 1); chat specs let run_pipeline retain as before to keep S33 path identical.
+            if is_agentic:
+                post(
+                    f"{api_base_url}/v1/default/banks/{bank_full}/memories",
+                    {"items": base_items, "async": False, "agentic_transcript": True},
+                    timeout_seconds,
+                )
+
+            # Ablated bank: enabled_fact_types drops the disabled type at extraction;
+            # also pass agentic_transcript for agentic specs.
+            ablated_payload = {
+                "items": base_items,
                 "async": False,
                 "enabled_fact_types": allowed,
             }
-            post(f"{api_base_url}/v1/default/banks/{bank_ablated}/memories", payload, timeout_seconds)
+            if is_agentic:
+                ablated_payload["agentic_transcript"] = True
+            post(f"{api_base_url}/v1/default/banks/{bank_ablated}/memories", ablated_payload, timeout_seconds)
     else:
         bank_full = bank_id
         bank_ablated = bank_id
 
     # 1) Full arm (E7F = E7 with flat router): retain (unless skip_retain) + recall + judge.
+    # Agentic specs were pre-retained above, so skip run_pipeline's retain step.
+    full_skip_retain = skip_retain or (retain_level_ablation and is_agentic)
     res_e7 = run_pipeline(
         "full", api_base_url, bank_full, _FULL_ARM, "longmemeval",
-        skip_retain=skip_retain, timeout_seconds=timeout_seconds,
+        skip_retain=full_skip_retain, timeout_seconds=timeout_seconds,
         post_json_fn=post, fixture_override=mini,
     )
     q_e7 = res_e7["questions"][0]

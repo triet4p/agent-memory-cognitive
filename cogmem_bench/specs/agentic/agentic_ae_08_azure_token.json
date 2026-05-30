@@ -1,0 +1,47 @@
+{
+  "scenario_id": "agentic_ae_08_azure_token",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI cloud-ops agent calling Azure ARM APIs from a deployment script",
+  "tools_used": ["bash", "az", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `az account show` to confirm the current subscription context.",
+    "First exposure: agent runs `az deployment group create --resource-group prod-rg --template-file main.bicep`; CLI errors out with verbatim `AADSTS70043: The refresh token has expired due to inactivity` and a 401 response. Agent tries running the same command twice more; same error. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent edits a bicep parameter file to update a SKU name.",
+    "Filler: agent updates a tags block on a resource group via Portal export.",
+    "Trap episode: agent debugs a DIFFERENT 403 error (`InsufficientPrivileges` because the service principal lacks Contributor role); fixes by `az role assignment create --role Contributor --assignee <sp> --scope <rg>` — completed and confirmed. NOT the gold rule.",
+    "Filler: agent fixes a markdown lint warning in an architecture doc.",
+    "Application episode: agent reruns the deployment command; sees the same AADSTS70043 error; immediately runs EXACTLY ONE `az login --use-device-code --tenant <tenant_id>` to refresh credentials, then re-runs the deployment which now returns `provisioningState: Succeeded`.",
+    "Filler: agent appends a row to a CHANGELOG.md."
+  ],
+  "gold_action_tokens": ["az login --use-device-code --tenant", "--use-device-code", "AADSTS70043"],
+  "gold_fact": {
+    "text": "When `az deployment group create ...` fails with 'AADSTS70043: The refresh token has expired', the agent runs `az login --use-device-code --tenant <tenant_id>` to re-authenticate and then re-runs the deployment, which returns provisioningState: Succeeded.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "az deployment group create returns 'AADSTS70043: The refresh token has expired due to inactivity' (401)",
+      "action": "az login --use-device-code --tenant <tenant_id> then re-run the deployment",
+      "outcome": "deployment returns provisioningState: Succeeded",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `az deployment group create --resource-group prod-rg --template-file main.bicep`, sees verbatim `AADSTS70043: The refresh token has expired due to inactivity` + 401. Tries naive reruns; same error. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention --use-device-code or az login."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'AADSTS70043 on staging deploy is back'. Agent narrates 'right, the device-code refresh pattern' and IMMEDIATELY runs EXACTLY ONE `az login --use-device-code --tenant <tenant_id>` then re-runs the deployment which returns `provisioningState: Succeeded`. STRICT: NO naive retry attempts this episode, do NOT restate the verbatim AADSTS70043 line."}
+    ]
+  },
+  "question": "What does the agent do when `az deployment group create` fails with 'AADSTS70043: The refresh token has expired', and what is the result?",
+  "gold_answer": "Run `az login --use-device-code --tenant <tenant_id>` to re-authenticate, then re-run the deployment; it returns provisioningState: Succeeded.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for a DIFFERENT auth error (403 InsufficientPrivileges) fixed by role assignment. Auth-flavoured but UNRELATED to refresh-token expiry.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "command": "az deployment group create --resource-group prod-rg --template-file main.bicep",
+    "verbatim_error": "AADSTS70043: The refresh token has expired due to inactivity",
+    "gold_action": "az login --use-device-code --tenant <tenant_id>",
+    "trap_failure": "403 InsufficientPrivileges fixed by az role assignment create --role Contributor"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "AADSTS70043 is a very specific Azure error code; --use-device-code is the specific corrective flag — both unlikely in unrelated tag/markdown filler episodes."
+}

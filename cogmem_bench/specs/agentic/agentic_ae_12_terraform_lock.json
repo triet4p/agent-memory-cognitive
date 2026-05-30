@@ -1,0 +1,48 @@
+{
+  "scenario_id": "agentic_ae_12_terraform_lock",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI infra agent applying Terraform changes to AWS infrastructure with a DynamoDB state lock",
+  "tools_used": ["bash", "terraform", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `terraform fmt -recursive .` to confirm formatting is clean before plan.",
+    "First exposure: agent runs `terraform apply -auto-approve`; apply fails with verbatim `Error: Error acquiring the state lock`, followed by `Lock Info: ID: 7c3a-9f2b-44d1-8855-aaff. Operation: OperationTypeApply. Who: alice@old-runner. Created: 2026-05-21 14:22:11`. Agent tries running `terraform apply` again twice; same lock error. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent edits a CloudWatch alarm description.",
+    "Filler: agent updates a Route53 hosted-zone tag.",
+    "Trap episode: agent debugs a DIFFERENT Terraform failure (`Error: Reference to undeclared resource`); fixes by adding the missing `aws_iam_role.api` resource block — completed and confirmed. NOT the gold rule.",
+    "Filler: agent edits a backend.tf comment block.",
+    "Application episode: agent reruns `terraform apply`; same state-lock error with the same lock ID `7c3a-9f2b-44d1-8855-aaff`; immediately runs EXACTLY ONE `terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff` and then re-runs `terraform apply -auto-approve` which finishes with `Apply complete! Resources: 3 added, 1 changed, 0 destroyed`.",
+    "Filler: agent adjusts a tfvars default value."
+  ],
+  "gold_action_tokens": ["terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff", "force-unlock -force", "7c3a-9f2b-44d1-8855-aaff"],
+  "gold_fact": {
+    "text": "When `terraform apply` fails with 'Error: Error acquiring the state lock' on a stale DynamoDB lock with ID 7c3a-9f2b-44d1-8855-aaff, the agent runs `terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff` and re-runs the apply, which then finishes with 'Apply complete'.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "terraform apply fails with 'Error: Error acquiring the state lock' on lock ID 7c3a-9f2b-44d1-8855-aaff (stale lock from alice@old-runner)",
+      "action": "terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff then re-run terraform apply -auto-approve",
+      "outcome": "apply finishes with 'Apply complete! Resources: 3 added, 1 changed, 0 destroyed'",
+      "confidence": 0.95,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `terraform apply -auto-approve`, sees verbatim `Error: Error acquiring the state lock` + lock info showing `ID: 7c3a-9f2b-44d1-8855-aaff` from `alice@old-runner` created `2026-05-21 14:22:11`. Tries naive reruns twice; same lock. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention force-unlock or any way to release the lock."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the stale terraform state lock is blocking apply again'. Agent narrates 'right, the force-unlock pattern' and IMMEDIATELY runs EXACTLY ONE `terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff` then re-runs `terraform apply -auto-approve` which prints `Apply complete! Resources: 3 added, 1 changed, 0 destroyed`. STRICT: NO naive retry this episode, do NOT restate the verbatim 'Error acquiring the state lock' line."}
+    ]
+  },
+  "question": "What does the agent do when `terraform apply` fails with 'Error: Error acquiring the state lock' on a stale DynamoDB lock with ID 7c3a-9f2b-44d1-8855-aaff, and what is the result?",
+  "gold_answer": "Run `terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff` and re-run the apply; it finishes with 'Apply complete! Resources: 3 added, 1 changed, 0 destroyed'.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy for a different Terraform error (Reference to undeclared resource) fixed by adding the missing resource block. UNRELATED to state-lock issues.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "command": "terraform apply -auto-approve",
+    "lock_id": "7c3a-9f2b-44d1-8855-aaff",
+    "verbatim_error": "Error: Error acquiring the state lock",
+    "gold_action": "terraform force-unlock -force 7c3a-9f2b-44d1-8855-aaff",
+    "trap_failure": "Reference to undeclared resource fixed by adding aws_iam_role.api block"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "The specific lock ID and `force-unlock -force` flag together are essentially unique to this episode — extremely unlikely to be borrowed by filler tasks."
+}

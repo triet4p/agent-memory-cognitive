@@ -1,0 +1,48 @@
+{
+  "scenario_id": "agentic_ae_07_dns_corp",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI platform agent troubleshooting in-cluster DNS for a Python service that calls an internal HTTP API",
+  "tools_used": ["bash", "kubectl", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `kubectl get pods -n platform` to inventory pods in the platform namespace.",
+    "First exposure: agent runs the python script `python verify_corp.py` from inside the pod; verbatim `socket.gaierror: [Errno -2] Name or service not known` resolving `internal-api.corp`. Agent tries running with `dig internal-api.corp @8.8.8.8` (works) then the python script again (still fails). Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent rotates a service-account credential secret.",
+    "Filler: agent edits a podinfo deployment label.",
+    "Trap episode: agent debugs a DIFFERENT DNS failure (CoreDNS pods CrashLoopBackOff because of a malformed Corefile); fixes by reverting the Corefile ConfigMap — completed and confirmed. NOT the gold rule.",
+    "Filler: agent updates a kustomization.yaml ordering.",
+    "Application episode: agent reruns `python verify_corp.py`; sees the same `socket.gaierror`; immediately runs EXACTLY ONE `RES_OPTIONS='ndots:0' python verify_corp.py`; the script resolves `internal-api.corp` and prints `OK 200`.",
+    "Filler: agent fixes a typo in a CronJob schedule."
+  ],
+  "gold_action_tokens": ["RES_OPTIONS='ndots:0'", "ndots:0", "RES_OPTIONS"],
+  "gold_fact": {
+    "text": "When `python verify_corp.py` fails with 'socket.gaierror: [Errno -2] Name or service not known' resolving internal-api.corp, the agent reruns it with `RES_OPTIONS='ndots:0' python verify_corp.py`, and the script resolves internal-api.corp and returns 200.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "python verify_corp.py fails with 'socket.gaierror: [Errno -2] Name or service not known' on internal-api.corp",
+      "action": "rerun with RES_OPTIONS='ndots:0' python verify_corp.py prefix",
+      "outcome": "resolution succeeds and script returns 200",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs python verify_corp.py, sees verbatim `socket.gaierror: [Errno -2] Name or service not known`. Tries `dig internal-api.corp @8.8.8.8` (works directly!) but the script still fails. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention RES_OPTIONS or ndots."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the internal-api gaierror is back in that pod'. Agent narrates 'right, the ndots search-path pattern' and IMMEDIATELY runs EXACTLY ONE `RES_OPTIONS='ndots:0' python verify_corp.py` whose output shows `OK 200`. STRICT: NO dig attempt this episode, NO baseline run, do NOT restate the verbatim gaierror string."}
+    ]
+  },
+  "question": "What does the agent do when `python verify_corp.py` fails with 'socket.gaierror: [Errno -2] Name or service not known' resolving internal-api.corp, and what is the result?",
+  "gold_answer": "Rerun with `RES_OPTIONS='ndots:0' python verify_corp.py`; the script resolves internal-api.corp and returns 200.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for CoreDNS CrashLoopBackOff fixed by reverting the Corefile ConfigMap. DNS-flavoured but UNRELATED to the gaierror in-script.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "script": "python verify_corp.py",
+    "hostname": "internal-api.corp",
+    "verbatim_error": "socket.gaierror: [Errno -2] Name or service not known",
+    "gold_env_prefix": "RES_OPTIONS='ndots:0'",
+    "trap_failure": "CoreDNS pods CrashLoopBackOff due to malformed Corefile, fixed by reverting the ConfigMap"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "RES_OPTIONS / ndots is a niche resolv.conf knob — unlikely to appear in unrelated kustomization / CronJob filler episodes."
+}

@@ -1,0 +1,47 @@
+{
+  "scenario_id": "agentic_ae_10_npm_eacces",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI dev-env agent setting up Node tooling on a shared CI runner",
+  "tools_used": ["bash", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `node --version && npm --version` to confirm baseline versions on the runner.",
+    "First exposure: agent runs `npm install -g eslint`; install errors out with verbatim `EACCES: permission denied, mkdir '/usr/local/lib/node_modules/eslint'`. Agent tries `sudo npm install -g eslint` (sudo not available on the runner — `sudo: command not found`). Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent edits a runner's .gitignore to ignore tmp logs.",
+    "Filler: agent updates a runner sysctl tuning comment.",
+    "Trap episode: agent debugs a DIFFERENT npm error (`ETARGET: No matching version found for typescript@99.0.0`); fixes by pinning typescript@5.4.0 in package.json — completed and confirmed. NOT the gold rule.",
+    "Filler: agent edits a Makefile target's help text.",
+    "Application episode: agent reruns `npm install -g eslint`; same EACCES on /usr/local; immediately runs EXACTLY ONE composed `npm config set prefix '$HOME/.npm-global' && npm install -g eslint && export PATH=\"$HOME/.npm-global/bin:$PATH\"`; install completes and `eslint --version` prints `v8.57.0`.",
+    "Filler: agent fixes a typo in a runner docs sidebar."
+  ],
+  "gold_action_tokens": ["npm config set prefix '$HOME/.npm-global'", "$HOME/.npm-global", ".npm-global/bin:$PATH"],
+  "gold_fact": {
+    "text": "When `npm install -g eslint` fails with 'EACCES: permission denied, mkdir /usr/local/lib/node_modules/eslint' on a CI runner without sudo, the agent runs `npm config set prefix '$HOME/.npm-global' && npm install -g eslint && export PATH=\"$HOME/.npm-global/bin:$PATH\"`, and the install completes successfully.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "npm install -g eslint fails with 'EACCES: permission denied, mkdir /usr/local/lib/node_modules/eslint'",
+      "action": "npm config set prefix '$HOME/.npm-global' && npm install -g eslint && export PATH=\"$HOME/.npm-global/bin:$PATH\"",
+      "outcome": "global install completes and eslint --version succeeds",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `npm install -g eslint`, sees verbatim `EACCES: permission denied, mkdir '/usr/local/lib/node_modules/eslint'`. Tries `sudo npm install` — `sudo: command not found`. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention npm config set prefix, $HOME/.npm-global, or PATH export."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'EACCES on global npm install is back on the runner'. Agent narrates 'right, the user-prefix pattern' and IMMEDIATELY runs EXACTLY ONE chained `npm config set prefix '$HOME/.npm-global' && npm install -g eslint && export PATH=\"$HOME/.npm-global/bin:$PATH\"`; output ends with `+ eslint@8.57.0 added 1 package`. STRICT: NO sudo attempt this episode, do NOT restate the verbatim EACCES path."}
+    ]
+  },
+  "question": "What does the agent do when `npm install -g eslint` fails with 'EACCES: permission denied, mkdir /usr/local/lib/node_modules/eslint' on a runner without sudo, and what is the result?",
+  "gold_answer": "Run `npm config set prefix '$HOME/.npm-global' && npm install -g eslint && export PATH=\"$HOME/.npm-global/bin:$PATH\"`; the install completes successfully.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy for a different npm error (ETARGET version pinning) fixed in package.json. UNRELATED to EACCES.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "command": "npm install -g eslint",
+    "verbatim_error": "EACCES: permission denied, mkdir '/usr/local/lib/node_modules/eslint'",
+    "gold_chain": "npm config set prefix '$HOME/.npm-global' && npm install -g eslint && export PATH=\"$HOME/.npm-global/bin:$PATH\"",
+    "trap_failure": "ETARGET: No matching version found for typescript@99.0.0 fixed by pinning typescript@5.4.0"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "User-prefix npm pattern with the specific .npm-global directory token is uncommon in unrelated runner-tuning filler episodes."
+}

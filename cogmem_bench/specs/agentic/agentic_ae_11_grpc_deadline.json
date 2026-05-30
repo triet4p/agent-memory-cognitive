@@ -1,0 +1,47 @@
+{
+  "scenario_id": "agentic_ae_11_grpc_deadline",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI backend agent maintaining a gRPC client for a real-time pricing service in Go",
+  "tools_used": ["bash", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `go test ./pricing/... -run TestSmoke` to verify the smoke suite is green.",
+    "First exposure: agent runs `go test ./pricing/... -run TestStreamingQuote`; test fails after ~25s with verbatim `rpc error: code = DeadlineExceeded desc = context deadline exceeded`. Agent tries doubling the context timeout from 5s to 30s in the test — same DeadlineExceeded. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent reformats a struct's JSON tags using go-tagalign.",
+    "Filler: agent bumps a go.mod module version.",
+    "Trap episode: agent debugs a DIFFERENT gRPC failure (`code = Unavailable desc = name resolver error`); fixes by switching to a static `dns:///` resolver scheme — completed and confirmed. NOT the gold rule.",
+    "Filler: agent edits a Makefile lint target.",
+    "Application episode: agent reruns `go test ./pricing/... -run TestStreamingQuote`; same DeadlineExceeded; immediately edits the dial options to add `grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10 * time.Second, Timeout: 3 * time.Second, PermitWithoutStream: true})` in ONE write_file call; rerun shows the test PASSED in 8.2s.",
+    "Filler: agent fixes a goimports ordering issue."
+  ],
+  "gold_action_tokens": ["grpc.WithKeepaliveParams(keepalive.ClientParameters", "keepalive.ClientParameters{Time: 10 * time.Second", "PermitWithoutStream: true"],
+  "gold_fact": {
+    "text": "When `go test ./pricing/... -run TestStreamingQuote` fails with 'rpc error: code = DeadlineExceeded', the agent adds grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10 * time.Second, Timeout: 3 * time.Second, PermitWithoutStream: true}) to the dial options, and the test then passes in around 8 seconds.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "go test TestStreamingQuote fails with 'rpc error: code = DeadlineExceeded desc = context deadline exceeded'",
+      "action": "add grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10 * time.Second, Timeout: 3 * time.Second, PermitWithoutStream: true}) to the dial options",
+      "outcome": "test passes in around 8 seconds",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs the streaming test, sees verbatim `rpc error: code = DeadlineExceeded desc = context deadline exceeded`. Tries doubling context timeout 5s→30s, same error. Ends WITHOUT applying the gold mitigation. STRICT: do NOT mention WithKeepaliveParams, ClientParameters, PermitWithoutStream, or keepalive."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the streaming RPC is DeadlineExceeded-ing again'. Agent narrates 'right, the keepalive dial-option pattern' and IMMEDIATELY edits the dial-options file in ONE write_file call to add `grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10 * time.Second, Timeout: 3 * time.Second, PermitWithoutStream: true})`. Reruns; test PASSED in 8.2s. STRICT: NO context-timeout edit this episode, do NOT restate the verbatim DeadlineExceeded line."}
+    ]
+  },
+  "question": "What does the agent do when `go test ./pricing/... -run TestStreamingQuote` fails with 'rpc error: code = DeadlineExceeded', and what is the result?",
+  "gold_answer": "Add grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10 * time.Second, Timeout: 3 * time.Second, PermitWithoutStream: true}) to the dial options; the test then passes in around 8 seconds.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy for a different gRPC error (name resolver Unavailable) fixed with dns:/// scheme. UNRELATED to DeadlineExceeded keepalive fix.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "test": "go test ./pricing/... -run TestStreamingQuote",
+    "verbatim_error": "rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "gold_dial_option": "grpc.WithKeepaliveParams(keepalive.ClientParameters{Time: 10 * time.Second, Timeout: 3 * time.Second, PermitWithoutStream: true})",
+    "trap_failure": "code = Unavailable name resolver error, fixed by switching to dns:/// scheme"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "The full keepalive.ClientParameters literal is a very specific Go expression — improbable to appear in JSON-tag / goimports filler episodes."
+}

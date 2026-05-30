@@ -1,0 +1,48 @@
+{
+  "scenario_id": "agentic_ae_03_docker_pull",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI release agent shipping container images for a Go microservice",
+  "tools_used": ["bash", "docker", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `docker images` to inspect the local cache before kicking off a build.",
+    "First exposure: agent runs `docker pull docker.io/acmecorp/orders-svc:v2.3.4`; pull fails with verbatim `Error response from daemon: manifest unknown: manifest unknown`; agent retries the same pull twice; same error each time. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent edits a multi-stage Dockerfile to reduce final image size.",
+    "Filler: agent updates a helmfile values.yaml for staging.",
+    "Trap episode: agent debugs a DIFFERENT docker pull failure (`toomanyrequests: Pull rate limit exceeded`); fixes by `docker login` with an authenticated account — completed and confirmed. NOT the gold rule.",
+    "Filler: agent prunes dangling docker volumes.",
+    "Application episode: agent reruns the v2.3.4 pull; sees the same `manifest unknown` error; immediately runs EXACTLY ONE `docker pull ghcr.io/acmecorp/orders-svc:v2.3.4` (switching the registry prefix to the GHCR mirror); pull succeeds with `Status: Downloaded newer image for ghcr.io/...`.",
+    "Filler: agent tags a release in git."
+  ],
+  "gold_action_tokens": ["ghcr.io/acmecorp/orders-svc", "switching the registry prefix to the GHCR mirror", "ghcr.io"],
+  "gold_fact": {
+    "text": "When `docker pull docker.io/acmecorp/orders-svc:v2.3.4` fails with 'manifest unknown', the agent reruns the pull from the GHCR mirror `docker pull ghcr.io/acmecorp/orders-svc:v2.3.4`, and the pull succeeds.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "docker pull docker.io/acmecorp/orders-svc:v2.3.4 returns 'manifest unknown'",
+      "action": "docker pull ghcr.io/acmecorp/orders-svc:v2.3.4 (switch to the GHCR mirror)",
+      "outcome": "image pulls successfully",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `docker pull docker.io/acmecorp/orders-svc:v2.3.4` and gets verbatim `manifest unknown`. Tries naive retry twice, same error. Ends WITHOUT switching registries. STRICT: do NOT mention ghcr.io, GHCR mirror, or any alternate registry prefix."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the manifest-unknown pull failure is back'. Agent narrates 'right, the docker.io vs GHCR mirror pattern' and IMMEDIATELY runs EXACTLY ONE `docker pull ghcr.io/acmecorp/orders-svc:v2.3.4` whose output shows successful download. STRICT: NO retry from docker.io this episode, NO 'maybe Docker Hub is just slow', do NOT restate the verbatim `manifest unknown` error text."}
+    ]
+  },
+  "question": "What does the agent do when `docker pull docker.io/acmecorp/orders-svc:v2.3.4` fails with 'manifest unknown', and what is the result?",
+  "gold_answer": "Rerun the pull from the GHCR mirror (`docker pull ghcr.io/acmecorp/orders-svc:v2.3.4`); the image pulls successfully.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for a DIFFERENT docker error (Docker Hub rate-limit) fixed by `docker login`. UNRELATED to manifest unknown.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "image_tag": "acmecorp/orders-svc:v2.3.4",
+    "broken_registry": "docker.io",
+    "gold_mirror": "ghcr.io",
+    "verbatim_error": "Error response from daemon: manifest unknown: manifest unknown",
+    "trap_failure": "Docker Hub 'toomanyrequests: Pull rate limit exceeded', fixed by docker login"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Gold action token 'ghcr.io/acmecorp/orders-svc' very distinctive — unlikely in filler episodes about Dockerfile edits or volume pruning."
+}

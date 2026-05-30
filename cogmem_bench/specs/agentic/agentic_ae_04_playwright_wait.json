@@ -1,0 +1,48 @@
+{
+  "scenario_id": "agentic_ae_04_playwright_wait",
+  "target_type": "action_effect",
+  "workload": "agentic",
+  "topic": "an AI QA agent maintaining a Playwright end-to-end test suite for a React dashboard",
+  "tools_used": ["bash", "read_file", "write_file"],
+  "episodes": [
+    "Routine: agent runs `npx playwright test --list` to enumerate the spec files.",
+    "First exposure: agent runs `npx playwright test dashboard.spec.ts`; test fails with verbatim `TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for getByTestId('export-csv-btn') to be visible`. Agent tries a naive `--retries=3` flag — same timeout on every attempt. Ends WITHOUT applying the gold mitigation.",
+    "Unrelated task: agent reformats a Tailwind config file.",
+    "Filler: agent edits a Storybook story description for a button component.",
+    "Trap episode: agent debugs a DIFFERENT Playwright failure (`Error: Browser is closed`); fixes by adding `await browser.contexts()[0].close()` in afterAll — completed and confirmed. NOT the gold rule.",
+    "Filler: agent updates a copyright year in a footer component.",
+    "Application episode: agent reruns the same `dashboard.spec.ts`; sees the same TimeoutError on the export-csv-btn locator; immediately edits the test to await `page.waitForSelector(\"[data-testid='export-csv-btn']\", { state: 'attached', timeout: 15000 })` before the click; rerun shows the test PASSED.",
+    "Filler: agent bumps the eslint version."
+  ],
+  "gold_action_tokens": ["page.waitForSelector(\"[data-testid='export-csv-btn']\"", "state: 'attached'", "{ state: 'attached', timeout: 15000 }"],
+  "gold_fact": {
+    "text": "When a Playwright test fails with a TimeoutError on locator.click for the export-csv-btn test id, the agent precedes the click with page.waitForSelector(\"[data-testid='export-csv-btn']\", { state: 'attached', timeout: 15000 }), and the test then passes.",
+    "fact_type": "action_effect",
+    "metadata": {
+      "precondition": "Playwright test fails with TimeoutError: locator.click waiting for getByTestId('export-csv-btn') to be visible",
+      "action": "add page.waitForSelector with state: 'attached', timeout: 15000 before the click",
+      "outcome": "the test passes",
+      "confidence": 0.9,
+      "devalue_sensitive": false
+    },
+    "fragments": [
+      {"session_index": 1, "reveal": "PRECONDITION ONLY. Agent runs `npx playwright test dashboard.spec.ts`, sees verbatim `TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for getByTestId('export-csv-btn')`. Tries `--retries=3` flag — same timeout. Ends WITHOUT changing the test code. STRICT: do NOT mention waitForSelector, state: 'attached', timeout: 15000."},
+      {"session_index": 6, "reveal": "ACTION+OUTCOME ONLY. User says 'the lazy-loaded export button is timing out again'. Agent narrates 'right, the attached-state wait pattern' and IMMEDIATELY edits the test in ONE write_file call to add `page.waitForSelector(\"[data-testid='export-csv-btn']\", { state: 'attached', timeout: 15000 })` before the click. Reruns; test PASSED. STRICT: NO --retries attempts this episode, NO baseline run before the edit, do NOT restate the verbatim `Timeout 30000ms exceeded` line."}
+    ]
+  },
+  "question": "What does the agent do when a Playwright test fails with a TimeoutError on locator.click for the export-csv-btn locator, and what is the result?",
+  "gold_answer": "Add page.waitForSelector(\"[data-testid='export-csv-btn']\", { state: 'attached', timeout: 15000 }) before the click; the test passes.",
+  "traps": [
+    {"trap_type": "type-confusion", "description": "Episode 4: fulfilled-decoy rule for 'Browser is closed' fixed by closing contexts in afterAll. UNRELATED to the locator wait pattern.", "session_index": 4}
+  ],
+  "session_plan": {"total_sessions": 8, "gold_session_indices": [1, 6]},
+  "shared_context": {
+    "test_file": "dashboard.spec.ts",
+    "broken_locator": "getByTestId('export-csv-btn')",
+    "verbatim_error": "TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for getByTestId('export-csv-btn') to be visible",
+    "gold_action_call": "page.waitForSelector(\"[data-testid='export-csv-btn']\", { state: 'attached', timeout: 15000 })",
+    "trap_failure": "'Error: Browser is closed' fixed by closing contexts in afterAll"
+  },
+  "question_date": "2026-05-29",
+  "rationale": "Gold token includes a very specific data-testid + state literal — improbable in unrelated Storybook / Tailwind filler episodes."
+}

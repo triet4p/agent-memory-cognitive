@@ -23,6 +23,10 @@ TARGET_TYPES = ("habit", "intention", "action_effect")
 TargetType = Literal["habit", "intention", "action_effect"]
 TrapType = Literal["type-confusion", "stale-intention", "contradiction", "volume"]
 
+# Workload kinds. "chat" = human-AI casual dialogue (S33). "agentic" = single-agent
+# tool-use trace (S34). Default stays "chat" so existing 20 specs round-trip unchanged.
+Workload = Literal["chat", "agentic"]
+
 
 class GoldFragment(BaseModel):
     """One distributed piece of the gold fact, embedded in a single session.
@@ -144,6 +148,66 @@ class ScenarioSpec(BaseModel):
     rationale: str | None = Field(
         None, description="Why this question needs the target type's metadata (pre-registration justification)."
     )
+    workload: Workload = Field(
+        "chat",
+        description=(
+            "Conversation kind. 'chat' (default): human-AI dialogue, the S33 workload. "
+            "'agentic': single-agent tool-use trace where each session is one task episode "
+            "with inline [tool: ...] / [output: ...] tags. The generator branches on this; "
+            "everything downstream (fixture/retain/gates) is workload-agnostic."
+        ),
+    )
+    tools_used: list[str] | None = Field(
+        None,
+        description=(
+            "Agentic only — inventory of tool names the agent may call (e.g. ['bash','grep','http']). "
+            "Constrains the generator from inventing arbitrary tools."
+        ),
+    )
+    episodes: list[str] | None = Field(
+        None,
+        description=(
+            "Agentic only — one-line task description per session (len must equal "
+            "session_plan.total_sessions). Each session = one task episode. The gold causal "
+            "rule's precondition lives in one episode; action+outcome in another (anti-leak: "
+            "no single episode renders the full precondition->action->outcome triple)."
+        ),
+    )
+    gold_action_tokens: list[str] | None = Field(
+        None,
+        description=(
+            "Agentic only — distinctive substrings (env vars, CLI flags, command names) that "
+            "must appear ONLY inside the gold action+outcome episode. The leak validator scans "
+            "every non-gold episode and warns if any of these strings appears (T1 lesson: "
+            "Minimax mượn `-p no:cacheprovider` flag vào a filler pytest call → defeated the "
+            "ablation). Case-sensitive substring match. Recommended: 2-5 tokens per spec, each "
+            "specific enough to be unlikely as a generic phrase."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _agentic_fields_consistent(self) -> "ScenarioSpec":
+        if self.workload == "agentic":
+            if not self.tools_used:
+                raise ValueError("agentic workload requires non-empty tools_used")
+            if self.episodes is None or len(self.episodes) != self.session_plan.total_sessions:
+                raise ValueError(
+                    "agentic workload requires episodes with len == session_plan.total_sessions"
+                )
+            if self.target_type != "action_effect":
+                # S34 scope: action_effect on agentic. Other types in agentic workload are
+                # out of scope (intention re-test, habit) per the sprint plan.
+                raise ValueError(
+                    f"agentic workload only supports target_type=action_effect (got {self.target_type!r})"
+                )
+        else:
+            # Chat workload must not carry agentic-only fields (keeps fixtures clean).
+            if self.tools_used or self.episodes or self.gold_action_tokens:
+                raise ValueError(
+                    "tools_used/episodes/gold_action_tokens are agentic-only; set "
+                    "workload='agentic' to use them"
+                )
+        return self
 
     @model_validator(mode="after")
     def _gold_fact_matches_target(self) -> "ScenarioSpec":

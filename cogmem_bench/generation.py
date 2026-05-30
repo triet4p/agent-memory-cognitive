@@ -105,6 +105,43 @@ def soft_validate_embedding(conv: GeneratedConversation, spec: ScenarioSpec) -> 
     return True, f"union gold coverage {union_cov:.0%}, max single-session {max_single:.0%}{leak}"
 
 
+def soft_validate_no_action_leak(
+    conv: GeneratedConversation, spec: ScenarioSpec
+) -> tuple[bool, str]:
+    """Detect gold-action tokens leaking into non-gold (filler/trap) episodes.
+
+    Agentic specs (S34) declare `gold_action_tokens` — distinctive strings (env vars,
+    CLI flags, command names) that uniquely identify the gold action. If any non-gold
+    episode contains those strings, the ablation can be defeated: an experience-only
+    system can extract `[experience] agent ran X with <gold_token>` from the filler and
+    answer the gold question wrongly-but-correctly. T1 lesson: Minimax borrowed
+    `-p no:cacheprovider` into a filler pytest invocation; we hand-patched it.
+
+    WARNING-only (returns (True/False, message)): hard-failing would re-trigger
+    expensive generation; better to surface the leak so the human can either hand-edit
+    the work fixture or regenerate. Returns False ONLY when leaks are present (so the
+    caller can decide policy).
+    """
+    tokens = getattr(spec, "gold_action_tokens", None) or []
+    if not tokens or getattr(spec, "workload", "chat") != "agentic":
+        return True, "no gold_action_tokens declared (skip)"
+
+    gold_ids = set(conv.gold_session_ids)
+    leaks: list[tuple[str, str]] = []  # (session_id, leaked_token)
+    for sess in conv.sessions:
+        if sess.session_id in gold_ids:
+            continue
+        body = " ".join(m.content for m in sess.messages)
+        for tok in tokens:
+            if tok in body:
+                leaks.append((sess.session_id, tok))
+
+    if not leaks:
+        return True, f"no gold-action leak across {len(conv.sessions) - len(gold_ids)} non-gold episodes"
+    summary = "; ".join(f"{sid}: {tok!r}" for sid, tok in leaks)
+    return False, f"⚠ gold-action leak in non-gold episodes — {summary}"
+
+
 async def generate_conversation(
     spec: ScenarioSpec,
     llm: _Caller,
