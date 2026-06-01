@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+import dateparser
 import requests
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -18,6 +19,59 @@ logger = logging.getLogger(__name__)
 
 
 JsonDict = dict[str, Any]
+
+
+def _load_env_file() -> None:
+    """Load local .env for eval knobs while preserving explicit process env."""
+    try:
+        from dotenv import find_dotenv, load_dotenv
+    except ImportError:
+        return
+    env_path = find_dotenv(usecwd=True)
+    if env_path:
+        load_dotenv(env_path, override=False)
+
+
+_load_env_file()
+
+
+_LOCOMO_SESSION_KEY_RE = re.compile(r"^session_(\d+)$")
+_LOCOMO_SESSION_DATE_KEY_RE = re.compile(r"^session_(\d+)_date_time$")
+
+
+def _locomo_key_sort_value(key: str) -> tuple[int, int | str]:
+    """Sort LoCoMo session keys numerically instead of lexicographically."""
+    session_match = _LOCOMO_SESSION_KEY_RE.match(key)
+    if session_match:
+        return (0, int(session_match.group(1)))
+    date_match = _LOCOMO_SESSION_DATE_KEY_RE.match(key)
+    if date_match:
+        return (1, int(date_match.group(1)))
+    return (2, key)
+
+
+def _parse_locomo_session_date(raw_date: object) -> str | None:
+    """Parse LoCoMo date strings like '4:04 pm on 20 January, 2023' to ISO date."""
+    if not raw_date:
+        return None
+    parsed = dateparser.parse(str(raw_date))
+    if parsed is None:
+        logger.warning("Could not parse LoCoMo session date: %r", raw_date)
+        return None
+    return parsed.date().isoformat()
+
+
+def _build_locomo_session_date_map(conversation: dict[str, Any]) -> dict[str, str]:
+    """Return {D<N>: YYYY-MM-DD} from LoCoMo session_N_date_time fields."""
+    session_date_map: dict[str, str] = {}
+    for key in sorted(conversation.keys(), key=_locomo_key_sort_value):
+        match = _LOCOMO_SESSION_DATE_KEY_RE.match(key)
+        if not match:
+            continue
+        iso_date = _parse_locomo_session_date(conversation.get(key))
+        if iso_date:
+            session_date_map[f"D{int(match.group(1))}"] = iso_date
+    return session_date_map
 
 
 @dataclass(frozen=True)
@@ -362,8 +416,9 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
             conversation = conv.get("conversation", {})
             sessions_with_ids: list[tuple[str, list[str]]] = []
             sessions_msg_ids: list[tuple[str, list[dict]]] = []
+            raw_session_date_map = _build_locomo_session_date_map(conversation) if isinstance(conversation, dict) else {}
             if isinstance(conversation, dict):
-                for key in sorted(conversation.keys()):
+                for key in sorted(conversation.keys(), key=_locomo_key_sort_value):
                     if key.endswith("_date_time"):
                         continue
                     if key in ("speaker_a", "speaker_b"):
@@ -417,6 +472,12 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                 sessions_msg_ids.append(("D1", [{"role": "", "content": conversation}]))
             flat_turns = [t for _, t in sessions_with_ids for t in t]
             all_turns.extend(flat_turns)
+            session_ids_with_content = {sid for sid, _ in sessions_with_ids}
+            session_date_map = {
+                sid: raw_session_date_map[sid]
+                for sid in sorted(session_ids_with_content, key=lambda s: int(s[1:]) if s.startswith("D") and s[1:].isdigit() else 10**9)
+                if sid in raw_session_date_map
+            }
 
             for qa in conv.get("qa", []):
                 qa_counter += 1
@@ -440,6 +501,7 @@ def _make_benchmark_fixture(path: str, source: str) -> JsonDict:
                     "turns": flat_turns,
                     "_sessions": sessions_with_ids,
                     "_messages": sessions_msg_ids,
+                    "session_date_map": session_date_map,
                 })
 
     for q_sessions, q_messages in zip((q.get("_sessions", []) for q in questions), (q.get("_messages", []) for q in questions)):

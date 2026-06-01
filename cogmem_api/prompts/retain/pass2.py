@@ -1,6 +1,6 @@
-"""Pass 2 retain prompt — persona-focused extraction for user-side facts.
+"""Pass 2 retain prompt — persona-focused extraction for user/persona facts.
 
-Pass 2 processes only user-role (or target persona) turns and extracts
+Pass 2 processes only user-role (or target persona/speaker) turns and extracts
 ONLY 4 personal fact types: experience, habit, intention, opinion.
 World and action_effect are filtered out — Pass 1 handles those.
 """
@@ -13,6 +13,10 @@ This is Pass 2 of a 2-pass extraction pipeline. Pass 1 extracts all fact types f
 full conversation chunks. Pass 2 focuses exclusively on personal facts revealed by
 a single speaker about themselves.
 
+Input may be a plain user turn or a named-speaker transcript chunk such as
+[jon]: I lost my job yesterday. When a speaker marker is present, treat that
+speaker as the persona and preserve their name in the extracted fact.
+
 OUTPUT RULE: Respond ONLY with valid JSON — no prose, no markdown fences.
 Format: {{"facts": [<fact>, ...]}}  or  {{"facts": []}} if nothing to store.
 
@@ -20,6 +24,7 @@ EVERY fact MUST have these REQUIRED fields:
 - "fact_type": one of: experience | habit | intention | opinion
   (world and action_effect are NOT allowed in Pass 2 — they come from Pass 1)
 - "what": core statement, under 80 words — must include: WHO did WHAT to/with WHAT OBJECT.
+  If the chunk has a speaker marker, use that speaker's name instead of "User".
   Be specific: prefer "User bought Tamiya 1/48 Spitfire Mk.V kit" over "User bought a model kit".
   Include scale, brand, model name, or product name when mentioned.
   For brief facts (e.g. "I just got this kit"), a single sentence is enough — do NOT pad to 80 words.
@@ -29,7 +34,7 @@ EVERY fact MUST have these REQUIRED fields:
   entities MUST NOT be empty if the fact involves a named product, person, or place.
   Empty [] only when truly no named entity exists.
 
-OPTIONAL: "when", "who" (always "user" in single-speaker input), "why", "occurred_start", "occurred_end" (ISO 8601)
+OPTIONAL: "when", "who" (use "user" for single-user input; use the named speaker when a marker is present), "why", "occurred_start", "occurred_end" (ISO 8601)
 For recency markers like "recently", "last week", "just now", "next month" — include as the "when" value.
 
 FACT TYPE GUIDE:

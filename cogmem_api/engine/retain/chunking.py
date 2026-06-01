@@ -14,6 +14,19 @@ from dataclasses import dataclass
 from typing import NamedTuple
 
 
+RESERVED_PASS2_MACHINE_ROLES: frozenset[str] = frozenset({
+    "assistant",
+    "system",
+    "developer",
+    "tool",
+    "function",
+    "observation",
+    "output",
+    "model",
+})
+PASS2_HUMAN_ROLE_ALIASES: frozenset[str] = frozenset({"human", "participant"})
+
+
 @dataclass(slots=True)
 class Pass1Chunk:
     """A chunk prepared for Pass 1 LLM extraction (all fact types, wide context)."""
@@ -48,6 +61,55 @@ def _sentence_split(text: str) -> list[str]:
     """Split text into sentences preserving period spacing."""
     sentences = re.split(r"(?<=[.!?])\s+", text)
     return [s.strip() for s in sentences if s.strip()]
+
+
+def _normalize_role(role: object) -> str:
+    return str(role or "").strip().lower()
+
+
+def _observed_roles(messages: list[dict[str, str]]) -> list[str]:
+    """Return normalized roles in first-seen order."""
+    roles: list[str] = []
+    seen: set[str] = set()
+    for msg in messages:
+        role = _normalize_role(msg.get("role", ""))
+        if role and role not in seen:
+            roles.append(role)
+            seen.add(role)
+    return roles
+
+
+def resolve_pass2_target_roles(
+    messages: list[dict[str, str]],
+    configured_roles: tuple[str, ...] = ("user",),
+) -> tuple[str, ...]:
+    """Resolve Pass 2 roles for chat and multi-speaker transcript inputs.
+
+    The default config keeps standard chat behavior: if a `user` role exists, only
+    `user` is processed. If no `user` role exists, treat non-machine roles as
+    human/persona speakers so Pass 2 still runs for transcript-style inputs.
+    Explicit configured roles are respected; `human`/`participant` expands to all
+    non-reserved roles.
+    """
+    requested = tuple(_normalize_role(role) for role in configured_roles if _normalize_role(role))
+    if not requested:
+        requested = ("user",)
+
+    observed = _observed_roles(messages)
+    human_roles = tuple(role for role in observed if role not in RESERVED_PASS2_MACHINE_ROLES)
+
+    if requested == ("user",):
+        return ("user",) if "user" in observed else human_roles
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for role in requested:
+        candidates = human_roles if role in PASS2_HUMAN_ROLE_ALIASES else (role,)
+        for candidate in candidates:
+            if candidate and candidate not in seen:
+                resolved.append(candidate)
+                seen.add(candidate)
+    return tuple(resolved)
 
 
 def _render_chunk(segments: list[RoleSegment], is_first: bool) -> str:
@@ -144,6 +206,7 @@ def chunk_for_pass2(
     messages: list[dict[str, str]],
     target_role: str = "user",
     max_chars: int = 3000,
+    include_role_marker: bool = False,
 ) -> list[Pass2Chunk]:
     """Chunk messages for Pass 2 extraction (filtered by target role).
 
@@ -154,6 +217,8 @@ def chunk_for_pass2(
         messages: List of {"role": str, "content": str} dicts, in order.
         target_role: Role to filter on (default "user").
         max_chars: Maximum character length per sub-chunk (default 3000).
+        include_role_marker: Prefix chunks with [role]: when processing named
+            transcript speakers. Defaults False to preserve user-only behavior.
 
     Returns:
         List of Pass2Chunk objects with rendered text and metadata.
@@ -182,6 +247,8 @@ def chunk_for_pass2(
             if not current_segments:
                 return
             text = " ".join(current_segments)
+            if include_role_marker:
+                text = f"[{target_lower}]: {text}"
             suffix = f"p2_{msg_idx}_{sub_idx}"
             chunks.append(
                 Pass2Chunk(

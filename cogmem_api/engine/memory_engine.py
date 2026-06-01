@@ -17,6 +17,11 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from cogmem_api import config
 from cogmem_api.models import Base
 from cogmem_api.engine.llm_wrapper import LLMConfig
+from cogmem_api.engine.enumeration_supplements import (
+    build_enumeration_query_spec,
+    merge_enumeration_supplements,
+    score_enumeration_candidate,
+)
 from cogmem_api.pg0 import EmbeddedPostgres, parse_pg0_url
 from .db_utils import acquire_with_retry
 from .embeddings import DeterministicEmbeddings, create_embeddings_from_env
@@ -551,6 +556,67 @@ class MemoryEngine:
 
         return selected
 
+    async def _fetch_enumeration_supplements(
+        self,
+        bank_id: str,
+        query: str,
+        fact_types: list[str],
+        existing_ids: set[str],
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
+        """Fetch retained facts that fill obvious list/location enumeration gaps."""
+        spec = build_enumeration_query_spec(query)
+        if spec is None or self._pool is None:
+            return []
+
+        async with acquire_with_retry(self._pool) as conn:
+            rows = await conn.fetch(
+                f"""
+                SELECT id, text, raw_snippet, fact_type, document_id, chunk_id
+                FROM {fq_table("memory_units")}
+                WHERE bank_id = $1
+                  AND fact_type = ANY($2::text[])
+                ORDER BY COALESCE(occurred_start, mentioned_at, event_date) DESC NULLS LAST
+                LIMIT 2000
+                """,
+                bank_id,
+                fact_types,
+            )
+
+        scored_rows: list[tuple[float, Any]] = []
+        for row in rows:
+            row_id = str(row["id"])
+            if row_id in existing_ids:
+                continue
+            score = score_enumeration_candidate(
+                spec,
+                str(row["text"] or ""),
+                str(row["raw_snippet"] or "") if row["raw_snippet"] is not None else None,
+            )
+            if score >= 5.0:
+                scored_rows.append((score, row))
+
+        scored_rows.sort(key=lambda item: item[0], reverse=True)
+        supplements: list[dict[str, Any]] = []
+        for score, row in scored_rows[:limit]:
+            supplements.append(
+                {
+                    "id": str(row["id"]),
+                    "text": str(row["text"] or ""),
+                    "fact_type": str(row["fact_type"] or "world"),
+                    "raw_snippet": row["raw_snippet"],
+                    "score": float(score),
+                    "cross_encoder_score": 0.0,
+                    "rrf_score": 0.0,
+                    "rrf_rank": 0,
+                    "global_rrf_rank": 0,
+                    "document_id": row["document_id"],
+                    "chunk_id": row["chunk_id"],
+                    "channel_ranks": {"enumeration_supplement": 1},
+                }
+            )
+        return supplements
+
     async def recall_async(
         self,
         bank_id: str,
@@ -748,6 +814,21 @@ class MemoryEngine:
                     )
                     used_tokens += estimated
 
+            enum_supplements: list[dict[str, Any]] = []
+            if reranked_results:
+                merge_window = reranked_results[:top_k] if top_k is not None else reranked_results
+                enum_supplements = await self._fetch_enumeration_supplements(
+                    bank_id,
+                    query,
+                    effective_types,
+                    {str(item.get("id") or "") for item in merge_window},
+                )
+                reranked_results = merge_enumeration_supplements(
+                    merge_window,
+                    enum_supplements,
+                    top_k,
+                )
+
             if top_k is not None:
                 reranked_results = reranked_results[:top_k]
 
@@ -774,6 +855,7 @@ class MemoryEngine:
                     "fact_types": effective_types,
                     "timings": retrieval_result.timings,
                     "cross_encoder_ok": cross_encoder_ok,
+                    "enumeration_supplements": len(enum_supplements),
                 }
 
             return {"results": reranked_results, "trace": trace}

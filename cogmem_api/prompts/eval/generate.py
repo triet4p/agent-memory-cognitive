@@ -70,7 +70,10 @@ def build_generation_prompt(
     session_date_map: dict[str, str] | None = None,
     include_snippets: bool = True,
 ) -> str:
-    """Build prompt for generation step (reflect/generate endpoint).
+    """LEGACY prompt builder — preserved for back-compat (S29-S34 runs).
+
+    Not modified by S35 prompt v2 work. Used unless
+    `COGMEM_API_GENERATE_PROMPT_VARIANT=v2` is set in env.
 
     Args:
         query: The user's question
@@ -161,3 +164,192 @@ def build_generation_prompt(
     ])
 
     return "\n".join(lines)
+
+
+# ── S35 prompt v2 ─────────────────────────────────────────────────────────
+#
+# Sibling of build_generation_prompt (legacy stays untouched). Activated via env
+# COGMEM_API_GENERATE_PROMPT_VARIANT=v2. Same call signature for trivial dispatch.
+#
+# Two structural changes from legacy (no new rule lines added — see S35 REPORT.md
+# for the rationale; legacy already had 14 rules / ~1300 words and adding more risks
+# rule-conflict and context bloat with Minimax-M2.7):
+#
+#   1. **Tightened dedup criterion** — replaces legacy rule that said
+#      "Two entries refer to same object if shared attributes (size, type, location,
+#       context)". That criterion caused Minimax to conflate distinct events (S35
+#      c060: 5-6 distinct game wins → reported as "four"). v2 requires an EXPLICIT
+#      identifier match (same date OR same opponent OR same unique outcome).
+#
+#   2. **Inline verbatim snippet next to each MEMORY** (when include_snippets=True)
+#      instead of a separate REFERENCES block + "only consult if memory ambiguous"
+#      rule (which Minimax mostly ignored). Surfaces date/count details that the
+#      paraphrased `text` field strips, without adding new instruction lines.
+#
+# When include_snippets=False (S35 default — `COGMEM_API_GENERATE_INCLUDE_SNIPPETS=false`),
+# v2 still applies fix (1) which addresses ~5/9 probed failure cases on its own.
+
+
+def build_generation_prompt_v2(
+    query: str,
+    evidence: list[dict],
+    question_date: str | None = None,
+    session_date_map: dict[str, str] | None = None,
+    include_snippets: bool = True,
+) -> str:
+    """S35 generation prompt v2 — tighter dedup + inline snippet (when available).
+
+    Same signature as build_generation_prompt for drop-in dispatch via env
+    COGMEM_API_GENERATE_PROMPT_VARIANT. Legacy preserved untouched.
+    """
+    session_order = _build_session_order(session_date_map) if session_date_map else {}
+
+    memory_parts: list[str] = []
+    for idx, item in enumerate(evidence, start=1):
+        text = item.get("text", "")
+        raw_snippet = item.get("raw_snippet") if include_snippets else None
+
+        date_suffix = ""
+        doc_id = item.get("document_id", "")
+        if session_order and doc_id in session_order:
+            ordinal, total = session_order[doc_id]
+            if ordinal == total:
+                recency_tag = " (most recent)"
+            elif total > 1 and ordinal == 1:
+                recency_tag = " (oldest)"
+            else:
+                recency_tag = ""
+            conv_date = session_date_map.get(doc_id, "")  # type: ignore[union-attr]
+            date_suffix = f" | Session {ordinal}/{total}{recency_tag}{f' | Date: {conv_date}' if conv_date else ''}"
+        elif session_date_map:
+            conv_date = session_date_map.get(doc_id, "")
+            if conv_date:
+                date_suffix = f" | Conversation date: {conv_date}"
+
+        memory_parts.append(f"[{idx}] {text}{date_suffix}")
+
+        if raw_snippet:
+            cleaned = _clean_reference(raw_snippet).strip()
+            if cleaned:
+                # Inline the verbatim source under the fact (cap to keep prompt bounded).
+                snippet_preview = cleaned[:300] + ("..." if len(cleaned) > 300 else "")
+                memory_parts.append(f'    src: "{snippet_preview}"')
+
+    memory_block = "\n".join(memory_parts) if memory_parts else "[No memories]"
+
+    sep = "=" * 60
+    current_date_line = f"Current date: {question_date}\n" if question_date else ""
+
+    lines = [
+        "You are answering a question based on a person's stored memories.",
+        "Use ONLY the information provided below — do not add external knowledge.\n",
+        current_date_line,
+        sep,
+        f"QUESTION TO ANSWER: {query}",
+        sep + "\n",
+        ("MEMORIES (each fact + verbatim source line when available — answer from these):\n"
+         if include_snippets else
+         "MEMORIES (extracted facts — answer from these):\n") + memory_block + "\n",
+        "Instructions:",
+        # Same anti-refusal as legacy
+        "- Answer PRIMARILY from MEMORIES. If MEMORIES contain partial information",
+        "  (e.g., some but not all items in a list), enumerate what you found and",
+        "  explicitly state the list may be incomplete.",
+        "- Do NOT say 'information not available' when partial evidence exists in MEMORIES.",
+        # CHANGED — tighter dedup criterion (the v2 core fix)
+        "- For 'how many' / counting questions: if a memory explicitly states a total quantity,",
+        "  use that stated number directly. Otherwise enumerate every distinct item found across",
+        "  ALL numbered MEMORIES. Two memories describe the SAME event ONLY when they share an",
+        "  explicit identifier (same date, same opponent/named entity, same unique outcome).",
+        "  Similar events at different dates, opponents, or outcomes are DISTINCT — count each",
+        "  separately. Do NOT collapse distinct items merely because they share a category",
+        "  (e.g., 'basketball game') or a generic descriptor (e.g., 'buzzer-beater').",
+        # Kept condensed temporal rules (legacy had 3 mega paragraphs; v2 keeps the essential bit)
+        "- 'N days/weeks/months ago' means the event with the LARGER N occurred FURTHER in the past.",
+        "- For 'how long ago' questions: use Current date − the memory's Conversation date.",
+        "  Relative words like 'today' or 'recently' in a memory refer to that conversation's date.",
+        # Knowledge update rule (condensed from legacy's mega paragraph)
+        "- For knowledge-update questions (current state, latest preference): when memories conflict,",
+        "  prefer the fact from the most recent session (highest ordinal / latest Conversation date).",
+        "- When the question asks for tips, recommendations, or a list of tools/apps/resources:",
+        "  enumerate ALL relevant items mentioned across ALL numbered MEMORIES.",
+        "- If MEMORIES contain no relevant information at all, say so clearly:",
+        "  'I don't have information about this in memory.'",
+        "- Cite memories by index, e.g. [1] or [2].",
+    ]
+
+    return "\n".join(lines)
+
+
+_V3_TEMPORAL_ANCHOR_RULE = "\n".join([
+    "- For before/after temporal-chain questions: first identify the named anchor event",
+    "  and its Session date, then compare candidate memories against that anchor.",
+    "  Example: if the question asks what happened before a Chicago trip, first find",
+    "  the Chicago-trip memory/date, then choose only candidate events whose memory",
+    "  date or resolved relative date is earlier than that anchor.",
+])
+
+
+def build_generation_prompt_v3_temporal(
+    query: str,
+    evidence: list[dict],
+    question_date: str | None = None,
+    session_date_map: dict[str, str] | None = None,
+    include_snippets: bool = True,
+) -> str:
+    """S35-T8B prompt variant: v2 plus one compact temporal-anchor rule.
+
+    Keep this deliberately narrow so probes can isolate temporal-chain lift without
+    brand-disambiguation or counterfactual-rule interference.
+    """
+    prompt = build_generation_prompt_v2(
+        query,
+        evidence,
+        question_date=question_date,
+        session_date_map=session_date_map,
+        include_snippets=include_snippets,
+    )
+    anchor = (
+        "- For 'how long ago' questions: use Current date − the memory's Conversation date.\n"
+        "  Relative words like 'today' or 'recently' in a memory refer to that conversation's date."
+    )
+    if _V3_TEMPORAL_ANCHOR_RULE in prompt:
+        return prompt
+    if anchor in prompt:
+        return prompt.replace(anchor, f"{anchor}\n{_V3_TEMPORAL_ANCHOR_RULE}", 1)
+    return f"{prompt}\n{_V3_TEMPORAL_ANCHOR_RULE}"
+
+
+_V3_LIST_COMPLETENESS_RULE = "\n".join([
+    "- For list/enumeration questions about places, cities, locations, tools, or",
+    "  resources: scan ALL numbered MEMORIES before answering. Include every",
+    "  distinct candidate that matches the asked relationship, even if it appears",
+    "  in a lower-ranked memory. Exclude wish-list/planned places unless the",
+    "  question asks about plans or intended visits.",
+])
+
+
+def build_generation_prompt_v3_temporal_list(
+    query: str,
+    evidence: list[dict],
+    question_date: str | None = None,
+    session_date_map: dict[str, str] | None = None,
+    include_snippets: bool = True,
+) -> str:
+    """S35-T8E prompt variant: temporal anchor plus list completeness guard."""
+    prompt = build_generation_prompt_v3_temporal(
+        query,
+        evidence,
+        question_date=question_date,
+        session_date_map=session_date_map,
+        include_snippets=include_snippets,
+    )
+    anchor = (
+        "- When the question asks for tips, recommendations, or a list of tools/apps/resources:\n"
+        "  enumerate ALL relevant items mentioned across ALL numbered MEMORIES."
+    )
+    if _V3_LIST_COMPLETENESS_RULE in prompt:
+        return prompt
+    if anchor in prompt:
+        return prompt.replace(anchor, f"{anchor}\n{_V3_LIST_COMPLETENESS_RULE}", 1)
+    return f"{prompt}\n{_V3_LIST_COMPLETENESS_RULE}"

@@ -40,8 +40,9 @@ Mục tiêu điều phối:
 - S32 (benchmark-construction foundation + 6-case pilot): ✅ Done — `cogmem_bench/` package + 3 skills → 1 (author only) + multi-call generation + frozen pilot verified
 - S33 (intention necessity — retain-level cách B + Minimax strict extractor): ✅ Done — 2/16 cases discriminate after full confound chain removed (router bias → flat; recall-time leakage → retain-level paired banks; extractor leakage → Minimax + strict-typing). Intention necessary in sparse-context edge cases (~12.5%); redundant in rich-context conversations (observational state facts leak hợp lệ qua experience).
 - S34 (action_effect necessity — agentic AI workload): ✅ Done — 5/12 cases discriminate (http_429, docker_pull, playwright_wait, git_lockfile, azure_token) after full confound chain (paired banks + agentic_transcript Pass1 hint + strict typing + leak detector). McNemar p≈0.22 (not significant, n=12). Action_effect necessary in cases where causal rule resists `world` re-typing; redundant where Minimax compresses rule to "X is resolved by Y" objective-knowledge form. Conditional on conversational density (parallel với S33 intention finding).
+- S35 (LoCoMo eval — baseline E7 + per-category breakdown): 🔄 In progress — T1+T2 done (sprint plan + batch script `scripts/eval_cogmem_batch_locomo.ps1` + dry-run mapping validator); T3 retain (5 banks, ~3h) + T4 eval (161 QAs E7=Full CogMem, ~80 min) awaiting manual run.
 
-**Next immediate action:** Phase F cognitive-node ablation complete (S31→S34). Possible follow-ups: (a) strengthen S34 strict-typing addendum to block `"X is resolved by Y"` `world` pattern and re-gate 5 leaked ablated banks (estimated 7-8/12 → significance); (b) habit network ablation (S35, if pursued); (c) write up cross-sprint narrative tying S33+S34 findings (typed networks conditionally necessary, workload+extractor-dependent).
+**Next immediate action:** S35 LoCoMo evaluation — T3 (retain 5 banks via `.\scripts\eval_cogmem_batch_locomo.ps1 -PHASE retain`) + T4 (eval 161 QAs via `-PHASE eval`); per-category accuracy vs HINDSIGHT published baseline. Full plan in [s35-locomo-eval.md](sprint-plans/s35-locomo-eval.md).
 
 ---
 
@@ -106,6 +107,7 @@ Mục tiêu điều phối:
 | S32 | Benchmark-construction foundation + 6-case pilot (cogmem_bench package, multi-call generation, 1 agent skill + manual scripts) | S32-T1..T5 | ✅ Done | [s32-bench-construction.md](sprint-plans/s32-bench-construction.md) |
 | S33 | Intention necessity — retain-level ablation (cách B) + Minimax strict extractor + flat router + manual verdict | S33-T1..T4 | ✅ Done (2/16 discriminate; intention necessary in sparse-context, redundant in rich-context) | [s33-bench-discrimination.md](sprint-plans/s33-bench-discrimination.md) |
 | S34 | Action_effect necessity — agentic AI workload (tool-use traces) + cách B + McNemar | S34-T1..T5 | ✅ Done (5/12 discriminate; conditional on extractor + density) | [s34-bench-action-effect-agentic.md](sprint-plans/s34-bench-action-effect-agentic.md) |
+| S35 | LoCoMo evaluation — baseline E7 (Full CogMem) on full distilled (5 convs, 161 QAs) + per-category breakdown vs HINDSIGHT published 89.61% | S35-T1..T5 | 🔄 T1+T2 done; T3+T4 awaiting manual run | [s35-locomo-eval.md](sprint-plans/s35-locomo-eval.md) |
 
 ---
 
@@ -145,6 +147,7 @@ Sprint 0 → S7 + Backfill B1-B5 (tasks 001-703)
 → S32: cogmem_bench foundation + pilot ✅
 → S33: intention necessity (cách B retain-level + Minimax strict extractor + flat router) ✅ — 2/16 discriminate (intention necessary in sparse-context)
 → S34: action_effect necessity in agentic workload (tool-use traces) ✅ — 5/12 discriminate (conditional on density + extractor)
+→ S35: LoCoMo eval baseline E1 (161 QAs, per-category) 🔄 — T1+T2 done; T3+T4 manual
 ```
 
 ### Hard dependency rules

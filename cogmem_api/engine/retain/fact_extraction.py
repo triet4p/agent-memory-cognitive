@@ -34,7 +34,7 @@ from .types import (
     TransitionRelation,
     coerce_fact_type,
 )
-from .chunking import chunk_for_pass1, chunk_for_pass2, Pass1Chunk, Pass2Chunk
+from .chunking import chunk_for_pass1, chunk_for_pass2, resolve_pass2_target_roles, Pass1Chunk, Pass2Chunk
 from .dedup import dedup_facts
 
 def _strip_markdown(text: str) -> str:
@@ -1009,18 +1009,24 @@ async def _extract_facts_with_llm(
         p1_chunks = chunk_for_pass1(content.messages, max_chars=int(getattr(config, "retain_pass1_chunk_chars", 10000) or 10000))
         raw_p2_roles = getattr(config, "retain_pass2_target_roles", "user")
         if isinstance(raw_p2_roles, str):
-            p2_target_roles = tuple(r.strip() for r in raw_p2_roles.split(",") if r.strip())
+            requested_p2_roles = tuple(r.strip() for r in raw_p2_roles.split(",") if r.strip())
         else:
-            p2_target_roles = tuple(raw_p2_roles) if isinstance(raw_p2_roles, (list, tuple)) else ("user",)
+            requested_p2_roles = tuple(raw_p2_roles) if isinstance(raw_p2_roles, (list, tuple)) else ("user",)
+        p2_target_roles = resolve_pass2_target_roles(content.messages, requested_p2_roles)
         p2_chunks: list[Pass2Chunk] = []
         for role in p2_target_roles:
             p2_chunks.extend(
-                chunk_for_pass2(content.messages, target_role=role, max_chars=int(getattr(config, "retain_pass2_chunk_chars", 3000) or 3000))
+                chunk_for_pass2(
+                    content.messages,
+                    target_role=role,
+                    max_chars=int(getattr(config, "retain_pass2_chunk_chars", 3000) or 3000),
+                    include_role_marker=str(role).strip().lower() != "user",
+                )
             )
 
         logger.info(
-            "[retain][idx=%d] 2-PASS: messages=%d p1_chunks=%d p2_chunks=%d roles=%s",
-            content_index, len(content.messages), len(p1_chunks), len(p2_chunks), p2_target_roles,
+            "[retain][idx=%d] 2-PASS: messages=%d p1_chunks=%d p2_chunks=%d requested_roles=%s resolved_roles=%s",
+            content_index, len(content.messages), len(p1_chunks), len(p2_chunks), requested_p2_roles, p2_target_roles,
         )
 
         facts_p1: list[ExtractedFact] = []
