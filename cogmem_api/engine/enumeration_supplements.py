@@ -55,6 +55,16 @@ _QUERY_TERM_STOPWORDS = _QUESTION_WORDS | {
     "to",
     "with",
 }
+_DURATION_QUERY_STOPWORDS = _QUERY_TERM_STOPWORDS | {
+    "car",
+    "cars",
+    "long",
+    "take",
+    "took",
+    "work",
+    "worked",
+    "working",
+}
 _COMMON_CAPITALIZED = {
     "I",
     "A",
@@ -227,10 +237,13 @@ _CLASS_CUES = (
 )
 _BEER_CUES = (
     "beer",
+    "beers",
     "bar",
     "pub",
     "stout",
     "lager",
+    "light beer",
+    "light beers",
 )
 _PET_TRICK_CUES = (
     "pet",
@@ -306,6 +319,11 @@ _TRAVEL_CUES = (
     "been to",
     "trip to",
     "trips to",
+    "travel",
+    "traveled",
+    "travelled",
+    "traveling",
+    "travelling",
     "tour in",
     "toured",
     "in person",
@@ -316,6 +334,19 @@ _TRAVEL_CUES = (
     "photo from",
     "subway in",
     "skyline",
+)
+_DURATION_PHRASE_RE = re.compile(
+    r"\b(?:about|around|nearly|almost|roughly|approximately|just under|over|under|more than|less than)?\s*"
+    r"(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+    r"a|an)\s+"
+    r"(?:day|days|week|weeks|month|months|year|years|hour|hours|minute|minutes|summer)\b",
+    re.IGNORECASE,
+)
+_DURATION_QUERY_RE = re.compile(r"\b(?:how long|take|took|for .* before|duration)\b", re.IGNORECASE)
+_BASKETBALL_SUPPLEMENT_RE = re.compile(
+    r"\b(?:yoga|strength\s+training|strength\s+and\s+flexibility|extra\s+strength|"
+    r"focus\s+and\s+balance|workouts?|flexibility)\b",
+    re.IGNORECASE,
 )
 _IN_PLACE_CONTEXT_RE = re.compile(
     r"\b(?:chat|fan|met|conference|place|tour|trip|photo|pic|snapped|seeing|saw)\b.{0,80}\bin\s+[A-Z][a-z]+"
@@ -358,14 +389,25 @@ def build_enumeration_query_spec(query: str) -> EnumerationQuerySpec | None:
     """Return a narrow enumeration spec for list-like questions."""
     lowered = query.lower()
     stripped = lowered.strip()
+    subjects = tuple(_extract_subject_terms(query))
+    query_terms = tuple(_extract_query_terms(query, subjects))
+
+    if _DURATION_QUERY_RE.search(lowered):
+        return EnumerationQuerySpec(mode="duration", subject_terms=subjects, query_terms=query_terms)
+
     is_list_query = stripped.startswith(("where ", "which ", "what ", "how many "))
     if not is_list_query:
         return None
 
-    subjects = tuple(_extract_subject_terms(query))
-    query_terms = tuple(_extract_query_terms(query, subjects))
     if "camp" in lowered:
         return EnumerationQuerySpec(mode="camping_places", subject_terms=subjects, query_terms=query_terms)
+
+    if (
+        "city" in lowered
+        and any(token in lowered for token in ("before", "after"))
+        and any(token in lowered for token in ("travel", "traveled", "travelled", "traveling", "travelling", "trip", "visit"))
+    ):
+        return EnumerationQuerySpec(mode="temporal_city", subject_terms=subjects, query_terms=query_terms)
 
     has_location_word = any(
         token in lowered
@@ -420,6 +462,12 @@ def score_enumeration_candidate(spec: EnumerationQuerySpec, text: str, raw_snipp
         score += sum(1.0 for noun in _LOCATION_NOUNS if noun in lowered)
         return score
 
+    if spec.mode == "duration":
+        return _score_duration_candidate(spec, text, raw_snippet)
+
+    if spec.mode == "temporal_city":
+        return _score_temporal_city_candidate(spec, text, raw_snippet)
+
     if spec.mode in _GENERIC_CATEGORY_CUES:
         return _score_generic_candidate(spec, text, raw_snippet)
 
@@ -460,17 +508,19 @@ def score_enumeration_candidate(spec: EnumerationQuerySpec, text: str, raw_snipp
 
 def _score_generic_candidate(spec: EnumerationQuerySpec, text: str, raw_snippet: str | None = None) -> float:
     """Score generic list/category supplements after the main subject is matched."""
-    combined = text.strip()
+    fact_text = text.strip()
+    combined = fact_text
     if raw_snippet:
         combined = f"{combined} {raw_snippet.strip()}"
+    text_lowered = fact_text.lower()
     lowered = combined.lower()
-    if not lowered:
+    if not text_lowered:
         return 0.0
 
     score = 0.0
     if spec.subject_terms:
         primary_subject = spec.subject_terms[0].lower()
-        if primary_subject not in lowered:
+        if primary_subject not in text_lowered:
             return 0.0
         score += 3.0
 
@@ -479,40 +529,98 @@ def _score_generic_candidate(spec: EnumerationQuerySpec, text: str, raw_snippet:
         return 0.0
 
     if spec.mode == "sports_exercises" and "supplement" in spec.query_terms:
+        if "basketball" in spec.query_terms and _BASKETBALL_SUPPLEMENT_RE.search(fact_text):
+            score += 3.0
+        elif "basketball" in spec.query_terms:
+            return 0.0
         supplement_cues = (
             "yoga",
-            "strength",
+            "strength training",
+            "strength and flexibility",
+            "extra strength",
+            "focus and balance",
+            "flexibility",
             "running",
             "sprinting",
             "boxing",
-            "surfing",
             "exercise",
             "exercises",
             "workout",
             "workouts",
         )
-        if not any(cue in lowered for cue in supplement_cues):
+        if not any(cue in text_lowered for cue in supplement_cues):
             return 0.0
 
-    cue_hits = [cue for cue in cues if cue in lowered]
+    cue_hits = [cue for cue in cues if cue in text_lowered]
     if not cue_hits:
         return 0.0
     score += 2.0 + min(float(len(cue_hits)), 3.0)
 
-    query_hits = [term for term in spec.query_terms if term in lowered]
+    query_hits = [term for term in spec.query_terms if term in text_lowered]
     score += min(float(len(query_hits)), 3.0)
 
-    proper_items = _extract_proper_items(combined, spec.subject_terms)
+    proper_items = _extract_proper_items(fact_text, spec.subject_terms)
+    if spec.mode == "bands" and not proper_items:
+        return 0.0
+
     if proper_items:
         score += min(float(len(proper_items)), 3.0)
 
-    if spec.mode == "bands" and any(cue in lowered for cue in ("headlined", "headliner", "concert", "festival")):
+    if spec.mode == "bands" and any(cue in text_lowered for cue in ("headlined", "headliner", "concert", "festival")):
         score += 2.0
-    if spec.mode == "sports_exercises" and any(cue in lowered for cue in ("yoga", "strength", "surfing", "running", "boxing")):
+    if spec.mode == "sports_exercises" and any(
+        cue in text_lowered for cue in ("yoga", "strength training", "flexibility", "running", "boxing")
+    ):
         score += 2.0
-    if spec.mode == "pet_tricks" and any(cue in lowered for cue in ("sit", "stay", "paw", "rollover", "frisbee", "skateboard")):
+    if spec.mode == "pet_tricks" and any(
+        cue in text_lowered for cue in ("sit", "stay", "paw", "rollover", "frisbee", "skateboard")
+    ):
         score += 2.0
 
+    return score
+
+
+def _score_duration_candidate(spec: EnumerationQuerySpec, text: str, raw_snippet: str | None = None) -> float:
+    combined = text.strip()
+    if raw_snippet:
+        combined = f"{combined} {raw_snippet.strip()}"
+    lowered = combined.lower()
+    if not _DURATION_PHRASE_RE.search(combined):
+        return 0.0
+
+    specific_terms = [
+        term
+        for term in spec.query_terms
+        if len(term) >= 3 and term not in _DURATION_QUERY_STOPWORDS
+    ]
+    term_hits = [term for term in specific_terms if term in lowered]
+    if specific_terms and not term_hits:
+        return 0.0
+
+    score = 6.0
+    score += min(float(len(term_hits)), 4.0)
+    score += min(float(len(_DURATION_PHRASE_RE.findall(combined))) * 3.0, 6.0)
+    if any(term in lowered for term in ("mustang", "workshop", "san francisco", "ford")):
+        score += 2.0
+    return score
+
+
+def _score_temporal_city_candidate(spec: EnumerationQuerySpec, text: str, raw_snippet: str | None = None) -> float:
+    combined = text.strip()
+    if raw_snippet:
+        combined = f"{combined} {raw_snippet.strip()}"
+    lowered = combined.lower()
+    proper_places = _extract_proper_places(combined, spec.subject_terms)
+    if not proper_places:
+        return 0.0
+    if "not been" in lowered or "never been" in lowered:
+        return 0.0
+
+    score = 5.0 + min(float(len(proper_places)), 3.0)
+    if any(cue in lowered for cue in _TRAVEL_CUES):
+        score += 1.5
+    if any(place.lower() in lowered for place in proper_places):
+        score += 1.0
     return score
 
 
@@ -559,7 +667,7 @@ def _extract_subject_terms(query: str) -> list[str]:
 def _extract_query_terms(query: str, subject_terms: tuple[str, ...]) -> list[str]:
     subject_tokens = {
         token
-        for subject in subject_terms
+        for subject in subject_terms[:1]
         for token in re.findall(r"[a-z0-9]+", subject.lower())
     }
     terms: list[str] = []

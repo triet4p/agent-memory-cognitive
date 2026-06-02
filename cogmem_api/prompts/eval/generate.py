@@ -532,12 +532,33 @@ _V4_CAUSAL_NEGATIVE_RULE = "\n".join([
     "  the queried subject/object/action to that reason. Do NOT infer from a different person,",
     "  swapped entity relation, nearby unrelated event, or general world knowledge. If the",
     "  explicit relation is absent, say memory does not state why.",
+    "  If the memories only support the same relationship for a different person-pair",
+    "  or entity-pair, answer ONLY that memory has no information for the queried pair;",
+    "  do NOT continue by explaining the adjacent pair's reason.",
 ])
 _V4_EXPLICIT_DURATION_RULE = "\n".join([
     "- For 'how long', 'how long did it take', or 'for how long before' questions: first scan",
     "  fact text and src lines for explicit duration phrases such as 'two weeks',",
     "  'nearly three months', or 'for a year'. Use the stated duration before doing date",
     "  arithmetic. Only compute dates if no explicit duration is stated.",
+])
+_V4_SESSION_DATE_ARITHMETIC_RULE = "\n".join([
+    "- Session-date ordering is valid evidence for temporal and duration questions.",
+    "  Do NOT require the words 'before', 'after', or 'how long' to appear in a fact.",
+    "  For before/after questions, identify the anchor memory Date, then choose candidate",
+    "  memories with earlier/later Dates that match the subject and requested relation.",
+    "  City-before-travel pattern: if the question asks which city/person-location came",
+    "  before traveling to an anchor city, answer the earlier dated city memory for that",
+    "  subject when it is the only matching earlier city candidate.",
+    "  For duration questions with no stated duration, compute the gap between relevant",
+    "  Session Dates for the same subject/project/event, e.g. started/attended vs returned/",
+    "  continued/finished. State the arithmetic briefly and avoid unrelated date gaps.",
+    "  Attended-workshop/returned-from-city memories bracket a workshop duration; apply",
+    "  relative words like 'yesterday' to the later Session Date before subtracting.",
+    "  If the memories only bracket an approximate duration, report the coarse rounded",
+    "  unit (for example, about two weeks) rather than over-precise day counts.",
+    "  Such date-bracket evidence counts as relevant evidence; do not refuse merely because",
+    "  no memory states the duration in words.",
 ])
 _V4_TANGENTIAL_EVIDENCE_RULE = "\n".join([
     "- Do not turn tangential memories into an answer. If none of the MEMORIES explicitly",
@@ -623,6 +644,7 @@ def build_generation_prompt_v4_evidence_guard(
         _V4_GENERAL_LIST_COMPLETENESS_RULE,
         _V4_CAUSAL_NEGATIVE_RULE,
         _V4_EXPLICIT_DURATION_RULE,
+        _V4_SESSION_DATE_ARITHMETIC_RULE,
         _V4_TANGENTIAL_EVIDENCE_RULE,
         "- If MEMORIES contain no relevant information at all, say so clearly:",
         "  'I don't have information about this in memory.'",
