@@ -1,0 +1,14 @@
+scope,category,total,pass,partial,fail,pass_plus_partial,strict_accuracy,pass_plus_partial_accuracy
+full,all,161,86,11,64,97,53.4%,60.2%
+range_c000_c093,all,94,49,4,41,53,52.1%,56.4%
+range_c094_c160,all,67,37,7,23,44,55.2%,65.7%
+full,causal,11,6,0,5,6,54.5%,54.5%
+full,multi-hop,12,4,4,4,8,33.3%,66.7%
+full,preference,17,15,0,2,15,88.2%,88.2%
+full,single-hop,109,56,6,47,62,51.4%,56.9%
+full,temporal,12,5,1,6,6,41.7%,50.0%
+range_c094_c160,causal,4,2,0,2,2,50.0%,50.0%
+range_c094_c160,multi-hop,7,2,2,3,4,28.6%,57.1%
+range_c094_c160,preference,6,5,0,1,5,83.3%,83.3%
+range_c094_c160,single-hop,47,25,5,17,30,53.2%,63.8%
+range_c094_c160,temporal,3,3,0,0,3,100.0%,100.0%
