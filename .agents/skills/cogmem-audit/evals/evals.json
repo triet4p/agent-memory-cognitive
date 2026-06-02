@@ -1,0 +1,29 @@
+{
+  "skill_name": "cogmem-audit",
+  "evals": [
+    {
+      "id": 1,
+      "name": "fail-case-graph-isolation",
+      "prompt": "Audit c001. I need to understand why the Tiger I tank fact is not showing up in top-25 recall. Run the full diagnostic and tell me what's blocking it at the graph level.",
+      "expected_output": "Phase 1 identifies the Tiger I diorama fact as answer-relevant. Phase 2 shows it is missing from top-25. Phase 3 checks graph links and classifies root cause (likely BFS dilution or graph isolation). Report written to experiments/v14/diagnostic_s28/c001_report.md.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "fail-case-generation-error",
+      "prompt": "Diagnose case c014. The gold answer is 120 stars, but our model outputs 125. I suspect it's a generation error not a recall error — can you verify that all relevant facts are actually being recalled, and identify the root cause?",
+      "expected_output": "Phase 1 identifies fact about 120 stars AND fact about 125 stars as answer-relevant (both contain star counts). Phase 2 shows both facts ARE in top-25. Root cause classified as generation error. Report written to experiments/v14/diagnostic_s28/c014_report.md.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "fail-case-noise-session",
+      "prompt": "Run a cogmem audit on c007. The noise wedding session is polluting the top-10. Identify which answer-relevant facts are missing, check the graph structure, and figure out why the noise session ranks so high.",
+      "expected_output": "Phase 1 identifies answer-relevant facts from gold sessions. Phase 2 shows noise session facts (wedding-related) appearing in top-10 despite being non-gold. Phase 3 examines graph links for both noise facts and missing gold facts. Root cause: cross-session semantic links pulling noise into top results. Report written.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}
