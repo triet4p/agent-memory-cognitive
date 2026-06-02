@@ -23,6 +23,7 @@
 \usepackage{titlesec} % Giúp chỉnh sửa các tiêu đề, đề mục như chương, phần,..
 \usepackage{titletoc}
 \usepackage{tcolorbox}
+\tcbuselibrary{breakable,listings,skins}
 \usepackage{chngcntr} % Dùng để thiết lập lại cách đánh số caption,..
 \usepackage{pdflscape} % Đưa các bảng có kích thước đặt theo chiều ngang giấy
 \usepackage{afterpage}
@@ -44,9 +45,6 @@
 \usepackage{setspace}
 \usepackage{parskip}
 
-% package content table
-\usepackage{tocbasic}
-
 \usepackage{blindtext}
 
 
@@ -57,7 +55,21 @@
 
 \addbibresource{reference.bib} % chèn file chứa danh mục tài liệu tham khảo vào 
 
-\include{lstlisting} % Phần này cho phép chèn code và formatting code như C, C++, Python
+\lstdefinestyle{cogmem}{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    breakatwhitespace=false,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    frame=single,
+    framerule=0.3pt,
+    xleftmargin=0.5em,
+    xrightmargin=0em,
+    aboveskip=0.8em,
+    belowskip=0.8em
+}
+\lstset{style=cogmem}
 
 \input{glossary}
 

@@ -1,356 +1,368 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Dựa trên những bài học và thiếu sót của các hệ thống SOTA đã phân tích trong Chương 2, chương này sẽ trình bày phương pháp luận cốt lõi của nghiên cứu: Kiến trúc Đồ thị Bộ nhớ Kế thừa Nhận thức (CogMem) cùng các thuật toán lan truyền kiểm soát.}
+\textit{Dựa trên các giới hạn đã phân tích ở Chương 2, chương này trình bày kiến trúc phương pháp luận cốt lõi của CogMem: một hệ thống bộ nhớ hội thoại dài hạn dựa trên đồ thị dị thể, retain pipeline nhiều bước và recall pipeline có định tuyến thích ứng.}
 
 \section{Phương pháp đề xuất}
 
-
 \subsection{Tổng quan kiến trúc hệ thống CogMem}
 
-Để giải quyết triệt để các hạn chế của những hệ thống bộ nhớ hiện tại (như sự mất mát thông tin do nén, sự kém hiệu quả trong truy xuất đa bước và sự thiếu hụt cấu trúc nhận thức cốt lõi), nghiên cứu này đề xuất \textbf{CogMem} — một kiến trúc khép kín lấy cảm hứng từ cấu trúc giải phẫu thần kinh của não bộ (Cognitively-Grounded Architecture).
-
-Kiến trúc tổng thể của CogMem được thiết kế với ba luồng xử lý chính (Pipelines), hoạt động tuần tự và tương tác trực tiếp với không gian đồ thị tri thức dị thể (Heterogeneous Knowledge Graph):
+CogMem được thiết kế như một kiến trúc gồm ba pipeline liên tiếp:
 
 \begin{enumerate}
-    \item \textbf{Luồng Ghi nhớ (Retain Pipeline)}: Tiếp nhận luồng dữ liệu thô (raw dialogue) từ người dùng. Quá trình chia làm hai pha chính: (1) Trích xuất thông tin (Fact Extraction) thành các loại Node đặc thù dựa trên LLM, đảm bảo việc đính kèm tệp văn bản nguyên bản (Lossless Metadata); (2) Xây dựng liên kết (Link Creation) để định hình mạng lưới nhân quả và các chuỗi cấu trúc thời gian.
-    \item \textbf{Luồng Truy hồi (Recall Pipeline)}: Xử lý các câu hỏi hoặc ngữ cảnh truy vấn thông qua việc kích hoạt cơ chế \textit{Định tuyến động (Adaptive Query Routing)}. Pipeline này thực thi thuật toán Lan truyền Kích hoạt theo tổng (SUM Spreading Activation) trên đồ thị kết hợp với 3 cơ chế bảo vệ chu trình (Cycle Guards) nhằm thu tập nhiều luồng bằng chứng từ nhiều node bổ trợ.
-    \item \textbf{Luồng Phản tư và Sinh văn bản (Reflect \& Synthesis Pipeline)}: Tổng hợp các Node được truy xuất thành công (top-K nodes) kết hợp với văn bản nguyên bản (raw snippets) để đưa vào Context Window, giúp LLM tổng hợp câu trả lời cuối cùng không bị ảo giác (Knowledge-grounded generation).
+    \item \textbf{Retain pipeline}: chuẩn hóa hội thoại, trích xuất fact, sinh embedding, lưu node và tạo liên kết.
+    \item \textbf{Recall pipeline}: chạy song song nhiều kênh truy hồi, phân tích loại truy vấn, rồi dung hợp kết quả theo profile phù hợp.
+    \item \textbf{Reflect / Synthesis pipeline}: tổng hợp evidence được recall để sinh câu trả lời bám dữ kiện.
 \end{enumerate}
 
-Các đóng góp cốt lõi của phương pháp sẽ được ánh xạ vào các khâu xử lý trên và được trình bày chi tiết trong các tiểu mục tiếp theo.
+Trong phạm vi luận án này, \textbf{BFS graph retrieval với SUM spreading activation và ba cycle guards} được xem là đường triển khai chuẩn của CogMem. Một số retriever khác được thêm vào ở các giai đoạn phát triển sau nhằm phục vụ nghiên cứu và ablation, nhưng không thay đổi lõi phương pháp luận được trình bày ở đây.
+
+\subsubsection{Retain pipeline}
+
+Retain pipeline hiện thực hóa bộ nhớ dài hạn theo chuỗi bước sau:
+
+\begin{enumerate}
+    \item \textbf{Chunking theo hội thoại}: hội thoại được chia thành các đoạn phù hợp cho extraction.
+    \item \textbf{Pass 1 extraction}: LLM đọc ngữ cảnh mixed-speaker để trích xuất đủ sáu fact type, đặc biệt là \textit{world} và \textit{action\_effect}.
+    \item \textbf{Pass 2 extraction}: một pass persona-focused đọc lại ngữ cảnh người dùng để tinh chỉnh các fact cá nhân như \textit{experience}, \textit{habit}, \textit{intention} và \textit{opinion}.
+    \item \textbf{Dedup và chuẩn hóa metadata}: hợp nhất kết quả giữa các pass, chuẩn hóa status, quan hệ chuyển pha và trường metadata chuyên biệt.
+    \item \textbf{Embedding + storage}: mỗi fact được gắn embedding và lưu vào đồ thị bộ nhớ cùng \textit{raw\_snippet}.
+    \item \textbf{Link creation}: tạo các liên kết entity, temporal, semantic, causal, s\_r\_link, a\_o\_causal và transition.
+\end{enumerate}
+
+Điểm quan trọng là retain pipeline không chỉ lưu một câu tóm tắt ngữ nghĩa, mà còn bảo toàn văn bản nguồn để phục vụ giai đoạn sinh câu trả lời về sau.
+
+\subsubsection{Recall pipeline}
+
+Recall pipeline của CogMem chạy song song bốn kênh:
+\begin{itemize}
+    \item semantic retrieval,
+    \item BM25 retrieval,
+    \item graph retrieval,
+    \item temporal retrieval.
+\end{itemize}
+
+Trước khi fusion, hệ thống phân tích truy vấn để xác định \textit{query type} và \textit{temporal constraint} nếu có. Kết quả phân tích này quyết định:
+\begin{itemize}
+    \item fact types nào cần ưu tiên,
+    \item profile trọng số RRF nào cần dùng,
+    \item và có cần hậu xử lý đặc biệt cho bằng chứng prospective hoặc causal hay không.
+\end{itemize}
+
+\subsubsection{Reflect / Synthesis pipeline}
+
+Sau khi recall hoàn tất, hệ thống chọn top evidence để đưa vào prompt sinh câu trả lời. Trong luồng này, \textit{raw\_snippet} đóng vai trò là lớp bằng chứng nguyên văn. Tùy cấu hình của giai đoạn sinh, snippet có thể được đưa thẳng vào prompt hoặc chỉ được giữ như nguồn tham chiếu nội bộ; tuy nhiên, ở mức kiến trúc, trường \textit{raw\_snippet} luôn được bảo toàn end-to-end để tránh mất dữ kiện.
 
 \subsection{Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}
 
 \subsubsection{Nền tảng tâm lý}
 
-Não người không dùng một vùng duy nhất để lưu mọi loại ký ức. Squire and Zola-Morgan (1991) phân loại bộ nhớ dài hạn thành các hệ con với cơ chất thần kinh khác nhau — tổn thương hippocampus làm mất episodic memory nhưng không ảnh hưởng đến procedural memory; tổn thương basal ganglia làm mất habit memory nhưng không ảnh hưởng semantic memory.
+Động lực của CogMem đến từ quan sát rằng bộ nhớ người không phải một kho đồng nhất. Các nhóm ký ức như semantic memory, episodic memory, habit memory, prospective memory hay action-effect binding có vai trò khác nhau trong suy luận và hành vi. Vì vậy, việc ép mọi dữ liệu hội thoại vào cùng một dạng fact sẽ làm suy yếu tính phân biệt về chức năng.
 
-Trong hệ thống AI, lợi ích thực tiễn của việc phân chia thành nhiều mạng chuyên biệt là: (1) mỗi mạng có schema node riêng phù hợp với loại thông tin; (2) retrieval có thể định hướng đến đúng mạng theo query type; (3) ablation study sạch — có thể bật/tắt từng mạng để đo đóng góp riêng lẻ.
+CogMem chuyển trực giác này thành một memory graph dị thể gồm nhiều fact type chuyên biệt. Mỗi network không chỉ khác nhau về nhãn, mà còn khác nhau ở metadata, loại liên kết, và chiến lược truy hồi được ưu tiên khi đối mặt với từng loại câu hỏi.
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.1: 6 mạng bộ nhớ của CogMem và cơ sở nhận thức tương ứng.
+Hình 3.1: Sáu mạng bộ nhớ của CogMem và cơ sở nhận thức tương ứng.
 \caption{Sáu mạng bộ nhớ của CogMem}
 \label{fig:ch3_six_networks}
 \end{figure}
 
 \subsubsection{Sáu mạng bộ nhớ}
 
+CogMem hiện dùng sáu fact type cốt lõi:
+
 \begin{enumerate}
-    \item \textbf{World Network}: Dựa trên Semantic Memory (Tulving, 1972), lưu trữ ở Temporal-Parietal Cortex. Lưu các sự kiện khách quan, kiến thức chung. Ví dụ: "DI chuyên về LLM infrastructure."
-
-    \item \textbf{Experience Network}: Dựa trên Episodic Memory (Tulving, 1983), lưu trữ ở Hippocampus. Lưu các sự kiện cá nhân có gắn thời gian-không gian. Ví dụ: "User vào làm DI tháng 4/2024."
-
-    \item \textbf{Opinion Network}: Dựa trên Belief System, lưu trữ ở Prefrontal Cortex. Lưu các nhận xét chủ quan kèm confidence score. Ví dụ: "Python tốt nhất cho ML (0.85)."
-
-    \item \textbf{Habit Network} ($\star$): Dựa trên Habit Memory và S-R theory (Squire and ZM, 1991), lưu trữ ở Basal Ganglia. Lưu các mẫu hành vi lặp lại, tự động. Ví dụ: "User luôn check email trước standup."
-
-    \item \textbf{Intention Network} ($\star$): Dựa trên Prospective Memory (Brandimonte et al., 1996), lưu trữ ở Prefrontal Cortex. Lưu các kế hoạch và mục tiêu tương lai có deadline. Ví dụ: "User định học Rust trước Q3."
-
-    \item \textbf{Action-Effect Network} ($\star$): Dựa trên A-O Learning / TEC (Hommel et al., 2001), lưu trữ ở Prefrontal + Premotor Cortex. Lưu bộ ba nhân quả Precondition $\rightarrow$ Action $\rightarrow$ Outcome. Ví dụ: "Lọc shop rating cao thì giao hàng nhanh hơn."
+    \item \textbf{World}: kiến thức khách quan hoặc tương đối ổn định về thế giới.
+    \item \textbf{Experience}: sự kiện cá nhân đã xảy ra, thường gắn với thời gian hoặc bối cảnh cụ thể.
+    \item \textbf{Opinion}: nhận định, sở thích hoặc đánh giá chủ quan.
+    \item \textbf{Habit}: mẫu hành vi lặp lại mang tính stimulus-response.
+    \item \textbf{Intention}: kế hoạch hoặc mục tiêu hướng tới tương lai, có trạng thái \textit{planning / fulfilled / abandoned}.
+    \item \textbf{Action-Effect}: bộ ba nhân quả \textit{precondition -- action -- outcome}.
 \end{enumerate}
-
-($\star$) = Mạng bộ nhớ mới, không có trong HINDSIGHT hay bất kỳ KG-based memory system nào trước đây.
 
 \begin{table}[H]
 \centering
-\caption{Schema của Intention node và Action-Effect node}
+\caption{Các fact type cốt lõi và metadata chuyên biệt}
 \label{tab:node_schemas}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|p{3.8cm}|p{3.8cm}|}
+\begin{tabular}{|p{2.7cm}|p{5.0cm}|p{4.8cm}|}
 \hline
-\textbf{Field} & \textbf{Intention Node} & \textbf{Action-Effect Node} \\
+\textbf{Fact type} & \textbf{Vai trò biểu diễn} & \textbf{Metadata / tín hiệu chuyên biệt} \\
 \hline
-network\_type & intention & action\_effect \\
+world & Kiến thức khách quan, mô tả ổn định & text, entities, raw\_snippet \\
 \hline
-goal / precondition & goal: mục tiêu cần đạt & precondition: điều kiện trước \\
+experience & Sự kiện cá nhân đã xảy ra & occurred\_start, occurred\_end, mentioned\_at \\
 \hline
-deadline / action & deadline: thời hạn & action: hành động thực hiện \\
+opinion & Đánh giá hoặc sở thích chủ quan & confidence \\
 \hline
-status / outcome & status: planning| fulfilled|abandoned & outcome: kết quả mong đợi \\
+habit & Mẫu hành vi lặp lại & liên kết s\_r\_link đến các experience liên quan \\
 \hline
-priority / confidence & priority: 0.0-1.0 & confidence: 0.0-1.0 \\
+intention & Kế hoạch và mục tiêu tương lai & intention\_status; có thể mang thêm mô tả ``why'' hoặc tín hiệu thời gian từ extraction \\
 \hline
-fulfilled\_at & timestamp khi hoàn thành & observation\_count: số lần quan sát \\
+action\_effect & Quy luật nhân quả ở cấp hành động & precondition, action, outcome, confidence, devalue\_sensitive \\
 \hline
-linked\_experience & ref đến Experience node & devalue\_sensitive: nhạy cảm devaluation \\
-\hline
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
+
+Việc tách riêng \textit{habit}, \textit{intention} và \textit{action\_effect} không nên được hiểu như một khẳng định rằng ba mạng này luôn tạo ra cải thiện đồng đều trên mọi tập dữ liệu. Thay vào đó, chúng cung cấp các ``representational slots'' mới cho những tín hiệu mà \textit{world} hoặc \textit{experience} thường mô tả không đầy đủ, đặc biệt ở các câu hỏi preference, prospective và causal.
 
 \subsubsection{Phân biệt Habit vs. Action-Effect}
 
-Dickinson and Balleine (1994) thiết lập devaluation test để phân biệt S-R và A-O: nếu outcome mất giá trị, hành động A-O bị ức chế ngay — trong khi hành động S-R (thói quen) tiếp tục vì nó không phụ thuộc vào giá trị của outcome.
+CogMem tách \textit{habit} và \textit{action\_effect} vì hai loại này phản ánh hai cơ chế nhận thức khác nhau:
 
 \begin{itemize}
-    \item \textbf{Habit Network (S-R)}: Kích thích $\rightarrow$ phản ứng tự động, không cần ý thức. Thói quen tồn tại kể cả khi kết quả mất giá trị. Frequency-based — lặp lại nhiều lần mới hình thành.
-    \item \textbf{Action-Effect Network (A-O)}: Hành động được chủ động chọn vì tạo ra kết quả mong muốn. Hành động bị ức chế nếu kết quả mất giá trị. Instance-based — một lần quan sát đủ để ghi nhận.
+    \item \textbf{Habit}: phản ứng lặp lại, mang tính S-R, hình thành từ tần suất và ngữ cảnh quen thuộc.
+    \item \textbf{Action-Effect}: quy luật nhân quả có chủ đích, nơi một hành động được chọn vì tạo ra một kết quả quan sát được.
 \end{itemize}
 
-Ví dụ phân biệt:
-\begin{itemize}
-    \item "User luôn check email trước standup" → Habit (S-R): pattern tần suất, không cần biết lý do
-    \item "Lọc shop rating cao thì giao hàng nhanh hơn" → Action-Effect (A-O): quan hệ nhân quả tường minh
-\end{itemize}
+Trong thực tế hội thoại, hai loại tín hiệu này dễ bị trộn lẫn nếu chỉ dùng fact phẳng. Việc tách riêng giúp truy hồi preference hoặc causal evidence rõ hơn, đồng thời mở đường cho các thí nghiệm ablation theo từng cấu phần.
 
 \begin{figure}[H]
 \centering
 \fbox{\parbox{0.8\textwidth}{
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.2: Phân biệt Habit (S-R) và Action-Effect (A-O) bằng devaluation test. }}
+Hình 3.2: Phân biệt Habit (S-R) và Action-Effect (A-O).}}
 \caption{Phân biệt Habit và Action-Effect}
 \label{fig:ch3_sr_vs_ao}
 \end{figure}
 
 \subsubsection{Bảy loại liên kết (Edge Types)}
 
-CogMem định nghĩa 7 loại liên kết, trong đó có 3 loại mới so với HINDSIGHT:
+Trên đồ thị CogMem, thông tin được kết nối bởi bảy nhóm liên kết chính:
 
 \begin{enumerate}
-    \item \textbf{Entity}: Bidirectional, cùng entity được nhắc. Ví dụ: Alice $\rightarrow$ mọi node về Alice.
-    \item \textbf{Temporal}: Directed, thứ tự thời gian. Ví dụ: e\_join $\rightarrow$ e\_promo (9 tháng).
-    \item \textbf{Semantic}: Undirected, tương đồng ngữ nghĩa (cosine $\geq$ $\theta$).
-    \item \textbf{Causal}: Directed, Opinion/belief shape hành động.
-    \item \textbf{S-R link} ($\star$): Directed, Habit reinforces preference evidence. Ví dụ: h\_email $\rightarrow$ e\_standup\_prep.
-    \item \textbf{A-O causal} ($\star$): Directed, Precondition $\rightarrow$ Action $\rightarrow$ Outcome triple.
-    \item \textbf{Transition} ($\star$): Directed + typed, state change của concept theo thời gian, across networks.
+    \item \textbf{entity}: nối các node cùng nhắc tới một thực thể.
+    \item \textbf{temporal}: mô tả quan hệ trước-sau giữa các sự kiện.
+    \item \textbf{semantic}: nối các node có tương đồng ngữ nghĩa cao.
+    \item \textbf{causal}: quan hệ nhân quả hoặc ảnh hưởng giữa các fact.
+    \item \textbf{s\_r\_link}: liên kết hỗ trợ habit bằng các experience cùng mẫu kích thích-phản ứng.
+    \item \textbf{a\_o\_causal}: liên kết từ action\_effect tới các fact quan sát được làm bằng chứng outcome.
+    \item \textbf{transition}: liên kết chuyển pha trạng thái của một biểu diễn theo thời gian.
 \end{enumerate}
 
-Transition edge được lấy cảm hứng từ causality edges trong các nghiên cứu về memory systems. Các typed transitions bao gồm: fulfilled\_by, abandoned, triggered, enabled\_by, revised\_to, contradicted\_by.
+Riêng \textit{transition} là một edge type duy nhất nhưng mang \textit{transition\_type} bên trong. Trong implementation hiện tại, các typed transition cốt lõi gồm:
+\begin{itemize}
+    \item \texttt{fulfilled\_by}: intention $\rightarrow$ experience,
+    \item \texttt{triggered}: experience $\rightarrow$ intention,
+    \item \texttt{enabled\_by}: intention $\rightarrow$ intention,
+    \item \texttt{revised\_to}: opinion $\rightarrow$ opinion,
+    \item \texttt{contradicted\_by}: world $\rightarrow$ world.
+\end{itemize}
+
+\textbf{Lưu ý:} \textit{abandoned} là một \textit{intention\_status}, không phải một transition edge riêng.
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.3: 7 loại liên kết trong CogMem.
+Hình 3.3: Bảy loại liên kết trong CogMem.
 \caption{Bảy loại liên kết trong CogMem}
 \label{fig:ch3_edge_types}
 \end{figure}
 
-\subsection{Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw State Snippets}
+\subsection{Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw Snippet}
 
-\subsubsection{Vấn đề: Nén dữ liệu có tổn hao trong các hệ thống hiện tại}
+\subsubsection{Vấn đề: nén dữ liệu có tổn hao}
 
-Hầu hết các nền tảng memory systems hiện hành — bao gồm cả HINDSIGHT — sử dụng LLM như một công cụ nén toàn bộ chuỗi hội thoại thành các mẩu thông tin kể chuyện (narrative facts) trước khi ghi dữ liệu. Đây là một cơ chế rút gọn có tổn thất (lossy compression) không thể đảo ngược.
+Các hệ thống bộ nhớ dựa trên extraction thường phải nén hội thoại dài thành một số fact ngắn hơn để có thể lập chỉ mục và truy hồi hiệu quả. Tuy nhiên, phép nén này không đảo ngược được. Những dữ kiện như con số chính xác, cụm từ nguyên văn, trạng thái cảm xúc hoặc các tín hiệu ``nhỏ nhưng quyết định'' thường biến mất khỏi bản tóm tắt.
 
 Ví dụ:
 \begin{lstlisting}
 Original conversation:
 "I just quit my job at VCCorp today.
 I'm really sad because my old team was
-like family. I received an offer from DI
-with a 40% higher salary. Starting from
-April 1st. The role is ML Engineer..."
+like family. DI offered me 40% more pay.
+I start there on April 1st."
 
-LLM extracts to narrative fact:
--> "User switched from VCCorp to DI in
-   April 2024, role: ML Engineer"
--> Lost: emotions ("sad"), reason for
-   team attachment, exact salary (40%)
+Compressed fact:
+"User switched from VCCorp to DI in
+April 2024."
 \end{lstlisting}
 
-Hậu quả: khi user hỏi "Mức lương khi chuyển sang DI cao hơn bao nhiêu?", hệ thống truy xuất đúng node nhưng không có đủ thông tin để trả lời.
+Fact nén trên đủ cho semantic retrieval cơ bản, nhưng không còn bảo toàn những chi tiết như tỷ lệ tăng lương, trạng thái cảm xúc hay chính xác ngày khởi đầu.
 
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.4: Minh họa quá trình nén có mất mát trong HINDSIGHT.
-\caption{Lossy compression trong HINDSIGHT}
-\label{fig:ch3_lossy_compression}
-\end{figure}
+\subsubsection{Giải pháp: 2-layer node schema}
 
-\subsubsection{Giải pháp: 2-Layer Node Schema}
+CogMem giải quyết vấn đề này bằng cách giữ đồng thời hai lớp biểu diễn:
+\begin{itemize}
+    \item \textbf{fact text / embedding}: lớp nén dùng cho retrieval.
+    \item \textbf{raw\_snippet}: lớp nguyên văn dùng cho grounding khi cần sinh câu trả lời chi tiết.
+\end{itemize}
 
-CogMem thêm trường \textbf{raw\_snippet} — văn bản nguồn gốc lossless — đi kèm mỗi node:
-
+Minh họa:
 \begin{lstlisting}
 {
-  "id": "node-uuid",
-  "network_type": "experience",
-  "narrative_fact": "User switched from
-     VCCorp to DI in April 2024",
+  "fact_type": "experience",
+  "text": "User switched from VCCorp to DI
+           in April 2024",
   "embedding": [...],
-  "raw_snippet": "Today I quit my job at
-     VCCorp. Feeling sad because the old
-     team was very close. I accepted an
-     offer from DI with 40% higher
-     salary...",
-  "timestamp": "2024-03-12T09:30:00Z",
-  "confidence": 0.92,
-  "expiry": null
+  "raw_snippet": "I just quit my job at
+                  VCCorp today... DI offered
+                  me 40% more pay...",
+  "metadata": {
+    "raw_snippet_present": true
+  }
 }
 \end{lstlisting}
 
-Hai layer phục vụ hai mục tiêu khác nhau:
-\begin{itemize}
-    \item \textbf{narrative\_fact + embedding}: dùng cho retrieval — semantic search, BM25, graph traversal cần vector nhỏ gọn
-    \item \textbf{raw\_snippet}: inject vào context window sau khi node được retrieve, để LLM generation có đủ chi tiết nguyên bản
-\end{itemize}
-
-Tách biệt này quan trọng vì hai mục tiêu có yêu cầu mâu thuẫn: retrieval cần compression (vector ngắn = precision cao), generation cần verbatim (text đầy đủ = recall không mất mát).
+Thiết kế này cho phép CogMem vừa truy hồi nhanh trên representation đã nén, vừa giữ được bằng chứng nguyên văn khi giai đoạn synthesis cần chi tiết chính xác. Ở implementation hiện tại, snippet có thể được đưa trực tiếp vào prompt generate khi policy của evaluation hoặc runtime bật chế độ sử dụng verbatim evidence; nhưng ngay cả khi policy đó thay đổi, \textit{raw\_snippet} vẫn được bảo toàn như một thành phần lõi của dữ liệu.
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.5: 2-layer node schema với narrative\_fact và raw\_snippet.
+Hình 3.4: 2-layer node schema với fact text và raw\_snippet.
 \caption{2-Layer Node Schema}
 \label{fig:ch3_two_layer_schema}
 \end{figure}
 
 \subsection{Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}
 
-\subsubsection{Vấn đề: MAX chỉ lấy đường mạnh nhất}
+\subsubsection{Vấn đề: MAX chỉ giữ đường mạnh nhất}
 
-Spreading activation của HINDSIGHT thiết lập theo hàm MAX:
-
-\begin{equation}
-A(v, t+1) = \max_{u \in N(v)} \left[ A(u, t) \cdot w(u,v) \cdot \delta \cdot \mu(\ell) \right]
-\end{equation}
-
-Việc chỉ áp dụng phép MAX hạn chế đường truyền năng lượng chỉ di chuyển qua một liên kết mang tải trọng cao nhất. Khi hệ thống thu thập nhiều nguồn bằng chứng bổ trợ (dù có cường độ yếu hơn) cùng tập trung vào một node mục tiêu, hàm MAX vẫn chỉ ghi nhận một luồng cao nhất — loại bỏ hoàn toàn các luồng bổ trợ còn lại. Đây là nguyên nhân cốt lõi khiến các chuỗi lý luận multi-hop không thể hoàn thiện trên hệ thống đồ thị.
-
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.6: So sánh MAX và SUM trong spreading activation.
-\caption{MAX vs SUM trong Spreading Activation}
-\label{fig:ch3_max_vs_sum}
-\end{figure}
-
-\subsubsection{Giải pháp: Phép SUM thay phép MAX}
-
-Mô hình Bộ Nhớ Làm Việc của Baddeley (2000) giới thiệu Episodic Buffer — không gian làm việc tích hợp tạm thời liên kết thông tin từ nhiều hệ con bộ nhớ dài hạn thành các episode mạch lạc. Episodic Buffer tích lũy bằng chứng từ nhiều nguồn, không phải chọn một nguồn mạnh nhất.
-
-CogMem sử dụng phép SUM:
+Một hạn chế của graph retrieval kiểu truyền thống là chỉ cho phép một nguồn bằng chứng ``mạnh nhất'' quyết định activation ở node đích. Dạng công thức này phù hợp với trường hợp evidence tập trung, nhưng dễ làm mất tín hiệu khi câu trả lời phụ thuộc vào nhiều đường yếu bổ sung cho nhau.
 
 \begin{equation}
-A(v, t+1) = \text{clip}\left[ A(v,t) + \delta \cdot \sum_{u \in N(v)} \left[ A(u,t) \cdot w(u,v) \cdot \mu(\text{edge}) \cdot \text{refractory}(u) \right], \; A_{\max} \right]
+A(v, t+1) = \max_{u \in N(v)}
+\left[
+A(u, t) \cdot w(u,v) \cdot \delta \cdot \mu(\ell)
+\right]
 \end{equation}
 
-So sánh MAX và SUM:
+Trong hội thoại dài hạn, đây là vấn đề thực sự vì thông tin trả lời thường bị chia nhỏ qua nhiều phiên, nhiều node và nhiều loại quan hệ.
+
+\subsubsection{Giải pháp: SUM thay cho MAX}
+
+CogMem dùng tư duy của \textit{episodic buffer}: activation ở một node nên có thể cộng dồn từ nhiều nguồn bằng chứng liên quan. Trên BFS graph retriever mặc định, CogMem dùng phép SUM với clipping để chặn bùng nổ tín hiệu:
+
+\begin{equation}
+\begin{aligned}
+A(v, t+1) = \mathrm{clip}\Bigg(
+& A(v,t) + \delta \cdot \sum_{u \in N(v)}
+\Big[
+A(u,t) \cdot w(u,v) \\
+& \cdot \mu(\mathrm{edge}) \cdot
+\mathrm{refractory}(u)
+\Big],
+\; A_{\max}
+\Bigg)
+\end{aligned}
+\end{equation}
 
 \begin{table}[H]
 \centering
 \caption{So sánh HINDSIGHT (MAX) và CogMem (SUM)}
 \label{tab:max_vs_sum}
-\begin{tabular}{|l|c|c|}
+\begin{tabular}{|p{3.2cm}|p{4.2cm}|p{4.2cm}|}
 \hline
 \textbf{Khía cạnh} & \textbf{HINDSIGHT (MAX)} & \textbf{CogMem (SUM)} \\
 \hline
-Bằng chứng đa đường & Bị loại bỏ — chỉ lấy 1 đường tốt nhất & Được tích lũy — mọi đường đóng góp \\
+Bằng chứng đa đường & chỉ giữ đường tốt nhất & cộng dồn tín hiệu từ nhiều đường \\
 \hline
-Yêu cầu entry point & Phải chính xác cao & Chỉ cần xấp xỉ đúng hướng \\
+Multi-hop reasoning & dễ rơi khi một mắt xích yếu & bền hơn với evidence phân tán \\
 \hline
-Độ bền multi-hop & Yếu — một liên kết sai phá cả chain & Mạnh — tín hiệu yếu bổ sung nhau \\
+Yêu cầu entry point & cần trúng node rất mạnh ngay từ đầu & cho phép nhiều tín hiệu vừa phải bổ sung nhau \\
 \hline
-Nguy cơ phân kỳ & Không & Có — cần cycle guards \\
+Rủi ro kỹ thuật & ổn định hơn nhưng bảo thủ & mạnh hơn nhưng cần cycle guards \\
 \hline
 \end{tabular}
 \end{table}
 
 \subsubsection{Ba cơ chế bảo vệ chu trình (Cycle Guards)}
 
-Phép SUM trên đồ thị có chu trình sẽ phân kỳ nếu không có cơ chế kiểm soát. Ba guards giải quyết ba dạng mất ổn định khác nhau:
+SUM activation trên đồ thị có chu trình cần cơ chế ổn định hóa. CogMem dùng ba guard bổ sung cho nhau:
 
 \begin{enumerate}
-    \item \textbf{Guard 1 — Local Refractory Period} (Hodgkin and Huxley, 1952):
+    \item \textbf{Local Refractory Period}: một node vừa fire sẽ không được tái kích hoạt ngay ở bước kế tiếp.
     \begin{equation}
-    \text{refractory}(u) = \begin{cases} 0 & \text{nếu } u \text{ đã kích hoạt ở bước } t \\ 1 & \text{ngược lại} \end{cases}
+    \mathrm{refractory}(u) =
+    \begin{cases}
+    0, & \text{nếu } u \text{ vừa kích hoạt ở bước trước} \\
+    1, & \text{ngược lại}
+    \end{cases}
     \end{equation}
-    Chặn ping-pong giữa 2 node ($u \leftrightarrow v$).
 
-    \item \textbf{Guard 2 — Global Firing Quota} (Baddeley, 2000): Mỗi node có counter fire\_count. Khi fire\_count(v) $\geq$ max\_fires (mặc định = 3), node không nhận thêm activation. Chặn chu trình dài $\geq$ 3 nodes ($A \to B \to C \to A$).
+    \item \textbf{Global Firing Quota}: mỗi node chỉ được nhận số lần kích hoạt hữu hạn trong một đợt propagation, nhờ đó chặn chu trình dài.
 
-    \item \textbf{Guard 3 — Saturation Threshold} (Wilson-Cowan, 1972):
-    \begin{equation}
-    A(v, t+1) = \min\left( A(v, t+1)_{\text{raw}}, \; A_{\max} \right)
-    \end{equation}
-    Chặn score explosion, đảm bảo diversity trong retrieval. $A_{\max} = 2.0$.
+    \item \textbf{Saturation Threshold}: giá trị activation bị chặn trên để tránh score explosion và duy trì đa dạng kết quả retrieval.
 \end{enumerate}
 
-Tại sao cần cả 3: Guard 1 chặn chu trình 2 node, Guard 2 chặn chu trình dài, Guard 3 chặn score explosion kể cả khi không có chu trình.
+Ba guard này phản ánh lập luận nhận thức rằng hệ thống truy hồi không nên bị ``kẹt'' trong một vòng reverberation vô hạn chỉ vì đồ thị có nhiều vòng lặp cục bộ.
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.7: Ba cơ chế bảo vệ chu trình.
+Hình 3.5: Ba cơ chế bảo vệ chu trình trong BFS graph retrieval.
 \caption{Ba cơ chế bảo vệ chu trình}
 \label{fig:ch3_cycle_guards}
 \end{figure}
 
 \subsection{Đóng góp 4: Adaptive Query Routing}
 
-\subsubsection{Vấn đề: Equal-Weight RRF không phân biệt ý định truy vấn}
+\subsubsection{Vấn đề: equal-weight fusion không phản ánh ý định truy vấn}
 
-HINDSIGHT dùng trọng số bằng nhau ($w = 0.25$ mỗi channel):
+Nếu mọi câu hỏi đều dùng cùng một profile fusion, hệ thống sẽ đối xử như nhau với các truy vấn semantic, temporal, causal hay prospective. Điều đó mâu thuẫn với trực giác nhận thức: câu hỏi ``khi nào'' nên ưu tiên temporal evidence nhiều hơn, trong khi câu hỏi ``tại sao'' cần graph evidence và causal links nhiều hơn.
 
-\begin{equation}
-\text{RRF}(d) = \sum_{i \in \{\text{sem, bm25, graph, temp}\}} \frac{0.25}{60 + \text{rank}_i(d)}
-\end{equation}
+\subsubsection{Giải pháp: định tuyến và dung hợp theo query type}
 
-Điều này không hợp lý vì các loại câu hỏi khác nhau cần các channel khác nhau.
+CogMem dùng một tầng \textit{query analysis} trước fusion. Bộ phân tích này kết hợp các lexical rules với temporal extraction để gán truy vấn vào một trong sáu loại:
+\begin{itemize}
+    \item semantic,
+    \item temporal,
+    \item causal,
+    \item prospective,
+    \item preference,
+    \item multi\_hop.
+\end{itemize}
 
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.8: Equal-weight RRF trong HINDSIGHT.
-\caption{Equal-weight RRF}
-\label{fig:ch3_equal_rrf}
-\end{figure}
-
-\subsubsection{Giải pháp: Dynamic Channel Weights theo Query Type}
-
-Thêm bước query classification trước retrieval:
+Mỗi loại truy vấn được gắn một profile trọng số riêng cho bốn channel. Các hệ số dưới đây là \textbf{trọng số tương đối} trong weighted RRF, không phải xác suất chuẩn hóa bắt buộc có tổng bằng 1:
 
 \begin{equation}
-\text{RRF}_{\text{adaptive}}(d, q) = \sum_{i} w_i(q) \cdot \frac{1}{60 + \text{rank}_i(d)}, \quad \sum_i w_i(q) = 1
+\mathrm{RRF}_{\mathrm{adaptive}}(d, q) =
+\sum_i
+w_i(q) \cdot \frac{1}{60 + \mathrm{rank}_i(d)}
 \end{equation}
 
 \begin{table}[H]
 \centering
-\caption{Adaptive RRF weights theo Query Type}
+\caption{Adaptive RRF weights theo query type trong implementation hiện tại}
 \label{tab:adaptive_rrf}
 \resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|c|c|c|c|p{2.5cm}|}
+\begin{tabular}{|l|c|c|c|c|p{4.0cm}|}
 \hline
-\textbf{Query Type} & $w_\text{sem}$ & $w_\text{bm25}$ & $w_\text{graph}$ & $w_\text{temp}$ & \textbf{Notes} \\
+\textbf{Query Type} & $w_\text{sem}$ & $w_\text{bm25}$ & $w_\text{graph}$ & $w_\text{temp}$ & \textbf{Ghi chú} \\
 \hline
-\textbf{Temporal} & 0.20 & 0.20 & 0.20 & \textbf{0.40} & — \\
+semantic & 1.0 & 1.0 & 1.0 & 1.0 & baseline profile \\
 \hline
-\textbf{Entity} & 0.20 & 0.30 & \textbf{0.40} & 0.10 & — \\
+temporal & 0.8 & 0.6 & 0.8 & 2.2 & ưu tiên temporal filtering và temporal evidence \\
 \hline
-\textbf{Multi-hop} & 0.15 & 0.10 & \textbf{0.50} & 0.25 & — \\
+causal & 0.8 & 0.7 & 2.4 & 1.0 & ưu tiên graph channel và action-effect evidence \\
 \hline
-\textbf{Causal} $\star$ & 0.10 & 0.10 & \textbf{0.40} & 0.10 & Prefer Action-Effect + Transition edges \\
+prospective & 0.9 & 0.8 & 2.0 & 1.4 & ưu tiên planning intentions và transition evidence \\
 \hline
-\textbf{Prospective} $\star$ & 0.20 & 0.15 & \textbf{0.35} & \textbf{0.30} & Query Intention status=planning only \\
+preference & 1.0 & 1.2 & 1.4 & 0.5 & ưu tiên graph / habit-related evidence \\
 \hline
-\textbf{Semantic} & \textbf{0.50} & 0.20 & 0.20 & 0.10 & — \\
+multi\_hop & 0.9 & 0.7 & 2.6 & 0.8 & ưu tiên graph traversal đa bước \\
 \hline
-\end{tabular}%
+\end{tabular}% 
 }
 \end{table}
 
-($\star$) = Hai query types mới so với HINDSIGHT.
+Ngoài profile trọng số, implementation hiện tại còn có hai hậu xử lý đáng chú ý:
+\begin{itemize}
+    \item \textbf{Prospective filtering}: nếu truy vấn được phân loại là \textit{prospective}, hệ thống ưu tiên \textit{intention} nodes có \textit{intention\_status=planning}. Nếu một ablation loại bỏ hẳn intention network, recall sẽ fallback sang các fact type còn lại để tránh chiến thắng giả do router thiên vị.
+    \item \textbf{Evidence priority}: sau weighted RRF, causal queries được boost thêm khi evidence đến từ \textit{action\_effect} hoặc graph-backed chains; prospective queries được boost thêm khi evidence là planning intention có graph/temporal backing.
+\end{itemize}
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.9: Adaptive Query Routing với 6 query types.
+Hình 3.6: Adaptive Query Routing với sáu query type.
 \caption{Adaptive Query Routing}
 \label{fig:ch3_adaptive_routing}
 \end{figure}
 
-Hai query types mới:
-\begin{itemize}
-    \item \textbf{Causal}: Khi phát hiện query hỏi về lý do/nhân quả, ưu tiên Action-Effect nodes và traverse A-O causal edges.
-    \item \textbf{Prospective}: Khi phát hiện query về tương lai/kế hoạch, chỉ query Intention nodes có status=planning, kết hợp temporal channel để rank theo deadline gần nhất.
-\end{itemize}
-
 
 \vspace{1em}
-\noindent\textit{Với cấu trúc mạng bộ nhớ và thuật toán lan truyền (SUM Spreading Activation) đã được định hình, hệ thống cần có sự minh chứng về tính hiệu quả. Do đó, Chương 4 sẽ tập trung vào chứng minh toán học và phân tích lý thuyết vòng đời dữ liệu của mô hình.}
+\noindent\textit{Sau khi mô tả kiến trúc và bốn đóng góp cốt lõi của CogMem, Chương 4 sẽ chuyển sang phân tích cơ sở khoa học nhận thức của từng quyết định thiết kế.}
 
 \end{document}

@@ -1,126 +1,139 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Tiếp nối bối cảnh bài toán từ Chương 1, chương này cung cấp nền tảng kiến thức cốt lõi về hệ thống nhận thức của não bộ và đồ thị tri thức, làm cơ sở để phân tích ưu nhược điểm của các hệ thống bộ nhớ tác nhân đương đại.}
+\textit{Tiếp nối bối cảnh bài toán từ Chương 1, chương này tổng hợp nền tảng khoa học nhận thức, đồ thị tri thức và các hệ thống bộ nhớ dài hạn liên quan, từ đó xác định rõ khoảng trống mà CogMem hướng tới.}
 
 \section{Tổng quan Lý thuyết và Các hệ thống liên quan}
 
-
-
-Chương này trình bày các cơ sở lý thuyết tạo nên nền tảng của hệ thống bộ nhớ hội thoại dài hạn, tập trung vào hai trụ cột chính: Khoa học nhận thức (Cognitive Science) và Đồ thị tri thức (Knowledge Graphs). Đồng thời, chúng tôi hệ thống hóa, phân tích chuyên sâu các mô hình bộ nhớ tiên tiến (State of the Art - SOTA) và mổ xẻ những thiết sót cốt lõi về cấu trúc giải thuật của chúng, từ đó làm rõ động lực phát triển nên nền tảng CogMem.
+Chương này tập trung vào hai trụ cột: (1) khoa học nhận thức như một nguồn cảm hứng cho việc chuyên biệt hóa các loại ký ức, và (2) đồ thị tri thức như một hình thức biểu diễn cho phép truy hồi đa bước có kiểm soát. Trên nền tảng đó, chúng tôi đối chiếu các hệ thống bộ nhớ đương đại để chỉ ra những hạn chế còn tồn tại về nén thông tin, tổ chức fact type và định tuyến truy vấn.
 
 \subsection{Thách thức cốt lõi về Bộ nhớ của Mô hình Ngôn ngữ Lớn (LLMs)}
 
-Mặc dù các Mô hình Ngôn ngữ Lớn (LLMs) đạt được nhiều thành tựu vượt bậc trong xử lý ngôn ngữ tự nhiên, chúng vẫn tồn tại những giới hạn bản chất về mặt kiến trúc liên quan đến khả năng duy trì bộ nhớ dài hạn:
+Mặc dù các Mô hình Ngôn ngữ Lớn (LLMs) đạt thành tựu cao trong xử lý ngôn ngữ tự nhiên, chúng vẫn gặp những giới hạn cơ bản khi phải duy trì ký ức dài hạn cho một người dùng hoặc một agent cụ thể:
 
 \begin{itemize}
-    \item \textbf{Giới hạn Cửa sổ Ngữ cảnh (Context Window Bottleneck) và Chi phí (O($N^2$))}: Cơ chế Self-Attention cốt lõi của kiến trúc Transformer đòi hỏi độ phức tạp tính toán và bộ nhớ tăng theo bình phương độ dài chuỗi đầu vào (O($N^2$)). Điều này khiến việc đưa toàn bộ lịch sử hội thoại dài hạn vào prompt (context stuffing) trở nên bất khả thi về mặt tài nguyên phần cứng và làm tăng độ trễ nội tại.
-    \item \textbf{Hiện tượng "Trôi dạt ở giữa" (Lost-in-the-Middle Phenomenon)}: Nghiên cứu của Liu et al. (2023) chỉ ra rằng LLMs có xu hướng trích xuất thông tin xuất hiện ở đầu và cuối cửa sổ ngữ cảnh tốt hơn nhiều so với thông tin nằm ở đoạn giữa. Việc nhồi nhét quá nhiều lịch sử hội thoại sẽ làm nhiễu loạn luồng chú ý (attention drift), dẫn đến bỏ sót dữ kiện quan trọng.
-    \item \textbf{Quên thảm khốc (Catastrophic Forgetting)}: Phương pháp tinh chỉnh (Fine-tuning) để mô hình học thông tin mới thường dẫn đến việc nó bị ghi đè và đánh mất các kiến thức cơ sở đã học trong quá trình pre-training. Việc tinh chỉnh cũng không tương thích với bối cảnh bộ nhớ người dùng cần được cập nhật liên tục (real-time stream).
-    \item \textbf{Ảo giác (Hallucination) do thiếu cơ sở nối kết (Grounding)}: LLM sinh văn bản dựa trên xác suất chuỗi phân phối tuyến tính thay vì suy luận từ hệ thống gốc (knowledge-grounded). Khi không có cấu trúc tri thức neo giữ, hệ thống dễ dàng tạo ra các sự thật giả tạo học được từ trọng số lưu trữ ngầm.
+    \item \textbf{Giới hạn cửa sổ ngữ cảnh}: Đưa toàn bộ lịch sử hội thoại dài hạn vào prompt là tốn kém và không bền vững. Khi lịch sử tăng lên, hệ thống buộc phải chọn lọc hoặc bỏ bớt thông tin.
+    \item \textbf{Hiện tượng mất tín hiệu ở ngữ cảnh dài}: Các nghiên cứu về ``lost in the middle'' cho thấy thông tin ở giữa cửa sổ ngữ cảnh thường khó được sử dụng ổn định bằng thông tin ở đầu hoặc cuối.
+    \item \textbf{Thiếu grounding dài hạn}: Nếu không có một bộ nhớ ngoài được tổ chức tốt, mô hình dễ sinh câu trả lời dựa trên xác suất ngôn ngữ thay vì bằng chứng đã quan sát.
+    \item \textbf{Khó cập nhật liên tục}: Fine-tuning không phải là cơ chế phù hợp để tiếp nhận dòng hội thoại cá nhân hóa theo thời gian thực; bộ nhớ ngoài là hướng thực tế hơn cho bài toán này.
 \end{itemize}
 
-Để giải quyết các rào cản này, sự chuyển dịch từ việc phụ thuộc vào \textit{Context Window} sang các hệ thống \textit{Bộ nhớ Dài hạn bên ngoài (External Long-term Memory)} là xu thế bắt buộc.
+Vì vậy, bộ nhớ dài hạn cho tác nhân hội thoại nên được xem như một \textit{hệ thống ngoài mô hình} (\textit{external memory system}) với cấu trúc lưu trữ, truy hồi và tổng hợp riêng, thay vì chỉ là phần kéo dài của context window.
 
 \subsection{Cơ sở Lý thuyết: Khoa học Nhận thức và Đồ thị Tri thức}
 
 \subsubsection{Khoa học Nhận thức và Hệ thống Phân loại Bộ nhớ}
 
-Khác với kiến trúc máy tính truyền thống nơi bộ nhớ là một khối duy nhất (bộ nhớ khối - monolithic memory), não bộ con người lưu trữ thông tin dưới dạng phân tán thông qua nhiều hệ thống con (subsystems) hoạt động độc lập và tương tác mật thiết với nhau. Theo Squire and Zola-Morgan (1991), bộ nhớ dài hạn (long-term memory) ở động vật có vú được chia thành các phân hệ có cơ chất thần kinh (neural substrates) riêng biệt:
+Một điểm then chốt của khoa học nhận thức là bộ nhớ người không phải một khối đơn nhất. Theo các phân loại cổ điển của Tulving, Squire và các cộng sự, bộ nhớ dài hạn bao gồm nhiều hệ con với vai trò và nền tảng thần kinh khác nhau:
 
 \begin{itemize}
-    \item \textbf{Bộ nhớ Ngữ nghĩa (Semantic Memory) và Bộ nhớ Tình tiết (Episodic Memory)}: Thuộc phân loại bộ nhớ tường minh (Declarative memory). \textit{Semantic Memory} (Tulving, 1972) lưu trữ các sự kiện, kiến thức chung khách quan (General world knowledge), thường liên kết với Thùy thái dương-đỉnh. Ngược lại, \textit{Episodic Memory} (Tulving, 1983) đóng vai trò ghi nhận các sự kiện mang tính cá nhân, đòi hỏi việc gắn liền bối cảnh không gian và thời gian sự kiện (spatiotemporal context), chủ yếu định vị tại vùng Hải mã (Hippocampus).
-    \item \textbf{Bộ nhớ Thủ tục và Thói quen (Procedural and Habit Memory)}: Thuộc nhóm bộ nhớ không tường minh (Non-declarative). Chúng được điều phối bởi hệ Hạch nền (Basal Ganglia), quản lý các kỹ năng vận động và các mẫu hành vi tự động hình thành từ sự lặp lại, thường hoạt động dựa trên cơ chế Kích thích - Phản ứng (Stimulus-Response).
-    \item \textbf{Bộ nhớ Tương lai (Prospective Memory)}: Được Brandimonte (1996) định hình là phần nhận thức liên quan đến "nhớ để làm một việc gì đó trong tương lai" (remembering to remember). Cơ chế này gắn liền với các vùng Vỏ não trước trán (Prefrontal Cortex), đóng vai trò quan trọng trong việc theo dõi mục tiêu và duy trì lộ trình theo chủ đích.
+    \item \textbf{Semantic memory}: lưu trữ kiến thức chung, tương đối độc lập với ngữ cảnh cụ thể.
+    \item \textbf{Episodic memory}: lưu trữ các sự kiện cá nhân gắn với thời gian và trải nghiệm.
+    \item \textbf{Habit / procedural memory}: gắn với các mẫu hành vi lặp lại và phản xạ hành động.
+    \item \textbf{Prospective memory}: liên quan tới việc ``nhớ để làm'' trong tương lai, tức các kế hoạch và mục tiêu chưa hoàn tất.
 \end{itemize}
 
-Việc ứng dụng hệ thống phân loại này định hướng trực tiếp cho việc chuyên môn hóa kiến trúc máy học, tránh việc gộp chung các biểu đồ nhân quả, thói quen và sự thật hiển nhiên vào cùng một không gian nhúng phi cấu trúc.
+Ý tưởng cốt lõi rút ra cho hệ thống AI là: nếu nhiều loại tín hiệu nhận thức có bản chất khác nhau, chúng không nên bị ép vào cùng một kiểu biểu diễn phẳng. Đây chính là động lực cho kiến trúc nhiều fact type của CogMem.
 
 \subsubsection{Đồ thị Tri thức (Knowledge Graphs) và Chức năng Biểu diễn}
 
-Đồ thị tri thức (Knowledge Graph - KG) là cấu trúc toán học biểu diễn thông tin dạng lưới, với $G = (V, E)$. Trong đó:
+Đồ thị tri thức (Knowledge Graph - KG) cho phép biểu diễn các thực thể và quan hệ của chúng dưới dạng cấu trúc tường minh. So với một kho vector thuần túy, KG có hai lợi thế quan trọng:
+
 \begin{itemize}
-    \item Tập đỉnh $V$ (Entities/Nodes) đại diện cho các thực thể vật lý hoặc trừu tượng (con người, sự kiện, chuỗi trạng thái).
-    \item Tập cạnh $E$ (Relations/Edges) thể hiện quy luật tương tác giữa các thành phần đỉnh. Dữ liệu ngữ nghĩa thường được biểu diễn theo cấu trúc bộ ba (Triple): $\langle \text{Subject}, \text{Predicate}, \text{Object} \rangle$.
+    \item \textbf{Biểu diễn quan hệ hiện hình}: Quan hệ thời gian, nhân quả, đồng tham chiếu thực thể hay chuyển pha trạng thái có thể được lưu trực tiếp bằng edge thay vì phải suy ngược hoàn toàn từ tương đồng ngữ nghĩa.
+    \item \textbf{Truy hồi đa bước}: KG hỗ trợ các thuật toán đi đồ thị, spreading activation và các dạng kết hợp tín hiệu xuyên nhiều node, phù hợp với các câu hỏi multi-hop hoặc cross-session.
 \end{itemize}
 
-Sự vượt trội của KG so với cơ sở dữ liệu Vector song song (Vector Database) thể hiện qua việc nó cung cấp cấu trúc biểu diễn hiện quy luật liên đới (explicit topology). Kỹ thuật truy vấn trên KG thường gắn liền với thuật toán Lan truyền kích hoạt (Spreading Activation - Collins and Loftus, 1975) mô phỏng lại cách năng lượng đi qua các khe synapse trong não bộ. Việc giới thiệu KG vào AI tác nhân giúp giảm thiểu ảo giác của mô hình ngôn ngữ lớn (LLM hallucination) và kiểm soát hoàn toàn hệ thống nhân quả, tính kế thừa cấu trúc từ các thế hệ truy vấn nhiều bước (multi-hop).
+Với các bài toán bộ nhớ hội thoại, KG đặc biệt hữu ích khi thông tin trả lời không nằm gọn trong một câu duy nhất mà bị phân tán qua nhiều phiên, nhiều sự kiện hoặc nhiều loại fact khác nhau.
 
 \subsection{Tiến trình phát triển hệ thống Bộ nhớ Dài hạn cho Tác nhân}
 
-\subsubsection{Mạng bộ nhớ HINDSIGHT: Tiên phong trong đồ thị dị thể}
+\subsubsection{HINDSIGHT: Đồ thị dị thể và truy hồi đa kênh}
 
-HINDSIGHT (Latimer et al., 2025) hiện đóng vai trò là hệ thống dẫn đầu SOTA với độ chính xác 91.4\% trên LongMemEval và 89.61\% tại tập LoCoMo (Maharana et al., 2024). Kiến trúc của HINDSIGHT cấu tạo từ 4 nhánh đặc tả (World, Experience, Opinion, Observation), duy trì quy trình ghi nhớ (Retain pipeline) thông qua thao tác sử dụng mô hình ngôn ngữ lớn (LLM) để chiết xuất thông tin thực tiễn phân rã dạng đồ thị (incremental retrieval).
+HINDSIGHT là một trong những hệ thống đáng chú ý nhất trong dòng bộ nhớ dài hạn dạng đồ thị cho agent hội thoại. Ở mức khái niệm, HINDSIGHT kết hợp:
 
-Trong quy trình nạp thông tin, HINDSIGHT thiết lập chuỗi truy xuất tịnh tiến bằng quy trình 5 bước: rút trích sự kiện (fact extraction) → kết nối và quy nạp định danh (entity resolution) → hồi tiếp gia cố dữ kiện (opinion reinforcement) → tạo tập dữ liệu phái sinh (observation regeneration) → và tích hợp song song các chuỗi bối cảnh hỗn hợp (background merging). Việc \textit{opinion reinforcement} đóng vai trò là "nút thắt cổ chai" kiến trúc nghiêm trọng: hệ phương trình bắt buộc phân hóa dữ kiện đối chiếu sự kiện lên trên toàn bộ mạng lưới Opinions sinh ra trước đó, gây lãng phí chu kỳ tính toán và bùng nổ độ phức tạp khi hội thoại trải dài trên nhiều phân đoạn (multi-session).
+\begin{itemize}
+    \item fact extraction từ hội thoại,
+    \item lưu trữ dưới dạng heterogeneous graph,
+    \item truy hồi song song trên nhiều channel như semantic, BM25, graph và temporal,
+    \item và dung hợp bằng Reciprocal Rank Fusion (RRF).
+\end{itemize}
 
-Pipeline truy hồi (Recall pipeline) sử dụng cơ chế truy xuất song song cấu trúc 4 luồng (semantic, BM25, graph, temporal) tương tác qua hệ thống dung hợp hạng nghịch đảo (Reciprocal Rank Fusion - RRF) song hành với thuật toán châm điểm chéo (cross-encoder reranking). Hệ thống truy hồi này được cấu hình như một cấu trúc định hình (deterministic non-LLM).
+Đóng góp lớn của HINDSIGHT là chứng minh rằng bộ nhớ dạng đồ thị có thể vượt xa vector store thuần trong các bài toán hội thoại dài. Tuy nhiên, khi nhìn từ góc độ kiến trúc, HINDSIGHT vẫn để lộ một số giới hạn mà CogMem muốn giải quyết:
 
-\subsubsection{HippoRAG2: Lan truyền Kích hoạt trên Đồ thị}
+\begin{itemize}
+    \item chưa có các typed network riêng cho \textit{habit}, \textit{intention} và \textit{action\_effect},
+    \item chiến lược fusion mặc định dùng profile trọng số tĩnh cho mọi loại truy vấn,
+    \item và lan truyền kích hoạt kiểu lấy cực đại khiến bằng chứng yếu từ nhiều đường khó cộng dồn.
+\end{itemize}
 
-HippoRAG2 là ứng cử viên nổi bật khác ở mảng cấu trúc truy xuất (Graph-based Retrieval). Khác biệt của HippoRAG2 so với các Vector Database nằm ở việc áp dụng hiệu năng tập trung của Lan truyền Kích hoạt để truy xuất các đỉnh có cường độ tín hiệu cộng hưởng nội hàm.
+\subsubsection{HippoRAG2: Truy hồi đồ thị nhấn mạnh liên kết tri thức}
 
-Mặc dù có lợi thế trong các tác vụ liên kết tri thức, HippoRAG2 sử dụng đồ thị đồng nhất (homogeneous graph). Do đó, nó bất cập hoàn toàn ở mảng lý luận ngữ nghĩa thời gian (Temporal reasoning), cũng như không cung cấp định dạng quy nạp sự kiện tạo hình thói quen hay các kế hoạch mang tính dự tính tương lai.
+HippoRAG2 thể hiện hướng đi nổi bật ở phía graph retrieval, đặc biệt trong các bài toán cần liên kết nhiều thực thể hoặc nhiều facts rời nhau. Ưu điểm của dòng tiếp cận này là biến truy hồi thành một quá trình lan truyền tín hiệu trên topology của đồ thị thay vì chỉ dựa vào embedding similarity.
 
-\subsubsection{Các Mạng Kho phẳng và Lưu trữ Vector (Mem0, MemGPT)}
+Tuy nhiên, các hệ thống kiểu HippoRAG2 vẫn chủ yếu mạnh ở lớp quan hệ ngữ nghĩa và liên kết tri thức, trong khi những cấu trúc như kế hoạch tương lai, thói quen hành vi hay bộ ba nhân quả hành động-kết quả chưa được mô hình hóa như các memory network chuyên biệt.
 
-Bên cạnh các cấu hình đồ thị, nhóm nghiên cứu tồn tại dạng hệ thống phẳng (Vector-centric).
+\subsubsection{Các hệ lưu trữ phẳng và vector-centric (Mem0, MemGPT)}
 
-\textbf{Mem0} đại diện cho hệ sinh thái lưu trữ phẳng — dựa hoàn toàn vào cơ sở dữ liệu phân tệp Vector Database để trích xuất ngữ cảnh. Sự thiếu hụt cấu trúc topology khiến hệ thống sụp đổ khi gặp các bối cảnh yêu cầu liên kết nhiều thông tin xa rời nhau (multi-hop).
+Bên cạnh nhánh đồ thị, nhiều hệ thống khác chọn cách lưu fact hoặc chunk trong vector store và tổ chức truy hồi quanh similarity search hoặc memory paging:
 
-\textbf{MemGPT} (Packer et al., 2023) mô phỏng khái niệm bộ nhớ hệ điều hành (OS-like memory architecture) với các vùng làm việc Main Context (RAM) và External Context (Disk). Tuy linh hoạt trong việc cấp phát dữ liệu vào bộ nhớ của LLM bằng thuật toán đổi trang (paging), kiến trúc non-graph này vẫn thiếu hụt năng lực truy xuất suy luận bậc cao (high-order semantic reasoning).
+\begin{itemize}
+    \item \textbf{Mem0}: nhấn mạnh extraction + vector retrieval, phù hợp với memory lookup nhanh nhưng hạn chế hơn khi cần quan hệ nhiều bước.
+    \item \textbf{MemGPT}: mô phỏng phân tầng bộ nhớ theo kiểu hệ điều hành, tách vùng context đang hoạt động và vùng lưu trữ ngoài.
+\end{itemize}
+
+Các hướng này hữu ích về mặt vận hành, nhưng khi đánh giá theo nhu cầu của hội thoại dài hạn, chúng thường thiếu topology đủ rõ để mô hình hóa temporal chains, causal links hay lifecycle của kế hoạch chưa hoàn thành.
 
 \begin{table}[H]
 \centering
-\caption{Hình thái đối sánh Cấu trúc của các hệ thống bộ nhớ đương đại}
+\caption{So sánh khái quát các hệ thống bộ nhớ dài hạn liên quan}
 \label{tab:memory_systems_compare}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{|l|c|c|c|c|l|}
+\begin{tabular}{|l|c|c|c|c|c|l|}
 \hline
-\textbf{Hệ thống} & \textbf{Graph-based} & \textbf{Temporal Semantics} & \textbf{Habit Network} & \textbf{Intention Network} & \textbf{Lõi Truy hồi (Retrieval Engine)} \\
+\textbf{Hệ thống} & \textbf{Graph-based} & \textbf{Temporal} & \textbf{Habit} & \textbf{Intention} & \textbf{Action-Effect} & \textbf{Cơ chế truy hồi chính} \\
 \hline
-HINDSIGHT & Yes & Yes & No & No & RRF (Đồng trọng lượng tĩnh) \\
+HINDSIGHT & Yes & Yes & No & No & No & 4-channel retrieval + equal-weight RRF \\
 \hline
-HippoRAG2 & Yes & Limited & No & No & Lan truyền kích hoạt thuần (Spreading activation) \\
+HippoRAG2 & Yes & Limited & No & No & No & Graph retrieval / spreading activation \\
 \hline
-Mem0 & No & No & No & No & K-Nearest Neighbors (Vector similarity) \\
+Mem0 & No & Limited & No & No & No & Vector similarity + extracted memories \\
 \hline
-MemGPT & No & No & No & No & Phân cấp khối (Hierarchy-based paging) \\
+MemGPT & No & Limited & No & No & No & Memory paging / context management \\
 \hline
-\textbf{CogMem (Đề xuất)} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Định tuyến Query Thích ứng (Adaptive RRF) + SUM} \\
+\textbf{CogMem (đề xuất)} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Adaptive routing + BFS/SUM graph recall} \\
 \hline
-\end{tabular}%
+\end{tabular}% 
 }
 \end{table}
 
 \subsection{Dữ liệu đánh giá (Evaluation Benchmarks)}
 
-Việc đánh giá hệ thống được đối soát trên hai nền tảng benchmark chuyên biệt:
+\subsubsection{LongMemEval-S (Hội thoại đa phiên)}
 
-\subsubsection{LongMemEval-S (Mô phỏng đa phiên hội thoại phân tán)}
+LongMemEval-S là benchmark phù hợp để đánh giá khả năng xử lý hội thoại dài qua nhiều phiên, đặc biệt ở các nhóm câu hỏi liên quan tới multi-session retrieval, temporal reasoning và preference. Đây là benchmark quan trọng để đo hiệu năng hệ thống ở cấp end-to-end.
 
-Không gian LongMemEval-S (Wu et al., 2025) là phiên bản chuyên sâu gồm 500 bài toán chất vấn, dàn trải trên một cấu trúc lưu vết khổng lồ (khoảng 50 phiên tương tác, vượt trên 115K text tokens). Các ranh giới đánh giá khắc nghiệt hội tụ tại các chiều logic: hội thoại phân mảnh (multi-session), lập luận khung thời gian (temporal reasoning), và chiết xuất ưu tiên ngầm định (preference). Đây là địa hạt chứng minh sự giới hạn lớn của mô hình RAG thuần khi đối mặt với dữ liệu nhiễu.
+\subsubsection{LoCoMo (Lý luận multi-hop)}
 
-\subsubsection{LoCoMo (Mô phỏng lập luận đồ thị Multi-hop)}
+LoCoMo tập trung mạnh hơn vào truy hồi nhiều bước và nối bằng chứng qua các đoạn hội thoại dài. Vì vậy, benchmark này đặc biệt hữu ích để quan sát khả năng giữ mạch reasoning khi thông tin trả lời không nằm trọn trong một fact riêng lẻ.
 
-Tập dữ liệu LoCoMo (Maharana et al., 2024) tập trung với thiết lập 50 đoạn trò chuyện liên tục, trung bình 304.9 lượt trao đổi giao tiếp (turns/conversation). LoCoMo đóng vai trò đánh giá sâu khả năng lý luận cầu nối (multi-hop). Các tác vụ nhận thức này yêu cầu ráp nối ít nhất hai thông tin để truy hồi logic ẩn ($\geq$ 2). Tại LoCoMo, HINDSIGHT vẫn mắc kẹt ở ngưỡng 64.6\% do điểm rụng hạn chế trong thuật toán cấu trúc đồ thị MAX.
+\subsubsection{Giới hạn của benchmark chuẩn}
+
+LongMemEval-S và LoCoMo là các benchmark hệ thống rất cần thiết, nhưng chúng không phải lúc nào cũng đủ để cô lập giá trị của từng typed network mới. Trong quá trình phát triển CogMem, điều này dẫn tới nhu cầu bổ sung các thí nghiệm nhắm đích để kiểm tra riêng những dạng tín hiệu như prospective memory hoặc action-effect reasoning. Trong báo cáo này, nhận định đó chỉ được dùng như bối cảnh phương pháp luận; phần thực nghiệm chính thức vẫn được trình bày ở Chương 5.
 
 \subsection{Hạn chế cốt lõi của các Khung hệ thống Bộ nhớ hiện nay (Problem Formulation)}
 
-Nhìn chung, hệ thống hóa chuẩn mực của các mô hình quản lý bộ nhớ dài hạn đều đang vướng mắc tại các điểm đen toán học và cấu trúc sau:
+Từ tổng quan trên, có thể quy các khoảng trống chính của các hệ bộ nhớ đương đại về bốn nhóm:
 
 \begin{enumerate}
-    \item \textbf{Nén dữ kiện gây Tổn hao phi tuyến tính (Lossy compression)}: Việc nhúng LLM trích xuất siêu dữ liệu thông tin không tránh khỏi quá trình nén lượng tử định lượng có tổn thất. Sắc thái cảm xúc, con số cụ thể và giọng văn gốc bị phá hủy trong quá trình chắt lọc cốt truyện.
-
-    \item \textbf{Bế tắc ở Lan truyền Kích hoạt cực trị (Max-Spreading Activation)}: Hệ phương trình hàm MAX của HINDSIGHT thiết lập đường truyền năng lượng chuyên biệt qua một liên kết tải trọng tĩnh lớn nhất. Tính chất này vô tình cô lập các nguồn bằng chứng bổ trợ (evidence isolation). Nếu nhiều nguồn liên đới thứ cấp hội tụ về 1 đỉnh, phép MAX chỉ ghi nhận luồng lớn nhất và thủ tiêu phần còn lại, làm đứt gãy mạch liên kết hội tụ đa cầu.
-
-    \item \textbf{Suy kiệt Định tuyến Phân tích Ý định (Static Query Routing)}: Việc áp dụng RRF tĩnh với trọng lượng bằng nhau (Equal-weight RRF) đồng nghĩa việc cào bằng ý định đầu vào. Câu hỏi "khi nào?" yêu cầu luồng lý luận thời gian vượt trội, tương tự câu "tại sao?" đòi hỏi phân định quy luật nhân quả. Hệ số không đổi thất bại hoàn toàn trong việc mô phỏng quá trình định vị có chủ đích (attentional shift).
-
-    \item \textbf{Khuyết vắng kiến trúc Thói quen và Ý định (Missing S-R / A-O constructs)}: Các khung sơ đồ hiện tại chối bỏ hoàn toàn chuỗi thói quen kích thích - phản ứng (Habit: S-R links) và Mạng lưới Ý định (Intention Network). Hệ quả khiến việc lưu giữ nguyện vọng tương lai và nắm bắt hành vi lặp đi lặp lại của người dùng ở mức cực kỳ mờ nhạt.
+    \item \textbf{Lossy compression}: fact extraction làm gọn bộ nhớ nhưng dễ đánh mất số liệu, cảm xúc và văn bản gốc cần cho generation.
+    \item \textbf{Thiếu typed cognitive structures}: các tín hiệu như habit, intention hay action-effect thường không có ``chỗ ở'' riêng trong mô hình dữ liệu.
+    \item \textbf{Lan truyền bằng chứng chưa đủ giàu}: retrieval kiểu chỉ chọn đường mạnh nhất có thể làm rơi mất nhiều tín hiệu yếu nhưng bổ sung cho nhau.
+    \item \textbf{Định tuyến truy vấn còn cào bằng}: cùng một recipe fusion được áp cho semantic, temporal, causal hay prospective queries, dù bản chất truy hồi của chúng khác nhau.
 \end{enumerate}
 
 
 \vspace{1em}
-\noindent\textit{Bằng việc hệ thống hóa các giới hạn toán học và cấu trúc của các mô hình hiện hành, Chương 3 tiếp theo sẽ chính thức đề xuất kiến trúc CogMem — một giải pháp thiết kế bộ nhớ toàn diện lấy cảm hứng trực tiếp từ sinh học để giải quyết triệt để các rào cản đó.}
+\noindent\textit{Từ khoảng trống lý thuyết và kỹ thuật đó, Chương 3 sẽ trình bày CogMem như một kiến trúc bộ nhớ dài hạn nhằm kết hợp biểu diễn nhận thức chuyên biệt với cơ chế truy hồi thích ứng theo loại truy vấn.}
 
 \end{document}

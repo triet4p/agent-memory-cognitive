@@ -1,18 +1,17 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Kế thừa hệ thống phương pháp luận đã đề xuất ở Chương 3, chương này trình bày các phân tích và minh chứng toán học chặt chẽ nhằm đảm bảo tính ổn định, hội tụ của thuật toán lan truyền kích hoạt trên đồ thị.}
+\textit{Kế thừa kiến trúc đã mô tả ở Chương 3, chương này phân tích cơ sở nhận thức và lý thuyết đằng sau từng quyết định thiết kế chính của CogMem. Mục tiêu của chương không phải là chứng minh mỗi thành phần luôn thắng trên mọi benchmark, mà là chỉ ra vì sao các thành phần đó là những lựa chọn biểu diễn và truy hồi có cơ sở khoa học.}
 
 \section{Phân tích lý thuyết}
-
 
 \subsection{Cơ sở khoa học nhận thức cho Memory Graph (6 Networks)}
 
 \subsubsection{Semantic Memory và World Network}
 
-Tulving (1972) định nghĩa Semantic Memory là hệ thống lưu trữ kiến thức chung về thế giới, không gắn với ngữ cảnh thời gian-không gian cụ thể. Semantic memory được lưu trữ chủ yếu ở Temporal-Parietal Cortex và cho phép ta biết các sự kiện khách quan mà không cần nhớ lại context cụ thể.
+Tulving (1972) định nghĩa semantic memory là hệ thống lưu trữ kiến thức chung về thế giới, tương đối tách rời khỏi bối cảnh trải nghiệm cụ thể. Điều này là cơ sở cho \textbf{World Network} trong CogMem: những fact như nghề nghiệp, kỹ năng, quan hệ khách quan hay tri thức miền có thể được lưu dưới dạng world fact mà không cần gắn chặt với một episode riêng lẻ.
 
-World Network của CogMem tương ứng với Semantic Memory: lưu các sự kiện khách quan, kiến thức chung như "DI chuyên về LLM infrastructure." Schema của World node không có timestamp hay spatial coordinates vì đây là thông tin time-independent.
+Về mặt hệ thống, việc tách world ra khỏi experience giúp giảm nhập nhằng giữa ``kiến thức về người dùng'' và ``một lần người dùng kể lại điều gì đó''. Đây là khác biệt quan trọng cho cả retrieval lẫn synthesis.
 
 \begin{figure}[H]
 \centering
@@ -24,56 +23,60 @@ Hình 4.1: Semantic Memory và World Network.
 
 \subsubsection{Episodic Memory và Experience Network}
 
-Tulving (1983) mở rộng lý thuyết với Episodic Memory — hệ thống lưu trữ các sự kiện cá nhân có gắn thời gian và không gian (what, where, when). Episodic memory được lưu trữ ở Hippocampus và bị ảnh hưởng đầu tiên trong các trường hợp amnesia.
+Episodic memory theo Tulving (1983) lưu trữ các sự kiện cá nhân gắn với thời gian và hoàn cảnh. Đây là nền tảng lý thuyết cho \textbf{Experience Network}. Khi hệ thống cần trả lời các câu hỏi ``đã xảy ra khi nào'', ``trong lần nào'', hoặc ``ở giai đoạn nào của câu chuyện'', các experience node đóng vai trò như mốc sự kiện cơ bản của trí nhớ hội thoại.
 
-Experience Network của CogMem tương ứng với Episodic Memory: lưu các sự kiện cá nhân có timestamp và location cụ thể. Schema của Experience node bao gồm các trường occurred\_start, occurred\_end để capture temporal span.
-
-Điều quan trọng là Experience Network cần phân biệt được với World Network — cùng một sự kiện có thể được encode cả hai cách. Ví dụ: "User chuyển sang DI" là World fact (objective), nhưng "User kể chuyện buồn về việc nghỉ VCCorp vào 12/3/2024" là Experience fact (subjective, temporal).
+Việc duy trì các trường thời gian như \textit{occurred\_start} và \textit{occurred\_end} không chỉ là chi tiết kỹ thuật; nó phản ánh trực tiếp ý tưởng rằng episodic recall cần một trục thời gian để tổ chức các sự kiện đã xảy ra.
 
 \subsubsection{Habit Memory và Habit Network}
 
-Squire and Zola-Morgan (1991) phân loại procedural memory và habit memory ở Basal Ganglia. Habit memory là các mẫu hành vi tự động được hình thành qua lặp lại, không cần ý thức. Điều đặc biệt là habit memory không bị mất khi hippocampus bị tổn thương — chứng minh đây là một hệ con bộ nhớ riêng biệt.
+Habit memory thường được liên hệ với các mẫu hành vi lặp lại, ít phụ thuộc vào deliberation tức thời. Trong CogMem, \textbf{Habit Network} đóng vai trò như nơi biểu diễn các regularities kiểu ``user thường làm gì'', ``hay chọn gì'', ``phản ứng quen thuộc trong ngữ cảnh nào''.
 
-Habit Network của CogMem model các pattern hành vi lặp lại với S-R links (Stimulus-Response). Khi một pattern được lặp lại nhiều lần trong hội thoại, hệ thống tạo Habit node và liên kết S-R đến các Experience nodes tương ứng.
+Từ góc độ nhận thức, habit khác với event đơn lẻ ở chỗ nó tổng quát hóa qua nhiều lần lặp. Từ góc độ hệ thống, điều này giải thích vì sao habit không nên bị xem như một experience bình thường. Một experience nói về một lần xảy ra; một habit nói về một pattern bền hơn.
 
-Devaluation test (Dickinson and Balleine, 1994) là tiêu chuẩn để phân biệt habit (S-R) với goal-directed action (A-O): nếu outcome mất giá trị, habit vẫn tiếp tục, trong khi A-O action bị ức chế.
+Implementation hiện tại dùng các liên kết S-R ở mức thực dụng để neo habit với các experience liên quan, thay vì mô hình reinforcement learning hoàn chỉnh. Dù vậy, hướng biểu diễn vẫn giữ đúng tinh thần của habit memory: tách pattern lặp lại ra khỏi event đơn lẻ.
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.2: Habit Memory ở Basal Ganglia và Habit Network.
+Hình 4.2: Habit Memory và Habit Network.
 \caption{Habit Memory và Habit Network}
 \label{fig:ch4_habit_memory}
 \end{figure}
 
 \subsubsection{Prospective Memory và Intention Network}
 
-Brandimonte et al. (1996) mô tả Prospective Memory là khả năng nhớ thực hiện các hành động đã lên kế hoạch trong tương lai. Đây là một chức năng nhận thức quan trọng nhưng thường bị bỏ qua trong các hệ thống bộ nhớ AI.
+Prospective memory được mô tả như khả năng ``nhớ để thực hiện một việc trong tương lai''. Đây là nền tảng cho \textbf{Intention Network}. Trong hội thoại dài hạn, các phát biểu như ``tôi định học Rust'', ``tuần tới tôi sẽ nộp hồ sơ'', hay ``tôi chưa làm việc đó'' không nên bị ép hết vào experience hoặc world, vì chúng chứa một loại trạng thái khác: kế hoạch chưa hoàn tất.
 
-Prospective memory discharge theo Brandimonte: khi một intention được fulfilled, nó không biến mất mà được re-encoded như autobiographical event trong episodic memory. Đây là cơ sở cho Transition edge trong CogMem — khi Intention trở thành Experience, ta tạo Transition edge "fulfilled\_by" để track lifecycle.
-
-Intention Network với các trạng thái (planning $\rightarrow$ fulfilled $\rightarrow$ abandoned) và typed transition edges (fulfilled\_by, abandoned, triggered, enabled\_by) model chính xác prospective memory discharge.
+CogMem mô hình hóa ý tưởng này bằng \textit{intention\_status}. Một intention có thể ở trạng thái \textit{planning}, \textit{fulfilled} hoặc \textit{abandoned}. Quan trọng hơn, transition không được hiểu đơn giản là ``mọi trạng thái đều là edge''. Trong implementation hiện tại:
+\begin{itemize}
+    \item \texttt{fulfilled\_by} nối intention với experience khi kế hoạch được thực hiện,
+    \item \texttt{triggered} nối experience sang intention khi một sự kiện khơi ra kế hoạch mới,
+    \item \texttt{enabled\_by} nối giữa các intention,
+    \item còn \textit{abandoned} được giữ như một trạng thái của node, không phải một edge type riêng.
+\end{itemize}
 
 \begin{table}[H]
 \centering
-\caption{Intention Lifecycle và Transition Edges}
+\caption{Intention lifecycle và typed transition semantics}
 \label{tab:intention_lifecycle}
-\resizebox{\textwidth}{!}{
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|p{3.0cm}|p{4.0cm}|p{4.4cm}|}
 \hline
-\textbf{Event} & \textbf{Intention Node} & \textbf{Transition Edge} \\
+\textbf{Tình huống} & \textbf{Biểu diễn trên intention node} & \textbf{Transition semantics} \\
 \hline
-Planning formed & status=planning, goal=X & — \\
+Lập kế hoạch mới & status = planning & chưa cần transition \\
 \hline
-Intention fulfilled & status=fulfilled, fulfilled\_at=timestamp & fulfilled\_by:  Intention $\rightarrow$ Experience \\
+Kế hoạch được thực hiện & status có thể cập nhật; experience mới được tạo & fulfilled\_by: intention $\rightarrow$ experience \\
 \hline
-Intention abandoned & status=abandoned (node kept) & abandoned:  Intention $\rightarrow$ null \\
+Sự kiện gợi ra kế hoạch mới & intention planning mới xuất hiện & triggered: experience $\rightarrow$ intention \\
 \hline
-New plan triggered & — & triggered:  Experience $\rightarrow$ Intention \\
+Kế hoạch phụ thuộc kế hoạch khác & hai intention cùng tồn tại & enabled\_by: intention $\rightarrow$ intention \\
+\hline
+Kế hoạch bị hủy bỏ & status = abandoned & không cần edge riêng; trạng thái nằm trên node \\
 \hline
 \end{tabular}
-}
 \end{table}
+
+Các ablation nhắm đích thực hiện sau này trong dự án cho thấy intention network không phải lúc nào cũng tạo lợi thế đồng đều. Tuy nhiên, điều đó không phủ định cơ sở của nó; ngược lại, nó gợi ý rằng prospective representation đặc biệt quan trọng ở các trường hợp mà nội dung ``plan-not-done'' không được world hoặc experience hấp thụ tự nhiên.
 
 \begin{figure}[H]
 \centering
@@ -85,13 +88,11 @@ Hình 4.3: Intention lifecycle và prospective memory discharge.
 
 \subsubsection{Theory of Event Coding (TEC) và Action-Effect Network}
 
-Hommel et al. (2001) đề xuất Theory of Event Coding (TEC): nhận thức và hành động được mã hóa theo cùng một cách — thông qua các event representations. Mỗi action được bind với các effect representations của nó, và ngược lại.
+Theory of Event Coding (TEC) nhấn mạnh rằng hành động và hệ quả cảm nhận được của hành động là hai mặt của cùng một event representation. Đây là nền tảng cho \textbf{Action-Effect Network} của CogMem. Khi một hệ thống muốn trả lời câu hỏi causal như ``vì sao cách làm đó hiệu quả?'' hoặc ``hành động nào đã dẫn tới kết quả này?'', việc có một node chuyên biệt mang bộ ba \textit{precondition -- action -- outcome} là hữu ích hơn so với chỉ lưu một câu world fact chung chung.
 
-Trong TEC, A-O binding (Action-Effect) là fundamental: khi ta nhận thức một action, ta đồng thời nhận thức cả effect mong đợi. Điều này cho phép causal reasoning — nếu effect không xảy ra sau action, có thể action đã thất bại hoặc precondition không được satisfy.
+Điểm lý thuyết quan trọng ở đây là causal rule không chỉ là kiến thức về thế giới; nó còn là kiến thức về \textit{can thiệp}. Nói ``X là đúng'' khác với nói ``nếu ở trạng thái P, làm A sẽ dẫn tới O''. Action-effect network giữ nguyên cấu trúc can thiệp đó.
 
-Action-Effect Network của CogMem model A-O triples với precondition, action, outcome, và confidence. Network này cho phép trả lời các câu hỏi causal như "tại sao user làm X?" bằng cách traverse từ effect ngược về action và precondition.
-
-Phân biệt với Mem\textsuperscript{p}: Action-Effect Network lưu ở cấp action-level A-O triples từ NL dialogue, trong khi Mem\textsuperscript{p} lưu task-level scripts từ agent trajectory logs. Hai paradigm là orthogonal.
+Các thí nghiệm nhắm đích ở workload agentic về sau cho thấy giá trị của action-effect cũng mang tính điều kiện: nó đặc biệt hữu ích khi causal rule không bị tái mã hóa dễ dàng thành một world fact kiểu ``X được giải quyết bằng Y''. Điều này củng cố cách nhìn của chương này: action-effect là một lớp biểu diễn cần thiết cho một số loại causal knowledge, chứ không phải luôn là lớp biểu diễn duy nhất có thể hoạt động.
 
 \begin{figure}[H]
 \centering
@@ -103,19 +104,13 @@ Hình 4.4: TEC và Action-Effect Network.
 
 \subsection{Cơ sở khoa học nhận thức cho Raw Snippet}
 
-Brainerd and Reyna (2004) đề xuất Fuzzy Trace Theory: con người lưu đồng thời hai dạng biểu diễn:
+Fuzzy Trace Theory của Brainerd và Reyna cho rằng con người lưu đồng thời ít nhất hai mức dấu vết trí nhớ:
 \begin{itemize}
-    \item \textbf{Gist}: tóm tắt ngữ nghĩa — dùng để nhận dạng nhanh, chống lại các câu hỏi về "có/không"
-    \item \textbf{Verbatim}: chi tiết nguyên bản — dùng khi cần recall chính xác, đặc biệt cho các câu hỏi về "chính xác bao nhiêu"
+    \item \textbf{gist}: phần tóm tắt ngữ nghĩa, đủ để nhận diện bản chất của sự kiện;
+    \item \textbf{verbatim}: phần chi tiết nguyên văn, cần thiết khi phải nhớ chính xác con số, trích dẫn hoặc thứ tự cụ thể.
 \end{itemize}
 
-Trong CogMem:
-\begin{itemize}
-    \item \textbf{narrative\_fact} $\approx$ gist: tóm tắt semantic của fact, dùng cho retrieval (nhận dạng nhanh)
-    \item \textbf{raw\_snippet} $\approx$ verbatim: chi tiết nguyên bản, dùng cho generation (recall chính xác)
-\end{itemize}
-
-Sự tách biệt này phản ánh đúng cách não người lưu trữ và recall memory. Khi retrieval cần precision, ta dùng gist + embedding. Khi generation cần exact detail (số cụ thể, tên riêng, cảm xúc), ta inject raw\_snippet vào context.
+CogMem phản ánh ý tưởng này bằng \textbf{fact text} và \textbf{raw\_snippet}. Fact text hỗ trợ retrieval vì ngắn gọn và dễ nhúng; raw\_snippet hỗ trợ synthesis vì giữ lại chi tiết nguyên bản. Ở implementation hiện tại, snippet có thể được inline trực tiếp vào generation prompt khi cần tăng grounding cho các câu hỏi đòi hỏi độ chính xác cao. Ngay cả khi policy sinh không luôn hiển thị snippet, việc bảo toàn nó vẫn là một yêu cầu kiến trúc.
 
 \begin{figure}[H]
 \centering
@@ -129,11 +124,9 @@ Hình 4.5: Fuzzy Trace Theory và 2-layer schema.
 
 \subsubsection{Episodic Buffer của Baddeley}
 
-Baddeley (2000) mở rộng model Working Memory với Episodic Buffer — không gian làm việc tích hợp tạm thời liên kết thông tin từ nhiều hệ con bộ nhớ dài hạn thành các episode mạch lạc.
+Baddeley mô tả episodic buffer như không gian tích hợp tạm thời, nơi nhiều nguồn thông tin từ các hệ con bộ nhớ khác nhau có thể được kết hợp thành một biểu diễn làm việc thống nhất. Ý tưởng này gần với cách CogMem dùng SUM spreading activation: không chọn duy nhất một đường mạnh nhất, mà tích lũy nhiều dấu vết bằng chứng có liên quan.
 
-Key property của Episodic Buffer: nó tích lũy thông tin từ nhiều nguồn, không chọn một nguồn duy nhất. Đây là lý do phép SUM thay vì MAX phản ánh đúng cơ chế của Episodic Buffer.
-
-Khác với HINDSIGHT dùng MAX (chỉ lấy đường mạnh nhất), SUM trong CogMem cho phép tích lũy evidence yếu từ nhiều paths — điều cần thiết cho multi-hop reasoning.
+Từ góc nhìn này, SUM không chỉ là một mẹo kỹ thuật để tăng recall. Nó là một lựa chọn mô hình hóa hợp lý khi coi truy hồi như một quá trình xây dựng lại episode từ nhiều mảnh tín hiệu rải rác.
 
 \begin{figure}[H]
 \centering
@@ -145,60 +138,48 @@ Hình 4.6: Episodic Buffer của Baddeley.
 
 \subsubsection{Hodgkin-Huxley và Local Refractory Period}
 
-Hodgkin and Huxley (1952) mô tả refractoriness trong neuron: sau khi fire, neuron cần một khoảng thời gian hồi phục trước khi có thể fire lại. Điều này ngăn chặn reverberation — tín hiệu bounce qua lại giữa hai neurons.
-
-Local Refractory Period guard trong CogMem implement nguyên lý này: khi một node đã được kích hoạt ở bước $t$, nó không thể nhận thêm activation trong bước $t+1$. Điều này ngăn chặn ping-pong giữa hai nodes ($A \leftrightarrow B$).
+Trong thần kinh học, refractory period ngăn neuron vừa phát xung bị kích hoạt lại ngay lập tức. Ý tưởng này được chuyển hóa trong CogMem thành guard chống ping-pong giữa hai node hoặc một vòng lặp cục bộ:
 
 \begin{equation}
-\text{refractory}(u) = \begin{cases} 0 & \text{nếu } u \text{ đã kích hoạt ở bước } t \\ 1 & \text{ngược lại} \end{cases}
+\mathrm{refractory}(u) =
+\begin{cases}
+0, & \text{nếu } u \text{ vừa được kích hoạt} \\
+1, & \text{ngược lại}
+\end{cases}
 \end{equation}
 
-Công thức này đảm bảo mỗi node chỉ contribute activation một lần trong mỗi propagation cycle, ngăn chặn oscillatory behavior.
+Về ý nghĩa tính toán, guard này biến propagation thành một quá trình tiến về phía trước thay vì dao động quanh cùng một cụm node.
 
 \subsubsection{Wilson-Cowan và Saturation Threshold}
 
-Wilson and Cowan (1972) mô tả dynamics của neural populations với các nonlinear interactions. Một trong những key insights là neural activity có thể saturate — khi activation quá cao, network trở nên unstable.
+Các mô hình động học thần kinh như Wilson-Cowan cho thấy hoạt động mạng cần những cơ chế phi tuyến để tránh bùng nổ năng lượng và giữ hệ ổn định. CogMem phản ánh điều này qua \textit{saturation threshold}: activation được chặn trên thay vì tăng vô hạn qua mỗi lần cộng dồn.
 
-Saturation Threshold guard implement nguyên lý này với $A_{\max} = 2.0$:
-
-\begin{equation}
-A(v, t+1) = \min\left( A(v, t+1)_{\text{raw}}, \; A_{\max} \right)
-\end{equation}
-
-Điều này đảm bảo activation values không explode trong các chain propagation dài, giữ cho network stable và đa dạng trong retrieval results.
-
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.7: Wilson-Cowan dynamics và saturation.
-\caption{Wilson-Cowan Dynamics và Saturation}
-\label{fig:ch4_wilson_cowan}
-\end{figure}
+Điều này quan trọng ở retrieval vì mục tiêu không chỉ là ``đẩy một node lên càng cao càng tốt'', mà còn là giữ được một tập candidate đa dạng để tầng fusion và synthesis còn có thể khai thác.
 
 \subsection{Cơ sở khoa học nhận thức cho Adaptive Query Routing}
 
-Attentional selection trong nhận thức: não người tùy theo bản chất nhiệm vụ mà tập trung vào hệ bộ nhớ phù hợp. Câu hỏi "khi nào?" kích hoạt hippocampal temporal circuits; câu hỏi "tại sao?" kích hoạt prefrontal causal reasoning; câu hỏi "sắp làm gì?" kích hoạt prospective memory retrieval.
+Adaptive Query Routing của CogMem có thể được xem như một dạng \textit{attentional selection} ở cấp hệ thống. Tùy theo bản chất truy vấn, hệ thống chuyển trọng tâm sang các nguồn bằng chứng khác nhau:
 
-Adaptive Query Routing implement attentional selection ở cấp hệ thống:
 \begin{itemize}
-    \item Temporal queries → ưu tiên temporal channel + hippocampal encoding
-    \item Causal queries → ưu tiên graph channel + A-O causal traversal
-    \item Prospective queries → ưu tiên graph channel + Intention network filter
-    \item Semantic queries → ưu tiên semantic channel
+    \item \textbf{Temporal queries}: tăng trọng số cho temporal channel và temporal constraint.
+    \item \textbf{Causal queries}: tăng trọng số cho graph evidence và action-effect signals.
+    \item \textbf{Prospective queries}: ưu tiên planning intention và transition evidence.
+    \item \textbf{Preference queries}: ưu tiên evidence liên quan đến habit, opinion và hành vi lặp lại.
+    \item \textbf{Multi-hop queries}: tăng vai trò của graph traversal để nối nhiều mảnh bằng chứng.
 \end{itemize}
 
-Mỗi query type có signal detection và weight profile riêng, phản ánh đúng cách não người route attention theo task demands.
+Về mặt nhận thức, đây là phép mô phỏng ý tưởng rằng bộ não không dùng cùng một chiến lược tìm kiếm cho mọi câu hỏi. Về mặt kỹ thuật, nó giải thích vì sao CogMem cần query analyzer, trọng số dung hợp theo loại truy vấn, và các bước hậu xử lý như prospective filtering hoặc evidence-priority boosting.
 
 \begin{figure}[H]
 \centering
 \textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.8: Attentional selection và Adaptive Query Routing.
+Hình 4.7: Attentional selection và Adaptive Query Routing.
 \caption{Attentional Selection và Adaptive Routing}
 \label{fig:ch4_attentional_selection}
 \end{figure}
 
 
 \vspace{1em}
-\noindent\textit{Sau khi các giới hạn tới hạn và độ trễ đã được chứng minh toán học lý thuyết, Chương 5 sẽ trình diễn các kết quả kết xuất từ môi trường chạy thực nghiệm (Numerical Results) nhằm đánh giá khách quan hiệu năng của CogMem.}
+\noindent\textit{Sau khi cơ sở lý thuyết của các quyết định thiết kế đã được làm rõ, Chương 5 sẽ chuyển sang phần đánh giá thực nghiệm để xem những giả thuyết này biểu hiện như thế nào trên dữ liệu benchmark.}
 
 \end{document}

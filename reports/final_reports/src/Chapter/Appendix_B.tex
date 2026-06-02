@@ -1,20 +1,23 @@
 \documentclass[../main.tex]{subfiles}
-\usepackage{tcolorbox}
 \begin{document}
 
 \chapter{Phụ lục B: Các Prompt Dành cho Đánh giá (Evaluation \& Reflection)}
 
-Phụ lục này cung cấp các Prompt liên quan đến quá trình tổng hợp thông tin sinh câu trả lời (Reflection pipeline) và các Prompt đánh giá tự động (LLM-as-a-Judge) dùng cho tập test LongMemEval-S và LoCoMo.
+Phụ lục này ghi lại các prompt ở tầng synthesis và evaluation. Đây là phần nối giữa evidence do recall pipeline trả về và câu trả lời cuối cùng của hệ thống, đồng thời cũng là nơi phục vụ chấm điểm tự động trong các benchmark chuẩn.
 
 \subsection{B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}
 
-Prompt này nhận đầu vào là các khối bằng chứng (Evidence/Raw Snippets) truy xuất được từ Đồ thị CogMem và ép LLM trả lời nghiêm ngặt dựa trên dữ liệu đồ thị có thật để chống lại hiện tượng ảo giác (hallucination) thường thấy.
+Prompt generation nhận đầu vào là tập bằng chứng đã được recall. Ở kiến trúc hiện tại, \textit{raw\_snippet} có thể được đưa inline cùng mỗi memory khi policy generate yêu cầu thêm grounding nguyên văn; vì vậy, prompt nhấn mạnh việc trả lời chỉ từ evidence được cung cấp.
 
-\begin{tcolorbox}[title=System Prompt: Answer Generation,
-colback=gray!5!white, colframe=black!75!black,
-text width=\linewidth, nobeforeafter]
-\small
-\begin{verbatim}
+\begin{tcblisting}{
+title=System Prompt: Answer Generation,
+colback=gray!5!white,
+colframe=black!75!black,
+breakable,
+listing only,
+listing engine=listings,
+listing options={style=cogmem}
+}
 You are an AI assistant designed to answer
 the user's latest query using ONLY the
 provided long-term memory evidence.
@@ -36,18 +39,21 @@ EVIDENCE RULES:
 <--- BEGIN EVIDENCE --->
 {evidence}
 <--- END EVIDENCE --->
-\end{verbatim}
-\end{tcolorbox}
+\end{tcblisting}
 
 \subsection{B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}
 
-Được dùng trong tập script benchmark để tự động tính điểm từ 0.0 đến 1.0. Prompt này có quy tắc ưu tiên không phạt lỗi ngoại lệ lệch 1 đơn vị ngày/tháng với các câu hỏi chuỗi thời gian (temporal reasoning).
+Prompt judge dùng cho benchmark pipeline để so sánh câu trả lời sinh ra với đáp án chuẩn. Các luật chấm ưu tiên semantic correctness hơn là trùng khớp ký tự tuyệt đối, và chấp nhận một số sai số nhỏ ở nhóm câu hỏi temporal.
 
-\begin{tcolorbox}[title=System Prompt: LLM Judge (Temporal Focus),
-colback=gray!5!white, colframe=black!75!black,
-text width=\linewidth, nobeforeafter]
-\small
-\begin{verbatim}
+\begin{tcblisting}{
+title=System Prompt: LLM Judge (Temporal Focus),
+colback=gray!5!white,
+colframe=black!75!black,
+breakable,
+listing only,
+listing engine=listings,
+listing options={style=cogmem}
+}
 You are an evaluation judge for a memory
 system. I will give you a question, a
 correct answer, and a model response.
@@ -72,7 +78,6 @@ OUTPUT FORMAT:
 Respond ONLY with a JSON object.
 {"score": <float between 0.0 and 1.0>,
  "reason": "<string>"}
-\end{verbatim}
-\end{tcolorbox}
+\end{tcblisting}
 
 \end{document}

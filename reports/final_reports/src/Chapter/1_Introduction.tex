@@ -5,59 +5,52 @@
 
 \subsection{Bối cảnh và vấn đề}
 
-Các hệ thống tác nhân hội thoại AI (conversational AI agents) hiện tại đã đạt được những bước tiến đáng kể trong việc kết nối và xử lý thông tin ngắn hạn. Mặc dù vậy, hạn chế cốt lõi vẫn nằm ở khả năng duy trì bộ nhớ dài hạn xuyên suốt nhiều phiên hội thoại (multi-session). Khi số lượng token vượt mức giới hạn của ngữ cảnh (context window), những thông tin từ các phiên trao đổi trước đó sẽ bị loại bỏ. Điều này làm mất đi khả năng truy hồi thông tin người dùng và các cột mốc trong quá khứ — khiến tác nhân AI hành xử như thể đang làm việc với người dùng ở lần gặp đầu tiên.
+Các tác nhân hội thoại hiện đại đã đạt tiến bộ rõ rệt ở những tác vụ ngắn hạn như trả lời câu hỏi, lập kế hoạch theo từng phiên làm việc, hay tương tác dựa trên một cửa sổ ngữ cảnh lớn. Tuy nhiên, khi tương tác kéo dài qua nhiều ngày hoặc nhiều phiên hội thoại, hạn chế cốt lõi vẫn nằm ở khả năng duy trì \textit{bộ nhớ dài hạn} một cách có cấu trúc và có thể truy hồi. Khi số lượng token vượt khỏi cửa sổ ngữ cảnh, thông tin từ các phiên trước dần bị loại bỏ; hệ quả là tác nhân mất dấu lịch sử người dùng, các mốc thời gian, các sở thích lặp lại và cả những kế hoạch còn dang dở.
 
-Vấn đề này ảnh hưởng nghiêm trọng đến hiệu suất của các ứng dụng trong thế giới thực, điển hình như trợ lý cá nhân ảo, hệ thống chăm sóc khách hàng, hay các tác nhân AI cá nhân hóa có nhiệm vụ đồng hành cùng người dùng trong dài hạn. Người dùng kỳ vọng tác nhân có thể ghi nhớ chính xác những luồng thông tin đã tương tác, bao gồm sở thích, thói quen và các kế hoạch tương lai — phương diện mà các thế hệ AI hiện tại chưa thể giải quyết một cách bền vững.
+Vấn đề này đặc biệt quan trọng trong các ứng dụng cần tính liên tục cao như trợ lý cá nhân, hệ thống chăm sóc khách hàng, tác nhân hỗ trợ học tập, hay các AI companion được kỳ vọng đồng hành lâu dài cùng một người dùng. Trong những bối cảnh đó, bộ nhớ không chỉ là khả năng ``nhớ lại một câu đã nói'', mà còn là năng lực tái sử dụng các sự kiện, mối liên hệ và tín hiệu hành vi dưới một dạng biểu diễn đủ bền vững để phục vụ cho truy vấn tương lai.
 
 \subsection{Hạn chế của các giải pháp hiện tại}
 
-Thế hệ hệ thống bộ nhớ trước đó chủ yếu sử dụng chiến pháp đơn thuần: lưu trữ nguyên trạng các bản ghi hội thoại (raw conversation logs) vào cơ sở dữ liệu vector và ứng dụng kiến trúc RAG (Retrieval-Augmented Generation) để tiến hành truy xuất. Hướng tiếp cận này mang lại nhiều hạn chế đáng kể:
+Các hướng tiếp cận phổ biến cho bài toán bộ nhớ dài hạn thường rơi vào một trong hai cực: (1) lưu trữ văn bản thô rồi truy xuất bằng vector similarity, hoặc (2) nén hội thoại thành các ``fact'' gọn hơn để lưu trong đồ thị hoặc cơ sở dữ liệu vector. Cả hai hướng đều hữu ích, nhưng vẫn để lộ nhiều giới hạn thực dụng:
 
 \begin{itemize}
-    \item \textbf{Nén cấu trúc có tổn hao (Lossy compression)}: Việc áp dụng LLM nhằm trích xuất thông tin (facts) từ lịch sử hội thoại là một quá trình nén phi tuyến và không thể đảo ngược. Các hệ thống như Mem0 cho thấy hiện tượng mất mát thông tin đáng kể khi trích xuất facts từ các biểu đồ lưu vết (trajectory) dài.
-    \item \textbf{Thiếu cấu trúc dữ liệu tường minh}: Các bản ghi dài lên đến hàng triệu token hoạt động dưới dạng dữ liệu phẳng không có sự phân loại cấu trúc, làm mất đi khả năng nhận diện chức năng của từng luồng thông tin.
-    \item \textbf{Sự thất bại của các kỹ thuật tìm kiếm truyền thống}: Các hệ thống retrieval đơn thuần không thể đáp ứng chuỗi các câu hỏi mang tính phức tạp, điển hình là các truy tìm yêu cầu lý luận multi-hop, các vấn đề về hành vi thói quen (habit) hay truy vết mang tính nhân quả (causality).
-    \item \textbf{Thiếu hệ thống ngữ nghĩa thời gian (Temporal semantics)}: Không duy trì được cơ sở để bảo toàn trật tự tuyến tính của thời gian cũng như cơ cấu nguyên nhân - kết quả giữa các cột mốc chuỗi sự kiện.
+    \item \textbf{Nén có tổn hao (lossy compression)}: Khi LLM rút gọn hội thoại thành các fact ngắn, nhiều chi tiết định lượng, sắc thái cảm xúc, hoặc ngữ cảnh nguyên bản bị mất đi và khó khôi phục về sau.
+    \item \textbf{Biểu diễn phẳng hoặc bán-phẳng}: Nếu mọi fact đều bị đưa vào cùng một không gian biểu diễn, hệ thống khó phân biệt giữa kiến thức khách quan, sự kiện cá nhân, thói quen, kế hoạch tương lai và quan hệ nhân quả.
+    \item \textbf{Truy hồi đa bước còn yếu}: Những câu hỏi cần nối nhiều tín hiệu yếu, nhiều phiên hội thoại, hoặc nhiều loại quan hệ khác nhau thường không được xử lý tốt bởi retrieval đơn thuần dựa trên một kênh.
+    \item \textbf{Định tuyến truy vấn còn tĩnh}: Một câu hỏi temporal, causal hay prospective không nên được đối xử giống hệt một câu hỏi semantic. Việc dùng một profile truy hồi đồng nhất cho mọi loại truy vấn làm giảm hiệu quả của từng channel chuyên biệt.
 \end{itemize}
+
+Các phân tích và thí nghiệm nhắm đích sau này trong dự án cũng gợi ý thêm một điểm quan trọng: ngay cả khi mở rộng hệ thống bằng các mạng bộ nhớ chuyên biệt, giá trị của từng mạng không phải lúc nào cũng xuất hiện đồng đều trên mọi benchmark. Nói cách khác, bài toán không chỉ là ``thêm nhiều node type hơn'', mà là thiết kế một biểu diễn đủ đúng để những loại tín hiệu như habit, intention hay action-effect thật sự có nơi tồn tại và được truy hồi đúng lúc.
 
 \subsection{Động lực và đóng góp của đồ án}
 
-Từ những hạn chế trên, đồ án này đề xuất CogMem — một khung bộ nhớ hội thoại dài hạn được xây dựng dựa trên các nguyên lý của khoa học nhận thức (cognitive science). 
+Từ các giới hạn trên, đồ án này đề xuất \textbf{CogMem} -- một khung bộ nhớ hội thoại dài hạn dựa trên khoa học nhận thức (\textit{cognitive science}) và đồ thị tri thức dị thể. Điểm xuất phát của CogMem là quan sát rằng bộ nhớ người không vận hành như một danh sách phẳng; thay vào đó, các loại ký ức khác nhau được tổ chức thành những hệ con có vai trò khác nhau trong hành vi và suy luận.
 
-Điểm xuất phát là quan sát: não người không lưu trữ ký ức như một danh sách phẳng, mà tổ chức theo nhiều hệ con bộ nhớ chuyên biệt, mỗi hệ phục vụ một loại truy vấn khác nhau và có cơ chất thần kinh riêng.
-
-CogMem đề xuất bốn đóng góp chính:
+Theo tinh thần đó, CogMem tập trung vào bốn đóng góp cốt lõi:
 
 \begin{enumerate}
-    \item \textbf{Cognitively-Grounded Memory Graph}: 6 mạng bộ nhớ (World, Experience, Opinion, Habit, Intention, Action-Effect) và 7 loại liên kết, phản ánh đúng bản chất của các quan hệ nhận thức.
-    \item \textbf{Lossless Node Metadata}: Trường raw\_snippet giữ nguyên văn bản hội thoại gốc, tránh mất mát thông tin.
-    \item \textbf{Episodic Buffer với SUM Spreading Activation}: Thay phép MAX bằng SUM để tích lũy bằng chứng từ nhiều đường, với 3 cơ chế bảo vệ chu trình.
-    \item \textbf{Adaptive Query Routing}: Phân loại truy vấn thành 6 loại và áp dụng trọng số RRF động theo từng loại.
+    \item \textbf{Cognitively-Grounded Memory Graph}: Tổ chức bộ nhớ thành sáu mạng fact chính -- \textit{world, experience, opinion, habit, intention, action\_effect} -- cùng bảy loại liên kết để duy trì cấu trúc quan hệ rõ ràng.
+    \item \textbf{Lossless Node Metadata}: Bảo toàn \textit{raw\_snippet} như phần văn bản gốc đi kèm mỗi node, giúp giảm mất mát thông tin giữa giai đoạn lưu trữ và giai đoạn sinh câu trả lời.
+    \item \textbf{Episodic Buffer với SUM Spreading Activation}: Dùng phép cộng tín hiệu thay cho phép chọn cực đại, kết hợp các cơ chế kiểm soát chu trình để truy hồi được bằng chứng phân tán qua nhiều đường.
+    \item \textbf{Adaptive Query Routing}: Phân loại truy vấn thành các nhóm semantic, temporal, causal, prospective, preference và multi-hop; từ đó áp dụng profile dung hợp phù hợp cho từng loại.
 \end{enumerate}
 
-% \begin{figure}[H]
-% \centering
-% %\includegraphics[width=0.8\textwidth]{figures/ch1_overview.png}
-% \fbox{\parbox{0.8\textwidth}{
-% \textbf{[FIGURE PLACEHOLDER]}\\ Hình 1.1: Tổng quan kiến trúc CogMem với 3 pipeline chính: Retain, Recall, Reflect.}}
-% \caption{Tổng quan kiến trúc CogMem}
-% \label{fig:ch1_overview}
-% \end{figure}
+Trong báo cáo này, bốn đóng góp trên được trình bày như \textbf{kiến trúc luận án cốt lõi} của CogMem. Các thí nghiệm nhắm đích thực hiện về sau trong dự án cho thấy các mạng bộ nhớ chuyên biệt như \textit{intention} và \textit{action\_effect} không tạo lợi thế đồng đều trên mọi tình huống; thay vào đó, chúng đặc biệt hữu ích khi tín hiệu kế hoạch hoặc quan hệ nhân quả không thể được hấp thụ tự nhiên bởi các fact type khác như \textit{world} hoặc \textit{experience}. Kết luận này làm cho động lực của CogMem thận trọng hơn, nhưng cũng thực tế hơn: các cấu trúc nhận thức mới không phải là ``thuốc chữa bách bệnh'', mà là những representational slots cần thiết cho các lớp câu hỏi nhất định.
 
 \subsection{Cấu trúc của đồ án}
 
 Đồ án được tổ chức như sau:
 
 \begin{itemize}
-    \item \textbf{Chương 2}: Literature Review — tổng quan các hệ thống bộ nhớ hiện tại (HINDSIGHT, HippoRAG2, Mem0, MemGPT) và các benchmark đánh giá (LongMemEval, LoCoMo).
-    \item \textbf{Chương 3}: Methodology — mô tả chi tiết 4 đóng góp chính của CogMem.
-    \item \textbf{Chương 4}: Theoretical Analysis — phân tích cơ sở khoa học nhận thức cho từng đóng góp.
-    \item \textbf{Chương 5}: Numerical Results — kết quả thực nghiệm và phân tích.
-    \item \textbf{Chương 6}: Kết luận và hướng phát triển.
+    \item \textbf{Chương 2}: Literature Review -- tổng quan các hướng tiếp cận bộ nhớ dài hạn, cơ sở khoa học nhận thức, đồ thị tri thức và các benchmark liên quan.
+    \item \textbf{Chương 3}: Methodology -- mô tả kiến trúc CogMem, retain pipeline, recall pipeline và bốn đóng góp cốt lõi của hệ thống.
+    \item \textbf{Chương 4}: Theoretical Analysis -- phân tích cơ sở nhận thức cho các memory networks, raw snippet, SUM spreading activation và adaptive routing.
+    \item \textbf{Chương 5}: Numerical Results -- trình bày kết quả thực nghiệm và các phân tích định lượng.
+    \item \textbf{Chương 6}: Conclusions -- tổng kết đóng góp, hạn chế và hướng phát triển.
 \end{itemize}
 
 
 \vspace{1em}
-\noindent\textit{Từ những động lực và bài toán thực tế được trình bày trong chương này, Chương 2 sẽ đi sâu vào việc khảo sát các cơ sở lý thuyết về Khoa học Nhận thức và Đồ thị Tri thức, đồng thời đánh giá các hệ thống bộ nhớ tiên tiến (SOTA) hiện nay nhằm định hình rõ những khiếm khuyết cần giải quyết.}
+\noindent\textit{Sau khi xác định bài toán và động lực của CogMem, Chương 2 sẽ hệ thống hóa nền tảng lý thuyết và các hệ thống liên quan nhằm làm rõ khoảng trống mà kiến trúc đề xuất cần lấp đầy.}
 
 \end{document}
