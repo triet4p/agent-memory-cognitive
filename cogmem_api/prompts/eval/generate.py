@@ -281,6 +281,172 @@ def build_generation_prompt_v2(
     return "\n".join(lines)
 
 
+_SNIPPET_QUERY_STOPWORDS = {
+    "about",
+    "after",
+    "all",
+    "and",
+    "any",
+    "are",
+    "before",
+    "been",
+    "did",
+    "does",
+    "for",
+    "from",
+    "has",
+    "have",
+    "his",
+    "her",
+    "how",
+    "into",
+    "list",
+    "long",
+    "many",
+    "much",
+    "of",
+    "the",
+    "their",
+    "them",
+    "they",
+    "take",
+    "took",
+    "was",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "who",
+    "why",
+    "with",
+}
+_DURATION_QUERY_RE = re.compile(r"\b(?:how long|take|took|for .* before|duration)\b", re.IGNORECASE)
+_DURATION_PHRASE_RE = re.compile(
+    r"\b(?:about|around|nearly|almost|roughly|approximately|just under|over|under|more than|less than)?\s*"
+    r"(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+    r"a|an)\s+"
+    r"(?:day|days|week|weeks|month|months|year|years|hour|hours|minute|minutes)\b",
+    re.IGNORECASE,
+)
+_LIST_ALIAS_TERMS = {
+    "band": ("band", "bands", "concert", "festival", "headlined", "headliner", "music"),
+    "bands": ("band", "bands", "concert", "festival", "headlined", "headliner", "music"),
+    "book": ("book", "books", "author", "authors", "novel", "read", "reading", "recommended"),
+    "books": ("book", "books", "author", "authors", "novel", "read", "reading", "recommended"),
+    "game": ("game", "games", "gaming", "played", "strategy", "rpg"),
+    "games": ("game", "games", "gaming", "played", "strategy", "rpg"),
+    "activity": ("activity", "activities", "hobby", "event", "museum", "hiking", "camping"),
+    "activities": ("activity", "activities", "hobby", "event", "museum", "hiking", "camping"),
+    "gift": ("gift", "gifts", "received", "owns", "item", "items"),
+    "gifts": ("gift", "gifts", "received", "owns", "item", "items"),
+    "family": ("family", "father", "mother", "sister", "brother", "grandmother"),
+    "sport": ("sport", "sports", "exercise", "training", "yoga", "strength", "basketball"),
+    "sports": ("sport", "sports", "exercise", "training", "yoga", "strength", "basketball"),
+    "exercise": ("sport", "sports", "exercise", "training", "yoga", "strength", "basketball"),
+    "exercises": ("sport", "sports", "exercise", "training", "yoga", "strength", "basketball"),
+    "class": ("class", "classes", "course", "courses"),
+    "classes": ("class", "classes", "course", "courses"),
+    "beer": ("beer", "bar", "pub", "stout", "lager"),
+    "trick": ("trick", "tricks", "pet", "dog", "sit", "stay", "paw", "rollover"),
+    "tricks": ("trick", "tricks", "pet", "dog", "sit", "stay", "paw", "rollover"),
+    "city": ("city", "cities", "visited", "trip", "travel"),
+    "cities": ("city", "cities", "visited", "trip", "travel"),
+    "country": ("country", "countries", "visited", "trip", "travel"),
+    "countries": ("country", "countries", "visited", "trip", "travel"),
+    "collectible": ("collectible", "collectibles", "collection", "memorabilia"),
+    "collectibles": ("collectible", "collectibles", "collection", "memorabilia"),
+}
+
+
+def select_query_relevant_snippet(
+    query: str,
+    raw_snippet: str,
+    fact_text: str = "",
+    max_chars: int = 420,
+) -> str:
+    """Return the most query-relevant snippet windows for inline evidence."""
+    cleaned = _clean_reference(raw_snippet).strip()
+    if not cleaned:
+        return ""
+
+    windows = _split_snippet_windows(cleaned)
+    if not windows:
+        return cleaned[:max_chars] + ("..." if len(cleaned) > max_chars else "")
+
+    terms = _snippet_query_terms(query, fact_text)
+    phrases = _snippet_query_phrases(query)
+    wants_duration = bool(_DURATION_QUERY_RE.search(query))
+    scored: list[tuple[float, int, str]] = []
+    for idx, window in enumerate(windows):
+        lowered = window.lower()
+        score = 0.0
+        score += sum(1.0 for term in terms if term in lowered)
+        score += sum(2.0 for phrase in phrases if phrase in lowered)
+        if wants_duration and _DURATION_PHRASE_RE.search(window):
+            score += 8.0
+        if wants_duration and any(token in lowered for token in ("take", "took", "for", "before", "after")):
+            score += 1.0
+        if score > 0:
+            scored.append((score, idx, window))
+
+    if not scored:
+        return cleaned[:max_chars] + ("..." if len(cleaned) > max_chars else "")
+
+    ranked = sorted(scored, key=lambda item: (-item[0], item[1]))
+    max_score = ranked[0][0]
+    threshold = max(2.0, max_score * 0.5)
+    selected_indices = [idx for score, idx, _ in ranked if score >= threshold][:3]
+    selected = [windows[idx] for idx in sorted(selected_indices)]
+    preview = " ".join(selected).strip()
+    if len(preview) <= max_chars:
+        return preview
+    return preview[:max_chars].rstrip() + "..."
+
+
+def _split_snippet_windows(text: str) -> list[str]:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    parts = re.split(r"(?=\[[^\]]+\]:)|(?<=[.!?])\s+", normalized)
+    windows = [part.strip() for part in parts if part.strip()]
+    if len(windows) <= 1:
+        return windows
+
+    merged: list[str] = []
+    buffer = ""
+    for part in windows:
+        if not buffer:
+            buffer = part
+        elif len(buffer) < 80:
+            buffer = f"{buffer} {part}"
+        else:
+            merged.append(buffer)
+            buffer = part
+    if buffer:
+        merged.append(buffer)
+    return merged
+
+
+def _snippet_query_terms(query: str, fact_text: str = "") -> set[str]:
+    seed = f"{query} {fact_text}".lower()
+    terms: set[str] = set()
+    for token in re.findall(r"[a-z0-9]+", seed):
+        if len(token) < 3 or token in _SNIPPET_QUERY_STOPWORDS:
+            continue
+        terms.add(token)
+        for alias in _LIST_ALIAS_TERMS.get(token, ()):
+            terms.add(alias)
+    return terms
+
+
+def _snippet_query_phrases(query: str) -> set[str]:
+    phrases: set[str] = set()
+    for match in re.finditer(r"\b[A-Z][a-z0-9]+(?:\s+[A-Z][a-z0-9]+){0,3}\b", query):
+        phrase = match.group(0).strip().lower()
+        if phrase and phrase not in {"the", "which", "what", "where", "when", "who", "how"}:
+            phrases.add(phrase)
+    return phrases
+
+
 _V3_TEMPORAL_ANCHOR_RULE = "\n".join([
     "- For before/after temporal-chain questions: first identify the named anchor event",
     "  and its Session date, then compare candidate memories against that anchor.",
@@ -353,3 +519,114 @@ def build_generation_prompt_v3_temporal_list(
     if anchor in prompt:
         return prompt.replace(anchor, f"{anchor}\n{_V3_LIST_COMPLETENESS_RULE}", 1)
     return f"{prompt}\n{_V3_LIST_COMPLETENESS_RULE}"
+
+
+_V4_GENERAL_LIST_COMPLETENESS_RULE = "\n".join([
+    "- For list/enumeration questions about bands, books/authors, games, activities/events,",
+    "  gifts/items, family members, sports/exercises, classes, beers, pet tricks,",
+    "  countries/cities, collectibles, tools, apps, or resources: scan ALL numbered MEMORIES",
+    "  before answering. Include every distinct candidate that matches the asked relationship.",
+])
+_V4_CAUSAL_NEGATIVE_RULE = "\n".join([
+    "- For causal 'why' questions: give a reason only when a MEMORY or src explicitly links",
+    "  the queried subject/object/action to that reason. Do NOT infer from a different person,",
+    "  swapped entity relation, nearby unrelated event, or general world knowledge. If the",
+    "  explicit relation is absent, say memory does not state why.",
+])
+_V4_EXPLICIT_DURATION_RULE = "\n".join([
+    "- For 'how long', 'how long did it take', or 'for how long before' questions: first scan",
+    "  fact text and src lines for explicit duration phrases such as 'two weeks',",
+    "  'nearly three months', or 'for a year'. Use the stated duration before doing date",
+    "  arithmetic. Only compute dates if no explicit duration is stated.",
+])
+_V4_TANGENTIAL_EVIDENCE_RULE = "\n".join([
+    "- Do not turn tangential memories into an answer. If none of the MEMORIES explicitly",
+    "  addresses the queried subject plus relationship, say: 'I don't have information about",
+    "  this in memory.'",
+])
+
+
+def build_generation_prompt_v4_evidence_guard(
+    query: str,
+    evidence: list[dict],
+    question_date: str | None = None,
+    session_date_map: dict[str, str] | None = None,
+    include_snippets: bool = True,
+) -> str:
+    """S35-T8G prompt variant: T8E guards plus query-relevant source windows."""
+    session_order = _build_session_order(session_date_map) if session_date_map else {}
+
+    memory_parts: list[str] = []
+    for idx, item in enumerate(evidence, start=1):
+        text = item.get("text", "")
+        raw_snippet = item.get("raw_snippet") if include_snippets else None
+
+        date_suffix = ""
+        doc_id = item.get("document_id", "")
+        if session_order and doc_id in session_order:
+            ordinal, total = session_order[doc_id]
+            if ordinal == total:
+                recency_tag = " (most recent)"
+            elif total > 1 and ordinal == 1:
+                recency_tag = " (oldest)"
+            else:
+                recency_tag = ""
+            conv_date = session_date_map.get(doc_id, "")  # type: ignore[union-attr]
+            date_suffix = f" | Session {ordinal}/{total}{recency_tag}{f' | Date: {conv_date}' if conv_date else ''}"
+        elif session_date_map:
+            conv_date = session_date_map.get(doc_id, "")
+            if conv_date:
+                date_suffix = f" | Conversation date: {conv_date}"
+
+        memory_parts.append(f"[{idx}] {text}{date_suffix}")
+
+        if raw_snippet:
+            snippet_preview = select_query_relevant_snippet(query, raw_snippet, fact_text=text)
+            if snippet_preview:
+                memory_parts.append(f'    src: "{snippet_preview}"')
+
+    memory_block = "\n".join(memory_parts) if memory_parts else "[No memories]"
+
+    sep = "=" * 60
+    current_date_line = f"Current date: {question_date}\n" if question_date else ""
+
+    lines = [
+        "You are answering a question based on a person's stored memories.",
+        "Use ONLY the information provided below — do not add external knowledge.\n",
+        current_date_line,
+        sep,
+        f"QUESTION TO ANSWER: {query}",
+        sep + "\n",
+        ("MEMORIES (each fact + query-relevant source line when available — answer from these):\n"
+         if include_snippets else
+         "MEMORIES (extracted facts — answer from these):\n") + memory_block + "\n",
+        "Instructions:",
+        "- Answer PRIMARILY from MEMORIES. If MEMORIES contain partial information",
+        "  (e.g., some but not all items in a list), enumerate what you found and",
+        "  explicitly state the list may be incomplete.",
+        "- Do NOT say 'information not available' when partial evidence exists in MEMORIES.",
+        "- For 'how many' / counting questions: if a memory explicitly states a total quantity,",
+        "  use that stated number directly. Otherwise enumerate every distinct item found across",
+        "  ALL numbered MEMORIES. Two memories describe the SAME event ONLY when they share an",
+        "  explicit identifier (same date, same opponent/named entity, same unique outcome).",
+        "  Similar events at different dates, opponents, or outcomes are DISTINCT — count each",
+        "  separately. Do NOT collapse distinct items merely because they share a category",
+        "  (e.g., 'basketball game') or a generic descriptor (e.g., 'buzzer-beater').",
+        "- 'N days/weeks/months ago' means the event with the LARGER N occurred FURTHER in the past.",
+        "- For 'how long ago' questions: use Current date − the memory's Conversation date.",
+        "  Relative words like 'today' or 'recently' in a memory refer to that conversation's date.",
+        _V3_TEMPORAL_ANCHOR_RULE,
+        "- For knowledge-update questions (current state, latest preference): when memories conflict,",
+        "  prefer the fact from the most recent session (highest ordinal / latest Conversation date).",
+        "- When the question asks for tips, recommendations, or a list of tools/apps/resources:",
+        "  enumerate ALL relevant items mentioned across ALL numbered MEMORIES.",
+        _V4_GENERAL_LIST_COMPLETENESS_RULE,
+        _V4_CAUSAL_NEGATIVE_RULE,
+        _V4_EXPLICIT_DURATION_RULE,
+        _V4_TANGENTIAL_EVIDENCE_RULE,
+        "- If MEMORIES contain no relevant information at all, say so clearly:",
+        "  'I don't have information about this in memory.'",
+        "- Cite memories by index, e.g. [1] or [2].",
+    ]
+
+    return "\n".join(lines)

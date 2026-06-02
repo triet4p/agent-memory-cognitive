@@ -17,6 +17,7 @@ from cogmem_api.prompts.eval.generate import (
     build_generation_prompt_v2 as _bgp_v2,
     build_generation_prompt_v3_temporal as _bgp_v3_temporal,
     build_generation_prompt_v3_temporal_list as _bgp_v3_temporal_list,
+    build_generation_prompt_v4_evidence_guard as _bgp_v4_evidence_guard,
 )
 
 
@@ -36,9 +37,13 @@ def build_generation_prompt(
     - 'v3_temporal'/'v3': v2 plus one compact temporal-anchor rule (S35-T8B).
     - 'v3_temporal_list'/'v3-list': v3_temporal plus one compact list
             completeness guard (S35-T8E).
+    - 'v4_evidence_guard'/'v4': T8E plus query-relevant snippets, strict causal
+            negative-control guard, and explicit-duration handling (S35-T8G).
     """
     variant = os.environ.get("COGMEM_API_GENERATE_PROMPT_VARIANT", "legacy").strip().lower()
-    if variant in {"v3_temporal_list", "v3-temporal-list", "v3_list", "v3-list"}:
+    if variant in {"v4", "v4_evidence_guard", "v4-evidence-guard", "evidence_guard", "evidence-guard"}:
+        builder = _bgp_v4_evidence_guard
+    elif variant in {"v3_temporal_list", "v3-temporal-list", "v3_list", "v3-list"}:
         builder = _bgp_v3_temporal_list
     elif variant in {"v3", "v3_temporal", "v3-temporal"}:
         builder = _bgp_v3_temporal
