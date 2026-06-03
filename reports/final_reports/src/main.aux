@@ -76,134 +76,117 @@
 \@writefile{loa}{\addvspace {10\p@ }}
 \@writefile{toc}{\contentsline {section}{\numberline {3.1}Phương pháp đề xuất}{9}{section.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Tổng quan kiến trúc hệ thống CogMem}{9}{subsection.3.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Retain pipeline}{9}{subsubsection.3.1.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Recall pipeline}{10}{subsubsection.3.1.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Reflect / Synthesis pipeline}{10}{subsubsection.3.1.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}{10}{subsection.3.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Nền tảng tâm lý}{10}{subsubsection.3.1.2.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Sáu mạng bộ nhớ của CogMem}}{11}{figure.caption.7}\protected@file@percent }
-\newlabel{fig:ch3_six_networks}{{3.1}{11}{Sáu mạng bộ nhớ của CogMem}{figure.caption.7}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Sáu mạng bộ nhớ}{11}{subsubsection.3.1.2.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Các fact type cốt lõi và metadata chuyên biệt}}{11}{table.caption.8}\protected@file@percent }
-\newlabel{tab:node_schemas}{{3.1}{11}{Các fact type cốt lõi và metadata chuyên biệt}{table.caption.8}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Phân biệt Habit vs. Action-Effect}{12}{subsubsection.3.1.2.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces Phân biệt Habit và Action-Effect}}{12}{figure.caption.9}\protected@file@percent }
-\newlabel{fig:ch3_sr_vs_ao}{{3.2}{12}{Phân biệt Habit và Action-Effect}{figure.caption.9}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {d}Bảy loại liên kết (Edge Types)}{12}{subsubsection.3.1.2.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces Bảy loại liên kết trong CogMem}}{13}{figure.caption.10}\protected@file@percent }
-\newlabel{fig:ch3_edge_types}{{3.3}{13}{Bảy loại liên kết trong CogMem}{figure.caption.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw Snippet}{13}{subsection.3.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Vấn đề: nén dữ liệu có tổn hao}{13}{subsubsection.3.1.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Giải pháp: 2-layer node schema}{13}{subsubsection.3.1.3.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces 2-Layer Node Schema}}{14}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:ch3_two_layer_schema}{{3.4}{14}{2-Layer Node Schema}{figure.caption.11}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.4}Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}{14}{subsection.3.1.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Vấn đề: MAX chỉ giữ đường mạnh nhất}{14}{subsubsection.3.1.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Giải pháp: SUM thay cho MAX}{15}{subsubsection.3.1.4.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces So sánh HINDSIGHT (MAX) và CogMem (SUM)}}{15}{table.caption.12}\protected@file@percent }
-\newlabel{tab:max_vs_sum}{{3.2}{15}{So sánh HINDSIGHT (MAX) và CogMem (SUM)}{table.caption.12}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Ba cơ chế bảo vệ chu trình (Cycle Guards)}{15}{subsubsection.3.1.4.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces Ba cơ chế bảo vệ chu trình}}{16}{figure.caption.13}\protected@file@percent }
-\newlabel{fig:ch3_cycle_guards}{{3.5}{16}{Ba cơ chế bảo vệ chu trình}{figure.caption.13}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.5}Đóng góp 4: Adaptive Query Routing}{16}{subsection.3.1.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Vấn đề: equal-weight fusion không phản ánh ý định truy vấn}{16}{subsubsection.3.1.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Giải pháp: định tuyến và dung hợp theo query type}{16}{subsubsection.3.1.5.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3.3}{\ignorespaces Adaptive RRF weights theo query type trong implementation hiện tại}}{17}{table.caption.14}\protected@file@percent }
-\newlabel{tab:adaptive_rrf}{{3.3}{17}{Adaptive RRF weights theo query type trong implementation hiện tại}{table.caption.14}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces Adaptive Query Routing}}{17}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:ch3_adaptive_routing}{{3.6}{17}{Adaptive Query Routing}{figure.caption.15}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}THEORETICAL ANALYSIS}{18}{chapter.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Tổng quan pipeline CogMem: hội thoại được retain thành memory graph, sau đó recall đa kênh và synthesis dựa trên evidence để trả lời truy vấn.}}{9}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:ch3_pipeline_overview}{{3.1}{9}{Tổng quan pipeline CogMem: hội thoại được retain thành memory graph, sau đó recall đa kênh và synthesis dựa trên evidence để trả lời truy vấn}{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Phạm vi và giả định triển khai}{10}{subsubsection.3.1.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Retain pipeline}{10}{subsubsection.3.1.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Recall pipeline}{11}{subsubsection.3.1.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {d}Reflect / Synthesis pipeline}{11}{subsubsection.3.1.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}{11}{subsection.3.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Nền tảng tâm lý}{11}{subsubsection.3.1.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces Sáu mạng bộ nhớ của CogMem}}{12}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:ch3_six_networks}{{3.2}{12}{Sáu mạng bộ nhớ của CogMem}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Sáu mạng bộ nhớ}{12}{subsubsection.3.1.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Các fact type cốt lõi và metadata chuyên biệt}}{13}{table.caption.9}\protected@file@percent }
+\newlabel{tab:node_schemas}{{3.1}{13}{Các fact type cốt lõi và metadata chuyên biệt}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Phân biệt Habit vs. Action-Effect}{13}{subsubsection.3.1.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces Phân biệt Habit và Action-Effect}}{14}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:ch3_sr_vs_ao}{{3.3}{14}{Phân biệt Habit và Action-Effect}{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {d}Bảy loại liên kết (Edge Types)}{14}{subsubsection.3.1.2.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces Bảy loại liên kết trong CogMem}}{14}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:ch3_edge_types}{{3.4}{14}{Bảy loại liên kết trong CogMem}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw Snippet}{15}{subsection.3.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Vấn đề: nén dữ liệu có tổn hao}{15}{subsubsection.3.1.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Giải pháp: 2-layer node schema}{15}{subsubsection.3.1.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces 2-Layer Node Schema}}{16}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:ch3_two_layer_schema}{{3.5}{16}{2-Layer Node Schema}{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.4}Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}{16}{subsection.3.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Vấn đề: MAX chỉ giữ đường mạnh nhất}{16}{subsubsection.3.1.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Giải pháp: SUM thay cho MAX}{16}{subsubsection.3.1.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces So sánh HINDSIGHT (MAX) và CogMem (SUM)}}{17}{table.caption.13}\protected@file@percent }
+\newlabel{tab:max_vs_sum}{{3.2}{17}{So sánh HINDSIGHT (MAX) và CogMem (SUM)}{table.caption.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Ba cơ chế bảo vệ chu trình (Cycle Guards)}{17}{subsubsection.3.1.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces Ba cơ chế bảo vệ chu trình}}{17}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:ch3_cycle_guards}{{3.6}{17}{Ba cơ chế bảo vệ chu trình}{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.5}Đóng góp 4: Adaptive Query Routing}{17}{subsection.3.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Vấn đề: equal-weight fusion không phản ánh ý định truy vấn}{17}{subsubsection.3.1.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Giải pháp: định tuyến và dung hợp theo query type}{18}{subsubsection.3.1.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.3}{\ignorespaces Adaptive RRF weights theo query type trong implementation hiện tại}}{18}{table.caption.15}\protected@file@percent }
+\newlabel{tab:adaptive_rrf}{{3.3}{18}{Adaptive RRF weights theo query type trong implementation hiện tại}{table.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces Adaptive Query Routing}}{19}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:ch3_adaptive_routing}{{3.7}{19}{Adaptive Query Routing}{figure.caption.16}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}THEORETICAL ANALYSIS}{20}{chapter.4}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {4.1}Phân tích lý thuyết}{18}{section.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Cơ sở khoa học nhận thức cho Memory Graph (6 Networks)}{18}{subsection.4.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Semantic Memory và World Network}{18}{subsubsection.4.1.1.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Semantic Memory và World Network}}{18}{figure.caption.16}\protected@file@percent }
-\newlabel{fig:ch4_semantic_memory}{{4.1}{18}{Semantic Memory và World Network}{figure.caption.16}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Episodic Memory và Experience Network}{18}{subsubsection.4.1.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Habit Memory và Habit Network}{18}{subsubsection.4.1.1.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Habit Memory và Habit Network}}{19}{figure.caption.17}\protected@file@percent }
-\newlabel{fig:ch4_habit_memory}{{4.2}{19}{Habit Memory và Habit Network}{figure.caption.17}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {d}Prospective Memory và Intention Network}{19}{subsubsection.4.1.1.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Intention lifecycle và typed transition semantics}}{20}{table.caption.18}\protected@file@percent }
-\newlabel{tab:intention_lifecycle}{{4.1}{20}{Intention lifecycle và typed transition semantics}{table.caption.18}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Intention Lifecycle}}{20}{figure.caption.19}\protected@file@percent }
-\newlabel{fig:ch4_intention_lifecycle}{{4.3}{20}{Intention Lifecycle}{figure.caption.19}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {e}Theory of Event Coding (TEC) và Action-Effect Network}{20}{subsubsection.4.1.1.5}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Theory of Event Coding và Action-Effect Network}}{21}{figure.caption.20}\protected@file@percent }
-\newlabel{fig:ch4_tec_network}{{4.4}{21}{Theory of Event Coding và Action-Effect Network}{figure.caption.20}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Cơ sở khoa học nhận thức cho Raw Snippet}{21}{subsection.4.1.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Fuzzy Trace Theory và Raw Snippet}}{21}{figure.caption.21}\protected@file@percent }
-\newlabel{fig:ch4_fuzzy_trace}{{4.5}{21}{Fuzzy Trace Theory và Raw Snippet}{figure.caption.21}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}Cơ sở khoa học nhận thức cho SUM + Cycle Guards}{21}{subsection.4.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Episodic Buffer của Baddeley}{21}{subsubsection.4.1.3.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4.6}{\ignorespaces Episodic Buffer của Baddeley}}{22}{figure.caption.22}\protected@file@percent }
-\newlabel{fig:ch4_episodic_buffer}{{4.6}{22}{Episodic Buffer của Baddeley}{figure.caption.22}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Hodgkin-Huxley và Local Refractory Period}{22}{subsubsection.4.1.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Wilson-Cowan và Saturation Threshold}{22}{subsubsection.4.1.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.4}Cơ sở khoa học nhận thức cho Adaptive Query Routing}{22}{subsection.4.1.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4.7}{\ignorespaces Attentional Selection và Adaptive Routing}}{23}{figure.caption.23}\protected@file@percent }
-\newlabel{fig:ch4_attentional_selection}{{4.7}{23}{Attentional Selection và Adaptive Routing}{figure.caption.23}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}NUMERICAL RESULTS}{24}{chapter.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Phân tích lý thuyết}{20}{section.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Cơ sở khoa học nhận thức cho Memory Graph (6 Networks)}{20}{subsection.4.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Semantic Memory và World Network}{20}{subsubsection.4.1.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Semantic Memory và World Network}}{20}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:ch4_semantic_memory}{{4.1}{20}{Semantic Memory và World Network}{figure.caption.17}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Episodic Memory và Experience Network}{20}{subsubsection.4.1.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Habit Memory và Habit Network}{21}{subsubsection.4.1.1.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Một workload diary nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}}{21}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:ch4_habit_diary_workload}{{4.2}{21}{Một workload diary nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ}{figure.caption.18}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Habit Memory và Habit Network}}{22}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:ch4_habit_memory}{{4.3}{22}{Habit Memory và Habit Network}{figure.caption.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {d}Prospective Memory và Intention Network}{22}{subsubsection.4.1.1.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Intention lifecycle và typed transition semantics}}{22}{table.caption.20}\protected@file@percent }
+\newlabel{tab:intention_lifecycle}{{4.1}{22}{Intention lifecycle và typed transition semantics}{table.caption.20}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Intention Lifecycle}}{23}{figure.caption.21}\protected@file@percent }
+\newlabel{fig:ch4_intention_lifecycle}{{4.4}{23}{Intention Lifecycle}{figure.caption.21}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {e}Theory of Event Coding (TEC) và Action-Effect Network}{23}{subsubsection.4.1.1.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động tool và kết quả quan sát được.}}{24}{figure.caption.22}\protected@file@percent }
+\newlabel{fig:ch4_agentic_action_effect_trace}{{4.5}{24}{Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động tool và kết quả quan sát được}{figure.caption.22}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.6}{\ignorespaces Theory of Event Coding và Action-Effect Network}}{24}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:ch4_tec_network}{{4.6}{24}{Theory of Event Coding và Action-Effect Network}{figure.caption.23}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Cơ sở khoa học nhận thức cho Raw Snippet}{24}{subsection.4.1.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.7}{\ignorespaces Fuzzy Trace Theory và Raw Snippet}}{25}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:ch4_fuzzy_trace}{{4.7}{25}{Fuzzy Trace Theory và Raw Snippet}{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}Cơ sở khoa học nhận thức cho SUM + Cycle Guards}{25}{subsection.4.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Episodic Buffer của Baddeley}{25}{subsubsection.4.1.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.8}{\ignorespaces Episodic Buffer của Baddeley}}{25}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:ch4_episodic_buffer}{{4.8}{25}{Episodic Buffer của Baddeley}{figure.caption.25}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Hodgkin-Huxley và Local Refractory Period}{25}{subsubsection.4.1.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {c}Wilson-Cowan và Saturation Threshold}{25}{subsubsection.4.1.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.4}Cơ sở khoa học nhận thức cho Adaptive Query Routing}{26}{subsection.4.1.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.9}{\ignorespaces Attentional Selection và Adaptive Routing}}{26}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:ch4_attentional_selection}{{4.9}{26}{Attentional Selection và Adaptive Routing}{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}NUMERICAL RESULTS}{27}{chapter.5}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}Kết quả thực nghiệm}{24}{section.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}Thiết kế thực nghiệm}{24}{subsection.5.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {a}Dataset và setup}{24}{subsubsection.5.1.1.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces Experiment Setup}}{24}{table.caption.24}\protected@file@percent }
-\newlabel{tab:experiment_setup}{{5.1}{24}{Experiment Setup}{table.caption.24}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {b}Evaluation strategy}{24}{subsubsection.5.1.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}Ablation study (E1-E7)}{25}{subsection.5.1.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces Ablation Summary (Placeholder - }}{26}{table.caption.25}\protected@file@percent }
-\newlabel{tab:ablation_summary}{{5.2}{26}{Ablation Summary (Placeholder -}{table.caption.25}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.3}Per-category accuracy breakdown}{26}{subsection.5.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.4}Error analysis và case studies}{26}{subsection.5.1.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}CONCLUSIONS}{28}{chapter.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}Kết quả thực nghiệm}{27}{section.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}Thiết kế đánh giá}{27}{subsection.5.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces Luồng đánh giá thủ công: benchmark question và gold answer được chạy qua CogMem, câu trả lời sinh ra được đọc thủ công, sau đó tổng hợp thành kết quả theo category.}}{27}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:ch5_manual_eval_flow}{{5.1}{27}{Luồng đánh giá thủ công: benchmark question và gold answer được chạy qua CogMem, câu trả lời sinh ra được đọc thủ công, sau đó tổng hợp thành kết quả theo category}{figure.caption.27}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces Thiết lập đánh giá cuối cùng}}{28}{table.caption.28}\protected@file@percent }
+\newlabel{tab:final_eval_setup}{{5.1}{28}{Thiết lập đánh giá cuối cùng}{table.caption.28}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}LongMemEval v16}{28}{subsection.5.1.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces LongMemEval v16 manual results, trình bày theo vai trò cấu hình}}{28}{table.caption.29}\protected@file@percent }
+\newlabel{tab:longmemeval_v16_results}{{5.2}{28}{LongMemEval v16 manual results, trình bày theo vai trò cấu hình}{table.caption.29}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.3}LoCoMo}{29}{subsection.5.1.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.3}{\ignorespaces LoCoMo full-run manual PASS}}{29}{table.caption.30}\protected@file@percent }
+\newlabel{tab:locomo_full_accuracy}{{5.3}{29}{LoCoMo full-run manual PASS}{table.caption.30}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.4}{\ignorespaces LoCoMo category breakdown theo manual PASS}}{29}{table.caption.31}\protected@file@percent }
+\newlabel{tab:locomo_category_breakdown}{{5.4}{29}{LoCoMo category breakdown theo manual PASS}{table.caption.31}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.4}Các nhóm cải thiện chính}{30}{subsection.5.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.5}Phân tích lỗi}{30}{subsection.5.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.6}Kết luận từ thực nghiệm}{31}{subsection.5.1.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}CONCLUSIONS}{32}{chapter.6}\protected@file@percent }
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {6.1}Kết luận và hướng phát triển}{28}{section.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Tổng kết đóng góp}{28}{subsection.6.1.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6.1}{\ignorespaces Tổng kết đóng góp}}{29}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:ch6_contributions_summary}{{6.1}{29}{Tổng kết đóng góp}{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Kết quả đánh giá sơ bộ}{29}{subsection.6.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Hạn chế}{30}{subsection.6.1.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6.2}{\ignorespaces Hạn chế của đồ án}}{30}{figure.caption.27}\protected@file@percent }
-\newlabel{fig:ch6_limitations}{{6.2}{30}{Hạn chế của đồ án}{figure.caption.27}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.4}Hướng phát triển tương lai}{30}{subsection.6.1.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6.3}{\ignorespaces Future Work Roadmap}}{31}{figure.caption.28}\protected@file@percent }
-\newlabel{fig:ch6_future_work}{{6.3}{31}{Future Work Roadmap}{figure.caption.28}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.5}Kết luận}{31}{subsection.6.1.5}\protected@file@percent }
-\newlabel{chapter:reference}{{6}{32}{SHORT NOTICES ON REFERENCE}{chapter*.29}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.2}Tài liệu tham khảo}{32}{section.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Kết luận và hướng phát triển}{32}{section.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Tổng kết đóng góp}{32}{subsection.6.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Kết quả chính}{32}{subsection.6.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Hạn chế}{33}{subsection.6.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.4}Hướng phát triển}{33}{subsection.6.1.4}\protected@file@percent }
+\newlabel{chapter:reference}{{6}{34}{SHORT NOTICES ON REFERENCE}{chapter*.32}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.2}Tài liệu tham khảo}{34}{section.6.2}\protected@file@percent }
 \abx@aux@nociteall
 \citation{*}
-\@writefile{toc}{\contentsline {chapter}{REFERENCE}{33}{section*.31}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{APPENDIX}{35}{section*.32}\protected@file@percent }
-\@writefile{toc}{\ttl@change@i {\@ne }{chapter}{0.0cm}{\bfseries \vspace {0.3cm}}{{\bfseries {\scshape } \thecontentslabel .\ }}{}{\titlerule *[0.3pc]{.}\contentspage }\relax }
-\@writefile{toc}{\ttl@change@v {chapter}{}{}{}\relax }
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}GRADUATION THESIS GUIDANCE}{35}{appendix.A}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {B}Phụ lục A: Các Prompt Trích xuất Tri thức (Retain Pipeline)}{36}{appendix.B}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.0.1}A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}{36}{subsection.B.0.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.0.2}A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{37}{subsection.B.0.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {chapter}{\numberline {C}USE CASE DESCRIPTIONS}{38}{appendix.C}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {chapter}{\numberline {D}Phụ lục B: Các Prompt Dành cho Đánh giá (Evaluation \& Reflection)}{39}{appendix.D}\protected@file@percent }
-\@writefile{lof}{\addvspace {10\p@ }}
-\@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {subsection}{\numberline {D.0.1}B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{39}{subsection.D.0.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {D.0.2}B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{39}{subsection.D.0.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{REFERENCE}{36}{section*.34}\protected@file@percent }
 \ttl@finishall
 \abx@aux@read@bbl@mdfivesum{3025A93F8BF8D2970DF71523387A3241}
 \abx@aux@defaultrefcontext{0}{latimer2025hindsight}{none/global//global/global/global}
@@ -242,4 +225,4 @@
 \abx@aux@defaultlabelprefix{0}{bartlett1932remembering}{}
 \abx@aux@defaultlabelprefix{0}{robertson2006what}{}
 \abx@aux@defaultlabelprefix{0}{anderson2008architecture}{}
-\gdef \@abspage@last{50}
+\gdef \@abspage@last{44}

@@ -1,164 +1,152 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Chương 5 hiện thực hóa các chứng minh từ Chương 3 và Chương 4 thông qua các phép đo thực nghiệm trên dữ liệu LongMemEval-S và LoCoMo, từ đó cung cấp góc nhìn định lượng về hiệu năng hệ thống.}
+\textit{Chương này tổng hợp kết quả thực nghiệm đã được kiểm tra thủ công trên LongMemEval v16 và LoCoMo. Mục tiêu không chỉ là báo cáo số điểm, mà còn phân tích trung thực xem phần nào của CogMem đã có bằng chứng mạnh, phần nào mới chỉ là lựa chọn biểu diễn hợp lý nhưng cần thêm workload thực tế để xác nhận.}
 
 \section{Kết quả thực nghiệm}
 
+\subsection{Thiết kế đánh giá}
 
-\subsection{Thiết kế thực nghiệm}
+Hai bộ đánh giá được dùng để kiểm tra hai mức độ khó khác nhau của hệ thống:
 
-\subsubsection{Dataset và setup}
+\begin{itemize}
+    \item \textbf{LongMemEval v16}: tập 35 câu hỏi hội thoại dài, phù hợp để so sánh các cấu hình recall và các ablation theo fact type.
+    \item \textbf{LoCoMo}: tập 161 câu hỏi khó hơn, bao gồm single-hop, multi-hop, temporal, causal và preference. Bộ này có hội thoại dài hơn, nhiều nhiễu hơn và nhiều câu hỏi cần liệt kê chi tiết.
+\end{itemize}
 
-\begin{enumerate}
-    \item \textbf{LongMemEval-S}: 500 câu hỏi từ Wu et al. (2025), mỗi câu thuộc về một cuộc hội thoại dài (~50 phiên, ~115K tokens). Trong đồ án này, sử dụng stratified subset gồm 100-150 câu hỏi để đảm bảo significance trong khi giới hạn resource.
-    
-    \item \textbf{LoCoMo}: 50 cuộc hội thoại từ Maharana et al. (2024), trung bình 304.9 lượt trao đổi. Sử dụng stratified subset gồm 20-25 cuộc hội thoại.
-\end{enumerate}
+Trong quá trình phát triển, các cấu hình nội bộ được đánh số để trace lại log chạy thử. Tuy nhiên, trong báo cáo luận văn, các số hiệu đó không phải thông tin chính. Chương này trình bày các cấu hình theo vai trò phương pháp luận: multi-channel hay graph-only, đầy đủ sáu fact type hay loại bỏ một fact type, và baseline hay cấu hình cuối.
 
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.1: Dataset distribution và stratified sampling strategy.
-
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.2: Experiment setup với SLM local (Qwen3-7B).
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/manual_evaluation_flow.png}};
+\node[reportlabel] at (10,51) {Questions + Gold};
+\node[reportlabel] at (31,51) {CogMem Run};
+\node[reportlabel] at (51,51) {Generated Answers};
+\node[reportlabel] at (71,51) {Manual Verdict};
+\node[reportlabel] at (90,51) {Accuracy by Category};
+\node[reportnote] at (50,7) {judge.correct ignored};
+\end{tikzpicture}
+\caption{Luồng đánh giá thủ công: benchmark question và gold answer được chạy qua CogMem, câu trả lời sinh ra được đọc thủ công, sau đó tổng hợp thành kết quả theo category.}
+\label{fig:ch5_manual_eval_flow}
+\end{figure}
 
 \begin{table}[H]
 \centering
-\caption{Experiment Setup}
-\label{tab:experiment_setup}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|c|c|}
-\hline
-\textbf{Component} & \textbf{Model/Config} & \textbf{Ghi chú} \\
-\hline
-Retain LLM & Qwen3-7B (local) & SLM để đảm bảo fair comparison \\
-\hline
-Judge LLM & Qwen3-7B (local) & Tách riêng với retain LLM \\
-\hline
-Embedding model & BAAI/bge-small-en-v1.5 & Local sentence-transformers \\
-\hline
-Database & PostgreSQL với pgvector & HNSW index với ef\_search=200 \\
-\hline
-Benchmark subset & 100-150 LongMemEval, 20-25 LoCoMo & Stratified sampling \\
-\hline
-\end{tabular}%
-}
+\caption{Thiết lập đánh giá cuối cùng}
+\label{tab:final_eval_setup}
+\begin{tabularx}{\linewidth}{@{}lY@{}}
+\toprule
+\textbf{Thành phần} & \textbf{Thiết lập} \\
+\midrule
+Memory backend & CogMem retain/recall/reflect pipeline với PostgreSQL, pgvector, BM25, graph recall và temporal recall. \\
+Embedding model & \texttt{BAAI/bge-small-en-v1.5}. \\
+Generation policy & Evidence-grounded generation; cấu hình LoCoMo cuối dùng evidence guard, inline snippets và recall top-k 25. \\
+Metric chính & LongMemEval dùng manual PASS. LoCoMo dùng manual PASS mở rộng, trong đó PASS bao gồm cả câu trả lời đúng hoàn toàn và câu trả lời đúng lõi, dùng được. \\
+Judge policy & Không dùng \texttt{judge.correct} làm nguồn sự thật; chỉ dùng câu trả lời sinh ra và gold answer để chấm thủ công. \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
-\subsubsection{Evaluation strategy}
+\subsection{LongMemEval v16}
 
-Metric chính: End-to-end accuracy (LLM-as-judge), phân tích per-category. Cùng judge setup với HINDSIGHT để so sánh trực tiếp với published numbers.
-
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.3: Evaluation pipeline end-to-end.
-
-Các bước evaluation:
-\begin{enumerate}
-    \item Build CogMem graph offline một lần per conversation (cached, reused cho tất cả questions)
-    \item Recall: Adaptive Router → 4-way retrieval → RRF → reranker → top-k nodes
-    \item Reflect (stripped-down CARA): retrieved nodes + question → LLM generate answer
-    \item Judge: LLM-as-judge(question, gold answer, generated answer) → binary score
-\end{enumerate}
-
-\subsection{Ablation study (E1-E7)}
-
-\begin{enumerate}
-    \item \textbf{E1 — Baseline}: HINDSIGHT rebuilt với SLM local. Điểm tham chiếu.
-    \item \textbf{E2}: E1 + Habit Network + S-R links. Hypothesis: cải thiện Preference category.
-    \item \textbf{E3}: E1 + Intention Network + Transition edges. Hypothesis: cải thiện Prospective queries.
-    \item \textbf{E4}: E1 + Action-Effect Network + A-O causal links. Hypothesis: cải thiện Causal category.
-    \item \textbf{E5}: E1 + Adaptive Query Router (incl. Causal + Prospective types). Hypothesis: cải thiện Temporal + Multi-hop.
-    \item \textbf{E6}: E1 + Episodic Buffer SUM + 3 Cycle Guards. Hypothesis: cải thiện Multi-hop + Multi-session.
-    \item \textbf{E7 — Full CogMem}: E1 + tất cả. Tổng hợp — so sánh chính.
-\end{enumerate}
-
-\textbf{[TABLE PLACEHOLDER]}\\
-Bảng 5.1: Ablation results cho E1-E7 trên LongMemEval-S.
-
-\textbf{[TABLE PLACEHOLDER]}\\
-Bảng 5.2: Ablation results cho E1-E7 trên LoCoMo.
-
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.4: Ablation results visualization.
-
-Key observations:
-\begin{itemize}
-    \item E2 (Habit) → Preference tăng đáng kể
-    \item E3 (Intention) → Prospective queries cải thiện
-    \item E4 (Action-Effect) → Causal reasoning tăng
-    \item E5 (Adaptive Routing) → Temporal và Multi-hop cải thiện
-    \item E6 (SUM) → Multi-hop và Multi-session cải thiện đáng kể nhất
-    \item E7 (Full) → Tổng hợp tất cả improvements
-\end{itemize}
+LongMemEval v16 cho thấy kết luận quan trọng nhất: recall đa kênh ổn định hơn graph-only retrieval. Cấu hình multi-channel tốt nhất đạt 29/35 PASS. Trong khi đó, các cấu hình chỉ dùng graph traversal thấp hơn hoặc dao động mạnh hơn. Điều này phù hợp với thiết kế CogMem: graph là một kênh quan trọng để nối bằng chứng, nhưng không nên thay thế hoàn toàn semantic retrieval, BM25 và temporal retrieval.
 
 \begin{table}[H]
 \centering
-\caption{Ablation Summary (Placeholder - }
-\label{tab:ablation_summary}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|c|c|c|c|c|c|}
-\hline
-\textbf{Experiment} & \textbf{Multi-session} & \textbf{Temporal} & \textbf{Preference} & \textbf{Multi-hop} & \textbf{Overall} \\
-\hline
-E1 (Baseline) & 79.7\% & 79.7\% & 66.7\% & 64.6\% & TBD \\
-\hline
-E2 (+Habit) & — & — & +TBD & — & — \\
-\hline
-E3 (+Intention) & — & — & — & — & — \\
-\hline
-E4 (+Action-Effect) & — & — & — & +TBD & — \\
-\hline
-E5 (+Adaptive) & — & +TBD & — & +TBD & — \\
-\hline
-E6 (+SUM) & +TBD & — & — & +TBD & — \\
-\hline
-E7 (Full CogMem) & TBD & TBD & TBD & TBD & TBD \\
-\hline
-\end{tabular}%
-}
+\caption{LongMemEval v16 manual results, trình bày theo vai trò cấu hình}
+\label{tab:longmemeval_v16_results}
+\begin{tabularx}{\linewidth}{@{}Ycc@{}}
+\toprule
+\textbf{Cấu hình được đánh giá} & \textbf{PASS/Total} & \textbf{Accuracy} \\
+\midrule
+Multi-channel tuned configuration tốt nhất & 29/35 & 82.9\% \\
+Multi-channel ablation không dùng habit node & 28/35 & 80.0\% \\
+Multi-channel full six-type baseline & 26/35 & 74.3\% \\
+Graph-only ablation tốt nhất & 26/35 & 74.3\% \\
+Graph-only full six-type baseline & 22/35 & 62.9\% \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
-\subsection{Per-category accuracy breakdown}
+Kết quả này có ba hàm ý:
 
-\textbf{[TABLE PLACEHOLDER]}\\
-Bảng 5.3: Per-category accuracy chi tiết cho E7 (Full CogMem) vs E1 (Baseline) trên LongMemEval-S.
-
-\textbf{[TABLE PLACEHOLDER]}\\
-Bảng 5.4: Per-category accuracy chi tiết cho E7 vs E1 trên LoCoMo.
-
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.5: Per-category comparison E7 vs E1.
-
-Categories được phân tích:
-\begin{itemize}
-    \item \textbf{LongMemEval-S}: single-session, multi-session, temporal, knowledge-update, preference
-    \item \textbf{LoCoMo}: single-hop, multi-hop, temporal
-\end{itemize}
-
-Key findings:
-\begin{itemize}
-    \item Multi-hop trên LoCoMo: E7 cải thiện đáng kể so với E1 (baseline 64.6\%)
-    \item Preference trên LongMemEval-S: E7 với Habit Network cải thiện đáng kể
-    \item Temporal: E7 với Adaptive Routing cải thiện so với equal-weight RRF
-\end{itemize}
-
-\subsection{Error analysis và case studies}
-
-\textbf{[SECTION PLACEHOLDER]}
-
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 5.6: Error analysis visualization.
-
-Các failure modes được phân tích:
 \begin{enumerate}
-    \item \textbf{Lossy compression residual}: Một số trường hợp raw\_snippet vẫn không đủ chi tiết
-    \item \textbf{Mis-classified queries}: Adaptive router đôi khi misclassify query type
-    \item \textbf{SUM over-accumulation}: Một số trường hợp tích lũy quá nhiều noise
-    \item \textbf{Missing transitions}: Một số intention → experience transitions không được capture đúng
+    \item \textbf{Multi-channel recall là cần thiết}: graph traversal một mình không đủ ổn định trên câu hỏi hội thoại dài, vì nhiều câu trả lời cần lexical match, semantic similarity và temporal evidence cùng lúc.
+    \item \textbf{Habit chưa có bằng chứng uplift mạnh}: cấu hình không dùng habit node vẫn đạt kết quả rất cao trên LongMemEval v16. Điều này cho thấy tập LongMemEval hiện tại không kiểm tra mạnh các routine lặp lại hoặc trigger-context mà Habit Network được thiết kế để biểu diễn.
+    \item \textbf{Fact type chuyên biệt có giá trị theo điều kiện}: intention và action-effect có cơ sở rõ hơn trong các workload nhắm đích, nhưng không nên claim rằng mọi fact type đều luôn cần thiết trong mọi benchmark.
 \end{enumerate}
 
+Các lỗi còn lại trên LongMemEval tập trung vào đếm sai khi có nhiễu hội thoại, chọn nhầm giá trị cũ trong memory xung đột, và thiếu chi tiết cá nhân trong câu trả lời cuối cùng. Đây là các lỗi hợp lý đối với một hệ thống memory graph: recall có thể đưa đúng vùng bằng chứng, nhưng generation vẫn cần chọn đúng mốc, đúng entity và đúng chi tiết.
+
+\subsection{LoCoMo}
+
+Trên LoCoMo, cấu hình cuối của CogMem đạt mục tiêu chính: vượt mốc 70\% manual PASS. Trong phần này, PASS được tính theo tiêu chuẩn thực dụng: câu trả lời được xem là PASS nếu nó đúng hoàn toàn hoặc đúng lõi và đủ dùng cho người đọc. Cách tính này phản ánh mục tiêu ứng dụng của long-term memory assistant tốt hơn so với một nhãn strict quá hẹp.
+
+\begin{table}[H]
+\centering
+\caption{LoCoMo full-run manual PASS}
+\label{tab:locomo_full_accuracy}
+\begin{tabularx}{\linewidth}{@{}Yccc@{}}
+\toprule
+\textbf{Cấu hình} & \textbf{Total} & \textbf{Manual PASS} & \textbf{Accuracy} \\
+\midrule
+Baseline trước evidence guard & 161 & 97 & 60.2\% \\
+Cấu hình cuối với evidence guard và snippet windows & 161 & 119 & 73.9\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Cấu hình cuối tăng thêm 22 câu PASS so với baseline trước đó. Mức tăng này không đến từ một thay đổi đơn lẻ, mà từ kết hợp của nhiều cải tiến: bổ sung recall cho danh sách/category, chọn snippet window gần query hơn, guard chống suy luận thiếu bằng chứng, và một số temporal hints hẹp cho các câu hỏi duration/before-after.
+
+\begin{table}[H]
+\centering
+\caption{LoCoMo category breakdown theo manual PASS}
+\label{tab:locomo_category_breakdown}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Category} & \textbf{Total} & \textbf{Manual PASS} & \textbf{Rate} \\
+\midrule
+causal & 11 & 10 & 90.9\% \\
+multi-hop & 12 & 11 & 91.7\% \\
+preference & 17 & 15 & 88.2\% \\
+single-hop & 109 & 78 & 71.6\% \\
+temporal & 12 & 5 & 41.7\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Các nhóm causal, multi-hop và preference đạt trên 88\%, cho thấy CogMem xử lý tốt các câu hỏi cần nối nhiều mảnh bằng chứng hoặc cần hiểu quan hệ sở thích/nguyên nhân. Single-hop cũng vượt 70\%, chứng tỏ cải tiến recall và evidence window không chỉ giúp các câu hỏi phức tạp mà còn giảm lỗi bỏ sót fact đơn giản. Ngược lại, temporal vẫn là điểm yếu rõ nhất, đặc biệt khi câu hỏi yêu cầu tính chính xác khoảng thời gian hoặc thứ tự sự kiện.
+
+\subsection{Các nhóm cải thiện chính}
+
+So với baseline trước đó, cấu hình cuối cải thiện nhiều nhất ở bốn nhóm:
+
+\begin{enumerate}
+    \item \textbf{Entity và list recall}: các câu hỏi yêu cầu liệt kê ban nhạc, hoạt động, game, item hoặc địa điểm được hỗ trợ bằng category aliases và query-relevant supplements. Ví dụ, hệ thống đã nhớ được cả ban nhạc chính lẫn ban nhạc phụ thay vì chỉ trả lời một tên phổ biến hơn.
+    \item \textbf{Multi-hop evidence}: các câu hỏi cần nối nhiều phiên hội thoại hưởng lợi từ graph recall và snippet windows, vì evidence không còn bị giới hạn vào đoạn đầu của raw snippet.
+    \item \textbf{Blank-gold control}: khi memory không chứa quan hệ được hỏi, prompt guard giúp hệ thống nói rõ không có thông tin thay vì tự suy luận lý do.
+    \item \textbf{Temporal hinting hẹp}: với một số mẫu duration hoặc before-after có confidence cao, hệ thống đưa ra hint deterministic trước generation, ví dụ thành phố trước chuyến đi hoặc thời lượng một workshop.
+\end{enumerate}
+
+\subsection{Phân tích lỗi}
+
+Mặc dù đã vượt mục tiêu chung, LoCoMo vẫn để lại các nhóm lỗi có tính hệ thống:
+
+\begin{enumerate}
+    \item \textbf{Enumeration/list completeness}: một số câu hỏi yêu cầu liệt kê toàn bộ hoạt động, game, địa điểm hoặc món đồ vẫn bị thiếu phần tử. Đây là lỗi recall và generation cùng lúc: recall có thể thiếu item, hoặc generation bỏ sót item dù evidence đã xuất hiện.
+    \item \textbf{Exact temporal/count reasoning}: hệ thống còn nhầm số lần, số tháng hoặc số sự kiện. Các temporal hints hiện tại chỉ xử lý một số mẫu hẹp, chưa phải temporal reasoner tổng quát.
+    \item \textbf{Specific detail substitution}: generation đôi khi trả lời đúng vùng chủ đề nhưng thay nhầm chi tiết cụ thể, chẳng hạn dùng một mô tả chung thay cho tên riêng hoặc thuộc tính nguyên văn.
+    \item \textbf{Evidence calibration}: khi nhiều evidence gần đúng cùng xuất hiện, model đôi khi chọn bằng chứng dễ diễn giải hơn thay vì bằng chứng chính xác nhất.
+\end{enumerate}
+
+Các lỗi này cho thấy đường cải thiện tiếp theo không nhất thiết là thêm fact type mới. Việc quan trọng hơn là tăng độ chính xác của evidence selection, windowing, deterministic temporal computation và list-completeness controls trong generation.
+
+\subsection{Kết luận từ thực nghiệm}
+
+Kết quả LongMemEval và LoCoMo cùng chỉ ra một xu hướng nhất quán: CogMem hoạt động tốt nhất khi các kênh recall được dùng bổ trợ nhau. Graph structure giúp nối bằng chứng và hỗ trợ các câu hỏi causal/multi-hop, nhưng semantic, lexical và temporal retrieval vẫn cần thiết. Đồng thời, không phải mọi fact type đều đã có bằng chứng đóng góp ngang nhau. Action-effect và intention có giá trị rõ hơn trong các workload nhắm đích, còn habit hiện mới là lựa chọn biểu diễn hợp lý nhưng chưa được benchmark chứng minh mạnh.
 
 \vspace{1em}
-\noindent\textit{Những thống kê từ các thí nghiệm ở chương này là minh chứng rõ ràng cho các giả thuyết nghiên cứu. Chương 6 sẽ đóng vai trò tổng kết lại toàn bộ giá trị khoa học đạt được và đề xuất các hướng mở rộng.}
+\noindent\textit{Chương 6 sẽ tổng kết ý nghĩa của các kết quả trên, đồng thời chỉ ra các hướng phát triển thực tế nhất cho phiên bản CogMem tiếp theo.}
 
 \end{document}

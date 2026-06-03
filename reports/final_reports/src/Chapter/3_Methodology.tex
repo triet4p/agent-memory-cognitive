@@ -15,7 +15,37 @@ CogMem được thiết kế như một kiến trúc gồm ba pipeline liên ti�
     \item \textbf{Reflect / Synthesis pipeline}: tổng hợp evidence được recall để sinh câu trả lời bám dữ kiện.
 \end{enumerate}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/cogmem_pipeline_overview.png}};
+\node[reportlabel] at (10,51) {Conversation};
+\node[reportlabel] at (29,51) {Retain};
+\node[reportlabel] at (50,51) {Memory Graph};
+\node[reportlabel] at (71,51) {Recall Channels};
+\node[reportlabel] at (90,51) {Grounded Answer};
+\node[reportnote] at (49,7) {new turns update memory};
+\end{tikzpicture}
+\caption{Tổng quan pipeline CogMem: hội thoại được retain thành memory graph, sau đó recall đa kênh và synthesis dựa trên evidence để trả lời truy vấn.}
+\label{fig:ch3_pipeline_overview}
+\end{figure}
+
 Trong phạm vi luận án này, \textbf{BFS graph retrieval với SUM spreading activation và ba cycle guards} được xem là đường triển khai chuẩn của CogMem. Một số retriever khác được thêm vào ở các giai đoạn phát triển sau nhằm phục vụ nghiên cứu và ablation, nhưng không thay đổi lõi phương pháp luận được trình bày ở đây.
+
+\subsubsection{Phạm vi và giả định triển khai}
+
+Để giữ phần methodology trung thực, cần phân biệt rõ giữa \textit{ý tưởng kiến trúc} và \textit{đường triển khai được đánh giá trong luận án}. CogMem không giả định rằng mọi fact type đều luôn cần thiết trong mọi dữ liệu, và cũng không giả định rằng LLM extraction luôn phân loại đúng. Thay vào đó, hệ thống được thiết kế để cung cấp một cấu trúc biểu diễn giàu hơn bộ nhớ phẳng, rồi kiểm tra thực nghiệm xem cấu trúc đó giúp ích trong những loại câu hỏi nào.
+
+Các giả định triển khai chính gồm:
+
+\begin{itemize}
+    \item Fact extraction vẫn phụ thuộc vào LLM, vì vậy typed node có thể bị thiếu, bị gộp hoặc bị re-typed thành fact type khác.
+    \item Graph recall không thay thế semantic/BM25 retrieval; trong evaluation cuối, multi-channel recall mới là cấu hình chính.
+    \item \textit{raw\_snippet} được giữ như bằng chứng nguyên văn, nhưng generation có dùng trực tiếp snippet hay không phụ thuộc vào policy của từng run.
+    \item Các fact type như \textit{habit}, \textit{intention} và \textit{action\_effect} nên được hiểu là các slot biểu diễn có điều kiện, không phải các module luôn tạo uplift độc lập.
+\end{itemize}
+
+Do đó, đóng góp của chương này là mô tả một methodology có thể kiểm chứng: retain tạo typed memory graph, recall dùng nhiều kênh để lấy evidence, và reflect sinh câu trả lời dựa trên evidence đó. Các claims mạnh hơn về tác động của từng fact type phải được rút ra từ Chương 5, không được mặc định từ thiết kế.
 
 \subsubsection{Retain pipeline}
 
@@ -63,8 +93,16 @@ CogMem chuyển trực giác này thành một memory graph dị thể gồm nhi
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.1: Sáu mạng bộ nhớ của CogMem và cơ sở nhận thức tương ứng.
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/cogmem_memory_graph.png}};
+\node[reportlabel] at (27,50) {World};
+\node[reportlabel] at (72,50) {Experience};
+\node[reportlabel] at (18,33) {Opinion};
+\node[reportlabel] at (82,33) {Habit};
+\node[reportlabel] at (35,14) {Intention};
+\node[reportlabel] at (65,14) {Action-Effect};
+\node[reportnote] at (50,31) {typed edges + shared entities};
+\end{tikzpicture}
 \caption{Sáu mạng bộ nhớ của CogMem}
 \label{fig:ch3_six_networks}
 \end{figure}
@@ -105,7 +143,7 @@ action\_effect & Quy luật nhân quả ở cấp hành động & precondition, 
 \end{tabular}
 \end{table}
 
-Việc tách riêng \textit{habit}, \textit{intention} và \textit{action\_effect} không nên được hiểu như một khẳng định rằng ba mạng này luôn tạo ra cải thiện đồng đều trên mọi tập dữ liệu. Thay vào đó, chúng cung cấp các ``representational slots'' mới cho những tín hiệu mà \textit{world} hoặc \textit{experience} thường mô tả không đầy đủ, đặc biệt ở các câu hỏi preference, prospective và causal.
+Việc tách riêng \textit{habit}, \textit{intention} và \textit{action\_effect} không nên được hiểu như một khẳng định rằng ba mạng này luôn tạo ra cải thiện đồng đều trên mọi tập dữ liệu. Thay vào đó, chúng cung cấp các ``representational slots'' mới cho những tín hiệu mà \textit{world} hoặc \textit{experience} thường mô tả không đầy đủ, đặc biệt ở các câu hỏi preference, prospective và causal. Trong các thí nghiệm hiện tại, \textit{habit} là nhóm có bằng chứng uplift yếu nhất: nó hợp lý về mặt biểu diễn, nhưng benchmark chưa có đủ câu hỏi thật sự cần mô hình hóa routine lặp lại để chứng minh đóng góp độc lập.
 
 \subsubsection{Phân biệt Habit vs. Action-Effect}
 
@@ -120,9 +158,10 @@ Trong thực tế hội thoại, hai loại tín hiệu này dễ bị trộn l�
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.8\textwidth}{
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.2: Phân biệt Habit (S-R) và Action-Effect (A-O).}}
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Habit (S-R):} khi gặp ngữ cảnh quen thuộc, người dùng thường lặp lại một phản ứng hoặc lựa chọn.\\
+\textbf{Action-Effect (A-O):} khi ở điều kiện P, hành động A dẫn tới hệ quả O và có thể dùng để trả lời câu hỏi causal.
+}}
 \caption{Phân biệt Habit và Action-Effect}
 \label{fig:ch3_sr_vs_ao}
 \end{figure}
@@ -154,8 +193,12 @@ Riêng \textit{transition} là một edge type duy nhất nhưng mang \textit{tr
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.3: Bảy loại liên kết trong CogMem.
+\fbox{\parbox{0.9\textwidth}{
+\centering
+entity \quad temporal \quad semantic \quad causal \quad s\_r\_link \quad a\_o\_causal \quad transition\\
+\vspace{0.4em}
+\small Các edge này cho phép recall lan truyền theo thực thể, thời gian, ngữ nghĩa, quan hệ nhân quả và chuyển pha trạng thái.
+}}
 \caption{Bảy loại liên kết trong CogMem}
 \label{fig:ch3_edge_types}
 \end{figure}
@@ -209,8 +252,10 @@ Thiết kế này cho phép CogMem vừa truy hồi nhanh trên representation �
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.4: 2-layer node schema với fact text và raw\_snippet.
+\fbox{\parbox{0.88\textwidth}{
+\textbf{Layer 1 -- compressed fact:} ngắn, dễ embedding, dùng cho retrieval.\\
+\textbf{Layer 2 -- raw snippet:} nguyên văn, giàu chi tiết, dùng cho grounded generation khi cần tên riêng, số liệu hoặc ngữ cảnh chính xác.
+}}
 \caption{2-Layer Node Schema}
 \label{fig:ch3_two_layer_schema}
 \end{figure}
@@ -290,8 +335,11 @@ Ba guard này phản ánh lập luận nhận thức rằng hệ thống truy h�
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.5: Ba cơ chế bảo vệ chu trình trong BFS graph retrieval.
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Refractory:} node vừa fire không lặp lại ngay.\\
+\textbf{Firing quota:} giới hạn số lần một node được kích hoạt trong một lượt recall.\\
+\textbf{Saturation:} chặn activation score trên ngưỡng tối đa để tránh bùng nổ.
+}}
 \caption{Ba cơ chế bảo vệ chu trình}
 \label{fig:ch3_cycle_guards}
 \end{figure}
@@ -355,8 +403,13 @@ Ngoài profile trọng số, implementation hiện tại còn có hai hậu xử
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 3.6: Adaptive Query Routing với sáu query type.
+\fbox{\parbox{0.9\textwidth}{
+\centering
+Query $\rightarrow$ Analyzer $\rightarrow$
+\{semantic, temporal, causal, prospective, preference, multi-hop\}\\
+\vspace{0.4em}
+\small Query type quyết định trọng số RRF giữa semantic, BM25, graph và temporal channels.
+}}
 \caption{Adaptive Query Routing}
 \label{fig:ch3_adaptive_routing}
 \end{figure}

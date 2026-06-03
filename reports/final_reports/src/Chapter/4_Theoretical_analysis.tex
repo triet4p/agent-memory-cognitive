@@ -15,8 +15,9 @@ Về mặt hệ thống, việc tách world ra khỏi experience giúp giảm nh
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.1: Semantic Memory và World Network.
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Semantic memory} lưu tri thức ổn định và ít phụ thuộc episode. Trong CogMem, \textbf{World Network} giữ các fact dạng nghề nghiệp, kỹ năng, quan hệ khách quan và tri thức miền.
+}}
 \caption{Semantic Memory và World Network}
 \label{fig:ch4_semantic_memory}
 \end{figure}
@@ -35,10 +36,32 @@ Từ góc độ nhận thức, habit khác với event đơn lẻ ở chỗ nó 
 
 Implementation hiện tại dùng các liên kết S-R ở mức thực dụng để neo habit với các experience liên quan, thay vì mô hình reinforcement learning hoàn chỉnh. Dù vậy, hướng biểu diễn vẫn giữ đúng tinh thần của habit memory: tách pattern lặp lại ra khỏi event đơn lẻ.
 
+Kết quả thực nghiệm hiện tại cũng cho thấy cần diễn giải habit một cách thận trọng. Trên các benchmark đã chạy, việc loại habit không tạo suy giảm rõ ràng như kỳ vọng; nhiều câu hỏi được giải bằng world, experience hoặc opinion mà không cần habit node riêng. Điều này không phủ định cơ sở nhận thức của habit memory, nhưng cho thấy benchmark hiện tại chưa đủ giàu các tình huống routine lặp lại, trigger-context và hành vi quen thuộc để chứng minh đóng góp độc lập của habit. Vì vậy, trong luận án này, habit nên được xem là một thành phần biểu diễn hợp lý nhưng chưa phải bằng chứng thực nghiệm mạnh nhất của CogMem.
+
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.2: Habit Memory và Habit Network.
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/habit_diary_workload.png}};
+\node[reportlabel] at (14,51) {Weekly Diary};
+\node[reportlabel] at (38,51) {Routine Pattern};
+\node[reportlabel] at (62,51) {Habit Node};
+\node[reportlabel] at (76,51) {Break};
+\node[reportlabel] at (91,51) {Recall};
+\node[reportnote] at (14,7) {repetition};
+\node[reportnote] at (38,7) {trigger-context};
+\node[reportnote] at (62,7) {generalized routine};
+\node[reportnote] at (76,7) {anomaly};
+\node[reportnote] at (91,7) {personalized answer};
+\end{tikzpicture}
+\caption{Một workload diary nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}
+\label{fig:ch4_habit_diary_workload}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Experience} biểu diễn một lần xảy ra; \textbf{Habit} biểu diễn pattern lặp lại. Liên kết S-R giúp nối habit với các experience làm bằng chứng cho pattern đó.
+}}
 \caption{Habit Memory và Habit Network}
 \label{fig:ch4_habit_memory}
 \end{figure}
@@ -80,8 +103,12 @@ Các ablation nhắm đích thực hiện sau này trong dự án cho thấy int
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.3: Intention lifecycle và prospective memory discharge.
+\fbox{\parbox{0.86\textwidth}{
+\centering
+planning intention $\rightarrow$ fulfilled\_by $\rightarrow$ experience\\
+experience $\rightarrow$ triggered $\rightarrow$ new intention\\
+\small Abandoned là trạng thái của intention node, không phải edge type riêng.
+}}
 \caption{Intention Lifecycle}
 \label{fig:ch4_intention_lifecycle}
 \end{figure}
@@ -92,12 +119,32 @@ Theory of Event Coding (TEC) nhấn mạnh rằng hành động và hệ quả c
 
 Điểm lý thuyết quan trọng ở đây là causal rule không chỉ là kiến thức về thế giới; nó còn là kiến thức về \textit{can thiệp}. Nói ``X là đúng'' khác với nói ``nếu ở trạng thái P, làm A sẽ dẫn tới O''. Action-effect network giữ nguyên cấu trúc can thiệp đó.
 
-Các thí nghiệm nhắm đích ở workload agentic về sau cho thấy giá trị của action-effect cũng mang tính điều kiện: nó đặc biệt hữu ích khi causal rule không bị tái mã hóa dễ dàng thành một world fact kiểu ``X được giải quyết bằng Y''. Điều này củng cố cách nhìn của chương này: action-effect là một lớp biểu diễn cần thiết cho một số loại causal knowledge, chứ không phải luôn là lớp biểu diễn duy nhất có thể hoạt động.
+Các thí nghiệm nhắm đích trên workload agentic về sau cho thấy giá trị của action-effect cũng mang tính điều kiện: nó đặc biệt hữu ích khi causal rule không bị tái mã hóa dễ dàng thành một world fact kiểu ``X được giải quyết bằng Y''. Điều này củng cố cách nhìn của chương này: action-effect là một lớp biểu diễn cần thiết cho một số loại causal knowledge, chứ không phải luôn là lớp biểu diễn duy nhất có thể hoạt động.
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.4: TEC và Action-Effect Network.
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/agentic_action_effect_trace.png}};
+\node[reportlabel] at (10,51) {Problem Context};
+\node[reportlabel] at (31,51) {Tool Action};
+\node[reportlabel] at (50,51) {Observed Outcome};
+\node[reportlabel] at (69,51) {Action-Effect Node};
+\node[reportlabel] at (89,51) {Future Recall};
+\node[reportnote] at (10,7) {precondition};
+\node[reportnote] at (31,7) {intervention};
+\node[reportnote] at (50,7) {outcome};
+\node[reportnote] at (69,7) {typed causal memory};
+\node[reportnote] at (89,7) {reuse rule};
+\end{tikzpicture}
+\caption{Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động tool và kết quả quan sát được.}
+\label{fig:ch4_agentic_action_effect_trace}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Theory of Event Coding} gắn hành động với hệ quả cảm nhận được. CogMem chuyển ý tưởng này thành node \textit{action\_effect}: precondition -- action -- outcome.
+}}
 \caption{Theory of Event Coding và Action-Effect Network}
 \label{fig:ch4_tec_network}
 \end{figure}
@@ -114,8 +161,9 @@ CogMem phản ánh ý tưởng này bằng \textbf{fact text} và \textbf{raw\_s
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.5: Fuzzy Trace Theory và 2-layer schema.
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Gist trace} tương ứng với fact text đã nén để retrieval nhanh. \textbf{Verbatim trace} tương ứng với raw\_snippet để giữ lại chi tiết nguyên văn cho synthesis.
+}}
 \caption{Fuzzy Trace Theory và Raw Snippet}
 \label{fig:ch4_fuzzy_trace}
 \end{figure}
@@ -130,8 +178,9 @@ Từ góc nhìn này, SUM không chỉ là một mẹo kỹ thuật để tăng 
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.6: Episodic Buffer của Baddeley.
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Episodic buffer} tích hợp nhiều nguồn tín hiệu thành một biểu diễn làm việc. Trong CogMem, SUM spreading activation đóng vai trò hợp lưu các evidence path rải rác.
+}}
 \caption{Episodic Buffer của Baddeley}
 \label{fig:ch4_episodic_buffer}
 \end{figure}
@@ -172,8 +221,9 @@ Về mặt nhận thức, đây là phép mô phỏng ý tưởng rằng bộ n�
 
 \begin{figure}[H]
 \centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 4.7: Attentional selection và Adaptive Query Routing.
+\fbox{\parbox{0.86\textwidth}{
+\textbf{Attentional selection} ở cấp hệ thống: temporal queries ưu tiên temporal channel, causal queries ưu tiên graph/action-effect, preference queries ưu tiên habit/opinion, multi-hop queries ưu tiên graph traversal.
+}}
 \caption{Attentional Selection và Adaptive Routing}
 \label{fig:ch4_attentional_selection}
 \end{figure}

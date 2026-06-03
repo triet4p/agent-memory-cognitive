@@ -1,108 +1,52 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Tổng hợp lại các nguyên lý từ Chương 3, chứng minh ở Chương 4 và thành quả thu được tại Chương 5, chương này sẽ kết luận lại toàn bộ những giá trị khoa học cốt lõi mà đồ án đạt được.}
+\textit{Từ kiến trúc đã trình bày ở Chương 3, cơ sở lý thuyết ở Chương 4 và kết quả thực nghiệm ở Chương 5, chương này tổng kết lại mức độ hoàn thiện hiện tại của CogMem và các hướng phát triển còn lại.}
 
 \section{Kết luận và hướng phát triển}
 
-
 \subsection{Tổng kết đóng góp}
 
-Đồ án này đề xuất CogMem — một khung cấu trúc bộ nhớ hội thoại dài hạn dựa trên nền tảng khoa học nhận thức (cognitive science) — với bốn đóng góp cốt lõi:
+Đồ án đã xây dựng CogMem như một hệ thống bộ nhớ hội thoại dài hạn có cấu trúc, thay vì chỉ là một tầng vector retrieval đặt ngoài LLM. Bốn đóng góp chính có thể tóm tắt như sau:
 
 \begin{enumerate}
-    \item \textbf{Cấu trúc đồ thị bộ nhớ (Cognitively-Grounded Memory Graph)}: Xây dựng cấu trúc đa nhánh (6 Networks + 7 Edge Types). Mở rộng kiến trúc đồ thị lưu trữ hiện đại thông qua 3 phân hệ mạng bộ nhớ mới (Habit, Intention, Action-Effect) chưa từng xuất hiện ở bất cứ mô hình Graph-based Retrieval nào trước đó, đồng bộ cùng hệ thống 7 liên kết đa chiều (bổ sung kết nối S-R, chuỗi quan hệ nguyên - quả A-O causal, và các chuỗi biến thiên Transition edge). Cấu trúc của hệ phân lớp này ánh xạ trực tiếp từ cơ sở lý luận thần kinh (Basal Ganglia tương ứng với nền tảng hành vi tự động - habit, trong khi vùng Prefrontal Cortex cho xử lý suy luận chủ định và tương lai - intention/action-effect).
-    
-\item \textbf{Cơ sở siêu dữ liệu phi tổn hao (Lossless Node Metadata) với cấu trúc 2 lớp truy hồi}: Chuẩn hóa trường bản ghi thô (raw\_snippet) nhằm cô lập các chuỗi văn bản hội thoại nguyên gốc ra khỏi dòng thất thoát thông tin do phương pháp nén dữ liệu. Cơ cấu phân tách 2 lớp bảo toàn (narrative\_fact kết hợp raw\_snippet) đồng chiếu theo thuyết "Fuzzy Trace Theory" của tác giả Brainerd \& Reyna.
-    
-    \item \textbf{Vùng đệm không gian-thời gian (Episodic Buffer)}: Phủ định nguyên tắc truyền tải năng lượng đơn hướng, mô hình tích hợp thuật toán lan truyền kích hoạt SUM thay thế phân mức cực trị MAX để hợp lưu tính toán tất cả sức mạnh của bằng chứng từ luồng đa chiều bổ trợ, tối ưu thuật toán với sự giám sát chặt chẽ từ 3 cơ chế kiểm soát giới hạn chu trình (Local Refractory Period, Global Firing Quota, Saturation Threshold) nhằm giới hạn tính phân kỳ hệ thống đồ thị.
-    
-    \item \textbf{Cơ chế định tuyến truy vấn thích ứng (Adaptive Query Routing)}: Nhận dạng và phân loại truy vấn ngôn ngữ thành 6 bản thể logic độc lập (semantic, temporal, causal, prospective, preference, multi-hop). Hệ phân loại hỗ trợ áp dụng hệ số dung hợp RRF động tương ứng cho các nhánh logic khác nhau, mô phỏng khái niệm chọc điểm tập trung (attentional selection) trong quy trình lý luận của não bộ.
+    \item \textbf{Cognitively-Grounded Memory Graph}: bộ nhớ được chia thành sáu fact type và bảy edge families, tạo không gian biểu diễn riêng cho sự kiện, thói quen, ý định, sở thích và quan hệ nhân quả.
+    \item \textbf{Lossless Node Metadata}: mỗi memory node giữ cả fact text đã nén và \texttt{raw\_snippet}, giúp generation có thể khôi phục chi tiết nguyên văn khi câu hỏi cần con số, tên riêng hoặc ngữ cảnh chính xác.
+    \item \textbf{SUM Spreading Activation}: graph recall dùng cơ chế cộng dồn bằng chứng từ nhiều đường, kết hợp refractory, firing quota và saturation để tránh vòng lặp kích hoạt.
+    \item \textbf{Adaptive Query Routing}: truy vấn được phân loại thành semantic, temporal, causal, prospective, preference và multi-hop để chọn profile fusion phù hợp.
 \end{enumerate}
 
-Những bước tiến về kiến trúc trên trực tiếp phá vỡ các giới hạn nền tảng của hệ thống đồ thị tĩnh học HINDSIGHT: mở lối bế tắc ở chuỗi xử lý multi-session (khi hàm MAX vô tình loại bỏ tính bảo toàn dữ liệu bằng chứng), mở giới hạn dữ kiện về thời gian temporal (bị kìm hãm ở khung cấu trúc RRF đồng trọng lượng), khôi phục logic hành vi (chuỗi truy xuất preference/habit vốn không tồn tại), và hoàn thiện logic tương tác đa điểm (multi-hop).
+Các đóng góp này không nên được hiểu như các module luôn tạo ra cải thiện độc lập trong mọi workload. Kết quả thực nghiệm cho thấy giá trị của chúng phụ thuộc vào kiểu câu hỏi và chất lượng evidence. Tuy vậy, việc có các slot biểu diễn chuyên biệt giúp hệ thống xử lý các câu hỏi khó hơn so với bộ nhớ phẳng.
 
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 6.1: Tổng kết 4 đóng góp của CogMem.
-\caption{Tổng kết đóng góp}
-\label{fig:ch6_contributions_summary}
-\end{figure}
+\subsection{Kết quả chính}
 
-\subsection{Kết quả đánh giá sơ bộ}
+Trên LongMemEval v16, cấu hình multi-channel tốt nhất đạt 29/35 PASS (82.9\%), còn full six-type multi-channel baseline đạt 26/35 PASS (74.3\%). Các cấu hình graph-only thấp hơn, củng cố kết luận rằng recall đa kênh là cần thiết cho bộ nhớ hội thoại dài hạn.
 
-Các kết quả thực nghiệm dự kiến dựa trên bộ benchmark tiêu chuẩn LongMemEval-S và hệ đo lường dữ liệu đan chéo LoCoMo chỉ ra các bước biến chuyển tiềm năng:
-
-\begin{itemize}
-    \item \textbf{Lược đồ E6 (SUM + Cycle Guards)} sở hữu tác động tăng hạng rõ nét nhất ở hạng mục truy hồi dữ liệu qua nhiều cầu tương tác (multi-hop) và theo chuỗi thời gian phân phiên rời rạc (multi-session) — năng lực hợp lưu tính toán logic qua phép SUM cho phép tích tụ dấu vết bằng chứng ở từng tuyến liên kết logic.
-    \item \textbf{Lược đồ E2 (Habit Network)} tối ưu điểm tra cứu phân cấp sở thích/hành vi người dùng (preference retrieval) — nhờ liên kết S-R tạo cơ chế kích hoạt các định hình phản xạ cố hữu một cách trực tiếp từ luồng phân tích đầu vào.
-    \item \textbf{Lược đồ E5 (Adaptive Routing)} hoàn thiện khả năng nhận định định hướng cho logic thời gian phi số lượng tĩnh (temporal) và logic đa cầu quy nạp.
-    \item \textbf{Lược đồ E7 (Full CogMem)} đại diện cho cấu trúc tổng thể cuối cùng, hứa hẹn hiệu chuẩn thống nhất cho tất cả các điểm yếu đa chiều cấu thành điểm sát hạch đo lường toàn diện.
-\end{itemize}
-
-Lợi thế của kiến trúc CogMem được hệ thống hóa qua:
-\begin{itemize}
-    \item Cơ sở dẫn xuất cấu trúc dựa trên khung tiêu chuẩn thực địa của khoa học lý luận thần kinh
-    \item Quá trình tích chuẩn loại bỏ (ablation study) sạch — có thể đo chuẩn biệt lập các cấu phần thiết kế
-    \item Lược đồ 2 cụm độc lập (2-layer schema) làm mịn các xung đột trong yêu cầu cấu trúc của mô hình sinh thế hệ mới
-    \item Lưới định tuyến truy xuất tương thích (Adaptive routing) cho phép hệ thống đáp ứng động các nhánh từ truy xuất cơ bản tới hàm logic đa tầng.
-\end{itemize}
+Trên LoCoMo, cấu hình cuối đạt 119/161 manual PASS (73.9\%), vượt mục tiêu 70\% và tăng 22 câu so với baseline trước đó. Trong cách tính này, PASS bao gồm cả câu trả lời đúng hoàn toàn và câu trả lời đúng lõi, đủ dùng cho người đọc. Các nhóm multi-hop, causal và preference đạt trên 88\%, trong khi temporal chỉ đạt 41.7\%. Nhìn tổng thể, dự án đã đạt một milestone thực nghiệm đáng tin cậy: hệ thống không chỉ chạy được end-to-end mà còn vượt ngưỡng chất lượng đặt ra trên một benchmark hội thoại dài khó.
 
 \subsection{Hạn chế}
 
-Đồ án có một số hạn chế cần được acknowledge:
+Các hạn chế hiện tại tập trung vào ba điểm:
 
 \begin{enumerate}
-    \item \textbf{Experiment chưa hoàn thiện}: Kết quả E1-E7 ablation study chưa có sẵn trong thời điểm viết báo cáo này. Phần Numerical Results chỉ là placeholder structure.
-    
-    \item \textbf{Benchmark subset}: Do giới hạn resource, sử dụng stratified subset thay vì full benchmark. Điều này có thể ảnh hưởng đến representativeness của kết quả.
-    
-    \item \textbf{SLM limitations}: Sử dụng Qwen3-7B thay vì Gemini-3 như trong HINDSIGHT paper — fair comparison nhưng có thể không đạt được published upper bound.
-    
-    \item \textbf{Language limitation}: Kiến trúc được thiết kế cho tiếng Anh primarily; tiếng Việt có thể cần adaptations cho embedding và LLM prompts.
-    
-    \item \textbf{Scale limitations}: Chưa test trên các cuộc hội thoại rất dài (>1000 turns) hoặc rất nhiều facts (>10,000 nodes).
+    \item \textbf{Temporal exactness còn yếu}: các câu hỏi cần tính chính xác số ngày, số tuần hoặc thứ tự sự kiện vẫn tạo ra nhiều lỗi hơn các nhóm causal/preference/multi-hop.
+    \item \textbf{List completeness chưa ổn định}: khi câu hỏi yêu cầu liệt kê toàn bộ item, generation vẫn có thể bỏ sót một số phần tử hoặc thêm item không thuộc gold.
+    \item \textbf{Habit chưa được chứng minh mạnh}: habit có cơ sở biểu diễn hợp lý, nhưng các benchmark hiện tại chưa cho thấy uplift rõ như action-effect hoặc intention trong workload nhắm đích.
 \end{enumerate}
 
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 6.2: Hạn chế của đồ án.
-\caption{Hạn chế của đồ án}
-\label{fig:ch6_limitations}
-\end{figure}
+Những hạn chế này chủ yếu nằm ở evidence selection, deterministic reasoning và generation control, hơn là ở việc thiếu một fact type mới.
 
-\subsection{Hướng phát triển tương lai}
+\subsection{Hướng phát triển}
 
-Dựa trên kết quả hiện tại và các hạn chế, một số hướng phát triển được đề xuất:
+Các hướng phát triển có tác động cao nhất cho phiên bản tiếp theo nên tập trung vào tính hữu dụng thực tế, không chỉ tối ưu thêm một benchmark:
 
 \begin{enumerate}
-    \item \textbf{Hierarchical Knowledge Graph (Contribution 5)}: Tổ chức facts theo cấu trúc phân cấp (Abstract → Basic → Specific) theo Schema Theory (Bartlett, 1932) và Basic Level Categorization (Rosch, 1978). Đây là đóng góp exploratory đã được đề cập trong CogMem-Idea.md.
-    
-    \item \textbf{Multilingual support}: Mở rộng embedding model và LLM prompts cho tiếng Việt và các ngôn ngữ khác.
-    
-    \item \textbf{Scalability improvements}: Tối ưu hóa cho các cuộc hội thoại rất dài với partitioning strategies và incremental graph building.
-    
-    \item \textbf{Active consolidation}: Bổ sung pipeline consolidation chủ động để merge duplicate facts và maintain graph quality theo thời gian.
-    
-    \item \textbf{Hybrid memory}: Kết hợp episodic buffer với procedural memory để handle cả NL dialogue và agent trajectory logs.
+    \item \textbf{Agentic memory workload}: thử nghiệm CogMem trên trace dài của AI agent thật, nơi action-effect có thể lưu quan hệ precondition -- tool action -- outcome thay vì chỉ dựa vào hội thoại mock ngắn.
+    \item \textbf{Prospective assistant scenarios}: thiết kế các case thực tế về kế hoạch chưa hoàn thành, kế hoạch bị hủy và kế hoạch được thực hiện để kiểm tra Intention Network trong vòng đời dài hơn.
+    \item \textbf{Routine and habit diary}: xây workload diary nhiều tuần để kiểm tra Habit Network trên trigger-context, routine break và thói quen lặp lại, thay vì chỉ hỏi fact đơn lẻ.
+    \item \textbf{Production reliability}: bổ sung temporal reasoner, list-completeness controller và negative-control calibration để giảm lỗi trong các ứng dụng assistant thật.
 \end{enumerate}
 
-\begin{figure}[H]
-\centering
-\textbf{[FIGURE PLACEHOLDER]}\\
-Hình 6.3: Roadmap cho future work.
-\caption{Future Work Roadmap}
-\label{fig:ch6_future_work}
-\end{figure}
-
-\subsection{Kết luận}
-
-CogMem đã chứng minh rằng việc áp dụng các nguyên lý khoa học nhận thức vào thiết kế hệ thống bộ nhớ cho tác nhân hội thoại có thể mang lại cải thiện đáng kể trên các benchmark đánh giá. Kiến trúc 6 networks + 7 edge types, SUM spreading activation, adaptive query routing, và lossless metadata là những design decisions có cơ sở khoa học rõ ràng và được validate bởi cognitive science literature.
-
-Mặc dù kết quả thực nghiệm đầy đủ chưa có sẵn, cấu trúc báo cáo và methodology trong đồ án này cung cấp nền tảng vững chắc cho việc tiếp tục phát triển và đánh giá hệ thống.
-
-Đồ án này mở ra hướng nghiên cứu mới trong việc thiết kế memory systems dựa trên cognitive science thay vì purely engineering-driven approaches, và hy vọng sẽ đóng góp vào sự phát triển của các tác nhân hội thoại AI có khả năng duy trì bộ nhớ dài hạn hiệu quả.
+Nhìn chung, CogMem chứng minh rằng cognitive graph, raw evidence preservation, multi-channel recall và adaptive routing đủ để tạo một long-term memory API khả dụng; các điểm yếu còn lại là temporal reasoning, exact enumeration và habit-specific evidence.
 
 \end{document}

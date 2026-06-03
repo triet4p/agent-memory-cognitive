@@ -4,7 +4,6 @@
 \usepackage[utf8]{vietnam}
 \usepackage[top=2cm, bottom=2cm, left=3.5cm, right=2.5cm]{geometry}
 \usepackage{xurl}
-\usepackage{appendix}
 \usepackage{babel}
 \usepackage{xcolor}
 \usepackage{outlines}
@@ -18,12 +17,41 @@
 \usepackage{amsbsy} % Hỗ trợ các kí hiệu in đậm
 \usepackage{times} % Chọn font Time New Romans
 \usepackage{array} % Tạo bảng array
+\usepackage{booktabs}
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \usepackage{enumitem} % Cho phép thay đổi kí hiệu của list
 \usepackage{subfiles} % Chèn các file nhỏ, giúp chia các chapter ra nhiều file hơn
 \usepackage{titlesec} % Giúp chỉnh sửa các tiêu đề, đề mục như chương, phần,..
 \usepackage{titletoc}
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable,listings,skins}
+\tikzset{
+    reportlabel/.style={
+        fill=white,
+        fill opacity=0.94,
+        text opacity=1,
+        draw=black!35,
+        rounded corners=2pt,
+        inner xsep=4pt,
+        inner ysep=2pt,
+        font=\bfseries\scriptsize,
+        align=center,
+        text=black
+    },
+    reportnote/.style={
+        fill=white,
+        fill opacity=0.9,
+        text opacity=1,
+        draw=black!25,
+        rounded corners=2pt,
+        inner xsep=4pt,
+        inner ysep=2pt,
+        font=\scriptsize,
+        align=center,
+        text=black
+    }
+}
 \usepackage{chngcntr} % Dùng để thiết lập lại cách đánh số caption,..
 \usepackage{pdflscape} % Đưa các bảng có kích thước đặt theo chiều ngang giấy
 \usepackage{afterpage}
@@ -44,6 +72,7 @@
 \setglossarystyle{superraggedheaderborder}
 \usepackage{setspace}
 \usepackage{parskip}
+\raggedbottom
 
 \usepackage{blindtext}
 
@@ -167,6 +196,7 @@
 \onehalfspacing
 \setlength{\parskip}{6pt}
 \setlength{\parindent}{15pt}
+\emergencystretch=3em
 
 
 
@@ -249,10 +279,6 @@
 %\printnoidxglossaries
 % \phantomsection\addcontentsline{toc}{section}{\numberline {} DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT}
 
-\renewcommand\appendixname{APPENDIX}
-\renewcommand\appendixpagename{APPENDIX}
-\renewcommand\appendixtocname{APPENDIX}
-
 \renewcommand{\figurename}{Figure}
 \renewcommand{\tablename}{Table}
 \renewcommand{\chaptername}{CHAPTER}
@@ -308,26 +334,5 @@
 \nocite{*}
 \printbibliography
 \phantomsection\addcontentsline{toc}{chapter}{REFERENCE}
-
-\appendixpage
-\appendix
-\addappheadtotoc
-
-\titleformat{\chapter}[hang]{\centering\bfseries}{ \thechapter.\ }{0pt}{}[]
-\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
-
-\titlecontents{chapter}
-    [0.0cm]             % left margin
-    {\bfseries\vspace{0.3cm}}                  % above code
-    {{\bfseries{\scshape} \thecontentslabel.\ }} % numbered format
-    {}         % unnumbered format
-    {\titlerule*[0.3pc]{.}\contentspage} 
-    
-\chapter{GRADUATION THESIS GUIDANCE}
-\subfile{Chapter/Appendix_A}
-
-\newpage
-\chapter{USE CASE DESCRIPTIONS}
-\subfile{Chapter/Appendix_B}
 
 \end{document}

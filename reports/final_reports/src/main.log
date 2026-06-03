@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  31 MAY 2026 23:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  3 JUN 2026 15:00
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -262,16 +262,10 @@ Package: xurl 2022/01/09 v 0.10 modify URL breaks
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 ))
-(F:\MikTeX\tex/latex/appendix\appendix.sty
-Package: appendix 2020/02/08 v1.2c extra appendix facilities
-\c@@pps=\count287
-\c@@ppsavesec=\count288
-\c@@ppsaveapp=\count289
-)
 (F:\MikTeX\tex/generic/babel\babel.sty
 Package: babel 2025/12/11 v25.17 The multilingual framework for LuaLaTeX, pdfLa
 TeX and XeLaTeX
-\babel@savecnt=\count290
+\babel@savecnt=\count287
 LaTeX Encoding Info:    Redeclaring text command \ij (encoding OT1) on input li
 ne 2068.
 LaTeX Encoding Info:    Redeclaring text command \IJ (encoding OT1) on input li
@@ -291,7 +285,7 @@ on input line 2101.
 
 (F:\MikTeX\tex/generic/babel\txtbabel.def)
 \bbl@readstream=\read2
-\bbl@dirlevel=\count291
+\bbl@dirlevel=\count288
 Package babel Info: Configuration files are deprecated, as
 (babel)             they can break document portability.
 (babel)             Reported on input line 4196.
@@ -405,14 +399,14 @@ Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 (F:\MikTeX\tex/latex/amsmath\amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
 )
-\inf@bad=\count292
+\inf@bad=\count289
 LaTeX Info: Redefining \frac on input line 233.
-\uproot@=\count293
-\leftroot@=\count294
+\uproot@=\count290
+\leftroot@=\count291
 LaTeX Info: Redefining \overline on input line 398.
 LaTeX Info: Redefining \colon on input line 409.
-\classnum@=\count295
-\DOTSCASE@=\count296
+\classnum@=\count292
+\DOTSCASE@=\count293
 LaTeX Info: Redefining \ldots on input line 495.
 LaTeX Info: Redefining \dots on input line 498.
 LaTeX Info: Redefining \cdots on input line 619.
@@ -425,20 +419,20 @@ LaTeX Info: Redefining \Bigg on input line 724.
 \big@size=\dimen163
 LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
-\macc@depth=\count297
+\macc@depth=\count294
 LaTeX Info: Redefining \bmod on input line 904.
 LaTeX Info: Redefining \pmod on input line 909.
 LaTeX Info: Redefining \smash on input line 939.
 LaTeX Info: Redefining \relbar on input line 969.
 LaTeX Info: Redefining \Relbar on input line 970.
-\c@MaxMatrixCols=\count298
+\c@MaxMatrixCols=\count295
 \dotsspace@=\muskip18
-\c@parentequation=\count299
-\dspbrk@lvl=\count300
+\c@parentequation=\count296
+\dspbrk@lvl=\count297
 \tag@help=\toks32
-\row@=\count301
-\column@=\count302
-\maxfields@=\count303
+\row@=\count298
+\column@=\count299
+\maxfields@=\count300
 \andhelp@=\toks33
 \eqnshift@=\dimen164
 \alignsep@=\dimen165
@@ -476,14 +470,44 @@ Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
 \backup@length=\skip58
 \ar@cellbox=\box58
 )
+(F:\MikTeX\tex/latex/booktabs\booktabs.sty
+Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
+\heavyrulewidth=\dimen172
+\lightrulewidth=\dimen173
+\cmidrulewidth=\dimen174
+\belowrulesep=\dimen175
+\belowbottomsep=\dimen176
+\aboverulesep=\dimen177
+\abovetopsep=\dimen178
+\cmidrulesep=\dimen179
+\cmidrulekern=\dimen180
+\defaultaddspace=\dimen181
+\@cmidla=\count301
+\@cmidlb=\count302
+\@aboverulesep=\dimen182
+\@belowrulesep=\dimen183
+\@thisruleclass=\count303
+\@lastruleclass=\count304
+\@thisrulewidth=\dimen184
+)
+(F:\MikTeX\tex/latex/tools\tabularx.sty
+Package: tabularx 2023/12/11 v2.12a `tabularx' package (DPC)
+\TX@col@width=\dimen185
+\TX@old@table=\dimen186
+\TX@old@col=\dimen187
+\TX@target=\dimen188
+\TX@delta=\dimen189
+\TX@cols=\count305
+\TX@ftn=\toks37
+)
 (F:\MikTeX\tex/latex/enumitem\enumitem.sty
 Package: enumitem 2025/02/06 v3.11 Customized lists
 \labelindent=\skip59
-\enit@outerparindent=\dimen172
-\enit@toks=\toks37
+\enit@outerparindent=\dimen190
+\enit@toks=\toks38
 \enit@inbox=\box59
-\enit@count@id=\count304
-\enitdp@description=\count305
+\enit@count@id=\count306
+\enitdp@description=\count307
 )
 (F:\MikTeX\tex/latex/subfiles\subfiles.sty
 Package: subfiles 2020/11/14 v2.2 Multi-file projects (package)
@@ -496,16 +520,16 @@ Package: titlesec 2025/01/04 v2.17 Sectioning titles
 \ttl@box=\box60
 \beforetitleunit=\skip60
 \aftertitleunit=\skip61
-\ttl@plus=\dimen173
-\ttl@minus=\dimen174
-\ttl@toksa=\toks38
-\titlewidth=\dimen175
-\titlewidthlast=\dimen176
-\titlewidthfirst=\dimen177
+\ttl@plus=\dimen191
+\ttl@minus=\dimen192
+\ttl@toksa=\toks39
+\titlewidth=\dimen193
+\titlewidthlast=\dimen194
+\titlewidthfirst=\dimen195
 )
 (F:\MikTeX\tex/latex/titlesec\titletoc.sty
 Package: titletoc 2025/01/04 v2.17 TOC entries
-\ttl@leftsep=\dimen178
+\ttl@leftsep=\dimen196
 )
 (F:\MikTeX\tex/latex/tcolorbox\tcolorbox.sty
 Package: tcolorbox 2025/11/28 version 6.9.0 text color boxes
@@ -514,9 +538,9 @@ Package: tcolorbox 2025/11/28 version 6.9.0 text color boxes
 (F:\MikTeX\tex/latex/pgf/basiclayer\pgf.sty
 (F:\MikTeX\tex/latex/pgf/utilities\pgfrcs.sty
 (F:\MikTeX\tex/generic/pgf/utilities\pgfutil-common.tex
-\pgfutil@everybye=\toks39
-\pgfutil@tempdima=\dimen179
-\pgfutil@tempdimb=\dimen180
+\pgfutil@everybye=\toks40
+\pgfutil@tempdima=\dimen197
+\pgfutil@tempdimb=\dimen198
 )
 (F:\MikTeX\tex/generic/pgf/utilities\pgfutil-latex.def
 \pgfutil@abb=\box61
@@ -533,32 +557,32 @@ Package: pgf 2025-08-29 v3.1.11a (3.1.11a)
 Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
 
 (F:\MikTeX\tex/generic/pgf/utilities\pgfkeys.code.tex
-\pgfkeys@pathtoks=\toks40
-\pgfkeys@temptoks=\toks41
+\pgfkeys@pathtoks=\toks41
+\pgfkeys@temptoks=\toks42
 
 (F:\MikTeX\tex/generic/pgf/utilities\pgfkeyslibraryfiltered.code.tex
-\pgfkeys@tmptoks=\toks42
+\pgfkeys@tmptoks=\toks43
 ))
-\pgf@x=\dimen181
-\pgf@y=\dimen182
-\pgf@xa=\dimen183
-\pgf@ya=\dimen184
-\pgf@xb=\dimen185
-\pgf@yb=\dimen186
-\pgf@xc=\dimen187
-\pgf@yc=\dimen188
-\pgf@xd=\dimen189
-\pgf@yd=\dimen190
+\pgf@x=\dimen199
+\pgf@y=\dimen256
+\pgf@xa=\dimen257
+\pgf@ya=\dimen258
+\pgf@xb=\dimen259
+\pgf@yb=\dimen260
+\pgf@xc=\dimen261
+\pgf@yc=\dimen262
+\pgf@xd=\dimen263
+\pgf@yd=\dimen264
 \w@pgf@writea=\write4
 \r@pgf@reada=\read4
-\c@pgf@counta=\count306
-\c@pgf@countb=\count307
-\c@pgf@countc=\count308
-\c@pgf@countd=\count309
-\t@pgf@toka=\toks43
-\t@pgf@tokb=\toks44
-\t@pgf@tokc=\toks45
-\pgf@sys@id@count=\count310
+\c@pgf@counta=\count308
+\c@pgf@countb=\count309
+\c@pgf@countc=\count310
+\c@pgf@countd=\count311
+\t@pgf@toka=\toks44
+\t@pgf@tokb=\toks45
+\t@pgf@tokc=\toks46
+\pgf@sys@id@count=\count312
 
 (F:\MikTeX\tex/generic/pgf/systemlayer\pgf.cfg
 File: pgf.cfg 2025-08-29 v3.1.11a (3.1.11a)
@@ -573,8 +597,8 @@ File: pgfsys-common-pdf.def 2025-08-29 v3.1.11a (3.1.11a)
 )))
 (F:\MikTeX\tex/generic/pgf/systemlayer\pgfsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfsyssoftpath@smallbuffer@items=\count311
-\pgfsyssoftpath@bigbuffer@items=\count312
+\pgfsyssoftpath@smallbuffer@items=\count313
+\pgfsyssoftpath@bigbuffer@items=\count314
 )
 (F:\MikTeX\tex/generic/pgf/systemlayer\pgfsysprotocol.code.tex
 File: pgfsysprotocol.code.tex 2025-08-29 v3.1.11a (3.1.11a)
@@ -585,12 +609,12 @@ Package: pgfcore 2025-08-29 v3.1.11a (3.1.11a)
 (F:\MikTeX\tex/generic/pgf/math\pgfmath.code.tex
 (F:\MikTeX\tex/generic/pgf/math\pgfmathutil.code.tex)
 (F:\MikTeX\tex/generic/pgf/math\pgfmathparser.code.tex
-\pgfmath@dimen=\dimen191
-\pgfmath@count=\count313
+\pgfmath@dimen=\dimen265
+\pgfmath@count=\count315
 \pgfmath@box=\box62
-\pgfmath@toks=\toks46
-\pgfmath@stack@operand=\toks47
-\pgfmath@stack@operation=\toks48
+\pgfmath@toks=\toks47
+\pgfmath@stack@operand=\toks48
+\pgfmath@stack@operation=\toks49
 )
 (F:\MikTeX\tex/generic/pgf/math\pgfmathfunctions.code.tex)
 (F:\MikTeX\tex/generic/pgf/math\pgfmathfunctions.basic.code.tex)
@@ -603,52 +627,52 @@ Package: pgfcore 2025-08-29 v3.1.11a (3.1.11a)
 (F:\MikTeX\tex/generic/pgf/math\pgfmathfunctions.integerarithmetics.code.tex)
 (F:\MikTeX\tex/generic/pgf/math\pgfmathcalc.code.tex)
 (F:\MikTeX\tex/generic/pgf/math\pgfmathfloat.code.tex
-\c@pgfmathroundto@lastzeros=\count314
+\c@pgfmathroundto@lastzeros=\count316
 ))
 (F:\MikTeX\tex/generic/pgf/math\pgfint.code.tex)
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcorepoints.code.tex
 File: pgfcorepoints.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@picminx=\dimen192
-\pgf@picmaxx=\dimen193
-\pgf@picminy=\dimen194
-\pgf@picmaxy=\dimen195
-\pgf@pathminx=\dimen196
-\pgf@pathmaxx=\dimen197
-\pgf@pathminy=\dimen198
-\pgf@pathmaxy=\dimen199
-\pgf@xx=\dimen256
-\pgf@xy=\dimen257
-\pgf@yx=\dimen258
-\pgf@yy=\dimen259
-\pgf@zx=\dimen260
-\pgf@zy=\dimen261
+\pgf@picminx=\dimen266
+\pgf@picmaxx=\dimen267
+\pgf@picminy=\dimen268
+\pgf@picmaxy=\dimen269
+\pgf@pathminx=\dimen270
+\pgf@pathmaxx=\dimen271
+\pgf@pathminy=\dimen272
+\pgf@pathmaxy=\dimen273
+\pgf@xx=\dimen274
+\pgf@xy=\dimen275
+\pgf@yx=\dimen276
+\pgf@yy=\dimen277
+\pgf@zx=\dimen278
+\pgf@zy=\dimen279
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcorepathconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@path@lastx=\dimen262
-\pgf@path@lasty=\dimen263
+\pgf@path@lastx=\dimen280
+\pgf@path@lasty=\dimen281
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcorepathusage.code.tex
 File: pgfcorepathusage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@shorten@end@additional=\dimen264
-\pgf@shorten@start@additional=\dimen265
+\pgf@shorten@end@additional=\dimen282
+\pgf@shorten@start@additional=\dimen283
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcorescopes.code.tex
 File: pgfcorescopes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfpic=\box63
 \pgf@hbox=\box64
 \pgf@layerbox@main=\box65
-\pgf@picture@serial@count=\count315
+\pgf@picture@serial@count=\count317
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcoregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgflinewidth=\dimen266
+\pgflinewidth=\dimen284
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcoretransformations.code.tex
 File: pgfcoretransformations.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@pt@x=\dimen267
-\pgf@pt@y=\dimen268
-\pgf@pt@temp=\dimen269
+\pgf@pt@x=\dimen285
+\pgf@pt@y=\dimen286
+\pgf@pt@temp=\dimen287
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcorequick.code.tex
 File: pgfcorequick.code.tex 2025-08-29 v3.1.11a (3.1.11a)
@@ -661,13 +685,13 @@ File: pgfcorepathprocessing.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcorearrows.code.tex
 File: pgfcorearrows.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfarrowsep=\dimen270
+\pgfarrowsep=\dimen288
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcoreshade.code.tex
 File: pgfcoreshade.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@max=\dimen271
-\pgf@sys@shading@range@num=\count316
-\pgf@shadingcount=\count317
+\pgf@max=\dimen289
+\pgf@sys@shading@range@num=\count318
+\pgf@shadingcount=\count319
 )
 (F:\MikTeX\tex/generic/pgf/basiclayer\pgfcoreimage.code.tex
 File: pgfcoreimage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
@@ -697,8 +721,8 @@ File: pgfmoduleplot.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 )
 (F:\MikTeX\tex/latex/pgf/compatibility\pgfcomp-version-0-65.sty
 Package: pgfcomp-version-0-65 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@nodesepstart=\dimen272
-\pgf@nodesepend=\dimen273
+\pgf@nodesepstart=\dimen290
+\pgf@nodesepend=\dimen291
 )
 (F:\MikTeX\tex/latex/pgf/compatibility\pgfcomp-version-1-18.sty
 Package: pgfcomp-version-1-18 2025-08-29 v3.1.11a (3.1.11a)
@@ -710,51 +734,51 @@ Package: pgfcomp-version-1-18 2025-08-29 v3.1.11a (3.1.11a)
 (F:\MikTeX\tex/generic/pgf/math\pgfmath.code.tex))
 (F:\MikTeX\tex/generic/pgf/utilities\pgffor.code.tex
 Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
-\pgffor@iter=\dimen274
-\pgffor@skip=\dimen275
-\pgffor@stack=\toks49
-\pgffor@toks=\toks50
+\pgffor@iter=\dimen292
+\pgffor@skip=\dimen293
+\pgffor@stack=\toks50
+\pgffor@toks=\toks51
 ))
 (F:\MikTeX\tex/generic/pgf/frontendlayer/tikz\tikz.code.tex
 Package: tikz 2025-08-29 v3.1.11a (3.1.11a)
 
 (F:\MikTeX\tex/generic/pgf/libraries\pgflibraryplothandlers.code.tex
 File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@plot@mark@count=\count318
-\pgfplotmarksize=\dimen276
+\pgf@plot@mark@count=\count320
+\pgfplotmarksize=\dimen294
 )
-\tikz@lastx=\dimen277
-\tikz@lasty=\dimen278
-\tikz@lastxsaved=\dimen279
-\tikz@lastysaved=\dimen280
-\tikz@lastmovetox=\dimen281
-\tikz@lastmovetoy=\dimen282
-\tikzleveldistance=\dimen283
-\tikzsiblingdistance=\dimen284
+\tikz@lastx=\dimen295
+\tikz@lasty=\dimen296
+\tikz@lastxsaved=\dimen297
+\tikz@lastysaved=\dimen298
+\tikz@lastmovetox=\dimen299
+\tikz@lastmovetoy=\dimen300
+\tikzleveldistance=\dimen301
+\tikzsiblingdistance=\dimen302
 \tikz@figbox=\box68
 \tikz@figbox@bg=\box69
 \tikz@tempbox=\box70
 \tikz@tempbox@bg=\box71
-\tikztreelevel=\count319
-\tikznumberofchildren=\count320
-\tikznumberofcurrentchild=\count321
-\tikz@fig@count=\count322
+\tikztreelevel=\count321
+\tikznumberofchildren=\count322
+\tikznumberofcurrentchild=\count323
+\tikz@fig@count=\count324
 
 (F:\MikTeX\tex/generic/pgf/modules\pgfmodulematrix.code.tex
 File: pgfmodulematrix.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfmatrixcurrentrow=\count323
-\pgfmatrixcurrentcolumn=\count324
-\pgf@matrix@numberofcolumns=\count325
+\pgfmatrixcurrentrow=\count325
+\pgfmatrixcurrentcolumn=\count326
+\pgf@matrix@numberofcolumns=\count327
 )
-\tikz@expandcount=\count326
+\tikz@expandcount=\count328
 
 (F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarytopaths.code
 .tex
 File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 ))) (F:\MikTeX\tex/latex/tools\verbatim.sty
 Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
-\every@verbatim=\toks51
-\verbatim@line=\toks52
+\every@verbatim=\toks52
+\verbatim@line=\toks53
 \verbatim@in@stream=\read5
 )
 (F:\MikTeX\tex/latex/environ\environ.sty
@@ -765,17 +789,17 @@ Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
 ))
 (F:\MikTeX\tex/latex/etoolbox\etoolbox.sty
 Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
-\etb@tempcnta=\count327
+\etb@tempcnta=\count329
 )
 \tcb@titlebox=\box72
 \tcb@upperbox=\box73
 \tcb@lowerbox=\box74
 \tcb@phantombox=\box75
-\c@tcbbreakpart=\count328
-\c@tcblayer=\count329
-\c@tcolorbox@number=\count330
+\c@tcbbreakpart=\count330
+\c@tcblayer=\count331
+\c@tcolorbox@number=\count332
 \l__tcobox_tmpa_box=\box76
-\l__tcobox_tmpa_dim=\dimen285
+\l__tcobox_tmpa_dim=\dimen303
 \tcb@temp=\box77
 \tcb@temp=\box78
 \tcb@temp=\box79
@@ -800,26 +824,26 @@ Package pdfcol Info: New color stack `tcb@breakable' = 1 on input line 23.
 (F:\MikTeX\tex/latex/tcolorbox\tcblistings.code.tex
 Library (tcolorbox): 'tcblistings.code.tex' version '6.9.0'
 (F:\MikTeX\tex/latex/listings\listings.sty
-\lst@mode=\count331
+\lst@mode=\count333
 \lst@gtempboxa=\box84
-\lst@token=\toks53
-\lst@length=\count332
-\lst@currlwidth=\dimen286
-\lst@column=\count333
-\lst@pos=\count334
-\lst@lostspace=\dimen287
-\lst@width=\dimen288
-\lst@newlines=\count335
-\lst@lineno=\count336
-\lst@maxwidth=\dimen289
+\lst@token=\toks54
+\lst@length=\count334
+\lst@currlwidth=\dimen304
+\lst@column=\count335
+\lst@pos=\count336
+\lst@lostspace=\dimen305
+\lst@width=\dimen306
+\lst@newlines=\count337
+\lst@lineno=\count338
+\lst@maxwidth=\dimen307
 
 (F:\MikTeX\tex/latex/listings\lstpatch.sty
 File: lstpatch.sty 2025/11/14 1.11b (Carsten Heinz)
 )
 (F:\MikTeX\tex/latex/listings\lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
-\c@lstnumber=\count337
-\lst@skipnumbers=\count338
+\c@lstnumber=\count339
+\lst@skipnumbers=\count340
 \lst@framebox=\box85
 )
 (F:\MikTeX\tex/latex/listings\listings.cfg
@@ -838,7 +862,7 @@ Library (tcolorbox): 'tcblistingscore.code.tex' version '6.9.0'
 (F:\MikTeX\tex/latex/tcolorbox\tcbprocessing.code.tex
 Library (tcolorbox): 'tcbprocessing.code.tex' version '6.9.0'
 )
-\c@tcblisting=\count339
+\c@tcblisting=\count341
 )) (F:\MikTeX\tex/latex/tcolorbox\tcbskins.code.tex
 Library (tcolorbox): 'tcbskins.code.tex' version '6.9.0'
 (F:\MikTeX\tex/latex/tikzfill\tikzfill.image.sty
@@ -846,8 +870,8 @@ Package: tikzfill.image 2026/04/23 v1.2.0 Image filling library for TikZ
 
 (F:\MikTeX\tex/latex/tikzfill\tikzlibraryfill.image.code.tex
 File: tikzlibraryfill.image.code.tex 2026/04/23 v1.2.0 Image filling library
-\l__tikzfill_tmpa_dim=\dimen290
-\l__tikzfill_tmpb_dim=\dimen291
+\l__tikzfill_tmpa_dim=\dimen308
+\l__tikzfill_tmpb_dim=\dimen309
 \l__tikzfill_img_box=\box86
 ))
 (F:\MikTeX\tex/latex/tcolorbox\tcbskinsjigsaw.code.tex
@@ -871,18 +895,18 @@ Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 ))
 (F:\MikTeX\tex/latex/tools\afterpage.sty
 Package: afterpage 2023/07/04 v1.08 After-Page Package (DPC)
-\AP@output=\toks54
+\AP@output=\toks55
 \AP@partial=\box87
 \AP@footins=\box88
 )
 (F:\MikTeX\tex/latex/algorithm2e\algorithm2e.sty
 Package: algorithm2e 2017/07/18 v5.2 algorithms environments
-\c@AlgoLine=\count340
+\c@AlgoLine=\count342
 \algocf@hangindent=\skip62
 
 (F:\MikTeX\tex/latex/ifoddpage\ifoddpage.sty
 Package: ifoddpage 2022/10/18 v1.2 Conditionals for odd/even page detection
-\c@checkoddpage=\count341
+\c@checkoddpage=\count343
 )
 (F:\MikTeX\tex/latex/tools\xspace.sty
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
@@ -897,12 +921,12 @@ Package: relsize 2013/03/29 ver 4.1
 \skiplength=\skip68
 \algomargin=\skip69
 \skipalgocfslide=\skip70
-\algowidth=\dimen292
-\inoutsize=\dimen293
-\inoutindent=\dimen294
-\interspacetitleruled=\dimen295
-\interspacealgoruled=\dimen296
-\interspacetitleboxruled=\dimen297
+\algowidth=\dimen310
+\inoutsize=\dimen311
+\inoutindent=\dimen312
+\interspacetitleruled=\dimen313
+\interspacealgoruled=\dimen314
+\interspacetitleboxruled=\dimen315
 \algocf@ruledwidth=\skip71
 \algocf@inoutbox=\box89
 \algocf@inputbox=\box90
@@ -919,9 +943,9 @@ Package: relsize 2013/03/29 ver 4.1
 \algoheightrule=\skip78
 \algotitleheightruledefault=\skip79
 \algotitleheightrule=\skip80
-\c@algocfline=\count342
-\c@algocfproc=\count343
-\c@algocf=\count344
+\c@algocfline=\count344
+\c@algocfproc=\count345
+\c@algocf=\count346
 \algocf@algoframe=\box95
 \algocf@algobox=\box96
 ) (F:\MikTeX\tex/latex/capt-of\capt-of.sty
@@ -930,9 +954,9 @@ Package: capt-of 2009/12/29 v0.2 standard captions outside of floats
 (F:\MikTeX\tex/latex/multirow\multirow.sty
 Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 \multirow@colwidth=\skip81
-\multirow@cntb=\count345
+\multirow@cntb=\count347
 \multirow@dima=\skip82
-\bigstrutjot=\dimen298
+\bigstrutjot=\dimen316
 )
 (F:\MikTeX\tex/latex/fancyhdr\fancyhdr.sty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
@@ -951,44 +975,44 @@ Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@widthL=\skip94
 \f@nch@widthC=\skip95
 \f@nch@widthR=\skip96
-\@temptokenb=\toks55
+\@temptokenb=\toks56
 )
 (F:\MikTeX\tex/latex/caption\caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
 
 (F:\MikTeX\tex/latex/caption\caption3.sty
 Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
-\caption@tempdima=\dimen299
-\captionmargin=\dimen300
-\caption@leftmargin=\dimen301
-\caption@rightmargin=\dimen302
-\caption@width=\dimen303
-\caption@indent=\dimen304
-\caption@parindent=\dimen305
-\caption@hangindent=\dimen306
+\caption@tempdima=\dimen317
+\captionmargin=\dimen318
+\caption@leftmargin=\dimen319
+\caption@rightmargin=\dimen320
+\caption@width=\dimen321
+\caption@indent=\dimen322
+\caption@parindent=\dimen323
+\caption@hangindent=\dimen324
 Package caption Info: Standard document class detected.
 )
-\c@caption@flags=\count346
-\c@continuedfloat=\count347
+\c@caption@flags=\count348
+\c@continuedfloat=\count349
 Package caption Info: listings package is loaded.
 Package caption Info: scrextend package is loaded.
-\caption@addmargin@hsize=\dimen307
-\caption@addmargin@linewidth=\dimen308
+\caption@addmargin@hsize=\dimen325
+\caption@addmargin@linewidth=\dimen326
 )
 (F:\MikTeX\tex/latex/float\float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count348
-\float@exts=\toks56
+\c@float@type=\count350
+\float@exts=\toks57
 \float@box=\box97
-\@float@everytoks=\toks57
+\@float@everytoks=\toks58
 \@floatcapt=\box98
 )
 (F:\MikTeX\tex/latex/caption\subcaption.sty
 Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
 Package caption Info: New subtype `subfigure' on input line 238.
-\c@subfigure=\count349
+\c@subfigure=\count351
 Package caption Info: New subtype `subtable' on input line 238.
-\c@subtable=\count350
+\c@subtable=\count352
 )
 (F:\MikTeX\tex/latex/glossaries/base\glossaries.sty
 Package: glossaries 2026/04/21 v5.1 (NLCT)
@@ -998,16 +1022,16 @@ Package: xkeyval 2022/06/16 v2.9 package option processing (HA)
 
 (F:\MikTeX\tex/generic/xkeyval\xkeyval.tex
 (F:\MikTeX\tex/generic/xkeyval\xkvutils.tex
-\XKV@toks=\toks58
-\XKV@tempa@toks=\toks59
+\XKV@toks=\toks59
+\XKV@tempa@toks=\toks60
 )
-\XKV@depth=\count351
+\XKV@depth=\count353
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
 (F:\MikTeX\tex/latex/mfirstuc\mfirstuc.sty
 Package: mfirstuc 2025/04/03 v2.09 (NLCT)
-\@glsmfirst=\toks60
-\@glsmrest=\toks61
+\@glsmfirst=\toks61
+\@glsmrest=\toks62
 ) (F:\MikTeX\tex/latex/xfor\xfor.sty
 Package: xfor 2009/02/05 v1.05 (NLCT)
 ) (F:\MikTeX\tex/latex/tracklang\tracklang.sty
@@ -1028,58 +1052,58 @@ Package glossaries Warning: No language module detected for `nil'.
 
 (F:\MikTeX\tex/latex/datatool\datatool-base.sty
 Package: datatool-base 2025/12/04 v3.4.3 (NLCT)
-\l__datatool_tmpa_int=\count352
-\l__datatool_tmpb_int=\count353
-\l__datatool_tmpc_int=\count354
-\l__datatool_tmpd_int=\count355
-\l__datatool_count_int=\count356
-\l__datatool_tmp_datatype_int=\count357
-\l__datatool_tmpa_dim=\dimen309
-\l__datatool_tmpb_dim=\dimen310
+\l__datatool_tmpa_int=\count354
+\l__datatool_tmpb_int=\count355
+\l__datatool_tmpc_int=\count356
+\l__datatool_tmpd_int=\count357
+\l__datatool_count_int=\count358
+\l__datatool_tmp_datatype_int=\count359
+\l__datatool_tmpa_dim=\dimen327
+\l__datatool_tmpb_dim=\dimen328
 
 (F:\MikTeX\tex/latex/datatool\datatool-l3fp.def
 File: datatool-l3fp.def 2025/12/04 v3.4.3 (NLCT)
 )
-\@dtl@toks=\toks62
-\@dtl@tmpcount=\count358
+\@dtl@toks=\toks63
+\@dtl@tmpcount=\count360
 \dtl@tmplength=\skip97
 \l__datatool_measure_box=\box99
-\dtl@sortresult=\count359
+\dtl@sortresult=\count361
 
 (F:\MikTeX\tex/latex/datatool\datatool-utf8.ldf
 File: datatool-utf8.ldf 2025/12/04 v3.4.3 (NLCT)
 )
-\@dtl@datatype=\count360
-\c_datatool_unknown_int=\count361
-\l__datatool_year_int=\count362
-\l__datatool_month_int=\count363
-\l__datatool_day_int=\count364
-\l__datatool_hour_int=\count365
-\l__datatool_minute_int=\count366
-\l__datatool_second_int=\count367
-\l__datatool_tzhour_int=\count368
-\l__datatool_tzminute_int=\count369
-\l__datatool_julian_int=\count370
-\l__datatool_local_julian_int=\count371
-\l__datatool_prefix_int=\count372
-\l__datatool_suffix_int=\count373
-\@dtl@foreach@level=\count374
+\@dtl@datatype=\count362
+\c_datatool_unknown_int=\count363
+\l__datatool_year_int=\count364
+\l__datatool_month_int=\count365
+\l__datatool_day_int=\count366
+\l__datatool_hour_int=\count367
+\l__datatool_minute_int=\count368
+\l__datatool_second_int=\count369
+\l__datatool_tzhour_int=\count370
+\l__datatool_tzminute_int=\count371
+\l__datatool_julian_int=\count372
+\l__datatool_local_julian_int=\count373
+\l__datatool_prefix_int=\count374
+\l__datatool_suffix_int=\count375
+\@dtl@foreach@level=\count376
 
 (F:\MikTeX\tex/latex/datatool\datatool-undetermined.ldf
 File: datatool-undetermined.ldf 2025/12/04 v3.4.3
 )
-\dtl@codeA=\count375
-\dtl@codeB=\count376
+\dtl@codeA=\count377
+\dtl@codeB=\count378
 )
-\gls@level=\count377
-\@gls@tmpb=\toks63
+\gls@level=\count379
+\@gls@tmpb=\toks64
 \gls@tmplen=\skip98
-\l__glossaries_tmpa_dim=\dimen311
-\l__glossaries_tmpb_dim=\dimen312
-\glskeylisttok=\toks64
-\glslabeltok=\toks65
-\glsshorttok=\toks66
-\glslongtok=\toks67
+\l__glossaries_tmpa_dim=\dimen329
+\l__glossaries_tmpb_dim=\dimen330
+\glskeylisttok=\toks65
+\glslabeltok=\toks66
+\glsshorttok=\toks67
+\glslongtok=\toks68
 
 (F:\MikTeX\tex/latex/glossaries/styles\glossary-hypernav.sty
 Package: glossary-hypernav 2026/04/21 v5.1 (NLCT)
@@ -1097,18 +1121,18 @@ Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
 \LTright=\skip101
 \LTpre=\skip102
 \LTpost=\skip103
-\LTchunksize=\count378
-\LTcapwidth=\dimen313
+\LTchunksize=\count380
+\LTcapwidth=\dimen331
 \LT@head=\box100
 \LT@firsthead=\box101
 \LT@foot=\box102
 \LT@lastfoot=\box103
 \LT@gbox=\box104
-\LT@cols=\count379
-\LT@rows=\count380
-\c@LT@tables=\count381
-\c@LT@chunks=\count382
-\LT@p@ftn=\toks68
+\LT@cols=\count381
+\LT@rows=\count382
+\c@LT@tables=\count383
+\c@LT@chunks=\count384
+\LT@p@ftn=\toks69
 )
 \glsdescwidth=\skip104
 \glspagelistwidth=\skip105
@@ -1118,35 +1142,35 @@ Package: glossary-super 2026/04/21 v5.1 (NLCT)
 
 (F:\MikTeX\tex/latex/supertabular\supertabular.sty
 Package: supertabular 2025/06/26 v4.2d the supertabular environment
-\c@tracingst=\count383
-\ST@wd=\dimen314
+\c@tracingst=\count385
+\ST@wd=\dimen332
 \ST@rightskip=\skip106
 \ST@leftskip=\skip107
 \ST@parfillskip=\skip108
-\ST@pageleft=\dimen315
-\ST@headht=\dimen316
-\ST@tailht=\dimen317
-\ST@pagesofar=\dimen318
-\ST@pboxht=\dimen319
-\ST@rowht=\dimen320
-\ST@prevht=\dimen321
-\ST@toadd=\dimen322
-\ST@dimen=\dimen323
+\ST@pageleft=\dimen333
+\ST@headht=\dimen334
+\ST@tailht=\dimen335
+\ST@pagesofar=\dimen336
+\ST@pboxht=\dimen337
+\ST@rowht=\dimen338
+\ST@prevht=\dimen339
+\ST@toadd=\dimen340
+\ST@dimen=\dimen341
 \ST@pbox=\box105
 ))
 (F:\MikTeX\tex/latex/glossaries/styles\glossary-tree.sty
 Package: glossary-tree 2026/04/21 v5.1 (NLCT)
-\l__glossaries_tree_max_known_level_int=\count384
-\l__glossaries_tree_offset_dim=\dimen324
-\l__glossaries_tree_namewidth_dim=\dimen325
-\l__glossaries_tree_symbolwidth_dim=\dimen326
-\l__glossaries_tree_prenamesym_width_dim=\dimen327
-\l__glossaries_tree_presubnamesym_width_dim=\dimen328
-\l__glossaries_tree_namewidth_padding_dim=\dimen329
-\l__glossaries_tree_symbolwidth_padding_dim=\dimen330
-\l__glossaries_tree_namesymbolwidth_dim=\dimen331
-\l__glossaries_tree_namesymbolwidth_padding_dim=\dimen332
-\l__glossaries_tree_level_int=\count385
+\l__glossaries_tree_max_known_level_int=\count386
+\l__glossaries_tree_offset_dim=\dimen342
+\l__glossaries_tree_namewidth_dim=\dimen343
+\l__glossaries_tree_symbolwidth_dim=\dimen344
+\l__glossaries_tree_prenamesym_width_dim=\dimen345
+\l__glossaries_tree_presubnamesym_width_dim=\dimen346
+\l__glossaries_tree_namewidth_padding_dim=\dimen347
+\l__glossaries_tree_symbolwidth_padding_dim=\dimen348
+\l__glossaries_tree_namesymbolwidth_dim=\dimen349
+\l__glossaries_tree_namesymbolwidth_padding_dim=\dimen350
+\l__glossaries_tree_level_int=\count387
 \glstreeindent=\skip109
 ))
 (F:\MikTeX\tex/latex/glossaries/styles\glossary-superragged.sty
@@ -1166,24 +1190,24 @@ Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
 )))
 (F:\MikTeX\tex/latex/blindtext\blindtext.sty
 Package: blindtext 2012/01/06 V2.0 blindtext-Package
-\c@blindtext=\count386
-\c@Blindtext=\count387
-\c@blind@countparstart=\count388
-\blind@countxx=\count389
-\blindtext@numBlindtext=\count390
-\blind@countyy=\count391
-\c@blindlist=\count392
-\c@blindlistlevel=\count393
-\c@blindlist@level=\count394
-\blind@listitem=\count395
-\c@blind@listcount=\count396
-\c@blind@levelcount=\count397
-\blind@mathformula=\count398
-\blind@Mathformula=\count399
-\c@blind@randomcount=\count400
-\c@blind@randommax=\count401
-\c@blind@pangramcount=\count402
-\c@blind@pangrammax=\count403
+\c@blindtext=\count388
+\c@Blindtext=\count389
+\c@blind@countparstart=\count390
+\blind@countxx=\count391
+\blindtext@numBlindtext=\count392
+\blind@countyy=\count393
+\c@blindlist=\count394
+\c@blindlistlevel=\count395
+\c@blindlist@level=\count396
+\blind@listitem=\count397
+\c@blind@listcount=\count398
+\c@blind@levelcount=\count399
+\blind@mathformula=\count400
+\blind@Mathformula=\count401
+\c@blind@randomcount=\count402
+\c@blind@randommax=\count403
+\c@blind@pangramcount=\count404
+\c@blind@pangrammax=\count405
 )
 (F:\MikTeX\tex/latex/biblatex\biblatex.sty
 Package: biblatex 2025/07/10 v3.21 programmable bibliographies (PK/MW)
@@ -1197,53 +1221,53 @@ Package pdftexcmds Info: \pdfdraftmode found.
 )
 (F:\MikTeX\tex/latex/logreq\logreq.sty
 Package: logreq 2010/08/04 v1.0 xml request logger
-\lrq@indent=\count404
+\lrq@indent=\count406
  (F:\MikTeX\tex/latex/logreq\logreq.def
 File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
 ))
-\c@tabx@nest=\count405
-\c@listtotal=\count406
-\c@listcount=\count407
-\c@liststart=\count408
-\c@liststop=\count409
-\c@citecount=\count410
-\c@citetotal=\count411
-\c@multicitecount=\count412
-\c@multicitetotal=\count413
-\c@instcount=\count414
-\c@maxnames=\count415
-\c@minnames=\count416
-\c@maxitems=\count417
-\c@minitems=\count418
-\c@citecounter=\count419
-\c@maxcitecounter=\count420
-\c@savedcitecounter=\count421
-\c@uniquelist=\count422
-\c@uniquename=\count423
-\c@refsection=\count424
-\c@refsegment=\count425
-\c@maxextratitle=\count426
-\c@maxextratitleyear=\count427
-\c@maxextraname=\count428
-\c@maxextradate=\count429
-\c@maxextraalpha=\count430
-\c@abbrvpenalty=\count431
-\c@highnamepenalty=\count432
-\c@lownamepenalty=\count433
-\c@maxparens=\count434
-\c@parenlevel=\count435
-\blx@tempcnta=\count436
-\blx@tempcntb=\count437
-\blx@tempcntc=\count438
-\c@blx@maxsection=\count439
-\blx@maxsegment@0=\count440
-\blx@notetype=\count441
-\blx@parenlevel@text=\count442
-\blx@parenlevel@foot=\count443
-\blx@sectionciteorder@0=\count444
-\blx@sectionciteorderinternal@0=\count445
-\blx@entrysetcounter=\count446
-\blx@biblioinstance=\count447
+\c@tabx@nest=\count407
+\c@listtotal=\count408
+\c@listcount=\count409
+\c@liststart=\count410
+\c@liststop=\count411
+\c@citecount=\count412
+\c@citetotal=\count413
+\c@multicitecount=\count414
+\c@multicitetotal=\count415
+\c@instcount=\count416
+\c@maxnames=\count417
+\c@minnames=\count418
+\c@maxitems=\count419
+\c@minitems=\count420
+\c@citecounter=\count421
+\c@maxcitecounter=\count422
+\c@savedcitecounter=\count423
+\c@uniquelist=\count424
+\c@uniquename=\count425
+\c@refsection=\count426
+\c@refsegment=\count427
+\c@maxextratitle=\count428
+\c@maxextratitleyear=\count429
+\c@maxextraname=\count430
+\c@maxextradate=\count431
+\c@maxextraalpha=\count432
+\c@abbrvpenalty=\count433
+\c@highnamepenalty=\count434
+\c@lownamepenalty=\count435
+\c@maxparens=\count436
+\c@parenlevel=\count437
+\blx@tempcnta=\count438
+\blx@tempcntb=\count439
+\blx@tempcntc=\count440
+\c@blx@maxsection=\count441
+\blx@maxsegment@0=\count442
+\blx@notetype=\count443
+\blx@parenlevel@text=\count444
+\blx@parenlevel@foot=\count445
+\blx@sectionciteorder@0=\count446
+\blx@sectionciteorderinternal@0=\count447
+\blx@entrysetcounter=\count448
+\blx@biblioinstance=\count449
 \labelnumberwidth=\skip110
 \labelalphawidth=\skip111
 \biblabelsep=\skip112
@@ -1255,9 +1279,9 @@ File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
 \blx@bcfin=\read6
 \blx@bcfout=\write5
 \blx@langwohyphens=\language81
-\c@mincomprange=\count448
-\c@maxcomprange=\count449
-\c@mincompwidth=\count450
+\c@mincomprange=\count450
+\c@maxcomprange=\count451
+\c@mincompwidth=\count452
 Package biblatex Info: Trying to load biblatex default data model...
 Package biblatex Info: ... file 'blx-dm.def' found.
 (F:\MikTeX\tex/latex/biblatex\blx-dm.def
@@ -1267,74 +1291,74 @@ Package biblatex Info: Trying to load biblatex style data model...
 Package biblatex Info: ... file 'ieee.dbx' not found.
 Package biblatex Info: Trying to load biblatex custom data model...
 Package biblatex Info: ... file 'biblatex-dm.cfg' not found.
-\c@afterword=\count451
-\c@savedafterword=\count452
-\c@annotator=\count453
-\c@savedannotator=\count454
-\c@author=\count455
-\c@savedauthor=\count456
-\c@bookauthor=\count457
-\c@savedbookauthor=\count458
-\c@commentator=\count459
-\c@savedcommentator=\count460
-\c@editor=\count461
-\c@savededitor=\count462
-\c@editora=\count463
-\c@savededitora=\count464
-\c@editorb=\count465
-\c@savededitorb=\count466
-\c@editorc=\count467
-\c@savededitorc=\count468
-\c@foreword=\count469
-\c@savedforeword=\count470
-\c@holder=\count471
-\c@savedholder=\count472
-\c@introduction=\count473
-\c@savedintroduction=\count474
-\c@namea=\count475
-\c@savednamea=\count476
-\c@nameb=\count477
-\c@savednameb=\count478
-\c@namec=\count479
-\c@savednamec=\count480
-\c@translator=\count481
-\c@savedtranslator=\count482
-\c@shortauthor=\count483
-\c@savedshortauthor=\count484
-\c@shorteditor=\count485
-\c@savedshorteditor=\count486
-\c@labelname=\count487
-\c@savedlabelname=\count488
-\c@institution=\count489
-\c@savedinstitution=\count490
-\c@lista=\count491
-\c@savedlista=\count492
-\c@listb=\count493
-\c@savedlistb=\count494
-\c@listc=\count495
-\c@savedlistc=\count496
-\c@listd=\count497
-\c@savedlistd=\count498
-\c@liste=\count499
-\c@savedliste=\count500
-\c@listf=\count501
-\c@savedlistf=\count502
-\c@location=\count503
-\c@savedlocation=\count504
-\c@organization=\count505
-\c@savedorganization=\count506
-\c@origlocation=\count507
-\c@savedoriglocation=\count508
-\c@origpublisher=\count509
-\c@savedorigpublisher=\count510
-\c@publisher=\count511
-\c@savedpublisher=\count512
-\c@language=\count513
-\c@savedlanguage=\count514
-\c@origlanguage=\count515
-\c@savedoriglanguage=\count516
-\c@pageref=\count517
-\c@savedpageref=\count518
+\c@afterword=\count453
+\c@savedafterword=\count454
+\c@annotator=\count455
+\c@savedannotator=\count456
+\c@author=\count457
+\c@savedauthor=\count458
+\c@bookauthor=\count459
+\c@savedbookauthor=\count460
+\c@commentator=\count461
+\c@savedcommentator=\count462
+\c@editor=\count463
+\c@savededitor=\count464
+\c@editora=\count465
+\c@savededitora=\count466
+\c@editorb=\count467
+\c@savededitorb=\count468
+\c@editorc=\count469
+\c@savededitorc=\count470
+\c@foreword=\count471
+\c@savedforeword=\count472
+\c@holder=\count473
+\c@savedholder=\count474
+\c@introduction=\count475
+\c@savedintroduction=\count476
+\c@namea=\count477
+\c@savednamea=\count478
+\c@nameb=\count479
+\c@savednameb=\count480
+\c@namec=\count481
+\c@savednamec=\count482
+\c@translator=\count483
+\c@savedtranslator=\count484
+\c@shortauthor=\count485
+\c@savedshortauthor=\count486
+\c@shorteditor=\count487
+\c@savedshorteditor=\count488
+\c@labelname=\count489
+\c@savedlabelname=\count490
+\c@institution=\count491
+\c@savedinstitution=\count492
+\c@lista=\count493
+\c@savedlista=\count494
+\c@listb=\count495
+\c@savedlistb=\count496
+\c@listc=\count497
+\c@savedlistc=\count498
+\c@listd=\count499
+\c@savedlistd=\count500
+\c@liste=\count501
+\c@savedliste=\count502
+\c@listf=\count503
+\c@savedlistf=\count504
+\c@location=\count505
+\c@savedlocation=\count506
+\c@organization=\count507
+\c@savedorganization=\count508
+\c@origlocation=\count509
+\c@savedoriglocation=\count510
+\c@origpublisher=\count511
+\c@savedorigpublisher=\count512
+\c@publisher=\count513
+\c@savedpublisher=\count514
+\c@language=\count515
+\c@savedlanguage=\count516
+\c@origlanguage=\count517
+\c@savedoriglanguage=\count518
+\c@pageref=\count519
+\c@savedpageref=\count520
 \shorthandwidth=\skip118
 \shortjournalwidth=\skip119
 \shortserieswidth=\skip120
@@ -1370,19 +1394,19 @@ Package biblatex Info: Trying to load generic definitions...
 Package biblatex Info: ... file 'biblatex.def' found.
  (F:\MikTeX\tex/latex/biblatex\biblatex.def
 File: biblatex.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
-\c@textcitecount=\count519
-\c@textcitetotal=\count520
-\c@textcitemaxnames=\count521
-\c@biburlbigbreakpenalty=\count522
-\c@biburlbreakpenalty=\count523
-\c@biburlnumpenalty=\count524
-\c@biburlucpenalty=\count525
-\c@biburllcpenalty=\count526
+\c@textcitecount=\count521
+\c@textcitetotal=\count522
+\c@textcitemaxnames=\count523
+\c@biburlbigbreakpenalty=\count524
+\c@biburlbreakpenalty=\count525
+\c@biburlnumpenalty=\count526
+\c@biburlucpenalty=\count527
+\c@biburllcpenalty=\count528
 \biburlbigskip=\muskip19
 \biburlnumskip=\muskip20
 \biburlucskip=\muskip21
 \biburllcskip=\muskip22
-\c@smartand=\count527
+\c@smartand=\count529
 )
 Package biblatex Info: Trying to load bibliography style 'ieee'...
 Package biblatex Info: ... file 'ieee.bbx' found.
@@ -1404,8 +1428,8 @@ Package biblatex Info: ... file 'standard.bbx' found.
 
 (F:\MikTeX\tex/latex/biblatex/bbx\standard.bbx
 File: standard.bbx 2025/07/10 v3.21 biblatex bibliography style (PK/MW)
-\c@bbx:relatedcount=\count528
-\c@bbx:relatedtotal=\count529
+\c@bbx:relatedcount=\count530
+\c@bbx:relatedtotal=\count531
 ))))
 Package biblatex Info: Trying to load citation style 'ieee'...
 Package biblatex Info: ... file 'ieee.cbx' found.
@@ -1442,7 +1466,7 @@ Package: expl3 2025-12-24 L3 programming layer (loader)
 
 (F:\MikTeX\tex/latex/l3backend\l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count530
+\l__color_backend_stack_int=\count532
 ))
 Package biblatex Info: ... and expl3
 (biblatex)             2025-12-24 L3 programming layer (loader) 
@@ -1476,15 +1500,15 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 (F:\MikTeX\tex/generic/gettitlestring\gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count531
+\c@section@level=\count533
 )
 (F:\MikTeX\tex/generic/stringenc\stringenc.sty
 Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
 )
 )
-\@linkdim=\dimen333
-\Hy@linkcounter=\count532
-\Hy@pagecounter=\count533
+\@linkdim=\dimen351
+\Hy@linkcounter=\count534
+\Hy@pagecounter=\count535
 
 (F:\MikTeX\tex/latex/hyperref\pd1enc.def
 File: pd1enc.def 2025-07-12 v7.01o Hyperref: PDFDocEncoding definition (HO)
@@ -1494,7 +1518,7 @@ Now handling font encoding PD1 ...
 (F:\MikTeX\tex/generic/intcalc\intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 )
-\Hy@SavedSpaceFactor=\count534
+\Hy@SavedSpaceFactor=\count536
 
 (F:\MikTeX\tex/latex/hyperref\puenc.def
 File: puenc.def 2025-07-12 v7.01o Hyperref: PDF Unicode definition (HO)
@@ -1508,9 +1532,9 @@ Package hyperref Info: Plain pages OFF on input line 4210.
 Package hyperref Info: Backreferencing OFF on input line 4215.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4462.
-\c@Hy@tempcnt=\count535
+\c@Hy@tempcnt=\count537
 LaTeX Info: Redefining \url on input line 4801.
-\XeTeXLinkMargin=\dimen334
+\XeTeXLinkMargin=\dimen352
 
 (F:\MikTeX\tex/generic/bitset\bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
@@ -1519,9 +1543,9 @@ Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
-\Fld@menulength=\count536
-\Field@Width=\dimen335
-\Fld@charsize=\dimen336
+\Fld@menulength=\count538
+\Field@Width=\dimen353
+\Fld@charsize=\dimen354
 Package hyperref Info: Hyper figures OFF on input line 6078.
 Package hyperref Info: Link nesting OFF on input line 6083.
 Package hyperref Info: Hyper index ON on input line 6086.
@@ -1529,16 +1553,16 @@ Package hyperref Info: backreferencing OFF on input line 6093.
 Package hyperref Info: Link coloring OFF on input line 6098.
 Package hyperref Info: Link coloring with OCG OFF on input line 6103.
 Package hyperref Info: PDF/A mode OFF on input line 6108.
-\Hy@abspage=\count537
-\c@Item=\count538
-\c@Hfootnote=\count539
+\Hy@abspage=\count539
+\c@Item=\count540
+\c@Hfootnote=\count541
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
 
 (F:\MikTeX\tex/latex/hyperref\hpdftex.def
 File: hpdftex.def 2025-07-12 v7.01o Hyperref driver for pdfTeX
-\Fld@listcount=\count540
-\c@bookmark@seq@number=\count541
+\Fld@listcount=\count542
+\c@bookmark@seq@number=\count543
 
 (F:\MikTeX\tex/latex/rerunfilecheck\rerunfilecheck.sty
 Package: rerunfilecheck 2025-06-21 v1.11 Rerun checks for auxiliary files (HO)
@@ -1557,15 +1581,15 @@ Package: hypcap 2024-07-26 v1.13 Adjusting the anchors of captions (HO)
 (F:\MikTeX\tex/latex/letltxmacro\letltxmacro.sty
 Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
 ))
-\c@example=\count542
+\c@example=\count544
 
 
 Package biblatex Warning: 'babel/polyglossia' detected but 'csquotes' missing.
 (biblatex)                Loading 'csquotes' recommended.
 
-\@quotelevel=\count543
-\@quotereset=\count544
-LaTeX Font Info:    Trying to load font information for T5+ptm on input line 17
+\@quotelevel=\count545
+\@quotereset=\count546
+LaTeX Font Info:    Trying to load font information for T5+ptm on input line 20
 4.
 (F:\MikTeX\tex/latex/vntex\t5ptm.fd
 File: t5utm.fd 2005/08/24 Fontinst v1.929 font definitions for T5/ptm.
@@ -1575,30 +1599,30 @@ LaTeX Warning: Unused global option(s):
     [13pt,3p].
 
 (main.aux
-\g__glossaries_gls_ref_acronym_int=\count545
+\g__glossaries_gls_ref_acronym_int=\count547
 )
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 174.
-LaTeX Font Info:    ... okay on input line 174.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1636,17 +1660,17 @@ LaTeX Font Info:    ... okay on input line 174.
 
 (F:\MikTeX\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count546
-\scratchdimen=\dimen337
+\scratchcounter=\count548
+\scratchdimen=\dimen355
 \scratchbox=\box106
-\nofMPsegments=\count547
-\nofMParguments=\count548
-\everyMPshowfont=\toks69
-\MPscratchCnt=\count549
-\MPscratchDim=\dimen338
-\MPnumerator=\count550
-\makeMPintoPDFobject=\count551
-\everyMPtoPDFconversion=\toks70
+\nofMPsegments=\count549
+\nofMParguments=\count550
+\everyMPshowfont=\toks70
+\MPscratchCnt=\count551
+\MPscratchDim=\dimen356
+\MPnumerator=\count552
+\makeMPintoPDFobject=\count553
+\everyMPtoPDFconversion=\toks71
 ) (F:\MikTeX\tex/latex/epstopdf-pkg\epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 
@@ -1663,7 +1687,7 @@ G,.JBIG2,.JB2,.eps]
 (F:\MikTeX\tex/latex/00miktex\epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
-\c@lstlisting=\count552
+\c@lstlisting=\count554
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
@@ -1680,7 +1704,7 @@ Package biblatex Info: ... file 'nil.lbx' not found.
 
 
 Package biblatex Warning: Language 'nil' not supported.
-(biblatex)                Using dummy definitions on input line 174.
+(biblatex)                Using dummy definitions on input line 204.
 
 Package biblatex Info: Input encoding 'utf8' detected.
 Package biblatex Info: Automatic encoding selection.
@@ -1693,9 +1717,9 @@ Package biblatex Info: Data encoding 'utf8' specified.
 Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'main.bbl' found.
 (main.bbl)
-Package biblatex Info: Reference section=0 on input line 174.
-Package biblatex Info: Reference segment=0 on input line 174.
-Package hyperref Info: Link coloring OFF on input line 174.
+Package biblatex Info: Reference section=0 on input line 204.
+Package biblatex Info: Reference segment=0 on input line 204.
+Package hyperref Info: Link coloring OFF on input line 204.
  (main.out) (main.out)
 \@outlinefile=\write6
 \openout6 = `main.out'.
@@ -1757,9 +1781,15 @@ been already used, duplicate ignored
 l.34 \end{titlepage}
                      [1]) (Chapter/0_2_Acknowledgment.tex) [1]
 (Chapter/0_3_Abstract.tex
-Overfull \hbox (6.61562pt too wide) in paragraph at lines 11--12
-\T5/ptm/m/n/13 Graph) vîi 6 m¤ng nh¡nh chuy¶n bi»t (World, Experience, Opinion,
- Habit, Intention,
+Underfull \hbox (badness 4403) in paragraph at lines 11--12
+\T5/ptm/m/n/13 architecture for conversational agents. CogMem organizes memory 
+as a
+ []
+
+
+Underfull \hbox (badness 1178) in paragraph at lines 13--14
+[]\T5/ptm/m/n/13 The final evaluation uses manually verified answers rather tha
+n trusting
  []
 
 )
@@ -1767,40 +1797,16 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.199 \newpage
+l.229 \newpage
                [1] (main.toc
-Overfull \hbox (0.24489pt too wide) in paragraph at lines 29--29
- []|\T5/ptm/m/n/13 2.1.5 []H¤n ch¸ cèt lãi cõa c¡c Khung h» thèng Bë nhî hi»n n
-ay (Problem 
- []
-
-
-Overfull \hbox (15.0258pt too wide) in paragraph at lines 41--41
- []|\T5/ptm/m/n/13 3.1.3 []^^^âng gâp 2: Si¶u dú li»u Node phi tên hao (Lossles
-s Node Metadata) 
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.59 ...»©c cho Raw Snippet}{21}{subsection.4.1.2}
+l.60 ...»©c cho Raw Snippet}{24}{subsection.4.1.2}
                                                   % [1
 
-]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.90 ...Evaluation \& Reflection)}{39}{appendix.D}
-                                                  % [2])
+])
 \tf@toc=\write7
 \openout7 = `main.toc'.
 
@@ -1809,21 +1815,14 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.227 \cleardoublepage
-                       [3]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.227 \cleardoublepage
-                       [4
-
-
-] (main.lof)
+l.257 \cleardoublepage
+                       [2] (main.lof)
 \tf@lof=\write8
 \openout8 = `main.lof'.
 
  [1
+
+
 
 ] (main.lot)
 \tf@lot=\write9
@@ -1839,9 +1838,6 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
  (F:\MikTeX\tex/latex/psnfss\ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
 been already used, duplicate ignored
 <to be read again> 
@@ -1849,352 +1845,208 @@ been already used, duplicate ignored
 l.21 \end{itemize}
                    [1
 
-{F:/MikTeX/fonts/enc/dvips/base/8r.enc}]
-Overfull \hbox (18.34264pt too wide) in paragraph at lines 35--36
-[]\T5/ptm/b/n/13 Adaptive Query Routing\T5/ptm/m/n/13 : Ph¥n lo¤i truy v§n th n
-h c¡c nhâm semantic, temporal,
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [2])
-[3]
+{F:/MikTeX/fonts/enc/dvips/base/8r.enc}] [2]) [3]
 CHAPTER 2.
-(Chapter/2_Literature_review.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
+(Chapter/2_Literature_review.tex [4
 
- [4
-
-]
-Overfull \hbox (0.8836pt too wide) in paragraph at lines 58--59
-[]\T5/ptm/m/n/13 truy hçi song song tr¶n nhi·u channel nh÷ semantic, BM25, grap
-h v  temporal, 
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [5]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [6]
-Overfull \hbox (1.14363pt too wide) in paragraph at lines 130--131
-[]\T5/ptm/b/n/13 Thi¸u typed cognitive structures\T5/ptm/m/n/13 : c¡c t½n hi»u 
-nh÷ habit, intention hay action-
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [7])
-[8]
+] [5] [6] [7]) [8]
 CHAPTER 3.
 (Chapter/3_Methodology.tex
-Overfull \hbox (1.594pt too wide) in paragraph at lines 18--19
+<Images/cogmem_pipeline_overview.png, id=410, 1678.27pt x 944.52875pt>
+File: Images/cogmem_pipeline_overview.png Graphic file (type png)
+<use Images/cogmem_pipeline_overview.png>
+Package pdftex.def Info: Images/cogmem_pipeline_overview.png  used on input lin
+e 21.
+(pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
+
+Underfull \hbox (badness 1043) in paragraph at lines 33--34
 []\T5/ptm/m/n/13 Trong ph¤m vi luªn ¡n n y, \T5/ptm/b/n/13 BFS graph retrieval 
-vîi SUM spreading activation
+vîi SUM spreading
  []
 
+[9
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+ <./Images/cogmem_pipeline_overview.png (PNG copy)>] [10]
+<Images/cogmem_memory_graph.png, id=429, 1678.27pt x 944.52875pt>
+File: Images/cogmem_memory_graph.png Graphic file (type png)
+<use Images/cogmem_memory_graph.png>
+Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 97.
 
- [9
-
-]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [10]
-Underfull \hbox (badness 10000) in paragraph at lines 91--92
+(pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
+ [11]
+Underfull \hbox (badness 10000) in paragraph at lines 129--130
 []|\T5/ptm/b/n/13 Metadata / t½n hi»u
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 95--96
+Underfull \hbox (badness 10000) in paragraph at lines 133--134
 []|\T5/ptm/m/n/13 occurred_start,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 95--96
+Underfull \hbox (badness 10000) in paragraph at lines 133--134
 \T5/ptm/m/n/13 occurred_end,
  []
 
 
-Underfull \hbox (badness 7099) in paragraph at lines 101--102
+Underfull \hbox (badness 7099) in paragraph at lines 139--140
 []|\T5/ptm/m/n/13 intention_status; câ thº
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 103--104
+Underfull \hbox (badness 10000) in paragraph at lines 141--142
 []|\T5/ptm/m/n/13 precondition, action,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 103--104
+Underfull \hbox (badness 10000) in paragraph at lines 141--142
 \T5/ptm/m/n/13 outcome, confidence,
  []
 
-[11]
-LaTeX Font Info:    Trying to load font information for T5+pcr on input line 14
-6.
- (F:\MikTeX\tex/latex/vntex\t5pcr.fd
+[12 <./Images/cogmem_memory_graph.png (PNG copy)>] [13]
+LaTeX Font Info:    Trying to load font information for T5+pcr on input line 18
+5.
+
+(F:\MikTeX\tex/latex/vntex\t5pcr.fd
 File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
-)
-Underfull \vbox (badness 5022) has occurred while \output is active []
-
- [12]
-Overfull \hbox (12.26651pt too wide) in paragraph at lines 163--163
- |[]\T5/ptm/b/n/13 ^^^âng gâp 2: Si¶u dú li»u Node phi tên hao (Lossless Node M
-etadata)
- []
-
-[13]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [14]
-Underfull \hbox (badness 3769) in paragraph at lines 259--259
+) [14] [15]
+Underfull \hbox (badness 3769) in paragraph at lines 304--304
 []|\T5/ptm/m/n/13 B¬ng chùng ^^_a
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 261--261
+Underfull \hbox (badness 10000) in paragraph at lines 306--306
 []|\T5/ptm/m/n/13 Multi-hop
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 263--263
+Underfull \hbox (badness 10000) in paragraph at lines 308--308
 []|\T5/ptm/m/n/13 Y¶u c¦u entry
  []
 
 
-Underfull \hbox (badness 7814) in paragraph at lines 263--263
+Underfull \hbox (badness 7814) in paragraph at lines 308--308
 []|\T5/ptm/m/n/13 c¦n tróng node r§t
  []
 
-
-Underfull \vbox (badness 1117) has occurred while \output is active []
-
- [15]
-Underfull \hbox (badness 10000) in paragraph at lines 347--347
+[16] [17]
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
 []|\T5/ptm/m/n/13 ÷u ti¶n temporal
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 347--347
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
 \T5/ptm/m/n/13 v  action-effect
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 347--347
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
 []|\T5/ptm/m/n/13 ÷u ti¶n planning
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 347--347
+Underfull \hbox (badness 10000) in paragraph at lines 395--395
 \T5/ptm/m/n/13 intentions v 
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [16]
-Overfull \hbox (1.91064pt too wide) in paragraph at lines 353--354
-\T5/ptm/m/n/13 ^^_÷ñc boost th¶m khi evidence l  planning intention câ graph/te
-mporal backing. 
- []
-
-) [17]
+[18]) [19]
 CHAPTER 4.
-(Chapter/4_Theoretical_analysis.tex
-Underfull \vbox (badness 1237) has occurred while \output is active []
-
- [18
+(Chapter/4_Theoretical_analysis.tex [20
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 64--64
+<Images/habit_diary_workload.png, id=539, 1678.27pt x 944.52875pt>
+File: Images/habit_diary_workload.png Graphic file (type png)
+<use Images/habit_diary_workload.png>
+Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 44
+.
+(pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
+ [21 <./Images/habit_diary_workload.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 87--87
 []|\T5/ptm/b/n/13 Biºu di¹n tr¶n
  []
 
 
-Underfull \hbox (badness 6592) in paragraph at lines 66--66
+Underfull \hbox (badness 6592) in paragraph at lines 89--89
 []|\T5/ptm/m/n/13 Lªp k¸ ho¤ch
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 68--69
+Underfull \hbox (badness 10000) in paragraph at lines 91--92
 []|\T5/ptm/m/n/13 fulfilled_by: intention
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 93--93
 []|\T5/ptm/m/n/13 intention planning
  []
 
 
-Underfull \hbox (badness 4229) in paragraph at lines 72--72
+Underfull \hbox (badness 4229) in paragraph at lines 95--95
 []|\T5/ptm/m/n/13 K¸ ho¤ch phö
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 72--73
+Underfull \hbox (badness 10000) in paragraph at lines 95--96
 []|\T5/ptm/m/n/13 enabled_by: intention
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [19]
-[20]
-Underfull \vbox (badness 4391) has occurred while \output is active []
-
- [21]
-Overfull \hbox (2.94759pt too wide) in paragraph at lines 161--162
+[22]
+<Images/agentic_action_effect_trace.png, id=550, 1678.27pt x 944.52875pt>
+File: Images/agentic_action_effect_trace.png Graphic file (type png)
+<use Images/agentic_action_effect_trace.png>
+Package pdftex.def Info: Images/agentic_action_effect_trace.png  used on input 
+line 127.
+(pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
+ [23] [24 <./Images/agentic_action_effect_trace.png (PNG copy)>] [25]
+Underfull \hbox (badness 1057) in paragraph at lines 210--211
 []\T5/ptm/m/n/13 Adaptive Query Routing cõa CogMem câ thº ^^_÷ñc xem nh÷ mët d¤
-ng \T5/ptm/m/it/13 attentional
+ng
  []
 
 
-Underfull \vbox (badness 1681) has occurred while \output is active []
+Underfull \hbox (badness 1281) in paragraph at lines 226--226
+[]\T5/ptm/b/n/13 Attentional selection \T5/ptm/m/n/13 ð c§p h» thèng: temporal 
+queries ÷u ti¶n
+ []
 
- [22])
-[23]
+) [26]
 CHAPTER 5.
 (Chapter/5_Numerical_results.tex
-Overfull \hbox (7.69255pt too wide) in paragraph at lines 50--51
-[]\T5/ptm/m/n/13 Metric ch½nh: End-to-end accuracy (LLM-as-judge), ph¥n t½ch pe
-r-category. Còng
+<Images/manual_evaluation_flow.png, id=573, 1678.27pt x 944.52875pt>
+File: Images/manual_evaluation_flow.png Graphic file (type png)
+<use Images/manual_evaluation_flow.png>
+Package pdftex.def Info: Images/manual_evaluation_flow.png  used on input line 
+22.
+(pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
+
+Overfull \hbox (2.17229pt too wide) in paragraph at lines 29--30
+ [][] 
  []
 
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 58.
+[27
 
-LaTeX Font Warning: Font shape `TS1/cmr/m/n' in size <13> not available
-(Font)              size <12> substituted on input line 58.
-
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 58.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 58.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 58.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 59.
-[24
-
-]
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 60.
-
-Overfull \hbox (4.2327pt too wide) in paragraph at lines 60--61
-[]\T5/ptm/m/n/13 Judge: LLM-as-judge(question, gold answer, generated answer) \
-TS1/cmr/m/n/12 ^^Y \T5/ptm/m/n/13 binary score 
- []
-
-
-Overfull \hbox (3.95082pt too wide) in paragraph at lines 67--68
-[]\T5/ptm/b/n/13 E2\T5/ptm/m/n/13 : E1 + Habit Network + S-R links. Hypothesis:
- c£i thi»n Preference category. 
- []
-
-
-Overfull \hbox (13.80559pt too wide) in paragraph at lines 68--69
-[]\T5/ptm/b/n/13 E3\T5/ptm/m/n/13 : E1 + Intention Network + Transition edges. 
-Hypothesis: c£i thi»n Prospective
- []
-
-
-Overfull \hbox (7.57855pt too wide) in paragraph at lines 70--71
-[]\T5/ptm/b/n/13 E5\T5/ptm/m/n/13 : E1 + Adaptive Query Router (incl. Causal + 
-Prospective types). Hypothesis:
- []
-
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 86.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 87.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 88.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 89.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 90.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 91.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [25]
-Overfull \hbox (2.32655pt too wide) in paragraph at lines 134--135
-[]\T5/ptm/b/n/13 LongMemEval-S\T5/ptm/m/n/13 : single-session, multi-session, t
-emporal, knowledge-update,
- []
-
-
-Underfull \vbox (badness 4341) has occurred while \output is active []
-
- [26]
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 157.
-)
-[27]
+ <./Images/manual_evaluation_flow.png (PNG copy)>] [28] [29] [30]) [31]
 CHAPTER 6.
-(Chapter/6_Conclusions.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [28
+(Chapter/6_Conclusions.tex [32
 
 ]
-Overfull \hbox (14.69958pt too wide) in paragraph at lines 35--36
-[]\T5/ptm/m/n/13 C¡c k¸t qu£ thüc nghi»m dü ki¸n düa tr¶n bë benchmark ti¶u chu
-©n LongMemEval-
+Underfull \hbox (badness 4660) in paragraph at lines 47--48
+[]\T5/ptm/b/n/13 Production reliability\T5/ptm/m/n/13 : bê sung temporal reason
+er, list-completeness
  []
 
 
-Underfull \vbox (badness 1024) has occurred while \output is active []
-
- [29]
-Overfull \hbox (10.38501pt too wide) in paragraph at lines 61--62
-[]\T5/ptm/b/n/13 SLM limitations\T5/ptm/m/n/13 : Sû döng Qwen3-7B thay v¼ Gemin
-i-3 nh÷ trong HINDSIGHT
+Underfull \hbox (badness 1701) in paragraph at lines 50--51
+[]\T5/ptm/m/n/13 Nh¼n chung, CogMem chùng minh r¬ng cognitive graph, raw eviden
+ce
  []
 
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 81.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 81.
-
-Overfull \hbox (10.68555pt too wide) in paragraph at lines 81--82
-\T5/ptm/m/n/13 1932) v  Basic Level Categorization (Rosch, 1978). ^^^¥y l  ^^_â
-ng gâp exploratory
- []
-
-[30]
-Overfull \hbox (4.26064pt too wide) in paragraph at lines 104--105
-[]\T5/ptm/m/n/13 M°c dò k¸t qu£ thüc nghi»m ^^_¦y ^^_õ ch÷a câ s®n, c§u tróc b¡
-o c¡o v  methodology
- []
-
-) [31] (Chapter/7_Reference.tex) [32
+) [33] (Chapter/7_Reference.tex) [34
 
 ]
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'latimer2025hindsight' on input line 309.
+(biblatex)                at entry 'latimer2025hindsight' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2204,14 +2056,14 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (8.77127pt too wide) in paragraph at lines 310--310
+Overfull \hbox (8.77127pt too wide) in paragraph at lines 336--336
 []\T5/ptm/m/n/13 C. Latimer [], ``HINDSIGHT: Long-Term Memory for Conversationa
 l
  []
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'wu2025longmemeval' on input line 309.
+(biblatex)                at entry 'wu2025longmemeval' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2222,20 +2074,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'maharana2024locomo' on input line 309.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (44.32632pt too wide) in paragraph at lines 310--310
-[]\T5/ptm/m/n/13 A. Maharana [], ``LoCoMo: Long-Context Memory Evaluation Bench
-mark,''
- []
+(biblatex)                at entry 'maharana2024locomo' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2250,22 +2089,6 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                If you see this message, the .lbx file could not be
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 309.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 309.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 309.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 309.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2276,23 +2099,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 30
-9.
+(biblatex)                at entry 'squire1991medial' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 30
-9.
+(biblatex)                at entry 'squire1991medial' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 30
-9.
+(biblatex)                at entry 'squire1991medial' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 30
-9.
+(biblatex)                at entry 'squire1991medial' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2302,22 +2121,24 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (13.28003pt too wide) in paragraph at lines 310--310
-[]\T5/ptm/m/n/13 A. Dickinson [] B. Balleine, ``Motivational Control of Goal-Di
-rected Action,''
- []
+Package biblatex Warning: Bibliography string 'and' untranslated
+(biblatex)                at entry 'dickinson1994motivational' on input line 33
+5.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 309.
+(biblatex)                at entry 'dickinson1994motivational' on input line 33
+5.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 309.
+(biblatex)                at entry 'dickinson1994motivational' on input line 33
+5.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 309.
+(biblatex)                at entry 'dickinson1994motivational' on input line 33
+5.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2327,15 +2148,34 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (24.54193pt too wide) in paragraph at lines 310--310
-[]\T5/ptm/m/n/13 A. D. Baddeley, ``The Episodic Buffer: A New Component of Work
-ing Memory?''
+Package biblatex Warning: Bibliography string 'jourvol' untranslated
+(biblatex)                at entry 'baddeley2000episodic' on input line 335.
+
+
+Package biblatex Warning: Bibliography string 'number' untranslated
+(biblatex)                at entry 'baddeley2000episodic' on input line 335.
+
+
+Package biblatex Warning: Bibliography string 'pages' untranslated
+(biblatex)                at entry 'baddeley2000episodic' on input line 335.
+
+
+Package biblatex Warning: Using fallback definition for \mkbibdatelong.
+(biblatex)                The command should be defined in the .lbx file.
+(biblatex)                If you see this message, the .lbx file could not be
+(biblatex)                loaded, is faulty or does not contain a definition
+(biblatex)                for \mkbibdatelong.
+
+
+Underfull \hbox (badness 5578) in paragraph at lines 336--336
+\T5/ptm/m/n/13 Memory?'' \T5/ptm/m/it/13 Trends in Cognitive Sciences\T5/ptm/m/
+n/13 , [] 4, [] 11,
  []
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
 (biblatex)                at entry 'brandimonte1996prospective' on input line 3
-09.
+35.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2343,28 +2183,22 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                If you see this message, the .lbx file could not be
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (6.38092pt too wide) in paragraph at lines 310--310
-[]\T5/ptm/m/n/13 M. A. Brandimonte [], \T5/ptm/m/it/13 Prospective Memory\T5/pt
-m/m/n/13 . Psychology Press, 1996. 
- []
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 309.
+(biblatex)                at entry 'hommel2001tec' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 309.
+(biblatex)                at entry 'hommel2001tec' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 309.
+(biblatex)                at entry 'hommel2001tec' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 309.
+(biblatex)                at entry 'hommel2001tec' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2374,26 +2208,26 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (18.1932pt too wide) in paragraph at lines 310--310
+Underfull \hbox (badness 1297) in paragraph at lines 336--336
 \T5/ptm/m/n/13 for Perception and Action Planning,'' \T5/ptm/m/it/13 Behavioral
- and Brain Sciences\T5/ptm/m/n/13 , [] 24,
+ and Brain Sciences\T5/ptm/m/n/13 ,
  []
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 309.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 309.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 309.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 309.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2403,29 +2237,29 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (1.96921pt too wide) in paragraph at lines 310--310
-\T5/ptm/m/n/13 Operations in False Memory,'' \T5/ptm/m/it/13 Journal of Memory 
-and Language\T5/ptm/m/n/13 , [] 50,
+Underfull \hbox (badness 1231) in paragraph at lines 336--336
+[]\T5/ptm/m/n/13 C. J. Brainerd [] V. F. Reyna, ``Fuzzy Trace Theory and Storag
+e-
  []
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 309.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
 
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 309.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
 
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 309.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
 
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 309.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
 
 
 
@@ -2437,19 +2271,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 309.
+(biblatex)                at entry 'wilson1972excitatory' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 309.
+(biblatex)                at entry 'wilson1972excitatory' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 309.
+(biblatex)                at entry 'wilson1972excitatory' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 309.
+(biblatex)                at entry 'wilson1972excitatory' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2460,11 +2294,11 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 309.
+(biblatex)                at entry 'packer2023memgpt' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'in' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 309.
+(biblatex)                at entry 'packer2023memgpt' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2488,18 +2322,18 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (1.51894pt too wide) in paragraph at lines 310--310
+Underfull \hbox (badness 3323) in paragraph at lines 336--336
 []\T5/ptm/m/n/13 F. C. Bartlett, \T5/ptm/m/it/13 Remembering: A Study in Experi
-mental and Social Psychology\T5/ptm/m/n/13 .
+mental and Social
  []
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 309.
+(biblatex)                at entry 'robertson2006what' on input line 335.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 309.
+(biblatex)                at entry 'robertson2006what' on input line 335.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2508,6 +2342,9 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
 
+[35
+
+]
 
 Package biblatex Warning: Using fallback definition for \mkbibordinal.
 (biblatex)                The command should be defined in the .lbx file.
@@ -2517,7 +2354,7 @@ Package biblatex Warning: Using fallback definition for \mkbibordinal.
 
 
 Package biblatex Warning: Bibliography string 'edition' untranslated
-(biblatex)                at entry 'anderson2008architecture' on input line 309
+(biblatex)                at entry 'anderson2008architecture' on input line 335
 .
 
 
@@ -2527,59 +2364,12 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
 
-[33
-
-] [34
-
-]
-APPENDIX A.
-(Chapter/Appendix_A.tex [35
-
-]
-APPENDIX B.
-
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 8.
-
-\g__tcobox_out_iow=\write10
-\openout10 = `main.listing'.
-
-(main.listing)
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [36
-
-]
-\openout10 = `main.listing'.
-
-
-(main.listing)) [37]
-APPENDIX C.
-(Chapter/Appendix_B.tex [38
-
-]
-APPENDIX D.
-
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 8.
-
-\openout10 = `main.listing'.
-
-(main.listing)
-\openout10 = `main.listing'.
-
- (main.listing)
-Underfull \vbox (badness 1502) has occurred while \output is active []
-
- [39
-
-])
 
 Package glossaries Warning: No \printnoidxglossary or \printnoidxglossaries
  found. (Remove \makenoidxglossaries if you don't want any glossaries.)
 This document will not have a glossary.
 
-[40] (main.aux)
+[36] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -2590,31 +2380,30 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: F3DF82D34E02B37C83A8284471FD842A;12997.
+(rerunfilecheck)             Checksum: D7F77CC3752B0977B09F6964B627BB1D;10202.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 48608 strings out of 467871
- 959141 string characters out of 5435212
- 1863350 words of memory out of 5000000
- 76345 multiletter control sequences out of 15000+600000
- 674968 words of font info for 83 fonts, out of 8000000 for 9000
+ 48496 strings out of 467871
+ 958060 string characters out of 5435212
+ 1775592 words of memory out of 5000000
+ 76355 multiletter control sequences out of 15000+600000
+ 674631 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 108i,13n,108p,2507b,2191s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\admin\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
-1200.pk><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><F:/MikTeX/fonts/t
-ype1/public/amsfonts/cm/cmmi12.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cm
-mi9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><F:/MikTeX/fonts/ty
-pe1/public/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy1
-0.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><F:/MikTeX/fonts/type
-1/vntex/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><F:/MikT
-eX/fonts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.p
-fb><F:/MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (50 pages, 386990 bytes).
+ 108i,13n,108p,2507b,1668s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<F:/MikTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><F:/MikTeX/fonts/type1/p
+ublic/amsfonts/cm/cmmi12.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmmi9.pf
+b><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><F:/MikTeX/fonts/type1/pu
+blic/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
+<F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><F:/MikTeX/fonts/type1/vnte
+x/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><F:/MikTeX/fon
+ts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.pfb><F:
+/MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
+Output written on main.pdf (44 pages, 5912238 bytes).
 PDF statistics:
- 954 PDF objects out of 1000 (max. 8388607)
- 364 named destinations out of 1000 (max. 500000)
- 413 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 766 PDF objects out of 1000 (max. 8388607)
+ 247 named destinations out of 1000 (max. 500000)
+ 374 words of extra memory for PDF output out of 10000 (max. 10000000)
 
