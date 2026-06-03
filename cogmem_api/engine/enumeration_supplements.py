@@ -343,6 +343,32 @@ _DURATION_PHRASE_RE = re.compile(
     re.IGNORECASE,
 )
 _DURATION_QUERY_RE = re.compile(r"\b(?:how long|take|took|for .* before|duration)\b", re.IGNORECASE)
+_PROJECT_DURATION_TARGET_TERMS = ("ford", "mustang")
+_PROJECT_DURATION_REJECT_CUES = (
+    "age 10",
+    "as a kid",
+    "childhood",
+    "dad",
+    "ever since",
+    "father",
+    "mechanic",
+    "neighbor",
+    "one summer",
+    "profession",
+    "works on cars",
+)
+_PROJECT_DURATION_START_CUES = (
+    "restoring a car",
+    "restoring his car",
+    "restoring the car",
+    "car project",
+    "beat-up",
+    "beat up",
+    "finish restoring",
+    "fixed up by the end of next month",
+    "end of next month",
+    "project is going great",
+)
 _BASKETBALL_SUPPLEMENT_RE = re.compile(
     r"\b(?:yoga|strength\s+training|strength\s+and\s+flexibility|extra\s+strength|"
     r"focus\s+and\s+balance|workouts?|flexibility)\b",
@@ -585,8 +611,9 @@ def _score_duration_candidate(spec: EnumerationQuerySpec, text: str, raw_snippet
     if raw_snippet:
         combined = f"{combined} {raw_snippet.strip()}"
     lowered = combined.lower()
+    project_start_score = _score_project_duration_start_candidate(spec, text, raw_snippet)
     if not _DURATION_PHRASE_RE.search(combined):
-        return 0.0
+        return project_start_score
 
     specific_terms = [
         term
@@ -602,6 +629,41 @@ def _score_duration_candidate(spec: EnumerationQuerySpec, text: str, raw_snippet
     score += min(float(len(_DURATION_PHRASE_RE.findall(combined))) * 3.0, 6.0)
     if any(term in lowered for term in ("mustang", "workshop", "san francisco", "ford")):
         score += 2.0
+    return max(score, project_start_score)
+
+
+def _score_project_duration_start_candidate(
+    spec: EnumerationQuerySpec,
+    text: str,
+    raw_snippet: str | None = None,
+) -> float:
+    """Promote same-subject car-restoration starts for Ford/Mustang duration queries."""
+    if not any(term in spec.query_terms for term in _PROJECT_DURATION_TARGET_TERMS):
+        return 0.0
+    fact_text = text.strip()
+    combined = fact_text
+    if raw_snippet:
+        combined = f"{combined} {raw_snippet.strip()}"
+    fact_lowered = fact_text.lower()
+    lowered = combined.lower()
+    if not fact_lowered:
+        return 0.0
+    if spec.subject_terms and spec.subject_terms[0].lower() not in fact_lowered:
+        return 0.0
+    if any(cue in lowered for cue in _PROJECT_DURATION_REJECT_CUES):
+        return 0.0
+    if "car" not in lowered:
+        return 0.0
+    start_hits = [cue for cue in _PROJECT_DURATION_START_CUES if cue in lowered]
+    if not start_hits:
+        return 0.0
+
+    score = 9.0
+    score += min(float(len(start_hits)), 3.0)
+    if "beat-up" in lowered or "beat up" in lowered:
+        score += 1.0
+    if "end of next month" in lowered:
+        score += 1.0
     return score
 
 

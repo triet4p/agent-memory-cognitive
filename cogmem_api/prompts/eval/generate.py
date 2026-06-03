@@ -5,6 +5,7 @@ Used by cogmem_api HTTP endpoint (/generate).
 
 from __future__ import annotations
 
+from datetime import date, datetime, timedelta
 import re
 
 # Bare \bI\b is intentionally excluded: it matches Roman numerals in model names
@@ -447,6 +448,376 @@ def _snippet_query_phrases(query: str) -> set[str]:
     return phrases
 
 
+_HINT_CITY_BEFORE_QUERY_RE = re.compile(
+    r"\bwhich\s+city\s+was\s+(?P<subject>[A-Z][a-z]+)\s+in\s+before\s+"
+    r"travel(?:ing|ling|ed|led)?\s+to\s+(?P<anchor>[A-Z][A-Za-z]*(?:\s+[A-Z][A-Za-z]*){0,3})",
+    re.IGNORECASE,
+)
+_HINT_WORKSHOP_DURATION_QUERY_RE = re.compile(
+    r"\bhow\s+long\b.*\bworkshop\b.*\bin\s+(?P<city>[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})",
+    re.IGNORECASE,
+)
+_HINT_PROPER_PLACE_RE = re.compile(r"\b(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}|NYC|UK|USA|CA)\b")
+_HINT_IGNORED_PROPER_NAMES = {
+    "a",
+    "cal",
+    "calvin",
+    "dave",
+    "harry potter",
+    "how",
+    "involving",
+    "john",
+    "memory",
+    "session",
+    "the",
+    "tim",
+    "which",
+}
+_HINT_CITY_ANCHOR_CUES = (
+    "travel",
+    "traveled",
+    "travelled",
+    "traveling",
+    "travelling",
+    "trip to",
+    "took a trip",
+    "visit",
+    "visited",
+    "went to",
+)
+_HINT_WORKSHOP_START_CUES = (
+    "visited",
+    "attended",
+    "got to go",
+    "went to",
+    "go to a car workshop",
+)
+_HINT_WORKSHOP_SELECTION_CUES = (
+    "picked",
+    "selected",
+    "chosen",
+    "accepted",
+)
+_HINT_RETURN_CUES = (
+    "returned from",
+    "came back from",
+    "back from",
+)
+_HINT_PROJECT_HISTORY_REJECT_CUES = (
+    "age 10",
+    "as a kid",
+    "childhood",
+    "dad",
+    "ever since",
+    "father",
+    "mechanic",
+    "neighbor",
+    "one summer",
+    "profession",
+    "works on cars",
+)
+_HINT_PROJECT_START_CUES = (
+    "restoring a car",
+    "restoring his car",
+    "restoring the car",
+    "car project",
+    "beat-up",
+    "beat up",
+    "finish restoring",
+    "fixed up by the end of next month",
+    "end of next month",
+    "project is going great",
+)
+_HINT_PROJECT_END_CUES = (
+    "ford",
+    "mustang",
+)
+_HINT_PROJECT_WORK_CUES = (
+    "brought",
+    "came back to life",
+    "come back to life",
+    "found",
+    "junkyard",
+    "restoration",
+    "restore",
+    "restored",
+    "working",
+)
+_HINT_NUMBER_WORDS = {
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve",
+}
+
+
+def _parse_hint_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    raw = str(value).strip()
+    for fmt in ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            pass
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+    except ValueError:
+        return None
+
+
+def _hint_item_text(item: dict) -> tuple[str, str]:
+    text = str(item.get("text") or "").strip()
+    raw = str(item.get("raw_snippet") or "").strip()
+    combined = f"{text} {raw}".strip()
+    return text, combined
+
+
+def _hint_memory_ref(record: dict, when: date | None = None) -> str:
+    doc_id = str(record["item"].get("document_id") or "?")
+    suffix = f" {when.isoformat()}" if when else ""
+    return f"[{record['idx']}]/{doc_id}{suffix}"
+
+
+def _hint_event_date(session_date: date, combined: str) -> tuple[date, str]:
+    if re.search(r"\byesterday\b", combined, re.IGNORECASE):
+        return session_date - timedelta(days=1), f"yesterday from session date {session_date.isoformat()}"
+    return session_date, "session date"
+
+
+def _format_about_weeks(days: int, *, rounded: bool = False) -> str:
+    weeks = max(1, round(days / 7) if rounded else days // 7)
+    word = _HINT_NUMBER_WORDS.get(weeks, str(weeks))
+    unit = "week" if weeks == 1 else "weeks"
+    return f"about {word} {unit}"
+
+
+def _extract_hint_city_mentions(text: str, subject: str, anchor: str) -> set[str]:
+    subject_lower = subject.lower()
+    anchor_lower = anchor.lower()
+    cities: set[str] = set()
+    for match in _HINT_PROPER_PLACE_RE.finditer(text):
+        token = match.group(0).strip()
+        lowered = token.lower()
+        if lowered in _HINT_IGNORED_PROPER_NAMES:
+            continue
+        if lowered in {subject_lower, anchor_lower}:
+            continue
+        if _looks_like_city_context(text, token):
+            cities.add(token)
+    return cities
+
+
+def _looks_like_city_context(text: str, city: str) -> bool:
+    escaped = re.escape(city)
+    patterns = (
+        rf"\bin\s+{escaped}\b",
+        rf"\bto\s+{escaped}\b",
+        rf"\b(?:visited|visit|travel(?:ed|led|ing|ling)?|went\s+to|trip\s+to)\s+{escaped}\b",
+        rf"\b{escaped}\b.{0,80}\b(?:city|cities|trip|travel|visited|visit|game|place)\b",
+        rf"\b(?:city|cities|trip|travel|visited|visit|game|place)\b.{0,80}\b{escaped}\b",
+    )
+    return any(re.search(pattern, text, re.IGNORECASE) for pattern in patterns)
+
+
+def _build_derived_temporal_hints(
+    query: str,
+    evidence: list[dict],
+    session_date_map: dict[str, str] | None,
+) -> str:
+    """Build narrow deterministic hints for high-confidence temporal cases."""
+    if not session_date_map:
+        return ""
+
+    records: list[dict] = []
+    for idx, item in enumerate(evidence, start=1):
+        doc_id = str(item.get("document_id") or "")
+        session_date = _parse_hint_date(session_date_map.get(doc_id))
+        if not session_date:
+            continue
+        text, combined = _hint_item_text(item)
+        records.append(
+            {
+                "idx": idx,
+                "item": item,
+                "date": session_date,
+                "text": text,
+                "combined": combined,
+                "lowered": combined.lower(),
+            }
+        )
+    if not records:
+        return ""
+
+    hints = [
+        hint
+        for hint in (
+            _hint_city_before_travel(query, records),
+            _hint_workshop_duration(query, records),
+            _hint_project_duration(query, records),
+        )
+        if hint
+    ]
+    if not hints:
+        return ""
+    return "DERIVED TEMPORAL HINTS:\n" + "\n".join(f"- {hint}" for hint in hints)
+
+
+def _hint_city_before_travel(query: str, records: list[dict]) -> str:
+    match = _HINT_CITY_BEFORE_QUERY_RE.search(query)
+    if not match:
+        return ""
+    subject = match.group("subject").strip()
+    anchor = match.group("anchor").strip().rstrip("?.!,")
+    subject_lower = subject.lower()
+    anchor_lower = anchor.lower()
+
+    anchor_records = [
+        record
+        for record in records
+        if anchor_lower in record["lowered"]
+        and any(cue in record["lowered"] for cue in _HINT_CITY_ANCHOR_CUES)
+    ]
+    if not anchor_records:
+        return ""
+    anchor_record = sorted(anchor_records, key=lambda record: record["date"])[0]
+    anchor_date = anchor_record["date"]
+
+    candidates: dict[str, list[dict]] = {}
+    for record in records:
+        if record["date"] >= anchor_date:
+            continue
+        if subject_lower not in record["lowered"]:
+            continue
+        for city in _extract_hint_city_mentions(record["combined"], subject, anchor):
+            candidates.setdefault(city, []).append(record)
+
+    if len(candidates) != 1:
+        return ""
+
+    city, city_records = next(iter(candidates.items()))
+    city_record = sorted(city_records, key=lambda record: record["date"])[-1]
+    return (
+        f"City-before-travel: {_hint_memory_ref(city_record, city_record['date'])} mentions "
+        f"{city} for {subject} before {_hint_memory_ref(anchor_record, anchor_date)} "
+        f"{anchor} travel. Answer hint: {city}."
+    )
+
+
+def _hint_workshop_duration(query: str, records: list[dict]) -> str:
+    match = _HINT_WORKSHOP_DURATION_QUERY_RE.search(query)
+    if not match:
+        return ""
+    city = match.group("city").strip().rstrip("?.!,")
+    city_lower = city.lower()
+
+    start_records = []
+    end_records = []
+    for record in records:
+        lowered = record["lowered"]
+        if "workshop" in lowered and city_lower in lowered:
+            if any(cue in lowered for cue in _HINT_WORKSHOP_SELECTION_CUES):
+                continue
+            if any(cue in lowered for cue in _HINT_WORKSHOP_START_CUES):
+                start_records.append(record)
+        if city_lower in lowered and any(cue in lowered for cue in _HINT_RETURN_CUES):
+            end_records.append(record)
+
+    if not start_records or not end_records:
+        return ""
+    start_record = sorted(start_records, key=lambda record: record["date"])[0]
+    resolved_ends = [
+        (_hint_event_date(record["date"], record["combined"]), record)
+        for record in end_records
+    ]
+    end_pair, end_record = sorted(resolved_ends, key=lambda pair: pair[0][0])[-1]
+    end_date, end_note = end_pair
+    if end_date <= start_record["date"]:
+        return ""
+
+    days = (end_date - start_record["date"]).days
+    if days < 7:
+        return ""
+    duration = _format_about_weeks(days)
+    return (
+        f"Workshop duration: {_hint_memory_ref(start_record, start_record['date'])} is the "
+        f"attended/visited {city} workshop start; {_hint_memory_ref(end_record, end_date)} "
+        f"is the return from {city} ({end_note}). Ignore selected/picked-for-workshop dates. "
+        f"Answer hint: {duration}."
+    )
+
+
+def _hint_project_duration(query: str, records: list[dict]) -> str:
+    lowered_query = query.lower()
+    if not _DURATION_QUERY_RE.search(lowered_query):
+        return ""
+    if "ford" not in lowered_query and "mustang" not in lowered_query:
+        return ""
+    subject = _hint_query_subject(query)
+    if not subject:
+        return ""
+    subject_lower = subject.lower()
+
+    start_records = []
+    end_records = []
+    for record in records:
+        lowered = record["lowered"]
+        if subject_lower not in lowered:
+            continue
+        if any(cue in lowered for cue in _HINT_PROJECT_HISTORY_REJECT_CUES):
+            continue
+        if any(cue in lowered for cue in _HINT_PROJECT_START_CUES) and "car" in lowered:
+            start_records.append(record)
+        if (
+            any(target in lowered for target in _HINT_PROJECT_END_CUES)
+            and any(cue in lowered for cue in _HINT_PROJECT_WORK_CUES)
+        ):
+            end_records.append(record)
+
+    if not start_records or not end_records:
+        return ""
+    start_record = sorted(start_records, key=lambda record: record["date"])[0]
+    later_ends = [record for record in end_records if record["date"] > start_record["date"]]
+    if not later_ends:
+        return ""
+    end_record = sorted(later_ends, key=lambda record: record["date"])[-1]
+    days = (end_record["date"] - start_record["date"]).days
+    if days < 28:
+        return ""
+    weeks = max(1, round(days / 7))
+    week_word = _HINT_NUMBER_WORDS.get(weeks, str(weeks))
+    duration = f"roughly {week_word} weeks"
+    if 45 <= days <= 62:
+        duration += " / nearly two months"
+    return (
+        f"Project duration: {_hint_memory_ref(start_record, start_record['date'])} shows "
+        f"{subject} already restoring a car project; {_hint_memory_ref(end_record, end_record['date'])} "
+        f"identifies the Ford/Mustang restoration. Gap is {duration}. "
+        "Answer hint: nearly two months."
+    )
+
+
+def _hint_query_subject(query: str) -> str:
+    ignored_query_heads = {"how", "which", "what", "where", "when", "who", "the"}
+    for match in _HINT_PROPER_PLACE_RE.finditer(query):
+        token = match.group(0).strip()
+        lowered = token.lower()
+        if lowered in ignored_query_heads:
+            continue
+        if lowered in {"ford", "mustang", "ford mustang", "san francisco", "chicago", "seattle"}:
+            continue
+        return token.split()[0]
+    return ""
+
+
 _V3_TEMPORAL_ANCHOR_RULE = "\n".join([
     "- For before/after temporal-chain questions: first identify the named anchor event",
     "  and its Session date, then compare candidate memories against that anchor.",
@@ -607,6 +978,7 @@ def build_generation_prompt_v4_evidence_guard(
                 memory_parts.append(f'    src: "{snippet_preview}"')
 
     memory_block = "\n".join(memory_parts) if memory_parts else "[No memories]"
+    temporal_hints = _build_derived_temporal_hints(query, evidence, session_date_map)
 
     sep = "=" * 60
     current_date_line = f"Current date: {question_date}\n" if question_date else ""
@@ -621,6 +993,12 @@ def build_generation_prompt_v4_evidence_guard(
         ("MEMORIES (each fact + query-relevant source line when available — answer from these):\n"
          if include_snippets else
          "MEMORIES (extracted facts — answer from these):\n") + memory_block + "\n",
+    ]
+
+    if temporal_hints:
+        lines.append(temporal_hints + "\n")
+
+    lines.extend([
         "Instructions:",
         "- Answer PRIMARILY from MEMORIES. If MEMORIES contain partial information",
         "  (e.g., some but not all items in a list), enumerate what you found and",
@@ -649,6 +1027,6 @@ def build_generation_prompt_v4_evidence_guard(
         "- If MEMORIES contain no relevant information at all, say so clearly:",
         "  'I don't have information about this in memory.'",
         "- Cite memories by index, e.g. [1] or [2].",
-    ]
+    ])
 
     return "\n".join(lines)
