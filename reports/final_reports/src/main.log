@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  3 JUN 2026 15:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  5 JUN 2026 22:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1852,7 +1852,7 @@ CHAPTER 2.
 ] [5] [6] [7]) [8]
 CHAPTER 3.
 (Chapter/3_Methodology.tex
-<Images/cogmem_pipeline_overview.png, id=410, 1678.27pt x 944.52875pt>
+<Images/cogmem_pipeline_overview.png, id=413, 1678.27pt x 944.52875pt>
 File: Images/cogmem_pipeline_overview.png Graphic file (type png)
 <use Images/cogmem_pipeline_overview.png>
 Package pdftex.def Info: Images/cogmem_pipeline_overview.png  used on input lin
@@ -1867,7 +1867,7 @@ vîi SUM spreading
 [9
 
  <./Images/cogmem_pipeline_overview.png (PNG copy)>] [10]
-<Images/cogmem_memory_graph.png, id=429, 1678.27pt x 944.52875pt>
+<Images/cogmem_memory_graph.png, id=432, 1678.27pt x 944.52875pt>
 File: Images/cogmem_memory_graph.png Graphic file (type png)
 <use Images/cogmem_memory_graph.png>
 Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 97.
@@ -1930,22 +1930,22 @@ Underfull \hbox (badness 7814) in paragraph at lines 308--308
  []
 
 [16] [17]
-Underfull \hbox (badness 10000) in paragraph at lines 395--395
+Underfull \hbox (badness 10000) in paragraph at lines 397--397
 []|\T5/ptm/m/n/13 ÷u ti¶n temporal
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 395--395
+Underfull \hbox (badness 10000) in paragraph at lines 397--397
 \T5/ptm/m/n/13 v  action-effect
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 395--395
+Underfull \hbox (badness 10000) in paragraph at lines 397--397
 []|\T5/ptm/m/n/13 ÷u ti¶n planning
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 395--395
+Underfull \hbox (badness 10000) in paragraph at lines 397--397
 \T5/ptm/m/n/13 intentions v 
  []
 
@@ -1954,7 +1954,7 @@ CHAPTER 4.
 (Chapter/4_Theoretical_analysis.tex [20
 
 ]
-<Images/habit_diary_workload.png, id=539, 1678.27pt x 944.52875pt>
+<Images/habit_diary_workload.png, id=542, 1678.27pt x 944.52875pt>
 File: Images/habit_diary_workload.png Graphic file (type png)
 <use Images/habit_diary_workload.png>
 Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 44
@@ -1991,7 +1991,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--96
  []
 
 [22]
-<Images/agentic_action_effect_trace.png, id=550, 1678.27pt x 944.52875pt>
+<Images/agentic_action_effect_trace.png, id=553, 1678.27pt x 944.52875pt>
 File: Images/agentic_action_effect_trace.png Graphic file (type png)
 <use Images/agentic_action_effect_trace.png>
 Package pdftex.def Info: Images/agentic_action_effect_trace.png  used on input 
@@ -2012,7 +2012,7 @@ queries ÷u ti¶n
 ) [26]
 CHAPTER 5.
 (Chapter/5_Numerical_results.tex
-<Images/manual_evaluation_flow.png, id=573, 1678.27pt x 944.52875pt>
+<Images/manual_evaluation_flow.png, id=576, 1678.27pt x 944.52875pt>
 File: Images/manual_evaluation_flow.png Graphic file (type png)
 <use Images/manual_evaluation_flow.png>
 Package pdftex.def Info: Images/manual_evaluation_flow.png  used on input line 
@@ -2025,23 +2025,24 @@ Overfull \hbox (2.17229pt too wide) in paragraph at lines 29--30
 
 [27
 
- <./Images/manual_evaluation_flow.png (PNG copy)>] [28] [29] [30]) [31]
+ <./Images/manual_evaluation_flow.png (PNG copy)>] [28] [29] [30] [31])
+[32]
 CHAPTER 6.
-(Chapter/6_Conclusions.tex [32
+(Chapter/6_Conclusions.tex [33
 
 ]
-Underfull \hbox (badness 4660) in paragraph at lines 47--48
+Underfull \hbox (badness 4660) in paragraph at lines 49--50
 []\T5/ptm/b/n/13 Production reliability\T5/ptm/m/n/13 : bê sung temporal reason
 er, list-completeness
  []
 
-
-Underfull \hbox (badness 1701) in paragraph at lines 50--51
+[34]
+Underfull \hbox (badness 1701) in paragraph at lines 52--53
 []\T5/ptm/m/n/13 Nh¼n chung, CogMem chùng minh r¬ng cognitive graph, raw eviden
 ce
  []
 
-) [33] (Chapter/7_Reference.tex) [34
+) [35] (Chapter/7_Reference.tex) [36
 
 ]
 
@@ -2342,7 +2343,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
 
-[35
+[37
 
 ]
 
@@ -2369,7 +2370,7 @@ Package glossaries Warning: No \printnoidxglossary or \printnoidxglossaries
  found. (Remove \makenoidxglossaries if you don't want any glossaries.)
 This document will not have a glossary.
 
-[36] (main.aux)
+[38] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -2380,16 +2381,16 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: D7F77CC3752B0977B09F6964B627BB1D;10202.
+(rerunfilecheck)             Checksum: F5C3A2E69105EB82E102C9C8ABE2F3F7;10202.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 48496 strings out of 467871
- 958060 string characters out of 5435212
- 1775592 words of memory out of 5000000
- 76355 multiletter control sequences out of 15000+600000
+ 48501 strings out of 467871
+ 958138 string characters out of 5435212
+ 1775685 words of memory out of 5000000
+ 76356 multiletter control sequences out of 15000+600000
  674631 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  108i,13n,108p,2507b,1668s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -2401,9 +2402,9 @@ blic/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
 x/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><F:/MikTeX/fon
 ts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.pfb><F:
 /MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (44 pages, 5912238 bytes).
+Output written on main.pdf (46 pages, 5918268 bytes).
 PDF statistics:
- 766 PDF objects out of 1000 (max. 8388607)
- 247 named destinations out of 1000 (max. 500000)
+ 778 PDF objects out of 1000 (max. 8388607)
+ 251 named destinations out of 1000 (max. 500000)
  374 words of extra memory for PDF output out of 10000 (max. 10000000)
 

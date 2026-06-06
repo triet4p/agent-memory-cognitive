@@ -312,6 +312,8 @@ Rủi ro kỹ thuật & ổn định hơn nhưng bảo thủ & mạnh hơn nhưn
 \end{tabular}
 \end{table}
 
+Để kiểm tra đóng góp này một cách công bằng, phần thực nghiệm bổ sung trong Chương 5 dùng một đối chứng hẹp: cùng retained memory banks, cùng graph-only recall, cùng tập fact type, cùng bỏ reranker, chỉ thay reducer của BFS graph activation từ SUM sang MAX. Vì vậy, khác biệt đo được trong thí nghiệm này không phải do semantic retrieval, BM25, temporal retrieval hay generation, mà chủ yếu phản ánh cách graph channel xếp hạng evidence khi nhiều đường yếu cùng hội tụ về một node trả lời.
+
 \subsubsection{Ba cơ chế bảo vệ chu trình (Cycle Guards)}
 
 SUM activation trên đồ thị có chu trình cần cơ chế ổn định hóa. CogMem dùng ba guard bổ sung cho nhau:

@@ -22,6 +22,8 @@ Các đóng góp này không nên được hiểu như các module luôn tạo r
 
 Trên LongMemEval v16, cấu hình multi-channel tốt nhất đạt 29/35 PASS (82.9\%), còn full six-type multi-channel baseline đạt 26/35 PASS (74.3\%). Các cấu hình graph-only thấp hơn, củng cố kết luận rằng recall đa kênh là cần thiết cho bộ nhớ hội thoại dài hạn.
 
+Tuy vậy, khi cô lập riêng graph channel, SUM activation có bằng chứng rõ hơn MAX ở top-k nhỏ: mean session recall@5 tăng từ 0.7624 lên 0.8052, SUM tốt hơn ở 2 câu và MAX không tốt hơn ở câu nào. Điều này xác nhận đóng góp của SUM ở đúng phạm vi của nó: cải thiện thứ tự evidence trong graph-only recall, thay vì thay thế toàn bộ multi-channel retrieval.
+
 Trên LoCoMo, cấu hình cuối đạt 119/161 manual PASS (73.9\%), vượt mục tiêu 70\% và tăng 22 câu so với baseline trước đó. Trong cách tính này, PASS bao gồm cả câu trả lời đúng hoàn toàn và câu trả lời đúng lõi, đủ dùng cho người đọc. Các nhóm multi-hop, causal và preference đạt trên 88\%, trong khi temporal chỉ đạt 41.7\%. Nhìn tổng thể, dự án đã đạt một milestone thực nghiệm đáng tin cậy: hệ thống không chỉ chạy được end-to-end mà còn vượt ngưỡng chất lượng đặt ra trên một benchmark hội thoại dài khó.
 
 \subsection{Hạn chế}

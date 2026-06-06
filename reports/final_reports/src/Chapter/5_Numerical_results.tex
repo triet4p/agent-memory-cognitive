@@ -69,6 +69,32 @@ Graph-only full six-type baseline & 22/35 & 62.9\% \\
 \end{tabularx}
 \end{table}
 
+\subsubsection{Đối chứng Graph-only: SUM so với MAX}
+
+Để kiểm tra riêng đóng góp của SUM spreading activation, tôi chạy thêm một thí nghiệm recall-only trên cùng 35 memory banks của LongMemEval v16. Hai cấu hình trong thí nghiệm này giống nhau ở các điểm quan trọng: chỉ dùng graph channel, bỏ reranker, dùng cùng fact types và cùng retained memories. Khác biệt duy nhất là reducer của BFS graph activation: một cấu hình dùng SUM để cộng nhiều evidence path, cấu hình đối chứng dùng MAX để chỉ giữ đường mạnh nhất.
+
+Metric ở đây không phải answer accuracy, vì mục tiêu là cô lập retrieval. Tôi dùng \textbf{session recall@5} và \textbf{session recall@10}: tỉ lệ gold sessions xuất hiện trong top-k evidence được đưa vào bước trả lời. Metric này phù hợp với câu hỏi cần nối nhiều phiên, vì nó đo trực tiếp liệu graph channel có đưa đúng vùng bằng chứng vào prompt sớm hay không.
+
+\begin{table}[H]
+\centering
+\caption{Graph-only LongMemEval v16: SUM reducer so với MAX control}
+\label{tab:sum_vs_max_graph_only}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Reducer} & \textbf{Cases} & \textbf{Mean @5} & \textbf{Mean @10} & \textbf{Hit @5} \\
+\midrule
+SUM & 35 & 0.8052 & 0.8481 & 33 \\
+MAX & 35 & 0.7624 & 0.8481 & 32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+SUM cải thiện mean session recall@5 thêm 0.0429. Trong 35 câu hỏi, SUM tốt hơn MAX ở 2 câu, MAX không tốt hơn SUM ở câu nào, và 33 câu còn lại hòa ở top-5. Ngoài ra, thứ tự top-10 evidence khác nhau ở 12/35 câu, cho thấy reducer không chỉ thay đổi score nội bộ mà thực sự thay đổi thứ tự bằng chứng được đưa vào context.
+
+Hai ví dụ định tính minh họa rõ cơ chế này. Với câu hỏi về chuyến đi gia đình gần nhất, SUM đưa đủ hai phiên liên quan vào top-5 evidence, trong khi MAX chỉ đưa được một phiên. Với câu hỏi xin mẹo di chuyển ở Tokyo, MAX vẫn tìm thấy evidence về Suica và Shinjuku/Tokyo nhưng để chúng ở khoảng rank 6--7; SUM kéo evidence liên quan lên rank đầu, nhờ tín hiệu hội tụ từ nhiều đường graph. Như vậy, lợi ích chính của SUM không phải là tạo ra evidence mới, mà là đưa evidence đúng vào phần ngân sách prompt sớm hơn.
+
+Kết quả recall@10 bằng nhau cho thấy claim cần được hiểu hẹp và trung thực: MAX thường vẫn có thể tìm thấy evidence nếu ngân sách đủ rộng, nhưng SUM ưu tiên evidence đúng tốt hơn ở top-k nhỏ. Vì vậy, thí nghiệm này ủng hộ việc dùng SUM làm mặc định cho \textit{graph-only channel}; nó không phủ định kết luận lớn hơn rằng hệ thống hoàn chỉnh vẫn nên dùng multi-channel recall.
+
 Kết quả này có ba hàm ý:
 
 \begin{enumerate}

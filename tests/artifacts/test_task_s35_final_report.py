@@ -79,10 +79,20 @@ def test_final_results_are_reported() -> None:
     chapter_5 = _read(SRC / "Chapter" / "5_Numerical_results.tex")
     chapter_6 = _read(SRC / "Chapter" / "6_Conclusions.tex")
 
-    for token in ["LongMemEval v16", "29/35", "82.9", "26/35", "74.3", "119/161", "73.9"]:
+    for token in [
+        "LongMemEval v16",
+        "29/35",
+        "82.9",
+        "26/35",
+        "74.3",
+        "0.8052",
+        "0.7624",
+        "119/161",
+        "73.9",
+    ]:
         assert token in abstract + chapter_5 + chapter_6, f"missing reported result: {token}"
 
-    for token in ["baseline", "60.2", "multi-hop", "temporal", "habit", "action-effect"]:
+    for token in ["baseline", "60.2", "multi-hop", "temporal", "habit", "action-effect", "MAX control"]:
         assert token in chapter_5 + chapter_6, f"missing analysis detail: {token}"
 
 
@@ -112,6 +122,9 @@ def test_diagrams_and_generated_figures_are_present() -> None:
         assert label in methodology + chapter_4 + chapter_5, f"missing figure overlay label: {label}"
     assert "raw_snippet" in methodology, "raw snippet evidence path is missing"
     assert "SUM spreading" in methodology + theory, "SUM activation discussion is missing"
+    assert "Graph-only LongMemEval v16: SUM reducer so với MAX control" in _read(
+        SRC / "Chapter" / "5_Numerical_results.tex"
+    ), "SUM vs MAX graph-only results table is missing"
 
 
 if __name__ == "__main__":
