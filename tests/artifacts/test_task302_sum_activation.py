@@ -40,11 +40,11 @@ class FakeConn:
             make_unit_row("B", "entry-b", similarity=0.6),
         ]
         self.edges = {
-            "A": [make_link_row("A", "X", 0.8)],
-            "B": [make_link_row("B", "X", 0.9)],
+            "A": [make_link_row("A", "X", 0.8, link_type="entity")],
+            "B": [make_link_row("B", "X", 0.9, link_type="entity")],
             "X": [
-                make_link_row("X", "A", 0.9),
-                make_link_row("X", "B", 0.9),
+                make_link_row("X", "A", 0.9, link_type="entity"),
+                make_link_row("X", "B", 0.9, link_type="entity"),
             ],
         }
         self.neighbor_queries = 0
@@ -92,6 +92,36 @@ async def run_sum_and_saturation_check() -> None:
     assert (by_id["X"].activation or 0.0) > 0.9, "Activation should increase from multi-path SUM, not single-path MAX"
     # Saturation A_max should keep values bounded even in cycles
     assert (by_id["X"].activation or 0.0) <= 2.0 + 1e-9, "Activation exceeded configured saturation A_max"
+
+
+async def run_max_reducer_control_check() -> None:
+    from cogmem_api.engine.search.graph_retrieval import BFSGraphRetriever
+
+    conn = FakeConn()
+    retriever = BFSGraphRetriever(
+        activation_decay=1.0,
+        min_activation=0.01,
+        batch_size=10,
+        refractory_steps=1,
+        firing_quota=1,
+        activation_saturation=2.0,
+        activation_reducer="max",
+    )
+
+    results = await retriever._retrieve_with_conn(
+        conn=conn,
+        query_embedding_str="[0.1,0.2,0.3,0.4]",
+        bank_id="bank_t302",
+        fact_type="world",
+        budget=10,
+    )
+
+    by_id = {r.id: r for r in results}
+    assert "X" in by_id, "Expected convergent node X in MAX-control results"
+
+    # MAX propagation keeps only the stronger B->X contribution: 0.6*0.9 = 0.54.
+    assert math.isclose(by_id["X"].activation or 0.0, 0.54, rel_tol=1e-6)
+    assert retriever.name == "bfs_max"
 
 
 async def run_refractory_guard_check() -> None:
@@ -155,6 +185,7 @@ def main() -> None:
         sys.path.insert(0, repo_root_str)
 
     asyncio.run(run_sum_and_saturation_check())
+    asyncio.run(run_max_reducer_control_check())
     asyncio.run(run_refractory_guard_check())
     asyncio.run(run_firing_quota_guard_check())
     print("Task 302 SUM activation check passed.")

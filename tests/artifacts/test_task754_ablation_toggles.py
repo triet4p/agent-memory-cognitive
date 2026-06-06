@@ -8,6 +8,7 @@ Verifies:
     - adaptive_router_enabled=False  → payload["adaptive_router"]=False
     - sum_activation_enabled=False   → payload["graph_retriever"]="link_expansion"
     - sum_activation_enabled=True    → payload["graph_retriever"]="bfs"
+    - graph_retriever_override       → payload["graph_retriever"] uses the override
 - E1-E7 payload matrix is consistent with ablation spec
 """
 
@@ -50,6 +51,13 @@ def test_flat_query_analyzer_ignores_query_content():
 def test_make_graph_retriever_bfs():
     retriever = make_graph_retriever("bfs")
     assert isinstance(retriever, BFSGraphRetriever)
+    assert retriever.name == "bfs"
+
+
+def test_make_graph_retriever_bfs_max():
+    retriever = make_graph_retriever("bfs_max")
+    assert isinstance(retriever, BFSGraphRetriever)
+    assert retriever.name == "bfs_max"
 
 
 def test_make_graph_retriever_link_expansion():
@@ -97,6 +105,15 @@ def test_build_recall_payload_e7_full_cogmem():
     assert set(payload["types"]) == {"world", "experience", "opinion", "habit", "intention", "action_effect"}
 
 
+def test_build_recall_payload_e7gm_graph_only_max_control():
+    profile = ABLATION_PROFILES["E7GM"]
+    payload = build_recall_payload(profile, "test query")
+    assert payload["adaptive_router"] is True
+    assert payload["graph_retriever"] == "bfs_max"
+    assert payload["skip_reranker"] is True
+    assert payload["graph_only"] is True
+
+
 def test_ablation_matrix_consistency():
     """E1-E4 share same toggle config (no router, no SUM); E5/E6/E7 each differ."""
     for pid in ("E1", "E2", "E3", "E4"):
@@ -132,6 +149,8 @@ if __name__ == "__main__":
     print("  test_flat_query_analyzer_ignores_query_content PASSED")
     test_make_graph_retriever_bfs()
     print("  test_make_graph_retriever_bfs PASSED")
+    test_make_graph_retriever_bfs_max()
+    print("  test_make_graph_retriever_bfs_max PASSED")
     test_make_graph_retriever_link_expansion()
     print("  test_make_graph_retriever_link_expansion PASSED")
     test_make_graph_retriever_mpfp()
@@ -146,8 +165,10 @@ if __name__ == "__main__":
     print("  test_build_recall_payload_e6_no_adaptive_sum PASSED")
     test_build_recall_payload_e7_full_cogmem()
     print("  test_build_recall_payload_e7_full_cogmem PASSED")
+    test_build_recall_payload_e7gm_graph_only_max_control()
+    print("  test_build_recall_payload_e7gm_graph_only_max_control PASSED")
     test_ablation_matrix_consistency()
     print("  test_ablation_matrix_consistency PASSED")
     test_recall_request_accepts_new_fields()
     print("  test_recall_request_accepts_new_fields PASSED")
-    print("Task 754 ablation toggles: all 12 tests PASSED.")
+    print("Task 754 ablation toggles: all 14 tests PASSED.")

@@ -131,7 +131,7 @@ DEFAULT_EMBEDDINGS_LOCAL_MODEL = "BAAI/bge-small-en-v1.5"
 DEFAULT_EMBEDDINGS_OPENAI_MODEL = "text-embedding-3-small"
 
 ALLOWED_RETAIN_EXTRACTION_MODES = {"concise", "custom", "verbatim", "verbose"}
-ALLOWED_GRAPH_RETRIEVERS = {"bfs", "link_expansion", "mpfp"}
+ALLOWED_GRAPH_RETRIEVERS = {"bfs", "bfs_max", "link_expansion", "mpfp"}
 
 
 def _read_optional_str(env_name: str, default: str | None = None) -> str | None:

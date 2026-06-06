@@ -262,6 +262,15 @@ def get_default_graph_retriever() -> GraphRetriever:
                 cross_fact_type=config.bfs_cross_fact_type,
             )
             logger.info(f"Using BFS graph retriever (cross_fact_type={config.bfs_cross_fact_type})")
+        elif retriever_type == "bfs_max":
+            _default_graph_retriever = BFSGraphRetriever(
+                refractory_steps=config.bfs_refractory_steps,
+                firing_quota=config.bfs_firing_quota,
+                activation_saturation=config.bfs_activation_saturation,
+                cross_fact_type=config.bfs_cross_fact_type,
+                activation_reducer="max",
+            )
+            logger.info(f"Using BFS-MAX graph retriever (cross_fact_type={config.bfs_cross_fact_type})")
         elif retriever_type == "link_expansion":
             _default_graph_retriever = LinkExpansionRetriever()
             logger.info("Using LinkExpansion graph retriever")
@@ -286,6 +295,14 @@ def make_graph_retriever(name: str) -> GraphRetriever:
             firing_quota=config.bfs_firing_quota,
             activation_saturation=config.bfs_activation_saturation,
             cross_fact_type=config.bfs_cross_fact_type,
+        )
+    if key == "bfs_max":
+        return BFSGraphRetriever(
+            refractory_steps=config.bfs_refractory_steps,
+            firing_quota=config.bfs_firing_quota,
+            activation_saturation=config.bfs_activation_saturation,
+            cross_fact_type=config.bfs_cross_fact_type,
+            activation_reducer="max",
         )
     if key == "mpfp":
         return MPFPGraphRetriever()

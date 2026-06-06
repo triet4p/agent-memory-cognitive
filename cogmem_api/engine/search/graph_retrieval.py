@@ -94,6 +94,7 @@ class BFSGraphRetriever(GraphRetriever):
         activation_saturation: float = 2.0,
         per_source_limit: int = 20,
         cross_fact_type: bool = False,
+        activation_reducer: str = "sum",
     ):
         """
         Initialize BFS graph retriever.
@@ -111,6 +112,8 @@ class BFSGraphRetriever(GraphRetriever):
             cross_fact_type: If True, neighbor traversal ignores fact_type boundary so
                              activation can flow between world/experience/etc. nodes;
                              final results are post-filtered back to the target fact_type.
+            activation_reducer: "sum" accumulates convergent paths; "max" keeps only
+                                the strongest path for ablation controls.
         """
         self.entry_point_limit = entry_point_limit
         self.entry_point_threshold = entry_point_threshold
@@ -122,10 +125,21 @@ class BFSGraphRetriever(GraphRetriever):
         self.activation_saturation = max(min_activation, activation_saturation)
         self.per_source_limit = max(1, per_source_limit)
         self.cross_fact_type = cross_fact_type
+        normalized_reducer = activation_reducer.lower().strip()
+        if normalized_reducer not in {"sum", "max"}:
+            raise ValueError("activation_reducer must be 'sum' or 'max'")
+        self.activation_reducer = normalized_reducer
 
     @property
     def name(self) -> str:
-        return "bfs"
+        return "bfs" if self.activation_reducer == "sum" else "bfs_max"
+
+    def _merge_activation(self, current: float, incoming: float) -> float:
+        if self.activation_reducer == "max":
+            raw = max(current, incoming)
+        else:
+            raw = current + incoming
+        return min(self.activation_saturation, raw)
 
     async def retrieve(
         self,
@@ -238,9 +252,9 @@ class BFSGraphRetriever(GraphRetriever):
         for row in entry_points:
             seed = RetrievalResult.from_db_row(dict(row))
             node_payload[seed.id] = seed
-            frontier_activation[seed.id] = min(
-                self.activation_saturation,
-                frontier_activation[seed.id] + max(float(row["similarity"]), 0.0),
+            frontier_activation[seed.id] = self._merge_activation(
+                frontier_activation[seed.id],
+                max(float(row["similarity"]), 0.0),
             )
 
         step = 0
@@ -286,7 +300,7 @@ class BFSGraphRetriever(GraphRetriever):
                     budget_remaining -= 1
                 else:
                     prior = results_by_id[node_id].activation or 0.0
-                    results_by_id[node_id].activation = min(self.activation_saturation, prior + activation)
+                    results_by_id[node_id].activation = self._merge_activation(prior, activation)
 
             # Batch fetch neighbors
             if batch_nodes and budget_remaining > 0:
@@ -379,9 +393,9 @@ class BFSGraphRetriever(GraphRetriever):
                         continue
 
                     node_payload.setdefault(neighbor_id, RetrievalResult.from_db_row(dict(n)))
-                    frontier_activation[neighbor_id] = min(
-                        self.activation_saturation,
-                        frontier_activation.get(neighbor_id, 0.0) + propagated,
+                    frontier_activation[neighbor_id] = self._merge_activation(
+                        frontier_activation.get(neighbor_id, 0.0),
+                        propagated,
                     )
 
         results = sorted(results_by_id.values(), key=lambda r: r.activation or 0.0, reverse=True)

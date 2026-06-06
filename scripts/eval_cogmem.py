@@ -84,6 +84,7 @@ class AblationProfile:
     sum_activation_enabled: bool
     skip_reranker: bool = False
     graph_only: bool = False
+    graph_retriever_override: str | None = None
 
 
 ABLATION_PROFILES: dict[str, AblationProfile] = {
@@ -223,6 +224,17 @@ ABLATION_PROFILES: dict[str, AblationProfile] = {
         sum_activation_enabled=True,
         skip_reranker=True,
         graph_only=True,
+    ),
+    "E7GM": AblationProfile(
+        profile_id="E7GM",
+        description="E7 graph-only MAX reducer control (no CE, graph channel only)",
+        enabled_networks=("world", "experience", "opinion", "habit", "intention", "action_effect"),
+        recall_fact_types=("world", "experience", "opinion", "habit", "intention", "action_effect"),
+        adaptive_router_enabled=True,
+        sum_activation_enabled=False,
+        skip_reranker=True,
+        graph_only=True,
+        graph_retriever_override="bfs_max",
     ),
     "E8G": AblationProfile(
         profile_id="E8G",
@@ -540,7 +552,8 @@ def build_recall_payload(profile: AblationProfile, query: str) -> JsonDict:
         "snippet_budget": snippet_budget,
         "trace": True,
         "adaptive_router": profile.adaptive_router_enabled,
-        "graph_retriever": "bfs" if profile.sum_activation_enabled else "link_expansion",
+        "graph_retriever": profile.graph_retriever_override
+        or ("bfs" if profile.sum_activation_enabled else "link_expansion"),
         "skip_reranker": profile.skip_reranker,
         "graph_only": profile.graph_only,
     }
