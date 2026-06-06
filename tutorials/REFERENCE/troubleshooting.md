@@ -94,13 +94,18 @@ column "chunk_id" does not exist
 
 ---
 
-### `COGMEM_API_GRAPH_RETRIEVER=link_expansion` — Old Default
+### Graph traversal uses MAX instead of SUM
 
-**Symptom**: Graph traversal uses MAX propagation instead of SUM.
+**Symptom**: Spreading activation only follows the single strongest path (MAX), not accumulated SUM.
 
-**Cause**: Before S20, the default graph retriever was `link_expansion`. S20 changed the default to `bfs` (SUM + 3 cycle guards). If you see MAX behavior, check your `.env`.
+**Cause**: `COGMEM_API_GRAPH_RETRIEVER` is set to `bfs_max` (the ablation control that swaps
+`activation_reducer` to `"max"`) or to `link_expansion` (which also uses single-path expansion).
+The SUM default is plain `bfs`.
 
-**Fix**: Set `COGMEM_API_GRAPH_RETRIEVER=bfs` in `.env`.
+**Fix**: Set `COGMEM_API_GRAPH_RETRIEVER=bfs` in `.env`. Valid values are
+`bfs | bfs_max | mpfp | link_expansion` (anything else falls back to `bfs`). You can also override
+per request via the recall payload's `graph_retriever` field — handy for A/B comparisons without a
+restart (see `scripts/compare_sum_max_graph_only.py`).
 
 ---
 

@@ -33,9 +33,11 @@ Input normalization
 Entry point: `cogmem_api/engine/retain/orchestrator.py::retain_batch`
 
 Key design decisions:
-- **Two-pass extraction**: Pass 1 extracts all facts from all roles; Pass 2 re-extracts only user-role facts for persona signals. Pass 2 results are deduped against Pass 1 with Pass 2 preference for personal fact types (opinion, habit, intention).
+- **Multi-pass extraction**: Pass 1 extracts all facts from all roles; Pass 2 re-extracts only user-role facts for persona signals (deduped against Pass 1 with Pass 2 preference for personal types — opinion, habit, intention, experience); Pass 3 is a cross-chunk **relation-discovery** pass that enriches the merged fact list with causal / transition / action_effect edges (default on, runs when 2–30 facts).
 - **Lossless raw_snippet**: Every extracted fact stores the original text chunk alongside the LLM-generated narrative. This solves the lossy compression problem where "40%" or "180ms" details get dropped.
 - **Heuristic overrides**: The LLM often misclassifies fact types. `_infer_fact_type()` and `_infer_fulfilled_from_context()` apply pattern-based corrections after LLM parsing.
+- **In-session + cross-bank links**: Link creation runs in two phases — Phase A links the units retained in this batch (temporal, semantic, entity, s_r, a_o, transition, causal); Phase B bridges to facts in *other* banks (cross-bank semantic / entity / structural) so memory connects across sessions.
+- **Ablation toggles**: A retain payload may carry `enabled_fact_types` (drop facts of disallowed types) and `agentic_transcript` (teach Pass 1 to parse `[tool]/[output]` tags) — both used by the necessity benchmark (see [Benchmark & Ablation](benchmark-ablation.md)).
 
 ### Search/Recall Pipeline (`recall_async`)
 
@@ -59,8 +61,8 @@ Query → Query Analyzer (classify intent + extract temporal constraints)
 Entry point: `cogmem_api/engine/search/retrieval.py::retrieve_all_fact_types_parallel`
 
 Key design decisions:
-- **Adaptive RRF weights**: Query type determines channel weights. Temporal queries weight the temporal channel 0.40; multi-hop queries weight graph 0.50. This replaces HINDSIGHT's equal-weight RRF.
-- **BFS graph retriever is default**: Since S20, `COGMEM_API_GRAPH_RETRIEVER=bfs` is the default (not `link_expansion`). BFS uses SUM aggregation with 3 cycle guards (refractory period, firing quota, saturation ceiling).
+- **Adaptive RRF weights**: One of 6 query types (`semantic`, `temporal`, `causal`, `prospective`, `preference`, `multi_hop`) determines per-channel weight multipliers. Temporal queries boost the temporal channel ×2.2; causal/multi-hop queries boost graph ×2.4–2.6. This replaces HINDSIGHT's equal-weight RRF. (See [Search Pipeline](search-pipeline.md) for the full table.)
+- **BFS graph retriever is default**: `COGMEM_API_GRAPH_RETRIEVER=bfs` is the default (not `link_expansion`). BFS uses **SUM** spreading activation with 3 cycle guards (refractory period, firing quota, saturation ceiling). A `bfs_max` variant swaps SUM for MAX as an ablation control; `mpfp` and `link_expansion` are the other selectable retrievers.
 - **Prospective guard**: Intention nodes with `status != planning` are filtered out for prospective queries. This required a post-retrieval filter in `_filter_prospective_results()`.
 
 ### Reflect Pipeline (`synthesize_lazy_reflect`)
@@ -121,6 +123,8 @@ The `habit` vs `action_effect` distinction is critical: habits survive outcome d
 | `s_r_link` | Directed | Habit reinforces evidence | `h_email → e_standup_prep` |
 | `a_o_causal` | Directed | Precondition→Action→Outcome | `ae_quant → e_fix` |
 | `transition` | Directed+typed | Lifecycle state change | `i_rust ─fulfilled_by──▶ e_rust_done` |
+
+The same `semantic` / `entity` / structural edges are also created **across banks** in Phase B (cross-session bridging), gated by `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD` (default 0.75, vs the 0.6 in-session semantic threshold).
 
 ## Configuration Hierarchy
 

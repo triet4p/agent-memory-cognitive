@@ -9,9 +9,11 @@ This directory contains developer documentation for the CogMem cognitive memory 
 | Run the API in 5 minutes | `QUICKSTART.md` |
 | Understand the system fast | `ARCHITECTURE/overview.md` |
 | Configure for production | `CONFIG/env-vars.md` |
-| Understand a specific file | `PER-FILE/` (see index below) |
+| Understand a specific file | `PER-FILE/` (partial — see index below) |
+| Understand the necessity benchmark | `ARCHITECTURE/benchmark-ablation.md` |
+| Evaluate / diagnose recall failures | `ARCHITECTURE/evaluation.md` |
 | Troubleshoot an error | `REFERENCE/troubleshooting.md` |
-| Contribute code | `LEARNING-PATH.md` (Track C) |
+| Contribute code / run benchmarks | `LEARNING-PATH.md` (Track C / Track D) |
 
 ## Directory Structure
 
@@ -23,22 +25,21 @@ tutorials/
 │
 ├── ARCHITECTURE/              ← System-level docs (why + how, not what)
 │   ├── overview.md            ← Big picture: 3 pipelines, 6 networks, Memory Engine
-│   ├── retain-pipeline.md     ← Deep dive: retain_batch() + 6 sub-modules
+│   ├── retain-pipeline.md     ← Deep dive: retain_batch() + Phase A/B links
 │   ├── search-pipeline.md    ← Deep dive: 4-channel retrieval + adaptive RRF
 │   ├── reflect-pipeline.md    ← Deep dive: lazy synthesis
+│   ├── benchmark-ablation.md  ← cogmem_bench: cognitive-node necessity ablation
+│   └── evaluation.md          ← Eval & diagnostics workflow (verify/diagnose/audit)
 │
 ├── CONFIG/                    ← Configuration reference
 │   ├── env-vars.md           ← All COGMEM_API_* variables with explanations
-│   ├── prompts.md            ← Pass 1 / Pass 2 extraction prompts
+│   ├── prompts.md            ← Pass 1 / Pass 2 / Pass 3 extraction prompts
 │   └── running.md            ← Run on host / Docker standalone / Docker compose
 │
-├── PER-FILE/                  ← Symbol-by-symbol file walkthroughs
-│   └── (file-index below)
+├── PER-FILE/                  ← Symbol-by-symbol file walkthroughs (partial; see index below)
 │
 ├── REFERENCE/                  ← Quick lookups
-│   ├── glossary.md           ← Term definitions
-│   ├── troubleshooting.md    ← Common errors and fixes
-│   └── function-index.md    ← Quick function lookup table
+│   └── troubleshooting.md    ← Common errors and fixes
 │
 └── (legacy: these have been replaced)
     ├── modules/               ← Superseded by ARCHITECTURE/
@@ -53,28 +54,19 @@ tutorials/
 
 ## Per-File Doc Index
 
+The PER-FILE set is **partial** — only the files below currently have a walkthrough. For everything
+else, read the source directly with the [Manual Code Reading Guide](manual-code-reading-guide.md)
+as a map.
+
+**Available now:**
+
 | Source File | Tutorial |
 |-------------|----------|
-| `cogmem_api/main.py` | `PER-FILE/runtime-main.md` |
-| `cogmem_api/server.py` | `PER-FILE/runtime-server.md` |
-| `cogmem_api/api/http.py` | `PER-FILE/api-http.md` |
 | `cogmem_api/config.py` | `PER-FILE/config.md` |
-| `cogmem_api/engine/memory_engine.py` | `PER-FILE/engine-core.md` |
 | `cogmem_api/engine/retain/orchestrator.py` | `PER-FILE/retain-orchestrator.md` |
 | `cogmem_api/engine/retain/fact_extraction.py` | `PER-FILE/retain-fact-extraction.md` |
-| `cogmem_api/engine/retain/fact_storage.py` | `PER-FILE/retain-fact-storage.md` |
-| `cogmem_api/engine/retain/entity_processing.py` | `PER-FILE/retain-entity-processing.md` |
-| `cogmem_api/engine/retain/link_creation.py` | `PER-FILE/retain-link-creation.md` |
 | `cogmem_api/engine/retain/chunking.py` | `PER-FILE/retain-chunking.md` |
 | `cogmem_api/engine/retain/dedup.py` | `PER-FILE/retain-dedup.md` |
-| `cogmem_api/engine/search/retrieval.py` | `PER-FILE/search-retrieval.md` |
-| `cogmem_api/engine/search/graph_retrieval.py` | `PER-FILE/search-graph-retrieval.md` |
-| `cogmem_api/engine/search/fusion.py` | `PER-FILE/search-fusion.md` |
-| `cogmem_api/engine/query_analyzer.py` | `PER-FILE/query-analyzer.md` |
-| `cogmem_api/engine/reflect/agent.py` | `PER-FILE/reflect-agent.md` |
-| `cogmem_api/prompts/retain/pass1.py` | `PER-FILE/prompts-pass1.md` |
-| `cogmem_api/prompts/retain/pass2.py` | `PER-FILE/prompts-pass2.md` |
-| `scripts/eval_cogmem.py` | `PER-FILE/eval-script.md` |
 
 ## Architecture (ARCHITECTURE/) vs Per-File (PER-FILE/) — What's the Difference?
 
@@ -82,15 +74,16 @@ tutorials/
 
 **PER-FILE/ docs** are symbol-by-symbol walkthroughs of individual source files. They explain *what each function does* and *what each significant block means*. Read these when you need to understand or modify a specific file.
 
-## Status: Active Rewrite (2026-04-28)
+## Status: Refreshed (2026-06-06)
 
-The tutorial system is being rewritten from scratch to eliminate:
-- Triple redundancy across `modules/`, `functions/`, and `per-file/`
-- Broken Jekyll-include files (`plan.md`, `idea.md`, `project-overview.md`)
-- Boilerplate deep-dives with no insight value
-- Stale sprint-gated organization
+The tutorial set was refreshed against the current `main` (through sprints S28–S35) to:
+- Correct the search pipeline (6 query types incl. `preference`, real adaptive-RRF weights, SUM/MAX
+  retriever options)
+- Document the retain Phase A / Phase B link layers, Pass 3, and `enabled_fact_types` / `agentic_transcript`
+- Add the `cogmem_bench` necessity-ablation and the eval/diagnostics workflow
+- Trim the over-promised PER-FILE / REFERENCE indexes down to what actually exists
 
-New structure: 4-layer top-down (Architecture → Config → Per-File → Reference).
+Structure: 4-layer top-down (Architecture → Config → Per-File → Reference).
 
 ## Verify Commands
 

@@ -11,8 +11,8 @@
 | `COGMEM_API_LOG_LEVEL` | `info` | Logging verbosity |
 | `COGMEM_API_WORKERS` | `1` | uvicorn worker count |
 | `COGMEM_API_LLM_BASE_URL` | `None` | OpenAI-compatible LLM endpoint (e.g. ngrok URL for Ministral-3B) |
-| `COGMEM_API_LLM_MODEL` | `gpt-4o-mini` | Model name sent to LLM endpoint |
-| `COGMEM_API_LLM_API_KEY` | `ollama` | API key (default `ollama` works for local LLM) |
+| `COGMEM_API_LLM_MODEL` | `gpt-4o-mini` | Model name sent to LLM endpoint. **Code default is `gpt-4o-mini`**, but the deployed runtime overrides this to `ministral3-3b` (Kaggle+NGROK) via `.env` |
+| `COGMEM_API_LLM_API_KEY` | `None` | API key. No code default; set `ollama` (any non-empty placeholder) for local OpenAI-compatible servers |
 | `COGMEM_API_LLM_TIMEOUT` | `120s` | General LLM call timeout |
 | `COGMEM_API_RETAIN_LLM_TIMEOUT` | `120s` | Timeout for retain fact extraction calls |
 | `COGMEM_API_REFLECT_LLM_TIMEOUT` | `120s` | Timeout for reflect synthesis calls |
@@ -26,12 +26,18 @@
 | `COGMEM_API_RETAIN_PASS2_TARGET_ROLES` | `user` | Which roles to extract in Pass 2 (comma-separated) |
 | `COGMEM_API_RETAIN_MISSION` | `None` | Custom mission statement injected into extraction prompts |
 | `COGMEM_API_RETAIN_CUSTOM_INSTRUCTIONS` | `None` | Additional instructions for extraction prompts |
-| `COGMEM_API_GRAPH_RETRIEVER` | `bfs` | Graph traversal strategy: `bfs\|link_expansion\|mpfp` |
+| `COGMEM_API_GRAPH_RETRIEVER` | `bfs` | Graph traversal strategy: `bfs\|bfs_max\|link_expansion\|mpfp` (validated against `ALLOWED_GRAPH_RETRIEVERS`) |
 | `COGMEM_API_BFS_REFRACTORY_STEPS` | `1` | Guard 1: refractory period (steps a node is silenced after firing) |
 | `COGMEM_API_BFS_FIRING_QUOTA` | `2` | Guard 2: max times a node can fire before saturation |
 | `COGMEM_API_BFS_ACTIVATION_SATURATION` | `2.0` | Guard 3: saturation ceiling (max activation per node) |
+| `COGMEM_API_BFS_CROSS_FACT_TYPE` | `false` | Allow BFS to traverse across fact-type boundaries |
 | `COGMEM_API_TEXT_SEARCH_EXTENSION` | `native` | BM25 backend: `native` (pg built-in) or `pg_trgm` |
 | `COGMEM_API_MPFP_TOP_K_NEIGHBORS` | `20` | MPFP retriever: number of neighbors per pattern node |
+| `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD` | `0.75` | Phase B cross-bank semantic link cosine threshold |
+| `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_TOP_K` | `4` | Phase B cross-bank semantic neighbours per unit |
+| `COGMEM_API_RETAIN_LLM_BASE_URL` / `_MODEL` / `_API_KEY` | fallback to main `LLM_*` | Separate, stronger LLM for RETAIN only (S33; e.g. Minimax for extraction) |
+| `COGMEM_API_RETAIN_STRICT_TYPING` | `false` | Add strict-typing addendum to extraction prompt (pairs with `enabled_fact_types`) |
+| `COGMEM_API_GENERATE_LLM_MODEL` / `_BASE_URL` / `_API_KEY` | fallback to main `LLM_*` | Separate LLM for the `/memories/generate` answer endpoint |
 | `COGMEM_API_EMBEDDINGS_PROVIDER` | `local` | `local` (sentence-transformers) or `openai` |
 | `COGMEM_API_EMBEDDINGS_LOCAL_MODEL` | `BAAI/bge-small-en-v1.5` | Local sentence-transformer model |
 | `COGMEM_API_RERANKER_PROVIDER` | `rrf` | Reranker: `rrf` (pass-through), `local`, or `tei` (external) |
@@ -50,9 +56,14 @@
 
 ### Why `bfs` as default graph retriever?
 
-Before S20, `link_expansion` was the default — but this uses MAX propagation (single strongest path wins). The CogMem contribution C3 is **SUM propagation with cycle guards** implemented in `BFSGraphRetriever`. Making it the default ensures all experiments E1-E7 use the correct SUM path except E1 (baseline, which explicitly uses MAX).
+The CogMem contribution C3 is **SUM spreading activation with cycle guards**, implemented in `BFSGraphRetriever`. `bfs` (SUM) is the default. The four selectable retrievers are:
 
-If you need the old MAX behavior for a specific experiment, set `COGMEM_API_GRAPH_RETRIEVER=link_expansion`.
+- `bfs` — SUM spreading activation + 3 cycle guards (default).
+- `bfs_max` — same retriever with `activation_reducer="max"` (single strongest path). This is the **ablation control** for measuring how much SUM contributes; see `scripts/compare_sum_max_graph_only.py`.
+- `mpfp` — Meta-Path Forward Push (sublinear, lazy edge loading).
+- `link_expansion` — single-CTE expansion over entity/semantic/causal/transition edges.
+
+The retriever can also be overridden **per recall request** via the `graph_retriever` field on the recall payload, without restarting the server.
 
 ### Why two-pass extraction?
 
@@ -60,7 +71,7 @@ Pass 1 extracts facts from ALL conversation turns (user + assistant). Assistant 
 
 Pass 2 re-runs extraction on USER-ONLY turns with a persona-focused prompt (from `prompts/retain/pass2.py`). This catches user-expressed opinions, intentions, and habits that might get diluted in mixed conversations.
 
-The two results are deduped: if Pass 2 returns a fact also in Pass 1, Pass 2's version is kept for `opinion`, `habit`, `intention`, and `experience` types. `world` and `action_effect` facts from Pass 1 take precedence.
+The two results are deduped: if Pass 2 returns a fact also in Pass 1, Pass 2's version is kept for `opinion`, `habit`, `intention`, and `experience` types. `world` and `action_effect` facts from Pass 1 take precedence. A **Pass 3** then runs over the merged list to discover cross-chunk causal / transition / action_effect relations.
 
 ### What does `RETAIN_EXTRACTION_MODE` do?
 
@@ -88,6 +99,21 @@ Without all three guards, SUM retrieval either diverges or produces inflated sco
 The LLM-as-judge for evaluation should be strictly stronger than the LLM used for retain extraction. The eval framework **requires** `COGMEM_API_JUDGE_LLM_BASE_URL` and `COGMEM_API_JUDGE_LLM_MODEL` to be set explicitly — it will fail with an error if judge config is missing, instead of silently falling back to the retain model.
 
 This is intentional: using the same 3B model for both extraction and judgment produces circular results.
+
+### Benchmark generator env (`cogmem_bench`)
+
+The ablation benchmark builder uses a **separate, stronger** generator model (e.g. Minimax-M2),
+distinct from the Ministral retain/answer model. These are read by `cogmem_bench` only, not the API:
+
+```bash
+COGMEM_BENCH_GEN_LLM_BASE_URL   # generator OpenAI-compatible endpoint ending /v1
+COGMEM_BENCH_GEN_LLM_MODEL      # default: minimax-m2
+COGMEM_BENCH_GEN_LLM_API_KEY    # default: ollama
+COGMEM_BENCH_GEN_MAX_TOKENS     # gold/trap session output budget; default 16000
+```
+
+See [Benchmark & Ablation](../ARCHITECTURE/benchmark-ablation.md) for the full pipeline and the
+complete generator env block in `CLAUDE.md`.
 
 ## Minimal `.env` for Local Dev
 

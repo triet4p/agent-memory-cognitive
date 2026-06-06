@@ -19,20 +19,22 @@ The critical detail: **4 channels run in parallel** for each fact type, then the
 
 ## Step 1 — Query Routing (`query_analyzer.py`)
 
-`classify_query_type()` identifies one of 6 query types:
+`classify_query_type()` ([query_analyzer.py](../../cogmem_api/engine/query_analyzer.py)) identifies one of **6** query types. The weights below are the actual `_ADAPTIVE_RRF_WEIGHTS` multipliers applied per channel (they are channel *multipliers*, not a probability distribution — `semantic` uses all 1.0 as the neutral baseline):
 
-| Type | Detection Signal | RRF Weights |
-|------|-----------------|-------------|
-| `semantic` | Descriptive text, no entity/time signals | sem=0.50, bm25=0.20, graph=0.20, temp=0.10 |
-| `temporal` | Date/time expressions | sem=0.20, bm25=0.20, graph=0.20, temp=0.40 |
-| `entity` | Named entities, proper nouns | sem=0.20, bm25=0.30, graph=0.40, temp=0.10 |
-| `causal` | "Why / because / reason" | sem=0.10, bm25=0.10, graph=0.40, temp=0.10 (+ Action-Effect priority) |
-| `prospective` | "Planning /打算/sắp" | sem=0.20, bm25=0.15, graph=0.35, temp=0.30 (intention.status=planning only) |
-| `multi_hop` | Relational pronouns, indirect reference | sem=0.15, bm25=0.10, graph=0.50, temp=0.25 |
+| Type | Detection Signal (regex) | sem | bm25 | graph | temp |
+|------|-------------------------|-----|------|-------|------|
+| `semantic` | Default — no other pattern matches | 1.0 | 1.0 | 1.0 | 1.0 |
+| `temporal` | `when / today / last / ago / before / during` (or `ago/since` anchor overriding multi-hop) | 0.8 | 0.6 | 0.8 | **2.2** |
+| `causal` | `why / cause / because / reason / led to / impact` | 0.8 | 0.7 | **2.4** | 1.0 |
+| `prospective` | `will / future / plan / intend / goal / going to` (intention.status=planning only) | 0.9 | 0.8 | **2.0** | 1.4 |
+| `preference` | `prefer / favorite / like / recommend / any tips / remind me` | 1.0 | **1.2** | 1.4 | 0.5 |
+| `multi_hop` | `connect / related / between / how many / list all / across` | 0.9 | 0.7 | **2.6** | 0.8 |
+
+> Note: there is **no** `entity` query type. Classification priority order is prospective → causal → preference → (multi-hop+temporal anchor → temporal) → multi_hop → temporal → semantic.
 
 `DateparserQueryAnalyzer` is the default temporal extractor. It uses the `dateparser` library to convert natural language time expressions ("last month", "Q2 2025") into datetime constraints for the temporal channel.
 
-**Why adaptive weights matter**: Equal-weight RRF (HINDSIGHT's approach) gives `w=0.25` to all channels. This is wrong for temporal queries — the temporal channel should dominate. CogMem's adaptive routing fixes this.
+**Why adaptive weights matter**: Equal-weight RRF (HINDSIGHT's approach) gives the same weight to all channels. This is wrong for temporal queries — the temporal channel should dominate (×2.2). Causal and multi-hop queries instead lean on the graph channel (×2.4–2.6). CogMem's adaptive routing fixes this.
 
 ## Step 2 — Four-Channel Parallel Retrieval (`retrieval.py`)
 
@@ -46,20 +48,29 @@ These are combined with equal-weight RRF before the graph channel contributes.
 
 ### Graph Channel
 
-Uses the **pluggable** `GraphRetriever` interface. Factory: `get_default_graph_retriever()` → returns `BFSGraphRetriever` by default (since S20).
+Uses the **pluggable** `GraphRetriever` interface ([graph_retrieval.py](../../cogmem_api/engine/search/graph_retrieval.py)). The retriever is selected from `COGMEM_API_GRAPH_RETRIEVER` (default `bfs`) and can be overridden **per request** via the `graph_retriever` field on the recall payload. Four implementations exist:
 
-**BFSGraphRetriever** (`graph_retrieval.py`) implements SUM spreading activation with 3 cycle guards:
+| `COGMEM_API_GRAPH_RETRIEVER` | Class | Notes |
+|------|-------|-------|
+| `bfs` *(default)* | `BFSGraphRetriever(activation_reducer="sum")` | SUM spreading activation + 3 cycle guards |
+| `bfs_max` | `BFSGraphRetriever(activation_reducer="max")` | MAX reducer — ablation toggle (commit `6e20d67`) |
+| `mpfp` | `MPFPGraphRetriever` ([mpfp_retrieval.py](../../cogmem_api/engine/search/mpfp_retrieval.py)) | Meta-Path Forward Push, sublinear lazy edge loading |
+| `link_expansion` | `LinkExpansionRetriever` ([link_expansion_retrieval.py](../../cogmem_api/engine/search/link_expansion_retrieval.py)) | Single-CTE expansion over entity/semantic/causal/transition edges |
+
+**BFSGraphRetriever** implements spreading activation with 3 cycle guards:
 
 ```
-Activation: A(v, t+1) = clip[A(v,t) + δ·Σ(w(u,v)·A(u,t)·μ(edge)·refractory(u)), Amax]
-  - refractory(u): 0 if u fired at t, else 1 (blocks 2-node ping-pong)
-  - firing_quota: node silenced after 2 fires (blocks longer cycles)
-  - saturation: A(v) ≤ 2.0 (blocks score explosion)
+Activation: A(v, t+1) = clip[reduce(A(v,t), δ·Σ(w(u,v)·A(u,t)·μ(edge)·refractory(u))), Amax]
+  - reduce = SUM (default)  → raw = current + incoming   (accumulate all paths)
+  - reduce = MAX (bfs_max)  → raw = max(current, incoming) (single strongest path)
+  - refractory(u): 0 if u fired last step, else 1   (COGMEM_API_BFS_REFRACTORY_STEPS=1, blocks ping-pong)
+  - firing_quota: node silenced after N fires        (COGMEM_API_BFS_FIRING_QUOTA=2, blocks longer cycles)
+  - saturation:  A(v) ≤ Amax                          (COGMEM_API_BFS_ACTIVATION_SATURATION=2.0)
 ```
 
-Traverse budget: `max_nodes=50, max_depth=3` by default. Entry: nodes matching semantic query vector.
+Entry points: nodes matching the semantic query vector (`entry_point_limit=5`, `entry_point_threshold=0.5`), with `activation_decay=0.8` and `min_activation=0.1`.
 
-**Why SUM instead of MAX**: MAX propagation picks only the single strongest path. If 3 weak evidence sources all point to a node, MAX takes only the strongest — two sources are wasted. SUM accumulates all contributions, which is better for multi-hop and multi-session queries.
+**SUM vs MAX (the default is SUM)**: MAX propagation picks only the single strongest path — if 3 weak evidence sources all point to a node, MAX keeps only the strongest and the other two are wasted. SUM accumulates all contributions, which is better for multi-hop and multi-session queries. `bfs_max` exists purely as an **ablation control** to quantify how much the SUM behaviour contributes (see [Benchmark & Ablation](benchmark-ablation.md) and `scripts/compare_sum_max_graph_only.py`).
 
 ### Temporal Channel
 

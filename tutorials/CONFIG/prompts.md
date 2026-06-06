@@ -2,7 +2,7 @@
 
 ## Overview
 
-The prompts directory contains the **system prompts** used for LLM-based fact extraction in the retain pipeline. There are two extraction passes (Pass 1 and Pass 2) plus a shared utility.
+The prompts directory contains the **system prompts** used for LLM-based fact extraction in the retain pipeline. There are three passes (Pass 1, Pass 2, Pass 3) plus a shared utility.
 
 **Files:**
 
@@ -10,6 +10,7 @@ The prompts directory contains the **system prompts** used for LLM-based fact ex
 |------|---------|
 | `pass1.py` | System prompt + user message builder for Pass 1 (all roles) |
 | `pass2.py` | System prompt + user message builder for Pass 2 (user-only) |
+| `pass3.py` | `build_pass3_prompt()` — cross-chunk relation discovery over the merged fact list |
 | `shared.py` | Temporal hallucination sanitization utilities |
 
 ## `pass1.py` — All-Role Extraction
@@ -79,6 +80,26 @@ The `PASS2_ALLOWED_FACT_TYPES` constant controls which fact types Pass 2 extract
 - `experience` — past events narrated by or about the user
 
 `world` and `action_effect` are excluded from Pass 2. `world` is objective/time-independent (not persona-specific). `action_effect` comes from causal reasoning about outcomes, not self-description.
+
+## `pass3.py` — Cross-Chunk Relation Discovery
+
+```python
+build_pass3_prompt(facts: list[tuple[str, str]]) → str   # (fact_text, fact_type) pairs
+```
+
+Pass 1 and Pass 2 each see only one chunk at a time, so they miss relationships that span the whole
+session. After `dedup_facts()` merges both passes, `_run_pass3()` ([fact_extraction.py](../../cogmem_api/engine/retain/fact_extraction.py))
+sends the **entire merged fact list** to the LLM and asks it to identify connections — mutating the
+facts in place by appending `causal_relations`, `transition_relations`, and `action_effect_relations`.
+It is default-on (`retain_pass3_enabled`) and only runs when the session has 2–30 facts (bounded to
+keep the single extra call cheap).
+
+## Strict Typing Addendum (`COGMEM_API_RETAIN_STRICT_TYPING`)
+
+When `COGMEM_API_RETAIN_STRICT_TYPING=true` **and** the retain payload carries an `enabled_fact_types`
+allowlist, the extraction prompt gains a strict-typing addendum that tells the model to only emit the
+permitted types. This is used by the cognitive-node necessity benchmark to build paired `_full` /
+`_ablated` banks (see [Benchmark & Ablation](../ARCHITECTURE/benchmark-ablation.md)).
 
 ## `shared.py` — Temporal Hallucination Sanitization
 

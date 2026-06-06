@@ -18,32 +18,38 @@ uv run cogmem-api
 
 ## Your First Retain + Recall
 
-```bash
-# Create a memory bank
-curl -X PUT http://localhost:8888/v1/test_user/banks/test_bank
+The API agent segment is fixed to `default`, and a bank is **auto-created** on first retain — there
+is no separate "create bank" call.
 
-# Store a conversation
-curl -X POST http://localhost:8888/v1/test_user/banks/test_bank/memories \
+```bash
+# Store a conversation (bank "test_bank" is created on demand)
+curl -X POST http://localhost:8888/v1/default/banks/test_bank/memories \
   -H "Content-Type: application/json" \
   -d '{
-    "contents": [{
+    "items": [{
       "content": "I joined DI as an ML Engineer in April 2024 and I love working with Python. I always check email before standup meetings.",
-      "event_date": "2024-04-15T09:00:00Z"
+      "timestamp": "2024-04-15T09:00:00Z"
     }]
   }'
 
 # Query the memory
-curl -X POST http://localhost:8888/v1/test_user/banks/test_bank/memories/recall \
+curl -X POST http://localhost:8888/v1/default/banks/test_bank/memories/recall \
   -H "Content-Type: application/json" \
   -d '{"query": "What does the user do for work and what are their habits?"}'
 
-# Get memory stats
-curl http://localhost:8888/v1/test_user/banks/test_bank/stats
+# List banks with their unit counts
+curl http://localhost:8888/v1/banks
+
+# Inspect stored facts / edges directly
+curl "http://localhost:8888/v1/default/banks/test_bank/facts"
+curl "http://localhost:8888/v1/default/banks/test_bank/relationships"
 ```
 
 ## What Just Happened?
 
-Behind the scenes, the retain pipeline:
+Behind the scenes, the retain pipeline classified the text into CogMem's **6 fact types**
+(`world`, `experience`, `opinion`, `habit`, `intention`, `action_effect`). This particular input
+yields 3 facts:
 
 1. **Extracted 3 facts** from the input text:
    - `experience`: "I joined DI as ML Engineer in April 2024" (occurred_start=2024-04-15)

@@ -17,6 +17,8 @@ nav:
       - Retain Pipeline: ARCHITECTURE/retain-pipeline.md
       - Search Pipeline: ARCHITECTURE/search-pipeline.md
       - Reflect Pipeline: ARCHITECTURE/reflect-pipeline.md
+      - Benchmark & Ablation: ARCHITECTURE/benchmark-ablation.md
+      - Evaluation & Diagnostics: ARCHITECTURE/evaluation.md
   - Configuration:
       - Environment Variables: CONFIG/env-vars.md
       - Extraction Prompts: CONFIG/prompts.md

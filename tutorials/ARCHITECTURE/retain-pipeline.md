@@ -20,17 +20,28 @@ retain_batch(pool, embeddings_model, llm_config, entity_resolver, format_date_fn
   │
   └─→ _db_write_work() [transaction block]
         ├─→ fact_storage.ensure_bank_exists()
-        ├─→ chunk_storage.store_chunks_batch()
+        ├─→ chunk_storage.store_chunks_batch()        (if document_id present)
         ├─→ fact_storage.insert_facts_batch()
         ├─→ entity_processing.process_entities_batch()
-        ├─→ entity_processing.insert_entity_links_batch()
-        ├─→ link_creation.create_temporal_links_batch()
-        ├─→ link_creation.create_semantic_links_batch()
-        ├─→ link_creation.create_habit_sr_links_batch()
-        ├─→ link_creation.create_action_effect_links_batch()
-        ├─→ link_creation.create_transition_links_batch()
-        └─→ link_creation.create_causal_links_batch()
+        │
+        ├─ Phase A — in-session links
+        │   ├─→ link_creation.create_temporal_links_batch()
+        │   ├─→ link_creation.create_semantic_links_batch()
+        │   ├─→ entity_processing.insert_entity_links_batch()
+        │   ├─→ link_creation.create_habit_sr_links_batch()
+        │   ├─→ link_creation.create_action_effect_links_batch()
+        │   ├─→ link_creation.create_transition_links_batch()
+        │   └─→ link_creation.create_causal_links_batch()
+        │
+        └─ Phase B — cross-session / cross-bank links
+            ├─→ link_creation.create_cross_bank_semantic_links_batch()
+            ├─→ entity_processing.build_cross_bank_entity_links() + insert_entity_links_batch()
+            └─→ link_creation.create_cross_bank_structural_links_batch()
 ```
+
+The whole `_db_write_work()` body runs inside one transaction wrapped by `retry_with_backoff()`. Two optional retain controls are applied *before* the write phase:
+- `enabled_fact_types` — an allowlist that drops extracted facts whose type isn't permitted (S33 ablation).
+- `agentic_transcript` — flag that switches Pass 1 to a prompt that parses agent `[tool]/[output]` tags (S34).
 
 ## Step 1 — Fact Extraction (`fact_extraction.py`)
 
@@ -49,7 +60,12 @@ When `content.messages` is present and `retain_two_pass_enabled=True`:
 - `_normalize_llm_facts()` with `mode="concise"` and `extract_causal_links=False`
 - Final result: `dedup_facts(facts_p1, facts_p2)` — Pass 2 preference for personal types
 
-**Why two passes?** Because assistant turns in mixed conversations dilute persona signals. A user saying "I love Python" gets lost among assistant tokens. Pass 2 isolates user turns and uses a prompt tuned for self-referential statements.
+**Pass 3** (cross-chunk relations):
+- After `dedup_facts(facts_p1, facts_p2)` merges the two passes, `_run_pass3()` sends the merged fact list to the LLM with `build_pass3_prompt()` ([prompts/retain/pass3.py](../../cogmem_api/prompts/retain/pass3.py))
+- It mutates facts in place, appending `causal_relations`, `transition_relations`, and `action_effect_relations` discovered *across* chunks (relations a per-chunk pass can't see)
+- Default on (`retain_pass3_enabled`), bounded to runs where the session has 2–30 facts
+
+**Why multiple passes?** Assistant turns in mixed conversations dilute persona signals — a user saying "I love Python" gets lost among assistant tokens. Pass 2 isolates user turns with a prompt tuned for self-referential statements; Pass 3 then recovers relationships that only emerge once all facts are on the table.
 
 ### Temporal Sanitization (`_sanitize_temporal_fact()`)
 
@@ -94,15 +110,20 @@ Entity overlap is used as a proxy for `s_r_link` creation in `link_creation.py`.
 
 ## Step 3 — Link Creation (`link_creation.py`)
 
-Seven edge types created in sequence after fact storage:
+Seven in-session (Phase A) edge types are created after fact storage:
 
-1. **Temporal links** — ordered by `occurred_start` within each bank. Connects consecutive experience/intention nodes.
-2. **Semantic links** — cosine similarity ≥ 0.7 threshold on embedding space. Bidirectional.
-3. **Entity links** — already created by `entity_processing.insert_entity_links_batch()`.
-4. **Causal links** — `causal_relations` extracted from fact payload. Directed: `opinion → world`.
-5. **S-R links** — created by `create_habit_sr_links_batch()`. A habit fact links to the experience it triggered.
+1. **Temporal links** — ordered by `occurred_start` within each bank. Connects consecutive experience/intention nodes (weight decays with the time gap).
+2. **Semantic links** — in-batch cosine similarity ≥ **0.6** threshold on embedding space. Bidirectional.
+3. **Entity links** — created by `entity_processing.insert_entity_links_batch()` from resolved entity overlap.
+4. **Causal links** — `causal_relations` extracted from fact payload. Directed.
+5. **S-R links** — `create_habit_sr_links_batch()`. A habit fact links to the experience it triggered (weight scales with entity overlap).
 6. **A-O causal links** — from `action_effect_relations`. Precondition→Action→Outcome triple.
-7. **Transition links** — typed lifecycle edges: `fulfilled_by`, `abandoned`, `triggered`, `enabled_by`, `revised_to`, `contradicted_by`.
+7. **Transition links** — typed lifecycle edges: `fulfilled_by`, `triggered`, `enabled_by`, `revised_to`, `contradicted_by` (rules in `types.py::TRANSITION_EDGE_RULES`).
+
+**Phase B — cross-bank links** then bridge the new units to facts in *other* banks:
+- `create_cross_bank_semantic_links_batch()` — cosine ≥ `COGMEM_API_RETAIN_CROSS_BANK_SEMANTIC_THRESHOLD` (default 0.75), top-K = 4
+- `build_cross_bank_entity_links()` — shared entities across banks
+- `create_cross_bank_structural_links_batch()` — structural bridges
 
 Key design: all link creation uses **bulk INSERT** with `executemany` for performance. Each link type has its own batch function to allow independent error handling.
 
