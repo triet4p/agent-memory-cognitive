@@ -17,6 +17,8 @@ CORE_TEX_FILES = [
     SRC / "Chapter" / "4_Theoretical_analysis.tex",
     SRC / "Chapter" / "5_Numerical_results.tex",
     SRC / "Chapter" / "6_Conclusions.tex",
+    SRC / "Chapter" / "Appendix_A.tex",
+    SRC / "Chapter" / "Appendix_B.tex",
 ]
 FIGURE_FILES = [
     SRC / "Images" / "cogmem_pipeline_overview.png",
@@ -53,14 +55,10 @@ def test_required_files_exist() -> None:
 
 def test_no_empty_appendix_or_placeholders_in_core_report() -> None:
     main_text = _read(MAIN)
-    for token in [
-        "\\appendix",
-        "Appendix_A",
-        "Appendix_B",
-        "appendixpage",
-        "addappheadtotoc",
-    ]:
-        assert token not in main_text, f"appendix token still present: {token}"
+    for token in ["\\appendix", "Appendix_A", "Appendix_B"]:
+        assert token in main_text, f"appendix token missing: {token}"
+    assert "SHORT NOTICES ON REFERENCE" not in main_text
+    assert "Chapter/7_Reference" not in main_text
 
     core_text = "\n".join(_read(path) for path in CORE_TEX_FILES)
     for token in [
@@ -72,6 +70,7 @@ def test_no_empty_appendix_or_placeholders_in_core_report() -> None:
         "chưa có sẵn",
     ]:
         assert token not in core_text, f"unfinished marker still present: {token}"
+    assert r"\fbox{\parbox" not in core_text, "text-box figure placeholder remains"
 
 
 def test_final_results_are_reported() -> None:
@@ -109,8 +108,8 @@ def test_diagrams_and_generated_figures_are_present() -> None:
     methodology = _read(SRC / "Chapter" / "3_Methodology.tex")
     theory = _read(SRC / "Chapter" / "4_Theoretical_analysis.tex")
 
-    assert methodology.count(r"\fbox{\parbox") >= 5, "methodology text diagrams were not materialized"
-    assert theory.count(r"\fbox{\parbox") >= 6, "theoretical diagrams were not materialized"
+    assert methodology.count(r"\begin{tikzpicture}") >= 7, "methodology diagrams were not materialized"
+    assert theory.count(r"\begin{tikzpicture}") >= 9, "theoretical diagrams were not materialized"
     assert "Images/cogmem_pipeline_overview.png" in methodology, "pipeline image is not referenced"
     assert "Images/cogmem_memory_graph.png" in methodology, "memory graph image is not referenced"
     chapter_4 = _read(SRC / "Chapter" / "4_Theoretical_analysis.tex")
@@ -125,6 +124,10 @@ def test_diagrams_and_generated_figures_are_present() -> None:
     assert "Graph-only LongMemEval v16: SUM reducer so với MAX control" in _read(
         SRC / "Chapter" / "5_Numerical_results.tex"
     ), "SUM vs MAX graph-only results table is missing"
+
+    lof = _read(SRC / "main.lof")
+    for figure_number in ["3.3", "3.4", "3.5", "3.6", "3.7", "4.1", "4.3", "4.4", "4.6", "4.7", "4.8", "4.9"]:
+        assert f"{{{figure_number}}}" in lof, f"missing figure number in list of figures: {figure_number}"
 
 
 if __name__ == "__main__":

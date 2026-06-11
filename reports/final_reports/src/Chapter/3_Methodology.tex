@@ -158,10 +158,28 @@ Trong thực tế hội thoại, hai loại tín hiệu này dễ bị trộn l�
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Habit (S-R):} khi gặp ngữ cảnh quen thuộc, người dùng thường lặp lại một phản ứng hoặc lựa chọn.\\
-\textbf{Action-Effect (A-O):} khi ở điều kiện P, hành động A dẫn tới hệ quả O và có thể dùng để trả lời câu hỏi causal.
-}}
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxgreen, minimum width=3.0cm] (stim) at (0,1.25) {Stimulus\\context};
+\node[reportboxgreen, minimum width=3.0cm] (routine) at (4.3,1.25) {Repeated\\response};
+\node[reportboxgold, minimum width=3.0cm] (habit) at (8.6,1.25) {Habit node\\S-R link};
+\draw[reportarrow] (stim) -- (routine);
+\draw[reportarrow] (routine) -- (habit);
+
+\node[reportboxred, minimum width=3.0cm] (pre) at (0,-1.25) {Precondition\\P};
+\node[reportboxred, minimum width=3.0cm] (act) at (4.3,-1.25) {Chosen action\\A};
+\node[reportboxred, minimum width=3.0cm] (out) at (8.6,-1.25) {Observed\\outcome O};
+\node[reportboxcyan, minimum width=3.2cm] (ae) at (13.0,-1.25) {Action-effect\\P--A--O};
+\draw[reportarrow] (pre) -- (act);
+\draw[reportarrow] (act) -- (out);
+\draw[reportarrow] (out) -- (ae);
+
+\node[font=\bfseries] at (-1.8,1.25) {Habit};
+\node[font=\bfseries] at (-1.8,-1.25) {Action-effect};
+\node[font=\scriptsize, align=center] at (4.3,0.35) {generalizes repeated behavior};
+\node[font=\scriptsize, align=center] at (6.5,-2.05) {stores intentional causal intervention};
+\end{tikzpicture}%
+}
 \caption{Phân biệt Habit và Action-Effect}
 \label{fig:ch3_sr_vs_ao}
 \end{figure}
@@ -193,12 +211,19 @@ Riêng \textit{transition} là một edge type duy nhất nhưng mang \textit{tr
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.9\textwidth}{
-\centering
-entity \quad temporal \quad semantic \quad causal \quad s\_r\_link \quad a\_o\_causal \quad transition\\
-\vspace{0.4em}
-\small Các edge này cho phép recall lan truyền theo thực thể, thời gian, ngữ nghĩa, quan hệ nhân quả và chuyển pha trạng thái.
-}}
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxgold, minimum width=3.1cm, minimum height=1.0cm] (center) at (0,0) {Memory\\graph};
+\node[reportbox, minimum width=3.0cm] (entity) at (-4.8,1.9) {\textbf{entity}\\[-0.1em]\scriptsize shared people, places, tools};
+\node[reportbox, minimum width=3.0cm] (temporal) at (0,2.35) {\textbf{temporal}\\[-0.1em]\scriptsize before/after/session order};
+\node[reportbox, minimum width=3.0cm] (semantic) at (4.8,1.9) {\textbf{semantic}\\[-0.1em]\scriptsize meaning similarity};
+\node[reportbox, minimum width=3.0cm] (causal) at (-5.2,-0.25) {\textbf{causal}\\[-0.1em]\scriptsize why and because};
+\node[reportbox, minimum width=3.0cm] (sr) at (5.2,-0.25) {\textbf{s\_r\_link}\\[-0.1em]\scriptsize habit evidence};
+\node[reportbox, minimum width=3.0cm] (ao) at (-3.0,-2.25) {\textbf{a\_o\_causal}\\[-0.1em]\scriptsize action-outcome support};
+\node[reportbox, minimum width=3.0cm] (transition) at (3.0,-2.25) {\textbf{transition}\\[-0.1em]\scriptsize state lifecycle};
+\foreach \n in {entity,temporal,semantic,causal,sr,ao,transition}{\draw[reportarrow] (center) -- (\n);}
+\end{tikzpicture}%
+}
 \caption{Bảy loại liên kết trong CogMem}
 \label{fig:ch3_edge_types}
 \end{figure}
@@ -252,10 +277,25 @@ Thiết kế này cho phép CogMem vừa truy hồi nhanh trên representation �
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.88\textwidth}{
-\textbf{Layer 1 -- compressed fact:} ngắn, dễ embedding, dùng cho retrieval.\\
-\textbf{Layer 2 -- raw snippet:} nguyên văn, giàu chi tiết, dùng cho grounded generation khi cần tên riêng, số liệu hoặc ngữ cảnh chính xác.
-}}
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=4.0cm, minimum height=1.25cm] (chat) at (0,0)
+{Conversation chunk\\\scriptsize original user wording};
+\node[reportboxgreen, minimum width=4.6cm, minimum height=1.45cm] (fact) at (5.2,1.15)
+{Layer 1: compressed fact\\\scriptsize text, type, entities, date, embedding};
+\node[reportboxgold, minimum width=4.6cm, minimum height=1.45cm] (snippet) at (5.2,-1.15)
+{Layer 2: raw snippet\\\scriptsize verbatim detail, source, document id};
+\node[reportbox, minimum width=3.9cm, minimum height=1.15cm] (recall) at (10.6,1.15)
+{Retrieval\\\scriptsize semantic/BM25/graph/time};
+\node[reportboxred, minimum width=3.9cm, minimum height=1.15cm] (answer) at (10.6,-1.15)
+{Grounded answer\\\scriptsize exact numbers and names};
+\draw[reportarrow] (chat) -- (fact);
+\draw[reportarrow] (chat) -- (snippet);
+\draw[reportarrow] (fact) -- (recall);
+\draw[reportarrow] (snippet) -- (answer);
+\draw[reportarrow] (recall) -- (answer);
+\end{tikzpicture}%
+}
 \caption{2-Layer Node Schema}
 \label{fig:ch3_two_layer_schema}
 \end{figure}
@@ -337,11 +377,22 @@ Ba guard này phản ánh lập luận nhận thức rằng hệ thống truy h�
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Refractory:} node vừa fire không lặp lại ngay.\\
-\textbf{Firing quota:} giới hạn số lần một node được kích hoạt trong một lượt recall.\\
-\textbf{Saturation:} chặn activation score trên ngưỡng tối đa để tránh bùng nổ.
-}}
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.2cm] (signal) at (0,0) {Incoming\\activation};
+\node[reportboxgreen, minimum width=3.2cm] (refr) at (4.0,1.55) {Refractory\\\scriptsize block immediate refire};
+\node[reportboxgold, minimum width=3.2cm] (quota) at (4.0,0) {Firing quota\\\scriptsize finite activations};
+\node[reportboxred, minimum width=3.2cm] (sat) at (4.0,-1.55) {Saturation\\\scriptsize cap score};
+\node[reportbox, minimum width=3.5cm] (rank) at (8.4,0) {Stable ranked\\evidence list};
+\draw[reportarrow] (signal) -- (refr);
+\draw[reportarrow] (signal) -- (quota);
+\draw[reportarrow] (signal) -- (sat);
+\draw[reportarrow] (refr) -- (rank);
+\draw[reportarrow] (quota) -- (rank);
+\draw[reportarrow] (sat) -- (rank);
+\draw[reportarrow, dashed] (quota.south) .. controls (2.1,-2.6) and (2.1,2.6) .. node[left, font=\scriptsize]{cycle guard} (refr.north);
+\end{tikzpicture}%
+}
 \caption{Ba cơ chế bảo vệ chu trình}
 \label{fig:ch3_cycle_guards}
 \end{figure}
@@ -405,13 +456,22 @@ Ngoài profile trọng số, implementation hiện tại còn có hai hậu xử
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.9\textwidth}{
-\centering
-Query $\rightarrow$ Analyzer $\rightarrow$
-\{semantic, temporal, causal, prospective, preference, multi-hop\}\\
-\vspace{0.4em}
-\small Query type quyết định trọng số RRF giữa semantic, BM25, graph và temporal channels.
-}}
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.2cm] (query) at (0,0) {User query};
+\node[reportboxgold, minimum width=3.4cm] (analyzer) at (4.0,0) {Query analyzer\\\scriptsize lexical + temporal cues};
+\node[reportbox, minimum width=2.25cm] (sem) at (8.2,1.9) {semantic};
+\node[reportbox, minimum width=2.25cm] (temp) at (10.9,1.9) {temporal};
+\node[reportbox, minimum width=2.25cm] (causal) at (8.2,0.65) {causal};
+\node[reportbox, minimum width=2.25cm] (pros) at (10.9,0.65) {prospective};
+\node[reportbox, minimum width=2.25cm] (pref) at (8.2,-0.6) {preference};
+\node[reportbox, minimum width=2.25cm] (multi) at (10.9,-0.6) {multi-hop};
+\node[reportboxgreen, minimum width=4.0cm] (rrf) at (9.55,-2.25) {Weighted RRF\\\scriptsize semantic + BM25 + graph + time};
+\draw[reportarrow] (query) -- (analyzer);
+\foreach \n in {sem,temp,causal,pros,pref,multi}{\draw[reportarrow] (analyzer) -- (\n);}
+\foreach \n in {sem,temp,causal,pros,pref,multi}{\draw[reportarrow] (\n) -- (rrf);}
+\end{tikzpicture}%
+}
 \caption{Adaptive Query Routing}
 \label{fig:ch3_adaptive_routing}
 \end{figure}

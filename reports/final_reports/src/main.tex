@@ -24,9 +24,28 @@
 \usepackage{subfiles} % Chèn các file nhỏ, giúp chia các chapter ra nhiều file hơn
 \usepackage{titlesec} % Giúp chỉnh sửa các tiêu đề, đề mục như chương, phần,..
 \usepackage{titletoc}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,shapes.geometric}
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable,listings,skins}
 \tikzset{
+    reportbox/.style={
+        draw=black!45,
+        rounded corners=3pt,
+        fill=blue!4,
+        inner xsep=7pt,
+        inner ysep=6pt,
+        minimum width=3.0cm,
+        minimum height=0.82cm,
+        font=\small,
+        align=center,
+        text=black
+    },
+    reportboxgreen/.style={reportbox, fill=green!8, draw=green!45!black},
+    reportboxgold/.style={reportbox, fill=yellow!15, draw=orange!65!black},
+    reportboxred/.style={reportbox, fill=red!7, draw=red!55!black},
+    reportboxcyan/.style={reportbox, fill=cyan!8, draw=cyan!50!black},
+    reportarrow/.style={-{Latex[length=2.4mm]}, thick, draw=black!58},
     reportlabel/.style={
         fill=white,
         fill opacity=0.94,
@@ -323,16 +342,19 @@
 \chapter{CONCLUSIONS}
 \subfile{Chapter/6_Conclusions}
 
-\newpage
-%\pagestyle{fancy} % Áp dụng header và footer
-\chapter*{SHORT NOTICES ON REFERENCE} %Kết luận và hướng phát triển}
-\label{chapter:reference}
-\subfile{Chapter/7_Reference}
-
 % ===================================================
 \newpage
 \nocite{*}
 \printbibliography
 \phantomsection\addcontentsline{toc}{chapter}{REFERENCE}
+
+\newpage
+\appendix
+\renewcommand{\chaptername}{APPENDIX}
+\titleformat{\chapter}[hang]{\centering\bfseries}{APPENDIX \thechapter.\ }{0pt}{}[]
+\subfile{Chapter/Appendix_A}
+
+\newpage
+\subfile{Chapter/Appendix_B}
 
 \end{document}

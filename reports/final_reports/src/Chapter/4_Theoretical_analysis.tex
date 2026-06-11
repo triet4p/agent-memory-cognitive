@@ -15,9 +15,20 @@ Về mặt hệ thống, việc tách world ra khỏi experience giúp giảm nh
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Semantic memory} lưu tri thức ổn định và ít phụ thuộc episode. Trong CogMem, \textbf{World Network} giữ các fact dạng nghề nghiệp, kỹ năng, quan hệ khách quan và tri thức miền.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.7cm] (semantic) at (0,0) {Semantic memory\\\scriptsize stable knowledge};
+\node[reportboxgreen, minimum width=3.7cm] (world) at (4.7,0) {World network\\\scriptsize objective facts};
+\node[reportbox, minimum width=3.3cm] (facts) at (9.2,1.15) {job, skill, role};
+\node[reportbox, minimum width=3.3cm] (domain) at (9.2,0) {domain knowledge};
+\node[reportbox, minimum width=3.3cm] (relations) at (9.2,-1.15) {stable relations};
+\draw[reportarrow] (semantic) -- (world);
+\draw[reportarrow] (world) -- (facts);
+\draw[reportarrow] (world) -- (domain);
+\draw[reportarrow] (world) -- (relations);
+\node[font=\scriptsize, align=center] at (4.7,-1.55) {not tied to one episode};
+\end{tikzpicture}%
+}
 \caption{Semantic Memory và World Network}
 \label{fig:ch4_semantic_memory}
 \end{figure}
@@ -59,9 +70,21 @@ Kết quả thực nghiệm hiện tại cũng cho thấy cần diễn giải ha
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Experience} biểu diễn một lần xảy ra; \textbf{Habit} biểu diễn pattern lặp lại. Liên kết S-R giúp nối habit với các experience làm bằng chứng cho pattern đó.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=2.7cm] (e1) at (0,1.2) {Experience 1\\\scriptsize Monday};
+\node[reportboxcyan, minimum width=2.7cm] (e2) at (0,0) {Experience 2\\\scriptsize Wednesday};
+\node[reportboxcyan, minimum width=2.7cm] (e3) at (0,-1.2) {Experience 3\\\scriptsize Friday};
+\node[reportboxgreen, minimum width=3.7cm, minimum height=1.25cm] (pattern) at (4.2,0) {Repeated pattern\\\scriptsize trigger + response};
+\node[reportboxgold, minimum width=3.4cm] (habit) at (8.7,0) {Habit node\\\scriptsize generalized routine};
+\node[reportboxred, minimum width=3.6cm] (recall) at (13.0,0) {Personalized recall\\\scriptsize what user usually does};
+\draw[reportarrow] (e1) -- (pattern);
+\draw[reportarrow] (e2) -- (pattern);
+\draw[reportarrow] (e3) -- (pattern);
+\draw[reportarrow] (pattern) -- node[above, font=\scriptsize]{S-R link} (habit);
+\draw[reportarrow] (habit) -- (recall);
+\end{tikzpicture}%
+}
 \caption{Habit Memory và Habit Network}
 \label{fig:ch4_habit_memory}
 \end{figure}
@@ -103,12 +126,20 @@ Các ablation nhắm đích thực hiện sau này trong dự án cho thấy int
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\centering
-planning intention $\rightarrow$ fulfilled\_by $\rightarrow$ experience\\
-experience $\rightarrow$ triggered $\rightarrow$ new intention\\
-\small Abandoned là trạng thái của intention node, không phải edge type riêng.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxgold, minimum width=3.2cm] (plan) at (0,0) {Intention\\\scriptsize status=planning};
+\node[reportboxgreen, minimum width=3.2cm] (done) at (4.4,1.25) {Experience\\\scriptsize plan fulfilled};
+\node[reportboxred, minimum width=3.2cm] (abandoned) at (4.4,-1.25) {Same node\\\scriptsize status=abandoned};
+\node[reportboxcyan, minimum width=3.2cm] (trigger) at (-4.4,-1.25) {Experience\\\scriptsize triggers new plan};
+\node[reportboxgold, minimum width=3.2cm] (newplan) at (0,-2.5) {New intention\\\scriptsize status=planning};
+\draw[reportarrow] (plan) -- node[above, font=\scriptsize]{fulfilled\_by} (done);
+\draw[reportarrow] (plan) -- node[below, font=\scriptsize]{state update} (abandoned);
+\draw[reportarrow] (trigger) -- node[above, font=\scriptsize]{triggered} (newplan);
+\draw[reportarrow] (newplan) -- node[right, font=\scriptsize]{enabled\_by} (plan);
+\node[font=\scriptsize, align=center] at (4.4,-2.25) {abandoned is node state,\\not a separate edge type};
+\end{tikzpicture}%
+}
 \caption{Intention Lifecycle}
 \label{fig:ch4_intention_lifecycle}
 \end{figure}
@@ -142,9 +173,22 @@ Các thí nghiệm nhắm đích trên workload agentic về sau cho thấy giá
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Theory of Event Coding} gắn hành động với hệ quả cảm nhận được. CogMem chuyển ý tưởng này thành node \textit{action\_effect}: precondition -- action -- outcome.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.2cm] (pre) at (0,0) {Precondition\\\scriptsize HTTP 429, timeout, error};
+\node[reportboxgold, minimum width=3.2cm] (act) at (4.2,0) {Action\\\scriptsize retry, patch, command};
+\node[reportboxgreen, minimum width=3.2cm] (out) at (8.4,0) {Outcome\\\scriptsize success, faster, fixed};
+\node[reportboxred, minimum width=3.9cm] (ae) at (4.2,-1.85) {Action-effect node\\\scriptsize precondition -- action -- outcome};
+\node[reportbox, minimum width=3.6cm] (why) at (12.4,0) {Causal answer\\\scriptsize what worked and why};
+\draw[reportarrow] (pre) -- (act);
+\draw[reportarrow] (act) -- (out);
+\draw[reportarrow] (pre) -- (ae);
+\draw[reportarrow] (act) -- (ae);
+\draw[reportarrow] (out) -- (ae);
+\draw[reportarrow] (out) -- (why);
+\draw[reportarrow] (ae) -- (why);
+\end{tikzpicture}%
+}
 \caption{Theory of Event Coding và Action-Effect Network}
 \label{fig:ch4_tec_network}
 \end{figure}
@@ -161,9 +205,25 @@ CogMem phản ánh ý tưởng này bằng \textbf{fact text} và \textbf{raw\_s
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Gist trace} tương ứng với fact text đã nén để retrieval nhanh. \textbf{Verbatim trace} tương ứng với raw\_snippet để giữ lại chi tiết nguyên văn cho synthesis.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=4.2cm, minimum height=1.15cm] (source) at (0,0)
+{Original conversation\\\scriptsize exact wording, numbers, emotion};
+\node[reportboxgreen, minimum width=4.1cm] (gist) at (5.2,1.15)
+{Gist trace\\\scriptsize compressed fact text};
+\node[reportboxgold, minimum width=4.1cm] (verb) at (5.2,-1.15)
+{Verbatim trace\\\scriptsize raw\_snippet};
+\node[reportbox, minimum width=3.9cm] (retrieve) at (10.2,1.15)
+{Fast retrieval\\\scriptsize embedding + lexical match};
+\node[reportboxred, minimum width=3.9cm] (ground) at (10.2,-1.15)
+{Grounded synthesis\\\scriptsize exact detail preserved};
+\draw[reportarrow] (source) -- (gist);
+\draw[reportarrow] (source) -- (verb);
+\draw[reportarrow] (gist) -- (retrieve);
+\draw[reportarrow] (verb) -- (ground);
+\draw[reportarrow] (retrieve) -- (ground);
+\end{tikzpicture}%
+}
 \caption{Fuzzy Trace Theory và Raw Snippet}
 \label{fig:ch4_fuzzy_trace}
 \end{figure}
@@ -178,9 +238,19 @@ Từ góc nhìn này, SUM không chỉ là một mẹo kỹ thuật để tăng 
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Episodic buffer} tích hợp nhiều nguồn tín hiệu thành một biểu diễn làm việc. Trong CogMem, SUM spreading activation đóng vai trò hợp lưu các evidence path rải rác.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportbox, minimum width=3.0cm] (sem) at (0,1.6) {Semantic cue};
+\node[reportbox, minimum width=3.0cm] (time) at (0,0.55) {Temporal cue};
+\node[reportbox, minimum width=3.0cm] (graph) at (0,-0.55) {Graph path};
+\node[reportbox, minimum width=3.0cm] (snippet) at (0,-1.6) {Raw snippet};
+\node[reportboxgold, minimum width=4.0cm, minimum height=1.25cm] (sum) at (5.0,0) {SUM activation\\\scriptsize convergent evidence};
+\node[reportboxgreen, minimum width=4.0cm, minimum height=1.25cm] (buffer) at (10.2,0) {Episodic buffer\\\scriptsize working answer context};
+\foreach \n in {sem,time,graph,snippet}{\draw[reportarrow] (\n) -- (sum);}
+\draw[reportarrow] (sum) -- (buffer);
+\node[font=\scriptsize, align=center] at (5.0,-1.65) {many weak paths can reinforce one answer node};
+\end{tikzpicture}%
+}
 \caption{Episodic Buffer của Baddeley}
 \label{fig:ch4_episodic_buffer}
 \end{figure}
@@ -221,9 +291,20 @@ Về mặt nhận thức, đây là phép mô phỏng ý tưởng rằng bộ n�
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.86\textwidth}{
-\textbf{Attentional selection} ở cấp hệ thống: temporal queries ưu tiên temporal channel, causal queries ưu tiên graph/action-effect, preference queries ưu tiên habit/opinion, multi-hop queries ưu tiên graph traversal.
-}}
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.2cm] (query) at (0,0) {Question};
+\node[reportboxgold, minimum width=3.7cm] (select) at (4.4,0) {Attentional selector\\\scriptsize query type};
+\node[reportbox, minimum width=3.1cm] (temporal) at (9.0,1.6) {Temporal\\\scriptsize when/how long};
+\node[reportbox, minimum width=3.1cm] (causal) at (9.0,0.55) {Graph + causal\\\scriptsize why/what caused};
+\node[reportbox, minimum width=3.1cm] (preference) at (9.0,-0.55) {Habit + opinion\\\scriptsize preference};
+\node[reportbox, minimum width=3.1cm] (multi) at (9.0,-1.6) {Graph traversal\\\scriptsize multi-hop};
+\node[reportboxgreen, minimum width=3.8cm] (rank) at (13.5,0) {Ranked evidence\\\scriptsize weighted channels};
+\draw[reportarrow] (query) -- (select);
+\foreach \n in {temporal,causal,preference,multi}{\draw[reportarrow] (select) -- (\n);}
+\foreach \n in {temporal,causal,preference,multi}{\draw[reportarrow] (\n) -- (rank);}
+\end{tikzpicture}%
+}
 \caption{Attentional Selection và Adaptive Routing}
 \label{fig:ch4_attentional_selection}
 \end{figure}
