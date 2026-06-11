@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  5 JUN 2026 22:31
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  11 JUN 2026 22:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -531,9 +531,6 @@ Package: titlesec 2025/01/04 v2.17 Sectioning titles
 Package: titletoc 2025/01/04 v2.17 TOC entries
 \ttl@leftsep=\dimen196
 )
-(F:\MikTeX\tex/latex/tcolorbox\tcolorbox.sty
-Package: tcolorbox 2025/11/28 version 6.9.0 text color boxes
-
 (F:\MikTeX\tex/latex/pgf/frontendlayer\tikz.sty
 (F:\MikTeX\tex/latex/pgf/basiclayer\pgf.sty
 (F:\MikTeX\tex/latex/pgf/utilities\pgfrcs.sty
@@ -775,7 +772,27 @@ File: pgfmodulematrix.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarytopaths.code
 .tex
 File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-))) (F:\MikTeX\tex/latex/tools\verbatim.sty
+))) (F:\MikTeX\tex/generic/pgf/libraries\pgflibraryarrows.meta.code.tex
+File: pgflibraryarrows.meta.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+\pgfarrowinset=\dimen303
+\pgfarrowlength=\dimen304
+\pgfarrowwidth=\dimen305
+\pgfarrowlinewidth=\dimen306
+)
+(F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarycalc.code.te
+x
+File: tikzlibrarycalc.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+)
+(F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibraryshapes.geome
+tric.code.tex
+File: tikzlibraryshapes.geometric.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+
+(F:\MikTeX\tex/generic/pgf/libraries/shapes\pgflibraryshapes.geometric.code.tex
+File: pgflibraryshapes.geometric.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+)) (F:\MikTeX\tex/latex/tcolorbox\tcolorbox.sty
+Package: tcolorbox 2025/11/28 version 6.9.0 text color boxes
+
+(F:\MikTeX\tex/latex/tools\verbatim.sty
 Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks52
 \verbatim@line=\toks53
@@ -799,7 +816,7 @@ Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
 \c@tcblayer=\count331
 \c@tcolorbox@number=\count332
 \l__tcobox_tmpa_box=\box76
-\l__tcobox_tmpa_dim=\dimen303
+\l__tcobox_tmpa_dim=\dimen307
 \tcb@temp=\box77
 \tcb@temp=\box78
 \tcb@temp=\box79
@@ -828,14 +845,14 @@ Library (tcolorbox): 'tcblistings.code.tex' version '6.9.0'
 \lst@gtempboxa=\box84
 \lst@token=\toks54
 \lst@length=\count334
-\lst@currlwidth=\dimen304
+\lst@currlwidth=\dimen308
 \lst@column=\count335
 \lst@pos=\count336
-\lst@lostspace=\dimen305
-\lst@width=\dimen306
+\lst@lostspace=\dimen309
+\lst@width=\dimen310
 \lst@newlines=\count337
 \lst@lineno=\count338
-\lst@maxwidth=\dimen307
+\lst@maxwidth=\dimen311
 
 (F:\MikTeX\tex/latex/listings\lstpatch.sty
 File: lstpatch.sty 2025/11/14 1.11b (Carsten Heinz)
@@ -870,8 +887,8 @@ Package: tikzfill.image 2026/04/23 v1.2.0 Image filling library for TikZ
 
 (F:\MikTeX\tex/latex/tikzfill\tikzlibraryfill.image.code.tex
 File: tikzlibraryfill.image.code.tex 2026/04/23 v1.2.0 Image filling library
-\l__tikzfill_tmpa_dim=\dimen308
-\l__tikzfill_tmpb_dim=\dimen309
+\l__tikzfill_tmpa_dim=\dimen312
+\l__tikzfill_tmpb_dim=\dimen313
 \l__tikzfill_img_box=\box86
 ))
 (F:\MikTeX\tex/latex/tcolorbox\tcbskinsjigsaw.code.tex
@@ -921,12 +938,12 @@ Package: relsize 2013/03/29 ver 4.1
 \skiplength=\skip68
 \algomargin=\skip69
 \skipalgocfslide=\skip70
-\algowidth=\dimen310
-\inoutsize=\dimen311
-\inoutindent=\dimen312
-\interspacetitleruled=\dimen313
-\interspacealgoruled=\dimen314
-\interspacetitleboxruled=\dimen315
+\algowidth=\dimen314
+\inoutsize=\dimen315
+\inoutindent=\dimen316
+\interspacetitleruled=\dimen317
+\interspacealgoruled=\dimen318
+\interspacetitleboxruled=\dimen319
 \algocf@ruledwidth=\skip71
 \algocf@inoutbox=\box89
 \algocf@inputbox=\box90
@@ -956,7 +973,7 @@ Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 \multirow@colwidth=\skip81
 \multirow@cntb=\count347
 \multirow@dima=\skip82
-\bigstrutjot=\dimen316
+\bigstrutjot=\dimen320
 )
 (F:\MikTeX\tex/latex/fancyhdr\fancyhdr.sty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
@@ -982,22 +999,22 @@ Package: caption 2023/08/05 v3.6o Customizing captions (AR)
 
 (F:\MikTeX\tex/latex/caption\caption3.sty
 Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
-\caption@tempdima=\dimen317
-\captionmargin=\dimen318
-\caption@leftmargin=\dimen319
-\caption@rightmargin=\dimen320
-\caption@width=\dimen321
-\caption@indent=\dimen322
-\caption@parindent=\dimen323
-\caption@hangindent=\dimen324
+\caption@tempdima=\dimen321
+\captionmargin=\dimen322
+\caption@leftmargin=\dimen323
+\caption@rightmargin=\dimen324
+\caption@width=\dimen325
+\caption@indent=\dimen326
+\caption@parindent=\dimen327
+\caption@hangindent=\dimen328
 Package caption Info: Standard document class detected.
 )
 \c@caption@flags=\count348
 \c@continuedfloat=\count349
 Package caption Info: listings package is loaded.
 Package caption Info: scrextend package is loaded.
-\caption@addmargin@hsize=\dimen325
-\caption@addmargin@linewidth=\dimen326
+\caption@addmargin@hsize=\dimen329
+\caption@addmargin@linewidth=\dimen330
 )
 (F:\MikTeX\tex/latex/float\float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
@@ -1058,8 +1075,8 @@ Package: datatool-base 2025/12/04 v3.4.3 (NLCT)
 \l__datatool_tmpd_int=\count357
 \l__datatool_count_int=\count358
 \l__datatool_tmp_datatype_int=\count359
-\l__datatool_tmpa_dim=\dimen327
-\l__datatool_tmpb_dim=\dimen328
+\l__datatool_tmpa_dim=\dimen331
+\l__datatool_tmpb_dim=\dimen332
 
 (F:\MikTeX\tex/latex/datatool\datatool-l3fp.def
 File: datatool-l3fp.def 2025/12/04 v3.4.3 (NLCT)
@@ -1098,8 +1115,8 @@ File: datatool-undetermined.ldf 2025/12/04 v3.4.3
 \gls@level=\count379
 \@gls@tmpb=\toks64
 \gls@tmplen=\skip98
-\l__glossaries_tmpa_dim=\dimen329
-\l__glossaries_tmpb_dim=\dimen330
+\l__glossaries_tmpa_dim=\dimen333
+\l__glossaries_tmpb_dim=\dimen334
 \glskeylisttok=\toks65
 \glslabeltok=\toks66
 \glsshorttok=\toks67
@@ -1122,7 +1139,7 @@ Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
 \LTpre=\skip102
 \LTpost=\skip103
 \LTchunksize=\count380
-\LTcapwidth=\dimen331
+\LTcapwidth=\dimen335
 \LT@head=\box100
 \LT@firsthead=\box101
 \LT@foot=\box102
@@ -1143,33 +1160,33 @@ Package: glossary-super 2026/04/21 v5.1 (NLCT)
 (F:\MikTeX\tex/latex/supertabular\supertabular.sty
 Package: supertabular 2025/06/26 v4.2d the supertabular environment
 \c@tracingst=\count385
-\ST@wd=\dimen332
+\ST@wd=\dimen336
 \ST@rightskip=\skip106
 \ST@leftskip=\skip107
 \ST@parfillskip=\skip108
-\ST@pageleft=\dimen333
-\ST@headht=\dimen334
-\ST@tailht=\dimen335
-\ST@pagesofar=\dimen336
-\ST@pboxht=\dimen337
-\ST@rowht=\dimen338
-\ST@prevht=\dimen339
-\ST@toadd=\dimen340
-\ST@dimen=\dimen341
+\ST@pageleft=\dimen337
+\ST@headht=\dimen338
+\ST@tailht=\dimen339
+\ST@pagesofar=\dimen340
+\ST@pboxht=\dimen341
+\ST@rowht=\dimen342
+\ST@prevht=\dimen343
+\ST@toadd=\dimen344
+\ST@dimen=\dimen345
 \ST@pbox=\box105
 ))
 (F:\MikTeX\tex/latex/glossaries/styles\glossary-tree.sty
 Package: glossary-tree 2026/04/21 v5.1 (NLCT)
 \l__glossaries_tree_max_known_level_int=\count386
-\l__glossaries_tree_offset_dim=\dimen342
-\l__glossaries_tree_namewidth_dim=\dimen343
-\l__glossaries_tree_symbolwidth_dim=\dimen344
-\l__glossaries_tree_prenamesym_width_dim=\dimen345
-\l__glossaries_tree_presubnamesym_width_dim=\dimen346
-\l__glossaries_tree_namewidth_padding_dim=\dimen347
-\l__glossaries_tree_symbolwidth_padding_dim=\dimen348
-\l__glossaries_tree_namesymbolwidth_dim=\dimen349
-\l__glossaries_tree_namesymbolwidth_padding_dim=\dimen350
+\l__glossaries_tree_offset_dim=\dimen346
+\l__glossaries_tree_namewidth_dim=\dimen347
+\l__glossaries_tree_symbolwidth_dim=\dimen348
+\l__glossaries_tree_prenamesym_width_dim=\dimen349
+\l__glossaries_tree_presubnamesym_width_dim=\dimen350
+\l__glossaries_tree_namewidth_padding_dim=\dimen351
+\l__glossaries_tree_symbolwidth_padding_dim=\dimen352
+\l__glossaries_tree_namesymbolwidth_dim=\dimen353
+\l__glossaries_tree_namesymbolwidth_padding_dim=\dimen354
 \l__glossaries_tree_level_int=\count387
 \glstreeindent=\skip109
 ))
@@ -1506,7 +1523,7 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
 )
 )
-\@linkdim=\dimen351
+\@linkdim=\dimen355
 \Hy@linkcounter=\count534
 \Hy@pagecounter=\count535
 
@@ -1534,7 +1551,7 @@ Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4462.
 \c@Hy@tempcnt=\count537
 LaTeX Info: Redefining \url on input line 4801.
-\XeTeXLinkMargin=\dimen352
+\XeTeXLinkMargin=\dimen356
 
 (F:\MikTeX\tex/generic/bitset\bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
@@ -1544,8 +1561,8 @@ Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
 \Fld@menulength=\count538
-\Field@Width=\dimen353
-\Fld@charsize=\dimen354
+\Field@Width=\dimen357
+\Fld@charsize=\dimen358
 Package hyperref Info: Hyper figures OFF on input line 6078.
 Package hyperref Info: Link nesting OFF on input line 6083.
 Package hyperref Info: Hyper index ON on input line 6086.
@@ -1589,8 +1606,8 @@ Package biblatex Warning: 'babel/polyglossia' detected but 'csquotes' missing.
 
 \@quotelevel=\count545
 \@quotereset=\count546
-LaTeX Font Info:    Trying to load font information for T5+ptm on input line 20
-4.
+LaTeX Font Info:    Trying to load font information for T5+ptm on input line 22
+3.
 (F:\MikTeX\tex/latex/vntex\t5ptm.fd
 File: t5utm.fd 2005/08/24 Fontinst v1.929 font definitions for T5/ptm.
 )
@@ -1603,26 +1620,26 @@ LaTeX Warning: Unused global option(s):
 )
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 223.
+LaTeX Font Info:    ... okay on input line 223.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1661,13 +1678,13 @@ LaTeX Font Info:    ... okay on input line 204.
 (F:\MikTeX\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count548
-\scratchdimen=\dimen355
+\scratchdimen=\dimen359
 \scratchbox=\box106
 \nofMPsegments=\count549
 \nofMParguments=\count550
 \everyMPshowfont=\toks70
 \MPscratchCnt=\count551
-\MPscratchDim=\dimen356
+\MPscratchDim=\dimen360
 \MPnumerator=\count552
 \makeMPintoPDFobject=\count553
 \everyMPtoPDFconversion=\toks71
@@ -1704,7 +1721,7 @@ Package biblatex Info: ... file 'nil.lbx' not found.
 
 
 Package biblatex Warning: Language 'nil' not supported.
-(biblatex)                Using dummy definitions on input line 204.
+(biblatex)                Using dummy definitions on input line 223.
 
 Package biblatex Info: Input encoding 'utf8' detected.
 Package biblatex Info: Automatic encoding selection.
@@ -1717,9 +1734,9 @@ Package biblatex Info: Data encoding 'utf8' specified.
 Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'main.bbl' found.
 (main.bbl)
-Package biblatex Info: Reference section=0 on input line 204.
-Package biblatex Info: Reference segment=0 on input line 204.
-Package hyperref Info: Link coloring OFF on input line 204.
+Package biblatex Info: Reference section=0 on input line 223.
+Package biblatex Info: Reference segment=0 on input line 223.
+Package hyperref Info: Link coloring OFF on input line 223.
  (main.out) (main.out)
 \@outlinefile=\write6
 \openout6 = `main.out'.
@@ -1797,13 +1814,13 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.229 \newpage
+l.248 \newpage
                [1] (main.toc
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.60 ...»©c cho Raw Snippet}{24}{subsection.4.1.2}
+l.60 ...»©c cho Raw Snippet}{25}{subsection.4.1.2}
                                                   % [1
 
 ])
@@ -1815,14 +1832,27 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.257 \cleardoublepage
-                       [2] (main.lof)
+l.276 \cleardoublepage
+                       [2]
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
+een already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.276 \cleardoublepage
+                       [3]
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
+een already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.276 \cleardoublepage
+                       [4
+
+
+] (main.lof)
 \tf@lof=\write8
 \openout8 = `main.lof'.
 
  [1
-
-
 
 ] (main.lot)
 \tf@lot=\write9
@@ -1852,7 +1882,7 @@ CHAPTER 2.
 ] [5] [6] [7]) [8]
 CHAPTER 3.
 (Chapter/3_Methodology.tex
-<Images/cogmem_pipeline_overview.png, id=413, 1678.27pt x 944.52875pt>
+<Images/cogmem_pipeline_overview.png, id=449, 1678.27pt x 944.52875pt>
 File: Images/cogmem_pipeline_overview.png Graphic file (type png)
 <use Images/cogmem_pipeline_overview.png>
 Package pdftex.def Info: Images/cogmem_pipeline_overview.png  used on input lin
@@ -1867,7 +1897,7 @@ vîi SUM spreading
 [9
 
  <./Images/cogmem_pipeline_overview.png (PNG copy)>] [10]
-<Images/cogmem_memory_graph.png, id=432, 1678.27pt x 944.52875pt>
+<Images/cogmem_memory_graph.png, id=469, 1678.27pt x 944.52875pt>
 File: Images/cogmem_memory_graph.png Graphic file (type png)
 <use Images/cogmem_memory_graph.png>
 Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 97.
@@ -1904,115 +1934,109 @@ Underfull \hbox (badness 10000) in paragraph at lines 141--142
  []
 
 [12 <./Images/cogmem_memory_graph.png (PNG copy)>] [13]
-LaTeX Font Info:    Trying to load font information for T5+pcr on input line 18
-5.
+LaTeX Font Info:    Trying to load font information for T5+pcr on input line 20
+3.
 
 (F:\MikTeX\tex/latex/vntex\t5pcr.fd
 File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
-) [14] [15]
-Underfull \hbox (badness 3769) in paragraph at lines 304--304
+) [14] [15] [16]
+Underfull \hbox (badness 3769) in paragraph at lines 344--344
 []|\T5/ptm/m/n/13 B¬ng chùng ^^_a
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 306--306
+Underfull \hbox (badness 10000) in paragraph at lines 346--346
 []|\T5/ptm/m/n/13 Multi-hop
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 308--308
+Underfull \hbox (badness 10000) in paragraph at lines 348--348
 []|\T5/ptm/m/n/13 Y¶u c¦u entry
  []
 
 
-Underfull \hbox (badness 7814) in paragraph at lines 308--308
+Underfull \hbox (badness 7814) in paragraph at lines 348--348
 []|\T5/ptm/m/n/13 c¦n tróng node r§t
  []
 
-[16] [17]
-Underfull \hbox (badness 10000) in paragraph at lines 397--397
+[17] [18]
+Underfull \hbox (badness 10000) in paragraph at lines 448--448
 []|\T5/ptm/m/n/13 ÷u ti¶n temporal
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 397--397
+Underfull \hbox (badness 10000) in paragraph at lines 448--448
 \T5/ptm/m/n/13 v  action-effect
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 397--397
+Underfull \hbox (badness 10000) in paragraph at lines 448--448
 []|\T5/ptm/m/n/13 ÷u ti¶n planning
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 397--397
+Underfull \hbox (badness 10000) in paragraph at lines 448--448
 \T5/ptm/m/n/13 intentions v 
  []
 
-[18]) [19]
+[19]) [20]
 CHAPTER 4.
-(Chapter/4_Theoretical_analysis.tex [20
+(Chapter/4_Theoretical_analysis.tex [21
 
 ]
-<Images/habit_diary_workload.png, id=542, 1678.27pt x 944.52875pt>
+<Images/habit_diary_workload.png, id=583, 1678.27pt x 944.52875pt>
 File: Images/habit_diary_workload.png Graphic file (type png)
 <use Images/habit_diary_workload.png>
-Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 44
+Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 55
 .
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
- [21 <./Images/habit_diary_workload.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 87--87
+ [22 <./Images/habit_diary_workload.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 110--110
 []|\T5/ptm/b/n/13 Biºu di¹n tr¶n
  []
 
 
-Underfull \hbox (badness 6592) in paragraph at lines 89--89
+Underfull \hbox (badness 6592) in paragraph at lines 112--112
 []|\T5/ptm/m/n/13 Lªp k¸ ho¤ch
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 91--92
+Underfull \hbox (badness 10000) in paragraph at lines 114--115
 []|\T5/ptm/m/n/13 fulfilled_by: intention
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 93--93
+Underfull \hbox (badness 10000) in paragraph at lines 116--116
 []|\T5/ptm/m/n/13 intention planning
  []
 
 
-Underfull \hbox (badness 4229) in paragraph at lines 95--95
+Underfull \hbox (badness 4229) in paragraph at lines 118--118
 []|\T5/ptm/m/n/13 K¸ ho¤ch phö
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 95--96
+Underfull \hbox (badness 10000) in paragraph at lines 118--119
 []|\T5/ptm/m/n/13 enabled_by: intention
  []
 
-[22]
-<Images/agentic_action_effect_trace.png, id=553, 1678.27pt x 944.52875pt>
+[23]
+<Images/agentic_action_effect_trace.png, id=594, 1678.27pt x 944.52875pt>
 File: Images/agentic_action_effect_trace.png Graphic file (type png)
 <use Images/agentic_action_effect_trace.png>
 Package pdftex.def Info: Images/agentic_action_effect_trace.png  used on input 
-line 127.
+line 158.
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
- [23] [24 <./Images/agentic_action_effect_trace.png (PNG copy)>] [25]
-Underfull \hbox (badness 1057) in paragraph at lines 210--211
+ [24] [25 <./Images/agentic_action_effect_trace.png (PNG copy)>] [26]
+Underfull \hbox (badness 1057) in paragraph at lines 280--281
 []\T5/ptm/m/n/13 Adaptive Query Routing cõa CogMem câ thº ^^_÷ñc xem nh÷ mët d¤
 ng
  []
 
-
-Underfull \hbox (badness 1281) in paragraph at lines 226--226
-[]\T5/ptm/b/n/13 Attentional selection \T5/ptm/m/n/13 ð c§p h» thèng: temporal 
-queries ÷u ti¶n
- []
-
-) [26]
+) [27]
 CHAPTER 5.
 (Chapter/5_Numerical_results.tex
-<Images/manual_evaluation_flow.png, id=576, 1678.27pt x 944.52875pt>
+<Images/manual_evaluation_flow.png, id=617, 1678.27pt x 944.52875pt>
 File: Images/manual_evaluation_flow.png Graphic file (type png)
 <use Images/manual_evaluation_flow.png>
 Package pdftex.def Info: Images/manual_evaluation_flow.png  used on input line 
@@ -2023,12 +2047,12 @@ Overfull \hbox (2.17229pt too wide) in paragraph at lines 29--30
  [][] 
  []
 
-[27
+[28
 
- <./Images/manual_evaluation_flow.png (PNG copy)>] [28] [29] [30] [31])
-[32]
+ <./Images/manual_evaluation_flow.png (PNG copy)>] [29] [30] [31] [32])
+[33]
 CHAPTER 6.
-(Chapter/6_Conclusions.tex [33
+(Chapter/6_Conclusions.tex [34
 
 ]
 Underfull \hbox (badness 4660) in paragraph at lines 49--50
@@ -2036,18 +2060,16 @@ Underfull \hbox (badness 4660) in paragraph at lines 49--50
 er, list-completeness
  []
 
-[34]
+[35]
 Underfull \hbox (badness 1701) in paragraph at lines 52--53
 []\T5/ptm/m/n/13 Nh¼n chung, CogMem chùng minh r¬ng cognitive graph, raw eviden
 ce
  []
 
-) [35] (Chapter/7_Reference.tex) [36
-
-]
+) [36]
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'latimer2025hindsight' on input line 335.
+(biblatex)                at entry 'latimer2025hindsight' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2057,14 +2079,14 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (8.77127pt too wide) in paragraph at lines 336--336
+Overfull \hbox (8.77127pt too wide) in paragraph at lines 349--349
 []\T5/ptm/m/n/13 C. Latimer [], ``HINDSIGHT: Long-Term Memory for Conversationa
 l
  []
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'wu2025longmemeval' on input line 335.
+(biblatex)                at entry 'wu2025longmemeval' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2075,7 +2097,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'maharana2024locomo' on input line 335.
+(biblatex)                at entry 'maharana2024locomo' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2100,19 +2122,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 335.
+(biblatex)                at entry 'squire1991medial' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 335.
+(biblatex)                at entry 'squire1991medial' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 335.
+(biblatex)                at entry 'squire1991medial' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 335.
+(biblatex)                at entry 'squire1991medial' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2123,23 +2145,23 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 33
-5.
+(biblatex)                at entry 'dickinson1994motivational' on input line 34
+8.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 33
-5.
+(biblatex)                at entry 'dickinson1994motivational' on input line 34
+8.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 33
-5.
+(biblatex)                at entry 'dickinson1994motivational' on input line 34
+8.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 33
-5.
+(biblatex)                at entry 'dickinson1994motivational' on input line 34
+8.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2150,15 +2172,15 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 335.
+(biblatex)                at entry 'baddeley2000episodic' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 335.
+(biblatex)                at entry 'baddeley2000episodic' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 335.
+(biblatex)                at entry 'baddeley2000episodic' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2168,7 +2190,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 5578) in paragraph at lines 336--336
+Underfull \hbox (badness 5578) in paragraph at lines 349--349
 \T5/ptm/m/n/13 Memory?'' \T5/ptm/m/it/13 Trends in Cognitive Sciences\T5/ptm/m/
 n/13 , [] 4, [] 11,
  []
@@ -2176,7 +2198,7 @@ n/13 , [] 4, [] 11,
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
 (biblatex)                at entry 'brandimonte1996prospective' on input line 3
-35.
+48.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2187,19 +2209,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 335.
+(biblatex)                at entry 'hommel2001tec' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 335.
+(biblatex)                at entry 'hommel2001tec' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 335.
+(biblatex)                at entry 'hommel2001tec' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 335.
+(biblatex)                at entry 'hommel2001tec' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2209,26 +2231,26 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 1297) in paragraph at lines 336--336
+Underfull \hbox (badness 1297) in paragraph at lines 349--349
 \T5/ptm/m/n/13 for Perception and Action Planning,'' \T5/ptm/m/it/13 Behavioral
  and Brain Sciences\T5/ptm/m/n/13 ,
  []
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 335.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2238,29 +2260,29 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 1231) in paragraph at lines 336--336
+Underfull \hbox (badness 1231) in paragraph at lines 349--349
 []\T5/ptm/m/n/13 C. J. Brainerd [] V. F. Reyna, ``Fuzzy Trace Theory and Storag
 e-
  []
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
 
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
 
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
 
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 335.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
 
 
 
@@ -2272,19 +2294,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 335.
+(biblatex)                at entry 'wilson1972excitatory' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 335.
+(biblatex)                at entry 'wilson1972excitatory' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 335.
+(biblatex)                at entry 'wilson1972excitatory' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 335.
+(biblatex)                at entry 'wilson1972excitatory' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2295,11 +2317,11 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 335.
+(biblatex)                at entry 'packer2023memgpt' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'in' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 335.
+(biblatex)                at entry 'packer2023memgpt' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2323,18 +2345,18 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 3323) in paragraph at lines 336--336
+Underfull \hbox (badness 3323) in paragraph at lines 349--349
 []\T5/ptm/m/n/13 F. C. Bartlett, \T5/ptm/m/it/13 Remembering: A Study in Experi
 mental and Social
  []
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 335.
+(biblatex)                at entry 'robertson2006what' on input line 348.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 335.
+(biblatex)                at entry 'robertson2006what' on input line 348.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2355,7 +2377,7 @@ Package biblatex Warning: Using fallback definition for \mkbibordinal.
 
 
 Package biblatex Warning: Bibliography string 'edition' untranslated
-(biblatex)                at entry 'anderson2008architecture' on input line 335
+(biblatex)                at entry 'anderson2008architecture' on input line 348
 .
 
 
@@ -2365,12 +2387,40 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
 
+[38] (Chapter/Appendix_A.tex
+Ph\d {u} l\d {u}c A.
+
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 8.
+
+\g__tcobox_out_iow=\write10
+\openout10 = `main.listing'.
+
+(main.listing) [39
+
+]
+\openout10 = `main.listing'.
+
+ (main.listing)) [40] (Chapter/Appendix_B.tex
+Ph\d {u} l\d {u}c B.
+
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 8.
+
+\openout10 = `main.listing'.
+
+(main.listing)
+\openout10 = `main.listing'.
+
+ (main.listing) [41
+
+])
 
 Package glossaries Warning: No \printnoidxglossary or \printnoidxglossaries
  found. (Remove \makenoidxglossaries if you don't want any glossaries.)
 This document will not have a glossary.
 
-[38] (main.aux)
+[42] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -2381,19 +2431,19 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: F5C3A2E69105EB82E102C9C8ABE2F3F7;10202.
+(rerunfilecheck)             Checksum: 22EDDCE51798A49483785B28BF282EDB;11998.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 48501 strings out of 467871
- 958138 string characters out of 5435212
- 1775685 words of memory out of 5000000
- 76356 multiletter control sequences out of 15000+600000
- 674631 words of font info for 82 fonts, out of 8000000 for 9000
+ 50087 strings out of 467871
+ 992511 string characters out of 5435212
+ 1900128 words of memory out of 5000000
+ 77810 multiletter control sequences out of 15000+600000
+ 672368 words of font info for 81 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 108i,13n,108p,2507b,1668s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,13n,107p,2507b,1670s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <F:/MikTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><F:/MikTeX/fonts/type1/p
 ublic/amsfonts/cm/cmmi12.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmmi9.pf
 b><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><F:/MikTeX/fonts/type1/pu
@@ -2402,9 +2452,9 @@ blic/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
 x/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><F:/MikTeX/fon
 ts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.pfb><F:
 /MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (46 pages, 5918268 bytes).
+Output written on main.pdf (52 pages, 5969153 bytes).
 PDF statistics:
- 778 PDF objects out of 1000 (max. 8388607)
- 251 named destinations out of 1000 (max. 500000)
- 374 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 949 PDF objects out of 1000 (max. 8388607)
+ 357 named destinations out of 1000 (max. 500000)
+ 414 words of extra memory for PDF output out of 10000 (max. 10000000)
 

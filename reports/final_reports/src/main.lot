@@ -7,13 +7,15 @@
 \contentsline {table}{\numberline {3.2}{\ignorespaces So sánh HINDSIGHT (MAX) và CogMem (SUM)}}{17}{table.caption.13}%
 \contentsline {table}{\numberline {3.3}{\ignorespaces Adaptive RRF weights theo query type trong implementation hiện tại}}{19}{table.caption.15}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Intention lifecycle và typed transition semantics}}{22}{table.caption.20}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Intention lifecycle và typed transition semantics}}{23}{table.caption.20}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces Thiết lập đánh giá cuối cùng}}{28}{table.caption.28}%
-\contentsline {table}{\numberline {5.2}{\ignorespaces LongMemEval v16 manual results, trình bày theo vai trò cấu hình}}{28}{table.caption.29}%
-\contentsline {table}{\numberline {5.3}{\ignorespaces Graph-only LongMemEval v16: SUM reducer so với MAX control}}{29}{table.caption.30}%
-\contentsline {table}{\numberline {5.4}{\ignorespaces LoCoMo full-run manual PASS}}{30}{table.caption.31}%
-\contentsline {table}{\numberline {5.5}{\ignorespaces LoCoMo category breakdown theo manual PASS}}{30}{table.caption.32}%
+\contentsline {table}{\numberline {5.1}{\ignorespaces Thiết lập đánh giá cuối cùng}}{29}{table.caption.28}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces LongMemEval v16 manual results, trình bày theo vai trò cấu hình}}{29}{table.caption.29}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Graph-only LongMemEval v16: SUM reducer so với MAX control}}{30}{table.caption.30}%
+\contentsline {table}{\numberline {5.4}{\ignorespaces LoCoMo full-run manual PASS}}{31}{table.caption.31}%
+\contentsline {table}{\numberline {5.5}{\ignorespaces LoCoMo category breakdown theo manual PASS}}{31}{table.caption.32}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsfinish 
 \contentsfinish 

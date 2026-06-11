@@ -5,22 +5,24 @@
 \contentsline {figure}{\numberline {3.1}{\ignorespaces Tổng quan pipeline CogMem: hội thoại được retain thành memory graph, sau đó recall đa kênh và synthesis dựa trên evidence để trả lời truy vấn.}}{9}{figure.caption.7}%
 \contentsline {figure}{\numberline {3.2}{\ignorespaces Sáu mạng bộ nhớ của CogMem}}{12}{figure.caption.8}%
 \contentsline {figure}{\numberline {3.3}{\ignorespaces Phân biệt Habit và Action-Effect}}{14}{figure.caption.10}%
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Bảy loại liên kết trong CogMem}}{14}{figure.caption.11}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Bảy loại liên kết trong CogMem}}{15}{figure.caption.11}%
 \contentsline {figure}{\numberline {3.5}{\ignorespaces 2-Layer Node Schema}}{16}{figure.caption.12}%
 \contentsline {figure}{\numberline {3.6}{\ignorespaces Ba cơ chế bảo vệ chu trình}}{18}{figure.caption.14}%
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Adaptive Query Routing}}{19}{figure.caption.16}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Adaptive Query Routing}}{20}{figure.caption.16}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Semantic Memory và World Network}}{20}{figure.caption.17}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Một workload diary nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}}{21}{figure.caption.18}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Habit Memory và Habit Network}}{22}{figure.caption.19}%
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Intention Lifecycle}}{23}{figure.caption.21}%
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động tool và kết quả quan sát được.}}{24}{figure.caption.22}%
-\contentsline {figure}{\numberline {4.6}{\ignorespaces Theory of Event Coding và Action-Effect Network}}{24}{figure.caption.23}%
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Fuzzy Trace Theory và Raw Snippet}}{25}{figure.caption.24}%
-\contentsline {figure}{\numberline {4.8}{\ignorespaces Episodic Buffer của Baddeley}}{25}{figure.caption.25}%
-\contentsline {figure}{\numberline {4.9}{\ignorespaces Attentional Selection và Adaptive Routing}}{26}{figure.caption.26}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Semantic Memory và World Network}}{21}{figure.caption.17}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Một workload diary nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}}{22}{figure.caption.18}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Habit Memory và Habit Network}}{23}{figure.caption.19}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Intention Lifecycle}}{24}{figure.caption.21}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động tool và kết quả quan sát được.}}{25}{figure.caption.22}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Theory of Event Coding và Action-Effect Network}}{25}{figure.caption.23}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Fuzzy Trace Theory và Raw Snippet}}{26}{figure.caption.24}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Episodic Buffer của Baddeley}}{26}{figure.caption.25}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Attentional Selection và Adaptive Routing}}{27}{figure.caption.26}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Luồng đánh giá thủ công: benchmark question và gold answer được chạy qua CogMem, câu trả lời sinh ra được đọc thủ công, sau đó tổng hợp thành kết quả theo category.}}{27}{figure.caption.27}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Luồng đánh giá thủ công: benchmark question và gold answer được chạy qua CogMem, câu trả lời sinh ra được đọc thủ công, sau đó tổng hợp thành kết quả theo category.}}{28}{figure.caption.27}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsfinish 
 \contentsfinish 
