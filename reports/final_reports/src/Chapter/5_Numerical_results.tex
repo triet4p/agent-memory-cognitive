@@ -1,178 +1,430 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Chương này tổng hợp kết quả thực nghiệm đã được kiểm tra thủ công trên LongMemEval v16 và LoCoMo. Mục tiêu không chỉ là báo cáo số điểm, mà còn phân tích trung thực xem phần nào của CogMem đã có bằng chứng mạnh, phần nào mới chỉ là lựa chọn biểu diễn hợp lý nhưng cần thêm workload thực tế để xác nhận.}
+\textit{Chương này trình bày thiết kế thực nghiệm và kết quả đánh giá của CogMem. Khác với phần phương pháp ở Chương 3 vốn tập trung vào kiến trúc và lý thuyết, trọng tâm ở đây là trả lời ba câu hỏi thực nghiệm then chốt: hệ thống có hoạt động tốt trên dữ liệu hội thoại dài hay không, các thành phần biểu diễn và truy vấn đóng góp đến đâu, và những giới hạn nào vẫn còn tồn tại khi chuyển từ ý tưởng kiến trúc sang khối lượng công việc thực tế.}
 
-\section{Kết quả thực nghiệm}
+% ============================================================
+\section{Thiết kế thực nghiệm}
+% ============================================================
 
-\subsection{Thiết kế đánh giá}
+\subsection{Luồng đánh giá tổng quát}
 
-Hai bộ đánh giá được dùng để kiểm tra hai mức độ khó khác nhau của hệ thống:
+Toàn bộ thí nghiệm được thiết kế theo luồng đánh giá ngoại tuyến (offline evaluation). Điều này có nghĩa là mỗi câu hỏi trong tập dữ liệu được chạy qua cùng một chuỗi xử lý cố định, thay vì tương tác tự do với người dùng như trong môi trường triển khai thực tế. 
 
+Cách làm này mang lại ba lợi ích quan trọng: 
 \begin{itemize}
-    \item \textbf{LongMemEval v16}: tập 35 câu hỏi hội thoại dài, phù hợp để so sánh các cấu hình recall và các ablation theo fact type.
-    \item \textbf{LoCoMo}: tập 161 câu hỏi khó hơn, bao gồm single-hop, multi-hop, temporal, causal và preference. Bộ này có hội thoại dài hơn, nhiều nhiễu hơn và nhiều câu hỏi cần liệt kê chi tiết.
+    \item Kết quả có thể tái lập (reproducible): mọi cấu hình được chạy trên cùng một tập câu hỏi và dữ liệu, nên kết quả có thể so sánh trực tiếp.
+    \item Dễ dàng so sánh giữa các cấu hình khác nhau: khi thay đổi một thành phần duy nhất của hệ thống, ta có thể thấy ngay sự khác biệt về kết quả.
+    \item Cho phép tách biệt lỗi ở từng giai đoạn của hệ thống để chẩn đoán chính xác nguyên nhân: nếu một cấu hình trả lời sai, ta có thể truy ngược để xác định xem lỗi đến từ kênh truy vấn, từ cách tổng hợp câu trả lời, hay từ cách xử lý bằng chứng.
 \end{itemize}
 
-Trong quá trình phát triển, các cấu hình nội bộ được đánh số để trace lại log chạy thử. Tuy nhiên, trong báo cáo luận văn, các số hiệu đó không phải thông tin chính. Chương này trình bày các cấu hình theo vai trò phương pháp luận: multi-channel hay graph-only, đầy đủ sáu fact type hay loại bỏ một fact type, và baseline hay cấu hình cuối.
+Với mỗi mẫu dữ liệu, pipeline đánh giá trải qua năm bước chính, mỗi bước xử lý một khía cạnh khác nhau của bài toán bộ nhớ:
+
+\begin{enumerate}
+    \item \textbf{Chuẩn bị hội thoại}: đọc hội thoại đã được chắt lọc từ bản gốc, giữ lại đầy đủ các phiên có liên quan và thông tin bổ trợ như ngày tháng của từng phiên, mã định danh phiên, và đáp án chuẩn. Bước này đảm bảo dữ liệu đầu vào đồng nhất cho mọi cấu hình.
+    \item \textbf{Nạp và ghi nhớ (Retain)}: toàn bộ lịch sử hội thoại được nạp vào CogMem. Hệ thống trích xuất các fact có phân loại (typed facts), sinh vector nhúng cho từng fact, lưu các node vào đồ thị bộ nhớ, và tạo ra các liên kết giữa chúng. Kết quả của bước này là một đồ thị bộ nhớ hoàn chỉnh, sẵn sàng cho truy vấn.
+    \item \textbf{Truy vấn (Recall)}: với mỗi câu hỏi trong tập đánh giá, hệ thống chạy đồng thời bốn kênh truy vấn: truy vấn ngữ nghĩa (semantic retrieval), truy vấn từ khóa (BM25), truy vấn trên đồ thị (graph retrieval), và truy vấn theo thời gian (temporal retrieval). Kết quả từ bốn kênh được kết hợp bằng thuật toán Weighted Reciprocal Rank Fusion với trọng số phụ thuộc vào loại câu hỏi đã được phân tích trước đó.
+    \item \textbf{Tổng hợp câu trả lời (Generation)}: các bằng chứng đã truy vấn được sắp xếp và đưa vào prompt cho mô hình ngôn ngữ. Ở các cấu hình cuối cùng, hệ thống ưu tiên câu trả lời bám sát bằng chứng (evidence-grounded) và sử dụng các đoạn trích nguyên văn (raw snippet) gần với truy vấn nhất.
+    \item \textbf{Chấm kết quả}: câu trả lời do hệ thống sinh ra được so sánh với đáp án chuẩn theo tiêu chí đánh giá của từng bộ dữ liệu.
+\end{enumerate}
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
-\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/manual_evaluation_flow.png}};
-\node[reportlabel] at (10,51) {Questions + Gold};
-\node[reportlabel] at (31,51) {CogMem Run};
-\node[reportlabel] at (51,51) {Generated Answers};
-\node[reportlabel] at (71,51) {Manual Verdict};
-\node[reportlabel] at (90,51) {Accuracy by Category};
-\node[reportnote] at (50,7) {judge.correct ignored};
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+    node distance=0.42cm,
+    stage/.style={reportbox, minimum width=2.5cm, minimum height=1.15cm, align=center},
+    eval/.style={reportboxgold, minimum width=2.5cm, minimum height=1.15cm, align=center}
+]
+\node[stage] (data) {Hội thoại\\đã chắt lọc};
+\node[stage, right=of data] (retain) {Retain\\đồ thị có loại};
+\node[stage, right=of retain] (recall) {Recall\\đa kênh};
+\node[stage, right=of recall] (answer) {Generation\\bám bằng chứng};
+\node[eval, right=of answer] (score) {Kết quả\\Đạt / Không đạt};
+\draw[reportarrow] (data) -- (retain);
+\draw[reportarrow] (retain) -- (recall);
+\draw[reportarrow] (recall) -- (answer);
+\draw[reportarrow] (answer) -- (score);
+\node[reportnote, below=0.55cm of recall, minimum width=8.4cm] {đánh giá ngoại tuyến: cùng dữ liệu, cùng câu hỏi, thay đổi có kiểm soát từng cấu hình};
 \end{tikzpicture}
-\caption{Luồng đánh giá thủ công: benchmark question và gold answer được chạy qua CogMem, câu trả lời sinh ra được đọc thủ công, sau đó tổng hợp thành kết quả theo category.}
-\label{fig:ch5_manual_eval_flow}
+}
+\caption{Luồng đánh giá ngoại tuyến của CogMem trên các bộ dữ liệu hội thoại dài}
+\label{fig:ch4_eval_flow}
 \end{figure}
 
+Một điểm quan trọng cần nhấn mạnh: hệ thống không được đánh giá bằng một lần chạy duy nhất, mà bằng nhiều vòng lặp độc lập của chu trình nạp--truy vấn--tổng hợp trên cùng một bộ câu hỏi. Nhờ cách thiết kế này, khi một cấu hình cho kết quả tốt hơn cấu hình khác, ta có thể truy ngược để xác định chính xác sự khác biệt đến từ đâu: từ kênh truy vấn, từ loại node được lưu, từ cách tổng hợp câu trả lời, hay từ cách xử lý bằng chứng.
+
+\subsection{Chắt lọc dữ liệu}
+
+\subsubsection{Tại sao cần chắt lọc dữ liệu}
+
+Chi phí nạp dữ liệu (retain) cho hội thoại dài là rất lớn. Mỗi cuộc hội thoại trong LongMemEval có thể dài tới hơn 100 nghìn từ, và việc trích xuất fact từ lượng văn bản này thông qua LLM đòi hỏi thời gian xử lý và chi phí đáng kể. Nếu giữ nguyên toàn bộ tập dữ liệu gốc, mỗi vòng phát triển và kiểm thử sẽ mất nhiều ngày, khiến cho việc thử nghiệm nhanh các ý tưởng mới trở nên bất khả thi. Hơn nữa, chi phí này còn tăng lên gấp bội khi cần chạy nhiều cấu hình ablation khác nhau.
+
+Vì vậy, dự án sử dụng các bản chắt lọc (distilled) được chuẩn bị từ trước. Quy trình chắt lọc giữ lại tất cả các phiên hội thoại cần thiết để trả lời các câu hỏi trong tập con đã chọn, cùng với đáp án chuẩn, ngày tháng của từng phiên và các thông tin bổ trợ khác phục vụ cho việc đánh giá. Đồng thời, quy trình này giảm kích thước dữ liệu xuống mức có thể chạy lặp lại nhiều lần trong quá trình phát triển mà không làm mất đi các đặc trưng khó của bộ dữ liệu gốc.
+
+\subsubsection{Phân bố dữ liệu sau chắt lọc}
+
 \begin{table}[H]
 \centering
-\caption{Thiết lập đánh giá cuối cùng}
-\label{tab:final_eval_setup}
-\begin{tabularx}{\linewidth}{@{}lY@{}}
+\caption{Tóm tắt dữ liệu đã chắt lọc dùng trong đánh giá}
+\label{tab:distilled_dataset_summary}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.6cm}p{4.8cm}cp{3.2cm}@{}}
 \toprule
-\textbf{Thành phần} & \textbf{Thiết lập} \\
+\textbf{Bộ dữ liệu} & \textbf{Vai trò trong thí nghiệm} & \textbf{Quy mô} & \textbf{Ghi chú} \\
 \midrule
-Memory backend & CogMem retain/recall/reflect pipeline với PostgreSQL, pgvector, BM25, graph recall và temporal recall. \\
-Embedding model & \texttt{BAAI/bge-small-en-v1.5}. \\
-Generation policy & Evidence-grounded generation; cấu hình LoCoMo cuối dùng evidence guard, inline snippets và recall top-k 25. \\
-Metric chính & LongMemEval dùng manual PASS. LoCoMo dùng manual PASS mở rộng, trong đó PASS bao gồm cả câu trả lời đúng hoàn toàn và câu trả lời đúng lõi, dùng được. \\
-Judge policy & Không dùng \texttt{judge.correct} làm nguồn sự thật; chỉ dùng câu trả lời sinh ra và gold answer để chấm thủ công. \\
+LongMemEval & So sánh các cấu hình recall và ablation & 35 câu hỏi & Mỗi câu hỏi gắn với trung bình 45,5 phiên hội thoại; trung bình 1,97 phiên chứa đáp án. \\
+LoCoMo & Đánh giá cấu hình cuối cùng & 5 hội thoại, 161 câu hỏi & Các hội thoại có 40--64 phiên mỗi cuộc; câu hỏi trải đều trên năm nhóm. \\
+CogMem Bench & Kiểm tra nhắm đích node type mới & 39 kịch bản & Gồm pilot, necessity và agentic; dùng cho đánh giá định tính. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{LongMemEval v16}
+Với LongMemEval, tập 35 câu hỏi được chọn lọc để bao phủ nhiều kiểu truy vấn khác nhau mà vẫn giữ kích thước nhỏ hơn dữ liệu gốc, phản ánh trung thực độ khó của bộ dữ liệu gốc. Phân bố sau chắt lọc cụ thể như sau: 8 câu hỏi yêu cầu tổng hợp thông tin từ nhiều phiên, 8 câu hỏi kiểm tra khả năng nhận biết cập nhật tri thức, 7 câu hỏi suy luận thời gian, 6 câu hỏi một phiên về người dùng, 4 câu hỏi một phiên về sở thích, và 2 câu hỏi một phiên liên quan đến trợ lý. 
 
-LongMemEval v16 cho thấy kết luận quan trọng nhất: recall đa kênh ổn định hơn graph-only retrieval. Cấu hình multi-channel tốt nhất đạt 29/35 PASS. Trong khi đó, các cấu hình chỉ dùng graph traversal thấp hơn hoặc dao động mạnh hơn. Điều này phù hợp với thiết kế CogMem: graph là một kênh quan trọng để nối bằng chứng, nhưng không nên thay thế hoàn toàn semantic retrieval, BM25 và temporal retrieval.
+Với LoCoMo, bản chắt lọc bao gồm 161 câu hỏi được rút ra từ 5 cuộc hội thoại dài. Năm cuộc hội thoại này có số phiên lần lượt là 40, 56, 60, 62 và 64 phiên, với tổng độ dài lên tới hàng trăm nghìn từ. Các câu hỏi trong LoCoMo được phân vào năm nhóm chính: truy vấn đơn (single-hop) -- cần một mảnh thông tin, truy vấn đa bước (multi-hop) -- cần nối nhiều mảnh, suy luận thời gian (temporal), sở thích (preference) và quan hệ nhân quả (causal). 
+
+\subsubsection{CogMem Bench: bộ dữ liệu tự xây dựng để kiểm định các loại nút}
+
+Trong khi LongMemEval và LoCoMo đo lường năng lực bộ nhớ tổng quát, cả hai đều có chung một giới hạn: chúng không được thiết kế để kiểm tra trực diện xem một loại node nhận thức cụ thể, đặc biệt là ý định hay hành động--kết quả, có thực sự cần thiết cho câu trả lời đúng hay không. Một câu hỏi trong LongMemEval có thể được trả lời đúng nhờ fact thông thường mà không cần đến node ý định; một câu hỏi nhân quả trong LoCoMo có thể được giải quyết bằng fact tri thức khách quan mà không cần đến node hành động--kết quả. Nói cách khác, các benchmark chuẩn không cho phép ta cô lập được đóng góp của từng loại node và cũng không được thiết kế để kiểm tra khả năng trả lời về các dữ kiện tương lai cũng như hành động.
+
+Để lấp đầy khoảng trống này, dự án đã xây dựng \textbf{CogMem Bench} -- một bộ dữ liệu được thiết kế từ đầu để kiểm tra giá trị của các cấu trúc nhận thức mới. Điểm khác biệt cốt lõi của CogMem Bench so với benchmark chuẩn là \textbf{cơ chế so sánh có kiểm soát theo cặp} (paired-bank ablation): với mỗi kịch bản, hệ thống tạo ra hai ngân hàng bộ nhớ -- một ngân hàng đầy đủ với tất cả sáu loại node, và một ngân hàng đối chứng đã loại bỏ một loại node cụ thể ngay từ bước nạp dữ liệu. Cùng một câu hỏi được đặt ra cho cả hai ngân hàng. Nếu ngân hàng đầy đủ trả lời đúng còn ngân hàng đối chứng trả lời sai, điều đó cung cấp bằng chứng trực tiếp rằng loại node bị loại bỏ là cần thiết cho câu hỏi đó.
+
+\textbf{Quy trình xây dựng ba bước.} 
+
+\begin{enumerate}
+    \item \textbf{Soạn đặc tả kịch bản}: mỗi kịch bản được định nghĩa trước khi có bất kỳ cuộc hội thoại nào được sinh ra. Đặc tả bao gồm: loại node mục tiêu (ý định hoặc hành động--kết quả), fact trung tâm với đầy đủ thông tin bổ trợ (ví dụ: trạng thái của ý định là \textit{planning}), câu hỏi, đáp án chuẩn, và các phương án gây nhiễu (bẫy) được cài vào để đảm bảo hệ thống không thể đoán đúng một cách ngẫu nhiên. Đặc tả cũng quy định rõ kế hoạch phiên: phiên nào chứa thông tin trả lời, phiên nào chứa thông tin gây nhiễu.
+    \item \textbf{Sinh hội thoại bằng mô hình độc lập}: một mô hình ngôn ngữ mạnh (Minimax-M2.7) -- khác với mô hình dùng để nạp dữ liệu và trả lời câu hỏi (Ministral3-3B) -- đọc đặc tả và sinh ra các cuộc hội thoại tự nhiên dài 7--10 phiên. Việc dùng mô hình sinh khác với mô hình đọc là một lựa chọn có chủ đích: nó ngăn chặn vòng lặp tự tham chiếu, nơi cùng một mô hình vừa tạo ra dữ liệu vừa tự chấm điểm mình.
+    \item \textbf{Hai cổng kiểm định}: mỗi kịch bản phải vượt qua hai cổng trước khi được tính là hợp lệ. \textit{Cổng nhúng} kiểm tra xem fact trung tâm có thực sự được trích xuất và lưu đúng loại node trong ngân hàng đầy đủ hay không -- nếu không, kịch bản bị loại. \textit{Cổng phân biệt} chạy cặp câu hỏi trên cả hai ngân hàng và chỉ giữ lại những kịch bản mà ngân hàng đầy đủ trả lời đúng còn ngân hàng đối chứng trả lời sai. Các kịch bản không tạo được sự phân biệt bị loại bỏ hoàn toàn, không được sửa chữa hay điều chỉnh.
+\end{enumerate}
+
+\textbf{Quy mô và cấu trúc.} Ở thời điểm hiện tại, CogMem Bench bao gồm 39 đặc tả kịch bản đã được tiền đăng ký, chia thành bốn nhóm:
+
+\begin{itemize}
+    \item \textbf{6 kịch bản pilot}: nhóm đầu tiên được xây dựng để kiểm tra toàn bộ quy trình từ soạn đặc tả, sinh hội thoại, đến chạy cổng kiểm định. Mục tiêu của nhóm này là xác nhận pipeline hoạt động ổn định trước khi mở rộng quy mô.
+    \item \textbf{20 kịch bản necessity}: nhóm trọng tâm, nhắm trực tiếp vào câu hỏi về \textit{ý định} (kế hoạch chưa hoàn thành) và \textit{hành động--kết quả} (quan hệ điều kiện--hành động--kết quả). Mỗi kịch bản được thiết kế sao cho thông tin đúng \textbf{chỉ} tồn tại dưới dạng node chuyên biệt; nếu loại bỏ node đó, các fact còn lại sẽ không đủ để trả lời đúng.
+    \item \textbf{12 kịch bản agentic}: mô phỏng vết công cụ của tác nhân AI trong môi trường gần với thực tế triển khai. Mỗi kịch bản là một chuỗi tương tác giữa tác nhân và các API bên ngoài (Stripe, Docker, Kubernetes, Azure, Playwright, Git, NPM, Terraform, v.v.), trong đó một quy luật nhân quả cụ thể là thông tin cốt lõi cần được ghi nhớ.
+    \item \textbf{1 kịch bản agentic pilot}: kiểm tra quy trình tạo dữ liệu kiểu công cụ trước khi mở rộng lên 12 kịch bản.
+\end{itemize}
+
+\textbf{Kết quả phân biệt sơ bộ.} Trong số 12 kịch bản agentic đã vượt qua cổng kiểm định, kết quả phân loại thủ công cho thấy ba nhóm:
+
+\begin{itemize}
+    \item \textbf{Phân biệt rõ ràng (5/12)}: ngân hàng đầy đủ trả lời đúng, ngân hàng đối chứng trả lời sai. Các kịch bản thuộc nhóm này -- như HTTP 429 với Retry-After, Azure token với device-code, hay Docker pull với nhiều lần thử -- có đặc điểm chung là quy luật nhân quả không dễ bị mã hóa lại thành fact tri thức khách quan đơn thuần. Ví dụ, ``chờ theo giá trị của header Retry-After rồi thử lại thì được 200'' là một quy luật can thiệp, không phải một mô tả tĩnh.
+    \item \textbf{Rò rỉ thông tin (5/12)}: mô hình sinh (Minimax-M2) đã vô tình mã hóa lại quy luật nhân quả thành fact tri thức khách quan trong lời thoại -- ví dụ: ``việc đặt NODE\_OPTIONS thành --max-old-space-size=8192 đã giải quyết được lỗi OOM'' được viết như một câu mô tả khách quan. Khi đó, ngân hàng đối chứng vẫn có thể trả lời đúng nhờ fact world. Đây không phải lỗi của CogMem, mà là một phát hiện quan trọng: mô hình ngôn ngữ có xu hướng tự nhiên là ``phẳng hóa'' tri thức nhân quả thành tri thức mô tả.
+    \item \textbf{Mô hình trả lời bỏ lỡ (2/12)}: ngay cả ngân hàng đầy đủ cũng trả lời sai vì mô hình trả lời (Ministral3-3B) chọn nhầm một phương án thất bại thay vì phương án thành công. Đây là lỗi ở khâu tổng hợp câu trả lời, không liên quan đến việc có hay không có node hành động--kết quả.
+\end{itemize}
+
+Kết quả 5/12 phân biệt rõ ràng tuy khiêm tốn về mặt thống kê (kiểm định McNemar cho $p \approx 0{,}22$, chưa đạt ý nghĩa ở cỡ mẫu này), nhưng mang một ý nghĩa thực tế quan trọng: nó chứng minh rằng \textbf{có tồn tại} những tình huống mà node hành động--kết quả là cần thiết, và những tình huống này xuất hiện khi quy luật nhân quả mang tính can thiệp -- không dễ bị quy về một câu mô tả tĩnh. Đây là một phát hiện ``có điều kiện'' (conditional necessity), hoàn toàn phù hợp với tinh thần thực nghiệm thận trọng của toàn bộ đồ án.
+
+Đối với node ý định, kết quả từ nhóm necessity cho thấy một bức tranh tương tự: ý định trở nên cần thiết trong khoảng 12,5\% các tình huống -- cụ thể là những tình huống mà trạng thái ``đã định làm nhưng chưa làm'' không bị các fact trải nghiệm hay tri thức hấp thụ một cách tự nhiên. Chi tiết về các kịch bản ý định và hành động--kết quả sẽ được phân tích kỹ hơn trong phần đánh giá định tính ở cuối chương này.
+
+\subsection{Các thước đo đánh giá}
+
+Mỗi thước đo trong chương này được sử dụng theo đúng mục tiêu của từng thí nghiệm, không bị trộn lẫn một cách máy móc:
+
+\begin{itemize}
+    \item \textbf{Độ chính xác câu trả lời (Answer Accuracy)}: đây là thước đo chính, được định nghĩa là tỉ lệ câu hỏi được chấm là ``đạt'' trên tổng số câu hỏi. Trên LongMemEval, nhãn đạt được lấy từ bộ đánh giá tự động của pipeline, cho phép so sánh nhanh nhiều cấu hình. Trên LoCoMo, kết quả cuối cùng được kiểm tra thủ công theo một bộ tiêu chí ngữ nghĩa (semantic rubric): câu trả lời đúng hoàn toàn và câu trả lời đúng ở mức chấp nhận được đều được tính là \textbf{Đạt}.
+    
+    \item \textbf{Tỉ lệ truy vấn phiên chứa đáp án (Session Recall@k)}: thước đo này đo lường khả năng hệ thống đưa được các phiên có chứa thông tin trả lời vào danh sách top-k bằng chứng. Đây là thước đo chuyên biệt cho thí nghiệm so sánh hai cơ chế lan truyền tín hiệu SUM và MAX, vì nó cô lập được chất lượng của riêng kênh truy vấn đồ thị trước khi bước tổng hợp câu trả lời can thiệp.
+    
+    \item \textbf{So sánh loại bỏ thành phần (Ablation)}: đây là phương pháp thay đổi có kiểm soát một thành phần duy nhất của hệ thống -- ví dụ loại bỏ một loại node, hoặc chỉ dùng kênh đồ thị -- trong khi giữ nguyên tất cả các thành phần khác. Mục tiêu của ablation không phải là tạo ra cấu hình tốt nhất, mà là để hiểu được thành phần nào đang thực sự đóng góp vào kết quả cuối cùng và trong những điều kiện nào.
+    
+\item \textbf{Hiệu năng nạp dữ liệu (Retain Throughput)}: thời gian cần thiết để xử lý một cuộc hội thoại hoàn chỉnh qua pipeline nạp dữ liệu, cùng với số lượng node được tạo ra. Đây là thước đo thực tế quan trọng vì một hệ thống bộ nhớ dài hạn chỉ khả thi trong triển khai thực tế nếu chi phí nạp dữ liệu nằm trong ngưỡng chấp nhận được.
+\end{itemize}
+
+\subsection{Phương pháp chấm điểm: LLM làm giám khảo (LLM-as-a-Judge)}
+
+Một khía cạnh quan trọng trong thiết kế thực nghiệm của đồ án là cách thức xác định một câu trả lời được coi là \textbf{Đạt} (PASS) hay \textbf{Không đạt} (FAIL). Thay vì so sánh chuỗi ký tự một cách cứng nhắc -- vốn dễ gây ra kết quả âm tính giả khi câu trả lời đúng về mặt ngữ nghĩa nhưng khác về cách diễn đạt -- đồ án áp dụng phương pháp \textbf{LLM làm giám khảo} (LLM-as-a-Judge). Đây là một hướng tiếp cận ngày càng phổ biến trong nghiên cứu về mô hình ngôn ngữ, trong đó một mô hình ngôn ngữ độc lập được giao nhiệm vụ đọc câu hỏi, đáp án chuẩn và câu trả lời của hệ thống, sau đó đưa ra phán quyết dựa trên một bộ tiêu chí được định nghĩa trước.
+
+\subsubsection{Nguyên tắc chấm điểm}
+
+Mô hình giám khảo được cung cấp ba thông tin đầu vào cho mỗi câu hỏi:
+
+\begin{enumerate}
+    \item \textbf{Câu hỏi gốc}: truy vấn mà hệ thống cần trả lời.
+    \item \textbf{Đáp án chuẩn}: câu trả lời đúng được xác định trước bởi người xây dựng bộ dữ liệu.
+    \item \textbf{Câu trả lời của hệ thống}: văn bản do CogMem sinh ra sau khi truy vấn và tổng hợp.
+\end{enumerate}
+
+Dựa trên ba thông tin này, mô hình giám khảo đánh giá mức độ chính xác của câu trả lời theo thang điểm từ 0,0 đến 1,0, với các mức ý nghĩa như sau:
+
+\begin{itemize}
+    \item \textbf{1,0 -- Chính xác và đầy đủ}: câu trả lời khớp hoàn toàn với đáp án chuẩn về mặt nội dung, không thiếu thông tin quan trọng, không thêm thông tin sai.
+    \item \textbf{0,7 đến 0,9 -- Đúng nhưng chưa trọn vẹn}: câu trả lời đúng về bản chất nhưng có thể diễn đạt khác một chút, hoặc thiếu một chi tiết nhỏ không làm thay đổi ý nghĩa cốt lõi.
+    \item \textbf{0,3 đến 0,6 -- Đúng một phần}: câu trả lời chạm đúng chủ đề nhưng thiếu các fact then chốt, sai số lượng, hoặc đưa ra câu trả lời mơ hồ, vòng vo.
+    \item \textbf{0,0 đến 0,2 -- Sai hoàn toàn}: câu trả lời bịa đặt, lạc chủ đề, hoặc từ chối trả lời trong khi đáng lẽ phải có thông tin.
+\end{itemize}
+
+\subsubsection{Quy tắc đặc biệt cho câu hỏi thời gian}
+
+Một điểm quan trọng trong thiết kế bộ tiêu chí là \textbf{quy tắc khoan dung cho câu hỏi về thời gian}. Với các câu hỏi yêu cầu đếm số ngày, số tuần hoặc số tháng, mô hình giám khảo được hướng dẫn không trừ điểm đối với sai số một đơn vị (off-by-one). Ví dụ: nếu đáp án chuẩn là ``19 ngày'' nhưng hệ thống trả lời ``18 ngày'', câu trả lời vẫn được chấm 1,0. Quy tắc này được đưa ra vì trong thực tế, việc tính toán chính xác tuyệt đối khoảng cách thời gian từ văn bản hội thoại là cực kỳ khó, và sai số một đơn vị thường không làm thay đổi ý nghĩa của câu trả lời.
+
+\subsubsection{Khi nào Đạt, khi nào Không đạt}
+
+Để chuyển từ điểm số liên tục sang nhãn nhị phân PASS/FAIL, đồ án áp dụng ngưỡng quyết định như sau:
+
+\begin{itemize}
+    \item \textbf{Đạt (PASS)}: điểm từ 0,7 trở lên. Ngưỡng này được chọn vì ở mức 0,7, câu trả lời đã đúng về bản chất, chỉ khác biệt nhỏ về cách diễn đạt -- điều hoàn toàn chấp nhận được trong ngữ cảnh hội thoại thực tế.
+    \item \textbf{Không đạt (FAIL)}: điểm dưới 0,7. Ở mức này, câu trả lời hoặc thiếu thông tin then chốt, hoặc sai lệch đáng kể so với đáp án chuẩn.
+\end{itemize}
+
+\subsubsection{Phạm vi áp dụng}
+
+Phương pháp LLM-as-a-Judge được áp dụng cho cả hai bộ dữ liệu chính trong đồ án:
+
+\begin{itemize}
+    \item \textbf{Trên LongMemEval}: toàn bộ 35 câu hỏi được chấm tự động bởi mô hình giám khảo. Cách làm này cho phép so sánh nhanh nhiều cấu hình ablation khác nhau mà không cần can thiệp thủ công.
+    \item \textbf{Trên LoCoMo}: 161 câu hỏi được chấm bởi mô hình giám khảo, sau đó kết quả được một người kiểm tra lại thủ công để xác nhận tính hợp lý của phán quyết. Các trường hợp điểm nằm trong vùng xám (0,5--0,8) được xem xét đặc biệt kỹ. Cách làm kết hợp này vừa tận dụng được tốc độ của chấm tự động, vừa đảm bảo độ tin cậy của kết quả cuối cùng.
+    \item \textbf{Trên CogMem Bench}: do tính chất nhắm đích của bộ dữ liệu này, kết quả được đánh giá định tính thủ công hoàn toàn, tập trung vào việc xác định xem liệu sự khác biệt giữa ngân hàng bộ nhớ đầy đủ và ngân hàng loại bỏ có dẫn đến thay đổi trong câu trả lời hay không.
+\end{itemize}
+
+Prompt chi tiết của mô hình giám khảo được cung cấp trong Phụ lục B.2 ở cuối báo cáo.
+
+\subsection{Các cấu hình so sánh}
+
+Để đảm bảo người đọc không cần biết đến ký hiệu nội bộ trong mã nguồn, các cấu hình thí nghiệm được đặt tên theo ý nghĩa phương pháp luận. Cụ thể:
+
+\begin{itemize}
+    \item \textbf{Multi-channel}: hệ thống sử dụng đồng thời cả bốn kênh truy vấn -- ngữ nghĩa, từ khóa, đồ thị và thời gian. Đây là cấu hình vận hành đầy đủ của CogMem.
+    \item \textbf{Graph-only}: hệ thống chỉ sử dụng kênh truy vấn trên đồ thị, tắt ba kênh còn lại. Cấu hình này dùng để cô lập đóng góp của riêng đồ thị bộ nhớ.
+    \item \textbf{Bỏ một loại node}: loại bỏ hoàn toàn một loại node khỏi đồ thị ngay từ bước nạp dữ liệu, ví dụ ``bỏ intention'' nghĩa là không có node intention nào được tạo ra trong toàn bộ quá trình.
+    \item \textbf{SUM và MAX}: hai biến thể của cơ chế lan truyền tín hiệu trên đồ thị. SUM cộng dồn tín hiệu từ nhiều đường, MAX chỉ giữ tín hiệu mạnh nhất từ một đường duy nhất.
+\end{itemize}
 
 \begin{table}[H]
 \centering
-\caption{LongMemEval v16 manual results, trình bày theo vai trò cấu hình}
-\label{tab:longmemeval_v16_results}
-\begin{tabularx}{\linewidth}{@{}Ycc@{}}
+\caption{Các nhóm cấu hình so sánh chính và mục tiêu}
+\label{tab:experiment_config_groups}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.4cm}p{10.6cm}@{}}
 \toprule
-\textbf{Cấu hình được đánh giá} & \textbf{PASS/Total} & \textbf{Accuracy} \\
+\textbf{Nhóm cấu hình} & \textbf{Mục tiêu so sánh} \\
 \midrule
-Multi-channel tuned configuration tốt nhất & 29/35 & 82.9\% \\
-Multi-channel ablation không dùng habit node & 28/35 & 80.0\% \\
-Multi-channel full six-type baseline & 26/35 & 74.3\% \\
-Graph-only ablation tốt nhất & 26/35 & 74.3\% \\
-Graph-only full six-type baseline & 22/35 & 62.9\% \\
+HINDSIGHT baseline & Đối chiếu CogMem với hệ thống nền đã chứng minh hiệu quả mạnh trên bộ nhớ hội thoại dài. \\
+CogMem multi-channel đầy đủ & Đánh giá hệ thống đề xuất ở cấu hình tối ưu: đủ sáu loại node và đủ bốn kênh truy vấn. \\
+CogMem graph-only & Cô lập đóng góp của riêng đồ thị bộ nhớ, không có sự hỗ trợ từ truy vấn ngữ nghĩa, từ khóa và thời gian. \\
+Loại bỏ từng loại node & Kiểm tra đóng góp riêng của thói quen, ý định và quan hệ hành động--kết quả trong cùng một pipeline. \\
+SUM so với MAX & Kiểm tra riêng cơ chế cộng dồn bằng chứng từ nhiều đường so với chỉ giữ đường mạnh nhất. \\
+Cấu hình cuối trên LoCoMo & Đánh giá hệ thống sau tất cả các cải tiến tích lũy về truy vấn, chọn lọc bằng chứng và kiểm soát suy luận. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsubsection{Đối chứng Graph-only: SUM so với MAX}
+% ============================================================
+\section{Kết quả trên LongMemEval}
+% ============================================================
 
-Để kiểm tra riêng đóng góp của SUM spreading activation, tôi chạy thêm một thí nghiệm recall-only trên cùng 35 memory banks của LongMemEval v16. Hai cấu hình trong thí nghiệm này giống nhau ở các điểm quan trọng: chỉ dùng graph channel, bỏ reranker, dùng cùng fact types và cùng retained memories. Khác biệt duy nhất là reducer của BFS graph activation: một cấu hình dùng SUM để cộng nhiều evidence path, cấu hình đối chứng dùng MAX để chỉ giữ đường mạnh nhất.
+LongMemEval được sử dụng chủ yếu để so sánh các cấu hình kiến trúc khác nhau trong điều kiện có kiểm soát. Với 35 câu hỏi được chọn lọc, tập dữ liệu này đủ nhỏ để chạy nhiều vòng ablation nhưng vẫn bao phủ được các dạng câu hỏi khó điển hình.
 
-Metric ở đây không phải answer accuracy, vì mục tiêu là cô lập retrieval. Tôi dùng \textbf{session recall@5} và \textbf{session recall@10}: tỉ lệ gold sessions xuất hiện trong top-k evidence được đưa vào bước trả lời. Metric này phù hợp với câu hỏi cần nối nhiều phiên, vì nó đo trực tiếp liệu graph channel có đưa đúng vùng bằng chứng vào prompt sớm hay không.
+\subsection{So sánh tổng quan các cấu hình}
+
+Kết quả cho thấy CogMem ở cấu hình multi-channel với đầy đủ sáu loại node đạt 31 trên 35 câu hỏi, cao hơn mức 30/35 của HINDSIGHT baseline. Khi chuyển sang chế độ graph-only -- tức chỉ dùng kênh đồ thị mà không có sự hỗ trợ của ba kênh còn lại -- kết quả giảm xuống rõ rệt. Điều này xác nhận một điểm quan trọng: đồ thị bộ nhớ rất hữu ích để nối các bằng chứng lại với nhau, nhưng nó không nên thay thế hoàn toàn truy vấn ngữ nghĩa, truy vấn từ khóa và truy vấn thời gian. Một hệ thống bộ nhớ dài hạn hiệu quả cần sự kết hợp của tất cả các kênh.
 
 \begin{table}[H]
 \centering
-\caption{Graph-only LongMemEval v16: SUM reducer so với MAX control}
+\caption{LongMemEval: so sánh các cấu hình truy vấn và loại node}
+\label{tab:longmemeval_results}
+\small
+\begin{tabularx}{\linewidth}{@{}p{8.5cm}cc@{}}
+\toprule
+\textbf{Cấu hình được đánh giá} & \textbf{Đạt/Tổng} & \textbf{Tỉ lệ} \\
+\midrule
+HINDSIGHT baseline & 30/35 & 85,7\% \\
+Multi-channel + 6 loại node & 31/35 & 88,6\% \\
+Multi-channel + 5 loại node, bỏ thói quen & 31/35 & 88,6\% \\
+Multi-channel + 5 loại node, bỏ hành động--kết quả & 29/35 & 82,9\% \\
+Multi-channel + 5 loại node, bỏ ý định & 29/35 & 82,9\% \\
+Graph-only + 6 loại node & 26/35 & 74,3\% \\
+Graph-only + 5 loại node, bỏ thói quen & 27/35 & 77,1\% \\
+Graph-only + 5 loại node, bỏ hành động--kết quả & 24/35 & 68,6\% \\
+Graph-only + 5 loại node, bỏ ý định & 24/35 & 68,6\% \\
+Graph-only + 3 loại node gốc (kiểu HINDSIGHT) & 22/35 & 62,9\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Bảng \ref{tab:longmemeval_results} cho phép rút ra ba nhận xét quan trọng. 
+
+Thứ nhất, CogMem không phải đánh đổi chất lượng để có được cấu trúc nhận thức phong phú hơn. Cấu hình đầy đủ đạt 88,6\%, cao hơn mức 85,7\% của baseline -- một sự cải thiện khiêm tốn nhưng đáng ghi nhận, vì nó cho thấy việc thêm các loại node mới không gây nhiễu cho hệ thống.
+
+Thứ hai, khi chỉ dùng kênh đồ thị, việc có thêm các loại node chuyên biệt mang lại lợi ích rõ rệt: cấu hình với sáu loại node đạt 74,3\%, trong khi đối chứng với ba loại node gốc chỉ đạt 62,9\%. Khoảng cách 11,4 điểm phần trăm này cho thấy giá trị của cấu trúc nhận thức được bộc lộ rõ nhất khi hệ thống phải dựa hoàn toàn vào đồ thị.
+
+Thứ ba, node thói quen chưa thể hiện được đóng góp độc lập trên tập dữ liệu này. Việc loại bỏ thói quen không làm giảm độ chính xác ở chế độ multi-channel, và thậm chí còn tăng nhẹ ở chế độ graph-only. Điều này phù hợp với phân tích ở Chương 3: thói quen là một lựa chọn biểu diễn có cơ sở lý thuyết, nhưng các bộ dữ liệu hiện tại chưa chứa đủ các tình huống đòi hỏi nhận diện hành vi lặp lại và ngữ cảnh kích hoạt để chứng minh giá trị của nó.
+
+\subsection{Đối chứng SUM và MAX trên kênh đồ thị}
+
+Để kiểm tra riêng đóng góp của cơ chế cộng dồn tín hiệu (SUM spreading activation), một thí nghiệm đối chứng được thiết kế với sự kiểm soát chặt chẽ: giữ nguyên toàn bộ đồ thị bộ nhớ đã nạp, giữ nguyên cấu hình graph-only, tắt bộ xếp hạng lại, và \textbf{chỉ thay đổi duy nhất} cách tính toán mức độ kích hoạt trên đồ thị. Một cấu hình dùng phép cộng (SUM) để tích lũy tín hiệu từ nhiều đường bằng chứng; cấu hình đối chứng dùng phép lấy cực đại (MAX) để chỉ giữ đường mạnh nhất.
+
+\begin{table}[H]
+\centering
+\caption{Kênh đồ thị trên LongMemEval: so sánh SUM và MAX}
 \label{tab:sum_vs_max_graph_only}
+\small
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Reducer} & \textbf{Cases} & \textbf{Mean @5} & \textbf{Mean @10} & \textbf{Hit @5} \\
+\textbf{Cơ chế} & \textbf{Số câu} & \textbf{Trung bình @5} & \textbf{Trung bình @10} & \textbf{Số câu đạt @5} \\
 \midrule
-SUM & 35 & 0.8052 & 0.8481 & 33 \\
-MAX & 35 & 0.7624 & 0.8481 & 32 \\
+Cộng dồn (SUM) & 35 & 0,805 & 0,848 & 33 \\
+Cực đại (MAX) & 35 & 0,762 & 0,848 & 32 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-SUM cải thiện mean session recall@5 thêm 0.0429. Trong 35 câu hỏi, SUM tốt hơn MAX ở 2 câu, MAX không tốt hơn SUM ở câu nào, và 33 câu còn lại hòa ở top-5. Ngoài ra, thứ tự top-10 evidence khác nhau ở 12/35 câu, cho thấy reducer không chỉ thay đổi score nội bộ mà thực sự thay đổi thứ tự bằng chứng được đưa vào context.
+Cơ chế cộng dồn cải thiện tỉ lệ truy vấn phiên trung bình ở top-5 thêm 0,043. Trong 35 câu hỏi, SUM cho kết quả tốt hơn MAX ở 2 câu, MAX không tốt hơn SUM ở bất kỳ câu nào, và 33 câu còn lại hòa nhau ở top-5. Ngoài ra, thứ tự của top-10 bằng chứng khác nhau ở 12 trên 35 câu, cho thấy cơ chế cộng dồn không chỉ thay đổi điểm số nội bộ mà thực sự làm thay đổi thứ tự các bằng chứng được đưa vào ngữ cảnh sinh câu trả lời.
 
-Hai ví dụ định tính minh họa rõ cơ chế này. Với câu hỏi về chuyến đi gia đình gần nhất, SUM đưa đủ hai phiên liên quan vào top-5 evidence, trong khi MAX chỉ đưa được một phiên. Với câu hỏi xin mẹo di chuyển ở Tokyo, MAX vẫn tìm thấy evidence về Suica và Shinjuku/Tokyo nhưng để chúng ở khoảng rank 6--7; SUM kéo evidence liên quan lên rank đầu, nhờ tín hiệu hội tụ từ nhiều đường graph. Như vậy, lợi ích chính của SUM không phải là tạo ra evidence mới, mà là đưa evidence đúng vào phần ngân sách prompt sớm hơn.
+Hai ví dụ cụ thể minh họa rõ cơ chế này. Với câu hỏi về chuyến đi gia đình gần nhất, SUM đưa được đủ hai phiên có liên quan vào top-5 bằng chứng, trong khi MAX chỉ đưa được một phiên. Với câu hỏi xin lời khuyên di chuyển ở Tokyo, MAX vẫn tìm thấy các bằng chứng về thẻ Suica và khu vực Shinjuku/Tokyo nhưng xếp chúng ở vị trí thứ 6--7; SUM đã kéo được các bằng chứng này lên vị trí cao hơn nhờ tín hiệu hội tụ từ nhiều đường trên đồ thị. Như vậy, lợi ích chính của SUM không phải là tạo ra bằng chứng mới, mà là đưa bằng chứng đúng vào phần ngân sách prompt sớm hơn, trước khi bị cắt bỏ.
 
-Kết quả recall@10 bằng nhau cho thấy claim cần được hiểu hẹp và trung thực: MAX thường vẫn có thể tìm thấy evidence nếu ngân sách đủ rộng, nhưng SUM ưu tiên evidence đúng tốt hơn ở top-k nhỏ. Vì vậy, thí nghiệm này ủng hộ việc dùng SUM làm mặc định cho \textit{graph-only channel}; nó không phủ định kết luận lớn hơn rằng hệ thống hoàn chỉnh vẫn nên dùng multi-channel recall.
+\subsection{Hiệu năng nạp dữ liệu}
 
-Kết quả này có ba hàm ý:
-
-\begin{enumerate}
-    \item \textbf{Multi-channel recall là cần thiết}: graph traversal một mình không đủ ổn định trên câu hỏi hội thoại dài, vì nhiều câu trả lời cần lexical match, semantic similarity và temporal evidence cùng lúc.
-    \item \textbf{Habit chưa có bằng chứng uplift mạnh}: cấu hình không dùng habit node vẫn đạt kết quả rất cao trên LongMemEval v16. Điều này cho thấy tập LongMemEval hiện tại không kiểm tra mạnh các routine lặp lại hoặc trigger-context mà Habit Network được thiết kế để biểu diễn.
-    \item \textbf{Fact type chuyên biệt có giá trị theo điều kiện}: intention và action-effect có cơ sở rõ hơn trong các workload nhắm đích, nhưng không nên claim rằng mọi fact type đều luôn cần thiết trong mọi benchmark.
-\end{enumerate}
-
-Các lỗi còn lại trên LongMemEval tập trung vào đếm sai khi có nhiễu hội thoại, chọn nhầm giá trị cũ trong memory xung đột, và thiếu chi tiết cá nhân trong câu trả lời cuối cùng. Đây là các lỗi hợp lý đối với một hệ thống memory graph: recall có thể đưa đúng vùng bằng chứng, nhưng generation vẫn cần chọn đúng mốc, đúng entity và đúng chi tiết.
-
-\subsection{LoCoMo}
-
-Trên LoCoMo, cấu hình cuối của CogMem đạt mục tiêu chính: vượt mốc 70\% manual PASS. Trong phần này, PASS được tính theo tiêu chuẩn thực dụng: câu trả lời được xem là PASS nếu nó đúng hoàn toàn hoặc đúng lõi và đủ dùng cho người đọc. Cách tính này phản ánh mục tiêu ứng dụng của long-term memory assistant tốt hơn so với một nhãn strict quá hẹp.
+Ngoài độ chính xác, tốc độ nạp dữ liệu là một yếu tố then chốt nếu hệ thống bộ nhớ được triển khai trong ứng dụng thực tế. Trên mô hình cục bộ Ministral3-3B, CogMem xử lý một cuộc hội thoại trong trung bình khoảng 30 phút, trong khi HINDSIGHT thường cần từ 90 đến 120 phút. Lý do chính cho sự khác biệt này là HINDSIGHT sinh thêm các quan sát trung gian trong quá trình nạp, còn CogMem đi theo pipeline trích xuất fact trực tiếp hơn và kiểm soát số lượng node chặt chẽ hơn.
 
 \begin{table}[H]
 \centering
-\caption{LoCoMo full-run manual PASS}
-\label{tab:locomo_full_accuracy}
-\begin{tabularx}{\linewidth}{@{}Yccc@{}}
+\caption{So sánh hiệu năng nạp dữ liệu trung bình cho một cuộc hội thoại}
+\label{tab:retain_efficiency_comparison}
+\small
+\begin{tabularx}{\linewidth}{@{}p{5.5cm}cc@{}}
 \toprule
-\textbf{Cấu hình} & \textbf{Total} & \textbf{Manual PASS} & \textbf{Accuracy} \\
+\textbf{Hệ thống} & \textbf{Thời gian nạp} & \textbf{Số node tạo ra} \\
 \midrule
-Baseline trước evidence guard & 161 & 97 & 60.2\% \\
-Cấu hình cuối với evidence guard và snippet windows & 161 & 119 & 73.9\% \\
+HINDSIGHT baseline & 90--120 phút & khoảng 1.500 node \\
+CogMem & khoảng 30 phút & khoảng 700 node \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Cấu hình cuối tăng thêm 22 câu PASS so với baseline trước đó. Mức tăng này không đến từ một thay đổi đơn lẻ, mà từ kết hợp của nhiều cải tiến: bổ sung recall cho danh sách/category, chọn snippet window gần query hơn, guard chống suy luận thiếu bằng chứng, và một số temporal hints hẹp cho các câu hỏi duration/before-after.
+Như vậy, CogMem nhanh hơn khoảng ba đến bốn lần trong giai đoạn nạp dữ liệu và tạo ra ít hơn một nửa số node so với HINDSIGHT. Đây là một lợi thế thực tế quan trọng: hệ thống không chỉ duy trì được chất lượng câu trả lời tương đương hoặc tốt hơn trong phần lớn cấu hình, mà còn giảm đáng kể chi phí nạp dữ liệu ban đầu, kích thước đồ thị bộ nhớ và độ phức tạp khi truy vấn.
+
+% ============================================================
+\section{Kết quả trên LoCoMo}
+% ============================================================
+
+LoCoMo được sử dụng để kiểm tra cấu hình cuối cùng của CogMem trên một bộ dữ liệu dài hơn, nhiều nhiễu hơn và có tỉ lệ câu hỏi đa bước cao hơn so với LongMemEval. Khác với LongMemEval nơi kết quả được chấm tự động, toàn bộ 161 câu trả lời trên LoCoMo được kiểm tra thủ công theo một bộ tiêu chí ngữ nghĩa. Trong báo cáo này, ``Đạt'' bao gồm cả câu trả lời đúng hoàn toàn và câu trả lời đúng ở mức chấp nhận được; hai mức này không được tách riêng trong bảng chính để giữ cho cách đọc được đơn giản và tập trung vào bức tranh tổng thể.
+
+\subsection{Kết quả tổng quan}
 
 \begin{table}[H]
 \centering
-\caption{LoCoMo category breakdown theo manual PASS}
+\caption{LoCoMo: cấu hình cuối so với baseline trước đó}
+\label{tab:locomo_full_accuracy}
+\small
+\begin{tabularx}{\linewidth}{@{}p{7.5cm}ccc@{}}
+\toprule
+\textbf{Cấu hình} & \textbf{Tổng số câu} & \textbf{Đạt} & \textbf{Tỉ lệ} \\
+\midrule
+Baseline trước bộ luật bám bằng chứng & 161 & 97 & 60,2\% \\
+Cấu hình cuối với bảo vệ bằng chứng và cửa sổ trích & 161 & 119 & 73,9\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Cấu hình cuối cùng tăng thêm 22 câu đạt so với baseline trước đó và vượt mục tiêu đề ra là 70\%. Mức tăng này không đến từ một thay đổi đơn lẻ, mà là kết quả tích lũy của nhiều cải tiến bổ sung cho nhau:
+
+\begin{enumerate}
+    \item \textbf{Truy hồi cho câu hỏi dạng danh sách và phân loại}: các câu hỏi yêu cầu liệt kê (ban nhạc, hoạt động, trò chơi, địa điểm) được hỗ trợ bằng cơ chế alias theo loại danh sách. Nhờ vậy, hệ thống ít bị mắc kẹt vào một tên gọi phổ biến và có cơ hội kéo đủ các phần tử liên quan vào ngữ cảnh.
+    \item \textbf{Cửa sổ trích dẫn gần truy vấn}: thay vì chỉ dùng phần đầu của đoạn trích nguyên văn, hệ thống chọn đoạn xung quanh thực thể, từ khóa truy vấn, cụm từ chỉ thời lượng và alias danh mục. Điều này giảm đáng kể lỗi ``truy vấn đúng fact nhưng phần tổng hợp không thấy chi tiết cần trả lời''.
+    \item \textbf{Cơ chế bảo vệ chống suy luận thiếu bằng chứng}: với các câu hỏi về lý do hoặc quan hệ nhân quả, hệ thống được nhắc nhở không suy diễn nếu chủ thể, đối tượng hoặc quan hệ được hỏi không xuất hiện trong bộ nhớ.
+    \item \textbf{Gợi ý thời gian hẹp}: với một số mẫu có độ tin cậy cao, hệ thống tính trước các gợi ý như thành phố trước chuyến đi hoặc thời lượng của một hội thảo. Đây không phải là một bộ suy luận thời gian tổng quát, nhưng giúp tránh được một số lỗi suy luận ngày tháng lặp đi lặp lại.
+\end{enumerate}
+
+\subsection{Phân tích theo nhóm câu hỏi}
+
+\begin{table}[H]
+\centering
+\caption{LoCoMo: phân rã kết quả theo nhóm câu hỏi}
 \label{tab:locomo_category_breakdown}
+\small
 \begin{tabular}{@{}lccc@{}}
 \toprule
-\textbf{Category} & \textbf{Total} & \textbf{Manual PASS} & \textbf{Rate} \\
+\textbf{Nhóm câu hỏi} & \textbf{Tổng số câu} & \textbf{Đạt} & \textbf{Tỉ lệ đạt} \\
 \midrule
-causal & 11 & 10 & 90.9\% \\
-multi-hop & 12 & 11 & 91.7\% \\
-preference & 17 & 15 & 88.2\% \\
-single-hop & 109 & 78 & 71.6\% \\
-temporal & 12 & 5 & 41.7\% \\
+Quan hệ nhân quả (causal) & 11 & 10 & 90,9\% \\
+Truy hồi đa bước (multi-hop) & 12 & 11 & 91,7\% \\
+Sở thích (preference) & 17 & 15 & 88,2\% \\
+Truy hồi đơn (single-hop) & 109 & 78 & 71,6\% \\
+Suy luận thời gian (temporal) & 12 & 5 & 41,7\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Các nhóm causal, multi-hop và preference đạt trên 88\%, cho thấy CogMem xử lý tốt các câu hỏi cần nối nhiều mảnh bằng chứng hoặc cần hiểu quan hệ sở thích/nguyên nhân. Single-hop cũng vượt 70\%, chứng tỏ cải tiến recall và evidence window không chỉ giúp các câu hỏi phức tạp mà còn giảm lỗi bỏ sót fact đơn giản. Ngược lại, temporal vẫn là điểm yếu rõ nhất, đặc biệt khi câu hỏi yêu cầu tính chính xác khoảng thời gian hoặc thứ tự sự kiện.
+Kết quả phân rã theo nhóm vẽ nên một bức tranh rất rõ ràng về điểm mạnh và điểm yếu của CogMem. Các nhóm quan hệ nhân quả, truy vấn đa bước và sở thích đều đạt trên 88\%, chứng tỏ CogMem xử lý rất tốt các câu hỏi đòi hỏi phải nối nhiều mảnh bằng chứng lại với nhau hoặc phải hiểu được quan hệ sở thích và nguyên nhân. Nhóm truy vấn đơn cũng vượt 71\%, cho thấy các cải tiến về truy vấn và cửa sổ trích dẫn không chỉ giúp ích cho câu hỏi phức tạp mà còn giảm được lỗi bỏ sót đối với các fact đơn giản.
 
-\subsection{Các nhóm cải thiện chính}
+Ngược lại, nhóm suy luận thời gian vẫn là điểm yếu rõ rệt nhất với chỉ 41,7\% câu đạt. Các câu hỏi dạng này thường yêu cầu tính chính xác về số ngày, số tháng, thứ tự sự kiện hoặc khoảng cách thời gian -- những yêu cầu mà hệ thống hiện tại chưa được trang bị đầy đủ công cụ để xử lý.
 
-So với baseline trước đó, cấu hình cuối cải thiện nhiều nhất ở bốn nhóm:
+\subsection{Phân tích lỗi còn tồn tại}
 
-\begin{enumerate}
-    \item \textbf{Entity và list recall}: các câu hỏi yêu cầu liệt kê ban nhạc, hoạt động, game, item hoặc địa điểm được hỗ trợ bằng category aliases và query-relevant supplements. Ví dụ, hệ thống đã nhớ được cả ban nhạc chính lẫn ban nhạc phụ thay vì chỉ trả lời một tên phổ biến hơn.
-    \item \textbf{Multi-hop evidence}: các câu hỏi cần nối nhiều phiên hội thoại hưởng lợi từ graph recall và snippet windows, vì evidence không còn bị giới hạn vào đoạn đầu của raw snippet.
-    \item \textbf{Blank-gold control}: khi memory không chứa quan hệ được hỏi, prompt guard giúp hệ thống nói rõ không có thông tin thay vì tự suy luận lý do.
-    \item \textbf{Temporal hinting hẹp}: với một số mẫu duration hoặc before-after có confidence cao, hệ thống đưa ra hint deterministic trước generation, ví dụ thành phố trước chuyến đi hoặc thời lượng một workshop.
-\end{enumerate}
-
-\subsection{Phân tích lỗi}
-
-Mặc dù đã vượt mục tiêu chung, LoCoMo vẫn để lại các nhóm lỗi có tính hệ thống:
+Mặc dù đã vượt mục tiêu chung, kết quả trên LoCoMo vẫn để lộ một số nhóm lỗi có tính hệ thống, cần được giải quyết trong các phiên bản tiếp theo:
 
 \begin{enumerate}
-    \item \textbf{Enumeration/list completeness}: một số câu hỏi yêu cầu liệt kê toàn bộ hoạt động, game, địa điểm hoặc món đồ vẫn bị thiếu phần tử. Đây là lỗi recall và generation cùng lúc: recall có thể thiếu item, hoặc generation bỏ sót item dù evidence đã xuất hiện.
-    \item \textbf{Exact temporal/count reasoning}: hệ thống còn nhầm số lần, số tháng hoặc số sự kiện. Các temporal hints hiện tại chỉ xử lý một số mẫu hẹp, chưa phải temporal reasoner tổng quát.
-    \item \textbf{Specific detail substitution}: generation đôi khi trả lời đúng vùng chủ đề nhưng thay nhầm chi tiết cụ thể, chẳng hạn dùng một mô tả chung thay cho tên riêng hoặc thuộc tính nguyên văn.
-    \item \textbf{Evidence calibration}: khi nhiều evidence gần đúng cùng xuất hiện, model đôi khi chọn bằng chứng dễ diễn giải hơn thay vì bằng chứng chính xác nhất.
+    \item \textbf{Thiếu phần tử trong câu hỏi liệt kê}: một số câu hỏi yêu cầu liệt kê toàn bộ hoạt động, trò chơi, địa điểm hoặc vật dụng vẫn bị thiếu phần tử. Lỗi này có thể đến từ hai nguồn: hoặc giai đoạn truy vấn không kéo được đủ các phần tử, hoặc giai đoạn tổng hợp bỏ sót một số phần tử mặc dù bằng chứng đã có mặt trong ngữ cảnh.
+    \item \textbf{Suy luận thời gian chính xác}: hệ thống còn nhầm lẫn về số lần, số tháng hoặc số sự kiện. Các gợi ý thời gian hiện tại mới chỉ xử lý được một số mẫu hẹp, chưa thể thay thế một bộ suy luận thời gian tổng quát.
+    \item \textbf{Thay nhầm chi tiết cụ thể}: trong một số trường hợp, phần tổng hợp trả lời đúng chủ đề nhưng sử dụng nhầm tên riêng hoặc thuộc tính nguyên văn.
+    \item \textbf{Hiệu chuẩn bằng chứng}: khi có nhiều bằng chứng gần đúng cùng xuất hiện trong ngữ cảnh, mô hình đôi khi chọn bằng chứng dễ diễn giải hơn thay vì bằng chứng chính xác nhất.
 \end{enumerate}
 
-Các lỗi này cho thấy đường cải thiện tiếp theo không nhất thiết là thêm fact type mới. Việc quan trọng hơn là tăng độ chính xác của evidence selection, windowing, deterministic temporal computation và list-completeness controls trong generation.
+Những lỗi này cho thấy hướng cải thiện tiếp theo không nhất thiết là thêm các loại node mới. Việc quan trọng hơn là tăng độ chính xác của khâu lựa chọn bằng chứng, cải thiện cơ chế chọn cửa sổ trích dẫn, phát triển bộ suy luận thời gian tất định, và tăng cường kiểm soát tính đầy đủ của danh sách trong khâu tổng hợp câu trả lời.
 
-\subsection{Kết luận từ thực nghiệm}
+% ============================================================
+\section{Đánh giá định tính trên CogMem Bench}
+% ============================================================
 
-Kết quả LongMemEval và LoCoMo cùng chỉ ra một xu hướng nhất quán: CogMem hoạt động tốt nhất khi các kênh recall được dùng bổ trợ nhau. Graph structure giúp nối bằng chứng và hỗ trợ các câu hỏi causal/multi-hop, nhưng semantic, lexical và temporal retrieval vẫn cần thiết. Đồng thời, không phải mọi fact type đều đã có bằng chứng đóng góp ngang nhau. Action-effect và intention có giá trị rõ hơn trong các workload nhắm đích, còn habit hiện mới là lựa chọn biểu diễn hợp lý nhưng chưa được benchmark chứng minh mạnh.
+LongMemEval và LoCoMo đã chứng minh rằng CogMem hoạt động hiệu quả trên các bộ dữ liệu chuẩn. Tuy nhiên, hai bộ dữ liệu này chưa đủ để chứng minh một cách trực diện giá trị của từng loại node nhận thức. CogMem Bench được thiết kế chính xác để lấp đầy khoảng trống này: thông qua cơ chế so sánh có kiểm soát giữa ngân hàng bộ nhớ đầy đủ và ngân hàng bộ nhớ đã loại bỏ một loại node, CogMem Bench cho phép đánh giá một cách định tính xem liệu một loại node cụ thể có thực sự cần thiết cho câu trả lời đúng hay không.
 
-\vspace{1em}
-\noindent\textit{Chương 6 sẽ tổng kết ý nghĩa của các kết quả trên, đồng thời chỉ ra các hướng phát triển thực tế nhất cho phiên bản CogMem tiếp theo.}
+Phần này tập trung vào hai loại node có tín hiệu thực nghiệm rõ ràng nhất trong dự án: \textit{ý định} và \textit{hành động--kết quả}. Node thói quen vẫn được giữ lại trong thiết kế vì có cơ sở nhận thức vững chắc, nhưng kết quả thực nghiệm hiện tại cho thấy nó chưa tạo ra khác biệt rõ rệt trên các khối lượng công việc đã chạy.
+
+\subsection{Node ý định: khi kế hoạch chưa hoàn thành là thông tin quyết định}
+
+Một kịch bản định tính tiêu biểu từ CogMem Bench đặt ra câu hỏi: người dùng đã định bắt đầu thói quen bền vững nào nhưng vẫn chưa thực hiện? Trong ngân hàng bộ nhớ đầy đủ, hệ thống lưu giữ các fact thuộc loại ý định như ``người dùng dự định bắt đầu ủ phân hữu cơ (composting)'' và ``người dùng vẫn chưa bắt đầu''. Những fact này được đưa vào danh sách truy vấn và câu trả lời cuối cùng chính xác là \textit{composting}.
+
+Khi loại bỏ hoàn toàn node ý định ngay từ bước nạp dữ liệu, ngân hàng bộ nhớ đối chứng không còn bất kỳ node nào chứa thông tin về kế hoạch chưa hoàn thành này. Quá trình truy vấn vẫn trả về kết quả -- không hề rỗng -- nhưng các bằng chứng nổi bật nhất chuyển sang một chủ đề khác: thùng chứa nước mưa (rain barrel) và thu gom nước mưa. Hệ thống trả lời sai bằng một phương án gây nhiễu (decoy) nghe có vẻ hợp lý nhưng không đúng với câu hỏi.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{Images/cogmem_bench_intention_graph.png}
+\caption{Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ các node ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất hoàn toàn biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa. Các node màu đỏ là ý định, viền xanh dày là các fact được truy vấn vào top-25.}
+\label{fig:ch4_cogmem_bench_intention}
+\end{figure}
+
+Điểm quan trọng của ví dụ này là: lỗi của ngân hàng đối chứng không phải do truy vấn thất bại hoàn toàn. Hệ thống vẫn có rất nhiều fact để truy xuất, nhưng không có fact nào mang đúng trạng thái ``đã định làm nhưng chưa làm''. Đây chính là bằng chứng định tính cho thấy node ý định có giá trị thực sự trong các tình huống mà thông tin đúng bị phân tán mỏng (sparse-context), nơi một kế hoạch chưa hoàn thành không thể được hấp thụ một cách tự nhiên bởi các fact thông thường như world hay experience.
+
+\subsection{Node hành động--kết quả: khi cần nhớ quan hệ điều kiện, hành động và kết quả}
+
+Một kịch bản agentic tiêu biểu từ CogMem Bench mô phỏng vết công cụ của tác nhân AI: khi gọi API của Stripe, hệ thống nhận được mã lỗi HTTP 429 cùng với header Retry-After. Câu hỏi đặt ra là: tác nhân đã làm gì và kết quả ra sao?
+
+Trong ngân hàng bộ nhớ đầy đủ, CogMem lưu giữ các fact thuộc loại hành động--kết quả, biểu diễn trọn vẹn chuỗi nhân quả: điều kiện là HTTP 429 và sự xuất hiện của header Retry-After, hành động là thực hiện retry với chiến lược exponential backoff và tôn trọng thời gian chờ từ header, kết quả là các lần gọi API sau đó đều trả về mã 200 thành công.
+
+Ngân hàng đối chứng -- nơi node hành động--kết quả bị loại bỏ -- vẫn nhớ được một số fact gần đúng. Ví dụ: hệ thống biết rằng Stripe có cơ chế Retry-After, hoặc logic backoff đã được thêm vào mã nguồn. Tuy nhiên, các fact này bị thiếu mất liên kết có cấu trúc giữa ba thành phần: điều kiện, hành động và kết quả. Vì vậy, khi được hỏi ``kết quả cuối cùng là gì'', hệ thống không thể khôi phục được thông tin rằng các lần gọi sau đã trả về 200.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{Images/cogmem_bench_action_effect_graph.png}
+\caption{Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry. Các node màu tím là hành động--kết quả.}
+\label{fig:ch4_cogmem_bench_action_effect}
+\end{figure}
+
+Trong số 12 kịch bản agentic được đánh giá tại thời điểm viết báo cáo, có 5 kịch bản tạo ra được sự phân biệt rõ ràng theo tiêu chí: ngân hàng đầy đủ trả lời đúng, ngân hàng loại bỏ hành động--kết quả trả lời sai. Con số 5/12 tuy khiêm tốn nhưng mang một ý nghĩa thực tế quan trọng: nó chứng minh rằng trong các vết công cụ nơi quan hệ can thiệp là phần thông tin cốt lõi, việc lưu riêng node hành động--kết quả giúp hệ thống giữ được tri thức mà các fact phẳng dễ dàng làm mờ hoặc bỏ sót. 
+
+Đáng chú ý, trong 5 kịch bản phân biệt được, có những trường hợp mà sự khác biệt giữa hai ngân hàng bộ nhớ là rất lớn. Ví dụ, ở kịch bản về Azure token (xác thực thiết bị với mã lỗi AADSTS70043), ngân hàng đầy đủ có tới 24 fact, trong khi ngân hàng loại bỏ chỉ còn 5 fact. Điều này cho thấy mô hình trích xuất đã phân bổ phần lớn thông tin quan trọng vào đúng loại node chuyên biệt, và khi loại node này bị vô hiệu hóa, một lượng lớn tri thức biến mất khỏi đồ thị.
+
+\subsection{Hình ảnh hóa đồ thị bộ nhớ từ CogMem Bench}
+
+Để minh họa trực quan hơn cho sự khác biệt giữa ngân hàng bộ nhớ đầy đủ và ngân hàng đã loại bỏ, dự án đã xây dựng công cụ hình ảnh hóa đồ thị dựa trên thư viện Cytoscape. Mỗi hình ảnh hiển thị song song hai đồ thị: bên trái là ngân hàng đầy đủ, bên phải là ngân hàng đã loại bỏ. Các node được tô màu theo loại fact: màu đỏ cho ý định, màu tím cho hành động--kết quả, màu xanh dương cho trải nghiệm, màu xám cho tri thức khách quan, màu cam cho quan điểm, và màu xanh ngọc cho thói quen. Đường viền xanh dày đánh dấu các fact nằm trong top-25 được truy vấn -- tức những fact thực sự được đưa vào prompt để sinh câu trả lời. Các node màu vàng và có kích thước lớn hơn là những fact được mô hình ngôn ngữ trích dẫn trực tiếp trong câu trả lời cuối cùng.
+
+Hình \ref{fig:ch4_cogmem_bench_intention} và \ref{fig:ch4_cogmem_bench_action_effect} ở trên là hai ví dụ tiêu biểu được trích xuất từ công cụ này. Trong cả hai trường hợp, có thể quan sát thấy rõ rằng khi loại node chuyên biệt bị loại bỏ, không chỉ các node màu tương ứng biến mất, mà toàn bộ cụm (cluster) thông tin liên quan cũng bị ảnh hưởng -- các fact được trích dẫn trong câu trả lời (node vàng) hoặc biến mất hoàn toàn, hoặc chuyển sang một cụm khác không liên quan đến đáp án đúng.
+
+Những hình ảnh trực quan này cung cấp một bằng chứng mạnh mẽ cho luận điểm cốt lõi của CogMem: \textit{không phải mọi thông tin đều có thể được biểu diễn một cách thỏa đáng dưới dạng fact phẳng}. Có những loại tri thức -- như một kế hoạch chưa hoàn thành hay một quy luật nhân quả có cấu trúc -- đòi hỏi một không gian biểu diễn chuyên biệt với thông tin bổ trợ, kiểu liên kết và ngữ nghĩa riêng. Khi không gian đó bị loại bỏ, hệ thống không chỉ mất đi một vài fact, mà còn mất đi khả năng phân biệt giữa các loại tín hiệu nhận thức khác nhau -- một mất mát mà các con số accuracy đơn thuần khó lòng phản ánh hết.
+
+% ============================================================
+\section{Tổng kết thực nghiệm}
+% ============================================================
+
+Kết quả từ LongMemEval, LoCoMo và CogMem Bench cùng hướng tới một kết luận cân bằng và có sắc thái.
+
+CogMem vận hành hiệu quả từ đầu đến cuối trên các bộ dữ liệu hội thoại dài: đạt 88,6\% trên LongMemEval ở cấu hình đa kênh đầy đủ và 73,9\% trên LoCoMo ở cấu hình cuối cùng, vượt mục tiêu đề ra. Cấu trúc đồ thị và cơ chế cộng dồn tín hiệu giúp kết nối các bằng chứng một cách hiệu quả, nhưng hệ thống hoàn chỉnh vẫn cần sự kết hợp của cả bốn kênh truy vấn: ngữ nghĩa, từ khóa, đồ thị và thời gian. Không một kênh đơn lẻ nào có thể thay thế được sức mạnh tổng hợp của cả bốn.
+
+Các loại node chuyên biệt không đóng góp một cách đồng đều. Node ý định và node hành động--kết quả có bằng chứng định tính và định lượng rõ ràng: việc loại bỏ chúng làm giảm độ chính xác từ 2 đến 6 điểm phần trăm tùy cấu hình. Node thói quen, ngược lại, hiện mới chỉ là một lựa chọn biểu diễn có cơ sở lý thuyết nhưng chưa được chứng minh mạnh mẽ bằng thực nghiệm trên các bộ dữ liệu hiện có.
+
+Kết luận then chốt rút ra từ chương này là: một hệ thống bộ nhớ dài hạn cho tác nhân hội thoại cần hội tụ đủ ba yếu tố -- biểu diễn giàu cấu trúc với nhiều loại node và nhiều kiểu liên kết, cơ chế truy vấn đa kênh không phụ thuộc vào một kênh duy nhất, và quy trình kiểm chứng thực nghiệm có kiểm soát theo từng loại câu hỏi để hiểu rõ thành phần nào đang thực sự tạo ra giá trị. CogMem đã đạt được một phiên bản vận hành đáng tin cậy của cách tiếp cận này, đồng thời chỉ rõ những phần cần tiếp tục cải thiện: suy luận thời gian chính xác, liệt kê đầy đủ, hiệu chuẩn bằng chứng, và mở rộng thử nghiệm trên các tình huống thực tế thay vì chỉ tối ưu hóa trên bộ dữ liệu chuẩn.
 
 \end{document}

@@ -1,7 +1,7 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Kế thừa kiến trúc đã mô tả ở Chương 3, chương này phân tích cơ sở nhận thức và lý thuyết đằng sau từng quyết định thiết kế chính của CogMem. Mục tiêu của chương không phải là chứng minh mỗi thành phần luôn thắng trên mọi benchmark, mà là chỉ ra vì sao các thành phần đó là những lựa chọn biểu diễn và truy hồi có cơ sở khoa học.}
+\textit{Kế thừa kiến trúc đã mô tả ở phần trước, mục này phân tích cơ sở nhận thức và lý thuyết đằng sau từng quyết định thiết kế chính của CogMem. Mục tiêu không phải là chứng minh mỗi thành phần luôn thắng trên mọi benchmark, mà là chỉ ra vì sao các thành phần đó là những lựa chọn biểu diễn và truy hồi có cơ sở khoa học.}
 
 \section{Phân tích lý thuyết}
 
@@ -105,21 +105,17 @@ CogMem mô hình hóa ý tưởng này bằng \textit{intention\_status}. Một 
 \centering
 \caption{Intention lifecycle và typed transition semantics}
 \label{tab:intention_lifecycle}
-\begin{tabular}{|p{3.0cm}|p{4.0cm}|p{4.4cm}|}
-\hline
+\begin{tabularx}{\linewidth}{@{}YYY@{}}
+\toprule
 \textbf{Tình huống} & \textbf{Biểu diễn trên intention node} & \textbf{Transition semantics} \\
-\hline
+\midrule
 Lập kế hoạch mới & status = planning & chưa cần transition \\
-\hline
 Kế hoạch được thực hiện & status có thể cập nhật; experience mới được tạo & fulfilled\_by: intention $\rightarrow$ experience \\
-\hline
 Sự kiện gợi ra kế hoạch mới & intention planning mới xuất hiện & triggered: experience $\rightarrow$ intention \\
-\hline
 Kế hoạch phụ thuộc kế hoạch khác & hai intention cùng tồn tại & enabled\_by: intention $\rightarrow$ intention \\
-\hline
 Kế hoạch bị hủy bỏ & status = abandoned & không cần edge riêng; trạng thái nằm trên node \\
-\hline
-\end{tabular}
+\bottomrule
+\end{tabularx}
 \end{table}
 
 Các ablation nhắm đích thực hiện sau này trong dự án cho thấy intention network không phải lúc nào cũng tạo lợi thế đồng đều. Tuy nhiên, điều đó không phủ định cơ sở của nó; ngược lại, nó gợi ý rằng prospective representation đặc biệt quan trọng ở các trường hợp mà nội dung ``plan-not-done'' không được world hoặc experience hấp thụ tự nhiên.
@@ -311,6 +307,6 @@ Về mặt nhận thức, đây là phép mô phỏng ý tưởng rằng bộ n�
 
 
 \vspace{1em}
-\noindent\textit{Sau khi cơ sở lý thuyết của các quyết định thiết kế đã được làm rõ, Chương 5 sẽ chuyển sang phần đánh giá thực nghiệm để xem những giả thuyết này biểu hiện như thế nào trên dữ liệu benchmark.}
+\noindent\textit{Sau khi cơ sở lý thuyết của các quyết định thiết kế đã được làm rõ, Chương 4 sẽ chuyển sang phần đánh giá thực nghiệm để xem những giả thuyết này biểu hiện như thế nào trên dữ liệu benchmark.}
 
 \end{document}

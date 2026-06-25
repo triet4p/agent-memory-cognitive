@@ -23,7 +23,6 @@ CORE_TEX_FILES = [
 FIGURE_FILES = [
     SRC / "Images" / "cogmem_pipeline_overview.png",
     SRC / "Images" / "cogmem_memory_graph.png",
-    SRC / "Images" / "manual_evaluation_flow.png",
     SRC / "Images" / "agentic_action_effect_trace.png",
     SRC / "Images" / "habit_diary_workload.png",
 ]
@@ -74,22 +73,30 @@ def test_no_empty_appendix_or_placeholders_in_core_report() -> None:
 
 
 def test_final_results_are_reported() -> None:
-    abstract = _read(SRC / "Chapter" / "0_3_Abstract.tex")
     chapter_5 = _read(SRC / "Chapter" / "5_Numerical_results.tex")
     chapter_6 = _read(SRC / "Chapter" / "6_Conclusions.tex")
+    report = chapter_5 + chapter_6
 
     for token in [
-        "LongMemEval v16",
-        "29/35",
-        "82.9",
+        "HINDSIGHT baseline",
+        "30/35",
+        "31/35",
+        "88.6",
+        "27/35",
+        "77.1",
+        "24/35",
+        "68.6",
         "26/35",
         "74.3",
+        "22/35",
         "0.8052",
         "0.7624",
         "119/161",
         "73.9",
+        "90--120",
+        "700 node",
     ]:
-        assert token in abstract + chapter_5 + chapter_6, f"missing reported result: {token}"
+        assert token in report, f"missing reported result: {token}"
 
     for token in ["baseline", "60.2", "multi-hop", "temporal", "habit", "action-effect", "MAX control"]:
         assert token in chapter_5 + chapter_6, f"missing analysis detail: {token}"
@@ -101,7 +108,10 @@ def test_report_uses_reader_friendly_experiment_names() -> None:
     assert not re.search(r"\bE[0-9]+G?\b", core_text), "internal LongMemEval profile id leaked"
     assert not re.search(r"\bT8[A-Z]?\b", core_text), "internal LoCoMo run id leaked"
     assert not re.search(r"\bc[0-9]{3}\b", core_text), "internal case id leaked"
-    assert "PASS+PARTIAL" not in core_text, "LoCoMo metric should be reported as manual PASS"
+    assert "LongMemEval v16" not in core_text, "internal LongMemEval version leaked"
+    assert "manual PASS" not in core_text
+    assert "Manual PASS" not in core_text
+    assert "PASS+PARTIAL" not in core_text, "LoCoMo metric should be reported as judge PASS"
 
 
 def test_diagrams_and_generated_figures_are_present() -> None:
@@ -116,12 +126,12 @@ def test_diagrams_and_generated_figures_are_present() -> None:
     chapter_5 = _read(SRC / "Chapter" / "5_Numerical_results.tex")
     assert "Images/habit_diary_workload.png" in chapter_4, "habit diary image is not referenced"
     assert "Images/agentic_action_effect_trace.png" in chapter_4, "agentic action-effect image is not referenced"
-    assert "Images/manual_evaluation_flow.png" in chapter_5, "manual evaluation image is not referenced"
-    for label in ["Conversation", "Memory Graph", "Manual Verdict", "Tool Action", "Routine Pattern"]:
+    assert "LLM-as-a-judge" in chapter_5, "judge evaluation flow is not documented"
+    for label in ["Hội thoại", "Đồ thị bộ nhớ", "LLM-as-a-judge", "Hành động công cụ", "Mẫu routine"]:
         assert label in methodology + chapter_4 + chapter_5, f"missing figure overlay label: {label}"
     assert "raw_snippet" in methodology, "raw snippet evidence path is missing"
     assert "SUM spreading" in methodology + theory, "SUM activation discussion is missing"
-    assert "Graph-only LongMemEval v16: SUM reducer so với MAX control" in _read(
+    assert "Graph-only LongMemEval: SUM reducer so với MAX control" in _read(
         SRC / "Chapter" / "5_Numerical_results.tex"
     ), "SUM vs MAX graph-only results table is missing"
 

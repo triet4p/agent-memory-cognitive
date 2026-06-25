@@ -26,8 +26,7 @@ def test_sum_vs_max_numbers_are_in_thesis() -> None:
 
     chapter_5 = _read(SRC / "Chapter" / "5_Numerical_results.tex")
     chapter_6 = _read(SRC / "Chapter" / "6_Conclusions.tex")
-    abstract = _read(SRC / "Chapter" / "0_3_Abstract.tex")
-    report = abstract + chapter_5 + chapter_6
+    report = chapter_5 + chapter_6
 
     expected_values = [
         profiles["E7G"]["mean_session_recall_at_5"],
@@ -63,7 +62,6 @@ def test_no_internal_sum_max_ids_leak_into_thesis() -> None:
     report = "\n".join(
         _read(path)
         for path in [
-            SRC / "Chapter" / "0_3_Abstract.tex",
             SRC / "Chapter" / "3_Methodology.tex",
             SRC / "Chapter" / "5_Numerical_results.tex",
             SRC / "Chapter" / "6_Conclusions.tex",

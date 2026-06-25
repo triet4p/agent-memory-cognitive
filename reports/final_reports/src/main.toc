@@ -1,88 +1,110 @@
 \babel@toc {nil}{}\relax 
-\ttl@change@i {\@ne }{chapter}{0.0cm}{\bfseries \vspace {0.3cm}}{{\bfseries {\scshape } CHAPTER \thecontentslabel .\ }}{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
+\ttl@change@i {\@ne }{chapter}{0.0cm}{\bfseries \vspace {0.3cm}}{{\bfseries {\scshape } CHƯƠNG \thecontentslabel .\ }}{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
 \ttl@change@v {chapter}{}{}{}\relax 
 \ttl@change@i {\@ne }{section}{0.0cm}{\vspace {0.3cm}}{\thecontentslabel \ }{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
 \ttl@change@v {section}{}{}{}\relax 
 \ttl@change@i {\@ne }{subsection}{1.0cm}{\vspace {0.3cm}}{\thecontentslabel \ }{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
 \ttl@change@v {subsection}{}{}{}\relax 
 \thispagestyle {empty}
-\contentsline {chapter}{\numberline {1}INTRODUCTION}{1}{chapter.1}%
-\contentsline {section}{\numberline {1.1}Giới thiệu bài toán}{1}{section.1.1}%
-\contentsline {subsection}{\numberline {1.1.1}Bối cảnh và vấn đề}{1}{subsection.1.1.1}%
-\contentsline {subsection}{\numberline {1.1.2}Hạn chế của các giải pháp hiện tại}{1}{subsection.1.1.2}%
-\contentsline {subsection}{\numberline {1.1.3}Động lực và đóng góp của đồ án}{2}{subsection.1.1.3}%
-\contentsline {subsection}{\numberline {1.1.4}Cấu trúc của đồ án}{3}{subsection.1.1.4}%
-\contentsline {chapter}{\numberline {2}LITERATURE REVIEW}{4}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Tổng quan Lý thuyết và Các hệ thống liên quan}{4}{section.2.1}%
-\contentsline {subsection}{\numberline {2.1.1}Thách thức cốt lõi về Bộ nhớ của Mô hình Ngôn ngữ Lớn (LLMs)}{4}{subsection.2.1.1}%
-\contentsline {subsection}{\numberline {2.1.2}Cơ sở Lý thuyết: Khoa học Nhận thức và Đồ thị Tri thức}{4}{subsection.2.1.2}%
-\contentsline {subsubsection}{\numberline {a}Khoa học Nhận thức và Hệ thống Phân loại Bộ nhớ}{4}{subsubsection.2.1.2.1}%
-\contentsline {subsubsection}{\numberline {b}Đồ thị Tri thức (Knowledge Graphs) và Chức năng Biểu diễn}{5}{subsubsection.2.1.2.2}%
-\contentsline {subsection}{\numberline {2.1.3}Tiến trình phát triển hệ thống Bộ nhớ Dài hạn cho Tác nhân}{5}{subsection.2.1.3}%
-\contentsline {subsubsection}{\numberline {a}HINDSIGHT: Đồ thị dị thể và truy hồi đa kênh}{5}{subsubsection.2.1.3.1}%
-\contentsline {subsubsection}{\numberline {b}HippoRAG2: Truy hồi đồ thị nhấn mạnh liên kết tri thức}{6}{subsubsection.2.1.3.2}%
-\contentsline {subsubsection}{\numberline {c}Các hệ lưu trữ phẳng và vector-centric (Mem0, MemGPT)}{6}{subsubsection.2.1.3.3}%
-\contentsline {subsection}{\numberline {2.1.4}Dữ liệu đánh giá (Evaluation Benchmarks)}{7}{subsection.2.1.4}%
-\contentsline {subsubsection}{\numberline {a}LongMemEval-S (Hội thoại đa phiên)}{7}{subsubsection.2.1.4.1}%
-\contentsline {subsubsection}{\numberline {b}LoCoMo (Lý luận multi-hop)}{7}{subsubsection.2.1.4.2}%
-\contentsline {subsubsection}{\numberline {c}Giới hạn của benchmark chuẩn}{7}{subsubsection.2.1.4.3}%
-\contentsline {subsection}{\numberline {2.1.5}Hạn chế cốt lõi của các Khung hệ thống Bộ nhớ hiện nay (Problem Formulation)}{7}{subsection.2.1.5}%
-\contentsline {chapter}{\numberline {3}METHODOLOGY}{9}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Phương pháp đề xuất}{9}{section.3.1}%
-\contentsline {subsection}{\numberline {3.1.1}Tổng quan kiến trúc hệ thống CogMem}{9}{subsection.3.1.1}%
-\contentsline {subsubsection}{\numberline {a}Phạm vi và giả định triển khai}{10}{subsubsection.3.1.1.1}%
-\contentsline {subsubsection}{\numberline {b}Retain pipeline}{10}{subsubsection.3.1.1.2}%
-\contentsline {subsubsection}{\numberline {c}Recall pipeline}{11}{subsubsection.3.1.1.3}%
-\contentsline {subsubsection}{\numberline {d}Reflect / Synthesis pipeline}{11}{subsubsection.3.1.1.4}%
-\contentsline {subsection}{\numberline {3.1.2}Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}{11}{subsection.3.1.2}%
-\contentsline {subsubsection}{\numberline {a}Nền tảng tâm lý}{11}{subsubsection.3.1.2.1}%
-\contentsline {subsubsection}{\numberline {b}Sáu mạng bộ nhớ}{12}{subsubsection.3.1.2.2}%
-\contentsline {subsubsection}{\numberline {c}Phân biệt Habit vs. Action-Effect}{13}{subsubsection.3.1.2.3}%
-\contentsline {subsubsection}{\numberline {d}Bảy loại liên kết (Edge Types)}{14}{subsubsection.3.1.2.4}%
-\contentsline {subsection}{\numberline {3.1.3}Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw Snippet}{15}{subsection.3.1.3}%
-\contentsline {subsubsection}{\numberline {a}Vấn đề: nén dữ liệu có tổn hao}{15}{subsubsection.3.1.3.1}%
-\contentsline {subsubsection}{\numberline {b}Giải pháp: 2-layer node schema}{15}{subsubsection.3.1.3.2}%
-\contentsline {subsection}{\numberline {3.1.4}Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}{16}{subsection.3.1.4}%
-\contentsline {subsubsection}{\numberline {a}Vấn đề: MAX chỉ giữ đường mạnh nhất}{16}{subsubsection.3.1.4.1}%
-\contentsline {subsubsection}{\numberline {b}Giải pháp: SUM thay cho MAX}{17}{subsubsection.3.1.4.2}%
-\contentsline {subsubsection}{\numberline {c}Ba cơ chế bảo vệ chu trình (Cycle Guards)}{17}{subsubsection.3.1.4.3}%
-\contentsline {subsection}{\numberline {3.1.5}Đóng góp 4: Adaptive Query Routing}{18}{subsection.3.1.5}%
-\contentsline {subsubsection}{\numberline {a}Vấn đề: equal-weight fusion không phản ánh ý định truy vấn}{18}{subsubsection.3.1.5.1}%
-\contentsline {subsubsection}{\numberline {b}Giải pháp: định tuyến và dung hợp theo query type}{18}{subsubsection.3.1.5.2}%
-\contentsline {chapter}{\numberline {4}THEORETICAL ANALYSIS}{21}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Phân tích lý thuyết}{21}{section.4.1}%
-\contentsline {subsection}{\numberline {4.1.1}Cơ sở khoa học nhận thức cho Memory Graph (6 Networks)}{21}{subsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {a}Semantic Memory và World Network}{21}{subsubsection.4.1.1.1}%
-\contentsline {subsubsection}{\numberline {b}Episodic Memory và Experience Network}{21}{subsubsection.4.1.1.2}%
-\contentsline {subsubsection}{\numberline {c}Habit Memory và Habit Network}{22}{subsubsection.4.1.1.3}%
-\contentsline {subsubsection}{\numberline {d}Prospective Memory và Intention Network}{23}{subsubsection.4.1.1.4}%
-\contentsline {subsubsection}{\numberline {e}Theory of Event Coding (TEC) và Action-Effect Network}{24}{subsubsection.4.1.1.5}%
-\contentsline {subsection}{\numberline {4.1.2}Cơ sở khoa học nhận thức cho Raw Snippet}{25}{subsection.4.1.2}%
-\contentsline {subsection}{\numberline {4.1.3}Cơ sở khoa học nhận thức cho SUM + Cycle Guards}{26}{subsection.4.1.3}%
-\contentsline {subsubsection}{\numberline {a}Episodic Buffer của Baddeley}{26}{subsubsection.4.1.3.1}%
-\contentsline {subsubsection}{\numberline {b}Hodgkin-Huxley và Local Refractory Period}{26}{subsubsection.4.1.3.2}%
-\contentsline {subsubsection}{\numberline {c}Wilson-Cowan và Saturation Threshold}{27}{subsubsection.4.1.3.3}%
-\contentsline {subsection}{\numberline {4.1.4}Cơ sở khoa học nhận thức cho Adaptive Query Routing}{27}{subsection.4.1.4}%
-\contentsline {chapter}{\numberline {5}NUMERICAL RESULTS}{28}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Kết quả thực nghiệm}{28}{section.5.1}%
-\contentsline {subsection}{\numberline {5.1.1}Thiết kế đánh giá}{28}{subsection.5.1.1}%
-\contentsline {subsection}{\numberline {5.1.2}LongMemEval v16}{29}{subsection.5.1.2}%
-\contentsline {subsubsection}{\numberline {a}Đối chứng Graph-only: SUM so với MAX}{29}{subsubsection.5.1.2.1}%
-\contentsline {subsection}{\numberline {5.1.3}LoCoMo}{31}{subsection.5.1.3}%
-\contentsline {subsection}{\numberline {5.1.4}Các nhóm cải thiện chính}{32}{subsection.5.1.4}%
-\contentsline {subsection}{\numberline {5.1.5}Phân tích lỗi}{32}{subsection.5.1.5}%
-\contentsline {subsection}{\numberline {5.1.6}Kết luận từ thực nghiệm}{33}{subsection.5.1.6}%
-\contentsline {chapter}{\numberline {6}CONCLUSIONS}{34}{chapter.6}%
-\contentsline {section}{\numberline {6.1}Kết luận và hướng phát triển}{34}{section.6.1}%
-\contentsline {subsection}{\numberline {6.1.1}Tổng kết đóng góp}{34}{subsection.6.1.1}%
-\contentsline {subsection}{\numberline {6.1.2}Kết quả chính}{34}{subsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.1.3}Hạn chế}{35}{subsection.6.1.3}%
-\contentsline {subsection}{\numberline {6.1.4}Hướng phát triển}{35}{subsection.6.1.4}%
-\contentsline {chapter}{REFERENCE}{38}{section*.34}%
-\contentsline {chapter}{\numberline {A}Knowledge Extraction Prompts (Retain Pipeline)}{39}{appendix.A}%
-\contentsline {subsection}{\numberline {A.0.1}A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}{39}{subsection.A.0.1}%
-\contentsline {subsection}{\numberline {A.0.2}A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{40}{subsection.A.0.2}%
-\contentsline {chapter}{\numberline {B}Evaluation and Reflection Prompts}{41}{appendix.B}%
-\contentsline {subsection}{\numberline {B.0.1}B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{41}{subsection.B.0.1}%
-\contentsline {subsection}{\numberline {B.0.2}B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{41}{subsection.B.0.2}%
+\contentsline {chapter}{\numberline {1}ĐẶT VẤN ĐỀ}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Bối cảnh của bài toán}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Vấn đề cần giải quyết}{1}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}Bộ nhớ dài hạn của các tác nhân hội thoại không chỉ là lưu lịch sử}{1}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Giới hạn của các giải pháp phổ biến}{2}{subsection.1.2.2}%
+\contentsline {section}{\numberline {1.3}Mục tiêu và hướng tiếp cận của đồ án}{2}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Phạm vi của báo cáo}{3}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Cấu trúc của báo cáo}{3}{section.1.5}%
+\contentsline {chapter}{\numberline {2}CƠ SỞ LÝ THUYẾT VÀ CÁC NGHIÊN CỨU LIÊN QUAN}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Nền tảng của tác nhân hội thoại hiện đại}{5}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Mô hình ngôn ngữ lớn: kiến trúc, huấn luyện và năng lực cốt lõi}{5}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Giới hạn của cửa sổ ngữ cảnh và vấn đề trí nhớ}{6}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Tác nhân AI: từ chatbot đơn lượt đến hệ thống đa năng}{6}{subsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.1.4}Bộ nhớ ngoài cho các tác nhân hội thoại: các mô hình tổ chức phổ biến}{7}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.1.5}Luồng xử lý có bộ nhớ trong tác nhân hội thoại}{8}{subsection.2.1.5}%
+\contentsline {section}{\numberline {2.2}Cơ sở lý thuyết cho việc thiết kế bộ nhớ}{8}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Khoa học nhận thức và các hệ con của bộ nhớ dài hạn}{8}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Đồ thị tri thức và truy vấn nhiều bước}{10}{subsection.2.2.2}%
+\contentsline {section}{\numberline {2.3}Các hướng nghiên cứu liên quan}{11}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Các hệ thống lưu trữ phẳng hoặc dùng kho lưu trữ vector}{11}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Các hệ thống quản lý ngữ cảnh và phân tầng bộ nhớ}{11}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Các hệ thống dựa trên đồ thị tri thức}{11}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Bộ nhớ cho tác nhân AI và kịch bản sử dụng công cụ}{12}{subsection.2.3.4}%
+\contentsline {section}{\numberline {2.4}Các bộ dữ liệu đánh giá bộ nhớ dài hạn}{13}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}LongMemEval: đánh giá trí nhớ cá nhân qua hội thoại dài}{13}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}LoCoMo: suy luận chuỗi bằng chứng trên hội thoại dài}{15}{subsection.2.4.2}%
+\contentsline {section}{\numberline {2.5}Khoảng trống nghiên cứu mà CogMem hướng tới}{17}{section.2.5}%
+\contentsline {chapter}{\numberline {3}ĐỀ XUẤT COGMEM: KHUNG BỘ NHỚ DÀI HẠN DỰA TRÊN KHOA HỌC NHẬN THỨC}{18}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Tổng quan hệ thống bộ nhớ CogMem}{18}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Phạm vi và giả định triển khai}{19}{subsection.3.1.1}%
+\contentsline {section}{\numberline {3.2}Kiến trúc xử lý ba pipeline của CogMem}{20}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Luồng ghi nhớ thông tin mới}{20}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Luồng truy vấn thông tin cũ}{21}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Luồng tổng hợp câu trả lời}{21}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Đồ thị bộ nhớ kế thừa nhận thức}{22}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Động lực nhận thức và cấu trúc đa hệ thống mạng}{22}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Các mạng phân định}{23}{subsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {a}Trí nhớ ngữ nghĩa và mạng World}{25}{subsubsection.3.3.2.1}%
+\contentsline {subsubsection}{\numberline {b}Habit Memory và Habit Network}{25}{subsubsection.3.3.2.2}%
+\contentsline {subsubsection}{\numberline {c}Prospective Memory và Intention Network}{26}{subsubsection.3.3.2.3}%
+\contentsline {subsubsection}{\numberline {d}Theory of Event Coding và Action-Effect Network}{27}{subsubsection.3.3.2.4}%
+\contentsline {subsection}{\numberline {3.3.3}Khác biệt cốt lõi giữa Habit và Action-Effect}{28}{subsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.3.4}Bản chất ngữ nghĩa của các liên kết đồ thị}{29}{subsection.3.3.4}%
+\contentsline {section}{\numberline {3.4}Biểu diễn kép: ghi nhớ tóm tắt và dấu vết nguyên văn}{30}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Vấn đề nén dữ liệu có mất thông tin}{30}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Fuzzy Trace Theory và giải pháp hai lớp}{31}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}Truy vấn đa kênh và kết hợp bằng chứng}{32}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Vì sao không dùng một kênh duy nhất}{32}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Bốn kênh truy vấn song song}{33}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}Kết hợp bằng chứng bằng weighted RRF}{33}{subsection.3.5.3}%
+\contentsline {section}{\numberline {3.6}Truy vấn đồ thị tích lũy và bảo vệ chu trình}{34}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}Nhược điểm của truy cập cực đại và khái niệm Episodic Buffer}{34}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}Lan truyền tín hiệu tích lũy}{35}{subsection.3.6.2}%
+\contentsline {subsection}{\numberline {3.6.3}Cơ sở thần kinh học và ba cơ chế bảo vệ chống nhiễu}{36}{subsection.3.6.3}%
+\contentsline {section}{\numberline {3.7}Định tuyến truy vấn thích ứng}{37}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Attentional Selection và vấn đề trọng số cố định}{37}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Phân loại truy vấn và kết hợp theo nội dung câu hỏi}{37}{subsection.3.7.2}%
+\contentsline {section}{\numberline {3.8}Tổng hợp câu trả lời có căn cứ}{39}{section.3.8}%
+\contentsline {subsection}{\numberline {3.8.1}Từ bằng chứng truy vấn đến ngữ cảnh sinh câu trả lời}{39}{subsection.3.8.1}%
+\contentsline {subsection}{\numberline {3.8.2}Ưu tiên dấu vết nguyên văn và giới hạn suy đoán}{39}{subsection.3.8.2}%
+\contentsline {subsection}{\numberline {3.8.3}Đầu ra phục vụ đánh giá và truy vết}{40}{subsection.3.8.3}%
+\contentsline {chapter}{\numberline {4}KẾT QUẢ THỰC NGHIỆM VÀ ĐÁNH GIÁ}{41}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Thiết kế thực nghiệm}{41}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Luồng đánh giá tổng quát}{41}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}Dữ liệu sau chắt lọc: lý do, quy trình và phân bố}{42}{subsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {a}Tại sao cần chắt lọc dữ liệu}{42}{subsubsection.4.1.2.1}%
+\contentsline {subsubsection}{\numberline {b}Phân bố dữ liệu sau chắt lọc}{43}{subsubsection.4.1.2.2}%
+\contentsline {subsubsection}{\numberline {c}CogMem Bench: bộ dữ liệu nhắm đích do dự án xây dựng}{43}{subsubsection.4.1.2.3}%
+\contentsline {subsection}{\numberline {4.1.3}Các thước đo đánh giá}{46}{subsection.4.1.3}%
+\contentsline {subsection}{\numberline {4.1.4}Phương pháp chấm điểm: LLM làm giám khảo (LLM-as-a-Judge)}{47}{subsection.4.1.4}%
+\contentsline {subsubsection}{\numberline {a}Nguyên tắc chấm điểm}{47}{subsubsection.4.1.4.1}%
+\contentsline {subsubsection}{\numberline {b}Quy tắc đặc biệt cho câu hỏi thời gian}{48}{subsubsection.4.1.4.2}%
+\contentsline {subsubsection}{\numberline {c}Khi nào Đạt, khi nào Không đạt}{48}{subsubsection.4.1.4.3}%
+\contentsline {subsubsection}{\numberline {d}Phạm vi áp dụng}{48}{subsubsection.4.1.4.4}%
+\contentsline {subsection}{\numberline {4.1.5}Các cấu hình so sánh}{49}{subsection.4.1.5}%
+\contentsline {section}{\numberline {4.2}Kết quả trên LongMemEval}{49}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}So sánh tổng quan các cấu hình}{49}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Đối chứng SUM và MAX trên kênh đồ thị}{50}{subsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.2.3}Hiệu năng nạp dữ liệu}{51}{subsection.4.2.3}%
+\contentsline {section}{\numberline {4.3}Kết quả trên LoCoMo}{52}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Kết quả tổng quan}{52}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Phân tích theo nhóm câu hỏi}{53}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}Phân tích lỗi còn tồn tại}{53}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}Đánh giá định tính trên CogMem Bench}{54}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Node ý định: khi kế hoạch chưa hoàn thành là thông tin quyết định}{54}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Node hành động--kết quả: khi cần nhớ quan hệ điều kiện, hành động và kết quả}{55}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Hình ảnh hóa đồ thị bộ nhớ từ CogMem Bench}{56}{subsection.4.4.3}%
+\contentsline {section}{\numberline {4.5}Tổng kết thực nghiệm}{57}{section.4.5}%
+\contentsline {chapter}{\numberline {5}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{59}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Kết luận}{59}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Tổng kết đóng góp}{59}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Kết quả chính}{59}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}Hạn chế}{60}{subsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.1.4}Hướng phát triển}{61}{subsection.5.1.4}%
+\contentsline {chapter}{TÀI LIỆU THAM KHẢO}{63}{section*.37}%
+\contentsline {chapter}{\numberline {A}Knowledge Extraction Prompts (Retain Pipeline)}{64}{appendix.A}%
+\contentsline {subsection}{\numberline {A.0.1}A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}{64}{subsection.A.0.1}%
+\contentsline {subsection}{\numberline {A.0.2}A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{65}{subsection.A.0.2}%
+\contentsline {chapter}{\numberline {B}Evaluation and Reflection Prompts}{66}{appendix.B}%
+\contentsline {subsection}{\numberline {B.0.1}B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{66}{subsection.B.0.1}%
+\contentsline {subsection}{\numberline {B.0.2}B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{66}{subsection.B.0.2}%
 \contentsfinish 

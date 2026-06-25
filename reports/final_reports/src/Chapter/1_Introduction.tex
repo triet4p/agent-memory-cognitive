@@ -1,56 +1,75 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\section{Giới thiệu bài toán}
+\section{Bối cảnh của bài toán}
 
-\subsection{Bối cảnh và vấn đề}
+Trong vài năm gần đây, sự phát triển của các mô hình ngôn ngữ lớn (LLM) đã làm thay đổi đáng kể cách con người tương tác với hệ thống trí tuệ nhân tạo. Một trợ lý AI ngày nay không còn chỉ làm nhiệm vụ trả lời câu hỏi ngắn, mà còn được kỳ vọng hỗ trợ lập kế hoạch, đồng hành trong việc học tập, tư vấn mua sắm, theo dõi công việc và duy trì mối quan hệ với người dùng trong thời gian dài. 
 
-Các tác nhân hội thoại hiện đại đã đạt tiến bộ rõ rệt ở những tác vụ ngắn hạn như trả lời câu hỏi, lập kế hoạch theo từng phiên làm việc, hay tương tác dựa trên một cửa sổ ngữ cảnh lớn. Tuy nhiên, khi tương tác kéo dài qua nhiều ngày hoặc nhiều phiên hội thoại, hạn chế cốt lõi vẫn nằm ở khả năng duy trì \textit{bộ nhớ dài hạn} một cách có cấu trúc và có thể truy hồi. Khi số lượng token vượt khỏi cửa sổ ngữ cảnh, thông tin từ các phiên trước dần bị loại bỏ; hệ quả là tác nhân mất dấu lịch sử người dùng, các mốc thời gian, các sở thích lặp lại và cả những kế hoạch còn dang dở.
+Kỳ vọng đó làm xuất hiện một yêu cầu cốt lõi: hệ thống phải nhớ được các thông tin quan trọng về người dùng qua nhiều phiên hội thoại, chứ không chỉ trong phạm vi một phiên ngắn hạn, riêng lẻ.
 
-Vấn đề này đặc biệt quan trọng trong các ứng dụng cần tính liên tục cao như trợ lý cá nhân, hệ thống chăm sóc khách hàng, tác nhân hỗ trợ học tập, hay các AI companion được kỳ vọng đồng hành lâu dài cùng một người dùng. Trong những bối cảnh đó, bộ nhớ không chỉ là khả năng ``nhớ lại một câu đã nói'', mà còn là năng lực tái sử dụng các sự kiện, mối liên hệ và tín hiệu hành vi dưới một dạng biểu diễn đủ bền vững để phục vụ cho truy vấn tương lai.
+Trong thực tế, phần lớn các tác nhân hội thoại hiện tại vẫn phụ thuộc rất nhiều vào ngữ cảnh ở ngay phiên hiện tại. Khi lịch sử trò chuyện kéo dài qua nhiều phiên, hệ thống buộc phải cắt bớt nội dung cũ, tóm tắt lại, hoặc chỉ giữ những đoạn được đánh giá là quan trọng nhất. Những cách làm này tuy giúp mô hình tiếp tục vận hành, nhưng đồng thời cũng làm mất dần những chi tiết tưởng như nhỏ mà lại quan trọng với người dùng: một kế hoạch còn dang dở, một thói quen lặp lại, một lần thay đổi quyết định, hay một mối quan hệ nhân quả từng được nhắc thoáng qua trong một phiên từ rất lâu.
 
-\subsection{Hạn chế của các giải pháp hiện tại}
+\section{Vấn đề cần giải quyết}
 
-Các hướng tiếp cận phổ biến cho bài toán bộ nhớ dài hạn thường rơi vào một trong hai cực: (1) lưu trữ văn bản thô rồi truy xuất bằng vector similarity, hoặc (2) nén hội thoại thành các ``fact'' gọn hơn để lưu trong đồ thị hoặc cơ sở dữ liệu vector. Cả hai hướng đều hữu ích, nhưng vẫn để lộ nhiều giới hạn thực dụng:
+\subsection{Bộ nhớ dài hạn của các tác nhân hội thoại không chỉ là lưu lịch sử}
+
+Thoạt nhìn, ta có thể nghĩ rằng bộ nhớ dài hạn chỉ đơn giản là lưu toàn bộ các đoạn chat cũ và tìm lại khi cần. Tuy nhiên, với các hội thoại kéo dài hàng chục phiên hoặc hàng trăm nghìn từ, cách làm đó nhanh chóng bộc lộ hạn chế. Một truy vấn tưởng như đơn giản, chẳng hạn ``người dùng đã từng định làm gì nhưng chưa làm?'', có thể đòi hỏi hệ thống phải nối một sự thật ở phiên đầu, một lần xác nhận ở phiên giữa, và một chi tiết phủ định ở phiên cuối. Nếu chỉ dựa vào truy vấn theo mức độ giống nhau về từ ngữ và ngữ nghĩa, hệ thống rất dễ bỏ lỡ mối liên hệ này.
+
+Khó khăn còn lớn hơn khi câu hỏi không chỉ yêu cầu nhắc lại một chi tiết đơn lẻ mà cần tái dựng một trạng thái nhận thức. Ví dụ, phát biểu ``tôi đang định học Rust'' khác về bản chất với ``tôi đã học Rust'', dù hai câu này có thể cùng nhắc đến một chủ đề. Tương tự, ``người dùng thường làm gì trước cuộc họp'' khác với ``người dùng đã làm gì trong một buổi sáng cụ thể'', và ``làm cách nào để khắc phục lỗi này'' khác với ``lỗi này đã từng xảy ra''. Nếu mọi nội dung đều bị nén về cùng một kiểu biểu diễn duy nhất, sự khác biệt nói trên sẽ bị làm mờ đi.
+
+\subsection{Giới hạn của các giải pháp phổ biến}
+
+Hai hướng tiếp cận đang được dùng phổ biến là lưu trữ văn bản trong kho lưu trữ (thường ở dưới dạng các vector), hoặc để mô hình trích xuất các sự thực (fact) từ hội thoại rồi lập chỉ mục trên các fact đó. Cả hai hướng đều có giá trị thực tế, nhưng chúng cũng có những điểm yếu dễ nhận thấy:
 
 \begin{itemize}
-    \item \textbf{Nén có tổn hao (lossy compression)}: Khi LLM rút gọn hội thoại thành các fact ngắn, nhiều chi tiết định lượng, sắc thái cảm xúc, hoặc ngữ cảnh nguyên bản bị mất đi và khó khôi phục về sau.
-    \item \textbf{Biểu diễn phẳng hoặc bán-phẳng}: Nếu mọi fact đều bị đưa vào cùng một không gian biểu diễn, hệ thống khó phân biệt giữa kiến thức khách quan, sự kiện cá nhân, thói quen, kế hoạch tương lai và quan hệ nhân quả.
-    \item \textbf{Truy hồi đa bước còn yếu}: Những câu hỏi cần nối nhiều tín hiệu yếu, nhiều phiên hội thoại, hoặc nhiều loại quan hệ khác nhau thường không được xử lý tốt bởi retrieval đơn thuần dựa trên một kênh.
-    \item \textbf{Định tuyến truy vấn còn tĩnh}: Một câu hỏi temporal, causal hay prospective không nên được đối xử giống hệt một câu hỏi semantic. Việc dùng một profile truy hồi đồng nhất cho mọi loại truy vấn làm giảm hiệu quả của từng channel chuyên biệt.
+    \item \textbf{Mất mát chi tiết do nén}: Khi hội thoại bị rút gọn thành fact ngắn, nhiều thông tin nguyên bản như con số, tên riêng, sắc thái cảm xúc hoặc ngữ cảnh trích dẫn rất khó được phục hồi đầy đủ.
+    \item \textbf{Biểu diễn chưa đủ chuyên biệt}: Các fact về tri thức khách quan, trải nghiệm cá nhân, thói quen, kế hoạch và quy luật nhân quả thường bị đặt chung vào một không gian biểu diễn, dẫn tới truy vấn chưa đúng trọng tâm.
+    \item \textbf{Truy vấn đa bước yếu}: Những câu hỏi cần nối nhiều dấu vết nhỏ qua nhiều phiên thường không được xử lý tốt nếu hệ thống chỉ giữ một đường suy luận qua với các bằng chứng mạnh nhất.
+    \item \textbf{Định tuyến truy vấn}: Một câu hỏi hỏi ``khi nào'' cần logic truy vấn khác với câu hỏi hỏi ``vì sao'' hoặc ``thường làm gì''. Dùng cùng một cách truy vấn cho mọi loại làm giảm hiệu quả của từng kênh.
 \end{itemize}
 
-Các phân tích và thí nghiệm nhắm đích sau này trong dự án cũng gợi ý thêm một điểm quan trọng: ngay cả khi mở rộng hệ thống bằng các mạng bộ nhớ chuyên biệt, giá trị của từng mạng không phải lúc nào cũng xuất hiện đồng đều trên mọi benchmark. Nói cách khác, bài toán không chỉ là ``thêm nhiều node type hơn'', mà là thiết kế một biểu diễn đủ đúng để những loại tín hiệu như habit, intention hay action-effect thật sự có nơi tồn tại và được truy hồi đúng lúc.
+Những hạn chế trên cho thấy vấn đề không chỉ nằm ở việc mô hình có ``nhớ nhiều hơn'' hay không, mà nằm ở chỗ hệ thống có tổ chức trí nhớ đúng cách hay không. Một bộ nhớ dài hạn hữu ích cần vừa giữ được bằng chứng gốc khi cần, vừa cho phép biểu diễn sự khác nhau giữa tri thức, kinh nghiệm, kế hoạch, thói quen và quan hệ nhân quả.
 
-\subsection{Động lực và đóng góp của đồ án}
+\section{Mục tiêu và hướng tiếp cận của đồ án}
 
-Từ các giới hạn trên, đồ án này đề xuất \textbf{CogMem} -- một khung bộ nhớ hội thoại dài hạn dựa trên khoa học nhận thức (\textit{cognitive science}) và đồ thị tri thức dị thể. Điểm xuất phát của CogMem là quan sát rằng bộ nhớ người không vận hành như một danh sách phẳng; thay vào đó, các loại ký ức khác nhau được tổ chức thành những hệ con có vai trò khác nhau trong hành vi và suy luận.
+Từ các quan sát trên, đồ án này đề xuất \textbf{CogMem}, một khung bộ nhớ dài hạn cho tác nhân hội thoại được thiết kế theo hướng kết hợp \textit{khoa học nhận thức} với \textit{đồ thị tri thức}. Ý tưởng xuất phát là: bộ nhớ người không phải một kho lưu trữ đồng nhất, mà là tập hợp của nhiều hệ lưu trữ con cùng tồn tại, mỗi hệ lưu trữ con phù hợp với một loại câu hỏi và một loại suy luận khác nhau. Nếu muốn xây dựng một bộ nhớ dài hạn đáng tin cậy cho tác nhân hội thoại, tác nhân AI hay trợ lý cá nhân, hệ thống cũng cần một cấu trúc biểu diễn phân hóa tương tự.
 
-Theo tinh thần đó, CogMem tập trung vào bốn đóng góp cốt lõi:
+Theo hướng đó, CogMem theo đuổi bốn đóng góp chính:
 
 \begin{enumerate}
-    \item \textbf{Cognitively-Grounded Memory Graph}: Tổ chức bộ nhớ thành sáu mạng fact chính -- \textit{world, experience, opinion, habit, intention, action\_effect} -- cùng bảy loại liên kết để duy trì cấu trúc quan hệ rõ ràng.
-    \item \textbf{Lossless Node Metadata}: Bảo toàn \textit{raw\_snippet} như phần văn bản gốc đi kèm mỗi node, giúp giảm mất mát thông tin giữa giai đoạn lưu trữ và giai đoạn sinh câu trả lời.
-    \item \textbf{Episodic Buffer với SUM Spreading Activation}: Dùng phép cộng tín hiệu thay cho phép chọn cực đại, kết hợp các cơ chế kiểm soát chu trình để truy hồi được bằng chứng phân tán qua nhiều đường.
-    \item \textbf{Adaptive Query Routing}: Phân loại truy vấn thành các nhóm semantic, temporal, causal, prospective, preference và multi-hop; từ đó áp dụng profile dung hợp phù hợp cho từng loại.
+    \item \textbf{Đồ thị bộ nhớ dựa trên khoa học nhận thức}: Thay vì chỉ lưu một loại fact chung, CogMem phân chia trí nhớ thành các nhóm biểu diễn như tri thức khách quan, sự kiện cá nhân, quan điểm, thói quen, ý định tương lai và quan hệ hành động -kết quả.
+    \item \textbf{Lưu song song biểu diễn nén và hội thoại gốc}: Mỗi đơn vị bộ nhớ không chỉ chứa fact đã rút gọn mà còn giữ lại một đoạn trích nguyên văn để hỗ trợ trả lời có căn cứ.
+    \item \textbf{Lan truyền tín hiệu theo hướng cộng dồn}: Thay vì chỉ chọn một đường có tín hiệu mạnh nhất trong đồ thị, hệ thống cho phép nhiều đường trích dẫn cùng đóng góp để tăng khả năng truy vấn nhiều bước.
+    \item \textbf{Định tuyến truy vấn theo bản chất câu hỏi}: Cùng là truy vấn bộ nhớ, nhưng câu hỏi về thời gian, sở thích, nguyên nhân hay kế hoạch tương lai cần được ưu tiên những loại bằng chứng khác nhau.
 \end{enumerate}
 
-Trong báo cáo này, bốn đóng góp trên được trình bày như \textbf{kiến trúc luận án cốt lõi} của CogMem. Các thí nghiệm nhắm đích thực hiện về sau trong dự án cho thấy các mạng bộ nhớ chuyên biệt như \textit{intention} và \textit{action\_effect} không tạo lợi thế đồng đều trên mọi tình huống; thay vào đó, chúng đặc biệt hữu ích khi tín hiệu kế hoạch hoặc quan hệ nhân quả không thể được hấp thụ tự nhiên bởi các fact type khác như \textit{world} hoặc \textit{experience}. Kết luận này làm cho động lực của CogMem thận trọng hơn, nhưng cũng thực tế hơn: các cấu trúc nhận thức mới không phải là ``thuốc chữa bách bệnh'', mà là những representational slots cần thiết cho các lớp câu hỏi nhất định.
+Cần nhấn mạnh rằng đồ án không giả định các thành phần mới là một sự bảo đảm cho việc mọi bộ dữ liệu chuẩn đều tăng điểm đồng đều. Toàn bộ báo cáo được trình bày theo tinh thần thực nghiệm cẩn thận: kiến trúc được đề xuất vì nó hợp lý về mặt biểu diễn và truy vấn, còn mức độ hiệu quả thực tế của từng thành phần sẽ được kiểm chứng riêng rẽ trên các bộ dữ liệu chuẩn và trên bộ dữ liệu tự xây dựng của dự án.
 
-\subsection{Cấu trúc của đồ án}
+\section{Phạm vi của báo cáo}
 
-Đồ án được tổ chức như sau:
+Báo cáo tập trung vào bài toán bộ nhớ dài hạn cho \textbf{tác nhân hội thoại định hướng cá nhân hóa}. Phạm vi này bao gồm:
 
 \begin{itemize}
-    \item \textbf{Chương 2}: Literature Review -- tổng quan các hướng tiếp cận bộ nhớ dài hạn, cơ sở khoa học nhận thức, đồ thị tri thức và các benchmark liên quan.
-    \item \textbf{Chương 3}: Methodology -- mô tả kiến trúc CogMem, retain pipeline, recall pipeline và bốn đóng góp cốt lõi của hệ thống.
-    \item \textbf{Chương 4}: Theoretical Analysis -- phân tích cơ sở nhận thức cho các memory networks, raw snippet, SUM spreading activation và adaptive routing.
-    \item \textbf{Chương 5}: Numerical Results -- trình bày kết quả thực nghiệm và các phân tích định lượng.
-    \item \textbf{Chương 6}: Conclusions -- tổng kết đóng góp, hạn chế và hướng phát triển.
+    \item lưu trữ và truy hồi thông tin người dùng qua nhiều phiên;
+    \item hỗ trợ câu hỏi về sự kiện đã xảy ra, sở thích, thói quen, kế hoạch tương lai và quan hệ nhân quả;
+    \item đánh giá trên các bộ dữ liệu hội thoại dài tiêu biểu và trên một benchmark phục vụ dự án.
 \end{itemize}
 
+Những nội dung ngoài phạm vi chính của báo cáo gồm: tối ưu hóa hạ tầng phân tán ở quy mô sản phẩm hoàn chỉnh, huấn luyện lại mô hình nền, hoặc phát triển đầy đủ một hệ thống điều phối tác vụ phức tạp ngoài bài toán bộ nhớ. Dù vậy, trong nhiều đoạn phân tích, báo cáo vẫn tham chiếu đến các bối cảnh tác nhân AI thực tế để làm rõ vì sao các cấu trúc được đề xuất có ý nghĩa.
+
+\section{Cấu trúc của báo cáo}
+
+Báo cáo được tổ chức lại thành năm chương chính và các phụ lục như sau:
+
+\begin{itemize}
+    \item \textbf{Chương 1 -- Đặt vấn đề}: trình bày bối cảnh, bài toán, động lực nghiên cứu và phạm vi của đồ án.
+    \item \textbf{Chương 2 -- Cơ sở lý thuyết và các nghiên cứu liên quan}: tổng hợp kiến thức nền tảng về mô hình ngôn ngữ lớn, tác nhân AI, bộ nhớ ngoài cho tác nhân hội thoại, khoa học nhận thức, đồ thị tri thức, các hệ thống bộ nhớ liên quan và hai bộ dữ liệu đánh giá chính.
+    \item \textbf{Chương 3 -- Đề xuất CogMem: Khung bộ nhớ dài hạn dựa trên khoa học nhận thức}: mô tả đầy đủ kiến trúc CogMem, luồng xử lý, các lựa chọn biểu diễn, cơ sở khoa học của từng thành phần và các cơ chế truy vấn chính.
+    \item \textbf{Chương 4 -- Kết quả thực nghiệm và đánh giá}: trình bày thiết kế thực nghiệm, cách chắt lọc dữ liệu, các thước đo, các cấu hình so sánh, kết quả trên LongMemEval và LoCoMo, cùng phần đánh giá định tính trên CogMem Bench.
+    \item \textbf{Chương 5 -- Kết luận và hướng phát triển}: tổng kết đóng góp, những giới hạn hiện tại và các hướng mở rộng thực tế của nghiên cứu trong tương lai.
+\end{itemize}
 
 \vspace{1em}
-\noindent\textit{Sau khi xác định bài toán và động lực của CogMem, Chương 2 sẽ hệ thống hóa nền tảng lý thuyết và các hệ thống liên quan nhằm làm rõ khoảng trống mà kiến trúc đề xuất cần lấp đầy.}
+\noindent\textit{Sau khi làm rõ bài toán và mục tiêu của đồ án, Chương 2 sẽ đi vào nền tảng lý thuyết và các nghiên cứu liên quan để xác định chính xác khoảng trống mà CogMem sẽ xử lý.}
 
 \end{document}

@@ -25,7 +25,7 @@
 \usepackage{titlesec} % Giúp chỉnh sửa các tiêu đề, đề mục như chương, phần,..
 \usepackage{titletoc}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,calc,shapes.geometric}
+\usetikzlibrary{arrows.meta,calc,positioning,shapes.geometric}
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable,listings,skins}
 \tikzset{
@@ -136,13 +136,13 @@
 \def \AUTHOR{Le Minh Triet}
 
 % ===================================================
-\titleformat{\chapter}[hang]{\centering\bfseries}{CHAPTER \thechapter.\ }{0pt}{}[]
+\titleformat{\chapter}[hang]{\centering\bfseries}{CHƯƠNG \thechapter.\ }{0pt}{}[]
 
 \titleformat 
     {\chapter} % command
     [hang] % shape
     {\centering\bfseries} % format
-    {CHAPTER \thechapter.\ } % label
+    {CHƯƠNG \thechapter.\ } % label
     {0pt} %sep
     {} % before
     [] % after
@@ -247,11 +247,11 @@
 % \pagestyle{empty} % Header và footer rỗng
 \newpage
 \pagenumbering{gobble} % Xóa page numbering ở cuối trang
-\renewcommand*\contentsname{TABLE OF CONTENTS}
+\renewcommand*\contentsname{MỤC LỤC}
 \titlecontents{chapter}
     [0.0cm]             % left margin
     {\bfseries\vspace{0.3cm}}                  % above code
-    {{\bfseries{\scshape} CHAPTER \thecontentslabel.\ }} % numbered format
+    {{\bfseries{\scshape} CHƯƠNG \thecontentslabel.\ }} % numbered format
     {}         % unnumbered format
     {\titlerule*[0.3pc]{.}\contentspage}         % filler-page-format, e.g dots
     
@@ -277,7 +277,7 @@
 
 \pagenumbering{roman}
 %Tạo danh mục hình vẽ.
-\renewcommand{\listfigurename}{LIST OF FIGURES}
+\renewcommand{\listfigurename}{DANH MỤC HÌNH VẼ}
 {\let\oldnumberline\numberline
 \renewcommand{\numberline}{Figure~\oldnumberline}
 \listoffigures} 
@@ -286,7 +286,7 @@
 
 
  %Tạo danh mục bảng biểu.
-\renewcommand{\listtablename}{LIST OF TABLES}
+\renewcommand{\listtablename}{DANH MỤC BẢNG BIỂU}
 {\let\oldnumberline\numberline
 \renewcommand{\numberline}{Table~\oldnumberline}
 \listoftables}
@@ -298,9 +298,9 @@
 %\printnoidxglossaries
 % \phantomsection\addcontentsline{toc}{section}{\numberline {} DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT}
 
-\renewcommand{\figurename}{Figure}
-\renewcommand{\tablename}{Table}
-\renewcommand{\chaptername}{CHAPTER}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\chaptername}{CHƯƠNG}
 
 % ===================================================
 
@@ -314,44 +314,39 @@
 %\fancyhead[LE]{\rightmark}
 \fancyfoot[RE, LO]{\thepage}
 
-\chapter{INTRODUCTION}
+\chapter{ĐẶT VẤN ĐỀ}
 \subfile{Chapter/1_Introduction} % Phần mở đầu
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{LITERATURE REVIEW}
+\chapter{CƠ SỞ LÝ THUYẾT VÀ CÁC NGHIÊN CỨU LIÊN QUAN}
 \subfile{Chapter/2_Literature_review}
 
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{METHODOLOGY}
+\chapter{ĐỀ XUẤT COGMEM: KHUNG BỘ NHỚ DÀI HẠN DỰA TRÊN KHOA HỌC NHẬN THỨC}
 \subfile{Chapter/3_Methodology}
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{THEORETICAL ANALYSIS}
-\subfile{Chapter/4_Theoretical_analysis}
-
-\newpage
-%\pagestyle{fancy} % Áp dụng header và footer
-\chapter{NUMERICAL RESULTS}
+\chapter{KẾT QUẢ THỰC NGHIỆM VÀ ĐÁNH GIÁ}
 \subfile{Chapter/5_Numerical_results}
 
 \newpage
-\chapter{CONCLUSIONS}
+\chapter{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
 \subfile{Chapter/6_Conclusions}
 
 % ===================================================
 \newpage
 \nocite{*}
 \printbibliography
-\phantomsection\addcontentsline{toc}{chapter}{REFERENCE}
+\phantomsection\addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
 
 \newpage
 \appendix
-\renewcommand{\chaptername}{APPENDIX}
-\titleformat{\chapter}[hang]{\centering\bfseries}{APPENDIX \thechapter.\ }{0pt}{}[]
+\renewcommand{\chaptername}{PHỤ LỤC}
+\titleformat{\chapter}[hang]{\centering\bfseries}{PHỤ LỤC \thechapter.\ }{0pt}{}[]
 \subfile{Chapter/Appendix_A}
 
 \newpage

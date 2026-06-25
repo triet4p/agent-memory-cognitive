@@ -1,54 +1,61 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Từ kiến trúc đã trình bày ở Chương 3, cơ sở lý thuyết ở Chương 4 và kết quả thực nghiệm ở Chương 5, chương này tổng kết lại mức độ hoàn thiện hiện tại của CogMem và các hướng phát triển còn lại.}
+\textit{Từ kiến trúc và cơ sở lý thuyết đã trình bày ở Chương 3, cùng kết quả thực nghiệm ở Chương 4, chương này tổng kết lại mức độ hoàn thiện hiện tại của CogMem và các hướng phát triển còn lại.}
 
-\section{Kết luận và hướng phát triển}
+\section{Kết luận}
 
 \subsection{Tổng kết đóng góp}
 
-Đồ án đã xây dựng CogMem như một hệ thống bộ nhớ hội thoại dài hạn có cấu trúc, thay vì chỉ là một tầng vector retrieval đặt ngoài LLM. Bốn đóng góp chính có thể tóm tắt như sau:
+Đồ án đã xây dựng CogMem như một hệ thống bộ nhớ hội thoại dài hạn có cấu trúc, thay vì chỉ đơn thuần là một tầng truy hồi vector đặt ngoài mô hình ngôn ngữ. Bốn đóng góp chính có thể tóm tắt như sau:
 
 \begin{enumerate}
-    \item \textbf{Cognitively-Grounded Memory Graph}: bộ nhớ được chia thành sáu fact type và bảy edge families, tạo không gian biểu diễn riêng cho sự kiện, thói quen, ý định, sở thích và quan hệ nhân quả.
-    \item \textbf{Lossless Node Metadata}: mỗi memory node giữ cả fact text đã nén và \texttt{raw\_snippet}, giúp generation có thể khôi phục chi tiết nguyên văn khi câu hỏi cần con số, tên riêng hoặc ngữ cảnh chính xác.
-    \item \textbf{SUM Spreading Activation}: graph recall dùng cơ chế cộng dồn bằng chứng từ nhiều đường, kết hợp refractory, firing quota và saturation để tránh vòng lặp kích hoạt.
-    \item \textbf{Adaptive Query Routing}: truy vấn được phân loại thành semantic, temporal, causal, prospective, preference và multi-hop để chọn profile fusion phù hợp.
+    \item \textbf{Đồ thị bộ nhớ dựa trên khoa học nhận thức}: bộ nhớ được chia thành sáu loại fact và bảy họ liên kết, tạo không gian biểu diễn riêng cho sự kiện, thói quen, ý định, sở thích và quan hệ nhân quả.
+    \item \textbf{Siêu dữ liệu bảo toàn thông tin gốc}: mỗi node bộ nhớ giữ đồng thời phần tóm tắt ngữ nghĩa (fact text) và đoạn trích nguyên văn (raw snippet) từ hội thoại gốc, giúp giai đoạn sinh câu trả lời có thể khôi phục chính xác con số, tên riêng và ngữ cảnh khi cần.
+    \item \textbf{Cơ chế cộng dồn bằng chứng}: quá trình truy hồi trên đồ thị sử dụng phép cộng dồn tín hiệu từ nhiều đường, kết hợp với ba cơ chế bảo vệ (chặn kích hoạt lại ngay lập tức, giới hạn số lần kích hoạt, bão hòa giá trị) để tránh vòng lặp vô hạn.
+    \item \textbf{Định tuyến truy vấn thích ứng}: mỗi câu hỏi được phân loại thành một trong sáu kiểu (ngữ nghĩa, thời gian, nhân quả, kế hoạch, sở thích, đa bước) để chọn bộ trọng số trộn kết quả phù hợp nhất.
 \end{enumerate}
 
-Các đóng góp này không nên được hiểu như các module luôn tạo ra cải thiện độc lập trong mọi workload. Kết quả thực nghiệm cho thấy giá trị của chúng phụ thuộc vào kiểu câu hỏi và chất lượng evidence. Tuy vậy, việc có các slot biểu diễn chuyên biệt giúp hệ thống xử lý các câu hỏi khó hơn so với bộ nhớ phẳng.
+Các đóng góp này không nên được hiểu như những mô-đun luôn tạo ra cải thiện độc lập trong mọi tình huống. Kết quả thực nghiệm cho thấy giá trị của chúng phụ thuộc vào loại câu hỏi và chất lượng bằng chứng thu thập được. Tuy vậy, việc có các không gian biểu diễn chuyên biệt giúp hệ thống xử lý các câu hỏi khó tốt hơn so với bộ nhớ phẳng truyền thống.
 
 \subsection{Kết quả chính}
 
-Trên LongMemEval v16, cấu hình multi-channel tốt nhất đạt 29/35 PASS (82.9\%), còn full six-type multi-channel baseline đạt 26/35 PASS (74.3\%). Các cấu hình graph-only thấp hơn, củng cố kết luận rằng recall đa kênh là cần thiết cho bộ nhớ hội thoại dài hạn.
+Trên LongMemEval, hệ thống nền HINDSIGHT đạt 30/35 câu (85,7\%). CogMem ở cấu hình đa kênh với đầy đủ sáu loại node đạt 31/35 câu (88,6\%), và biến thể loại bỏ node thói quen vẫn giữ mức tương đương. Khi loại bỏ node hành động--kết quả hoặc node ý định, kết quả giảm còn 29/35 câu (82,9\%), cho thấy hai loại node này có tín hiệu đóng góp rõ ràng hơn trên tập dữ liệu hiện tại.
 
-Tuy vậy, khi cô lập riêng graph channel, SUM activation có bằng chứng rõ hơn MAX ở top-k nhỏ: mean session recall@5 tăng từ 0.7624 lên 0.8052, SUM tốt hơn ở 2 câu và MAX không tốt hơn ở câu nào. Điều này xác nhận đóng góp của SUM ở đúng phạm vi của nó: cải thiện thứ tự evidence trong graph-only recall, thay vì thay thế toàn bộ multi-channel retrieval.
+Ở nhóm chỉ dùng kênh đồ thị, CogMem với sáu loại node đạt 26/35 câu (74,3\%); loại bỏ thói quen đạt 27/35 (77,1\%); loại bỏ hành động--kết quả hoặc ý định đạt 24/35 (68,6\%); còn đối chứng với ba loại node gốc kiểu HINDSIGHT chỉ đạt 22/35 (62,9\%). Kết quả này củng cố kết luận rằng cấu trúc đồ thị rất hữu ích, nhưng truy hồi đa kênh vẫn là yếu tố cần thiết cho bộ nhớ hội thoại dài hạn.
 
-Trên LoCoMo, cấu hình cuối đạt 119/161 manual PASS (73.9\%), vượt mục tiêu 70\% và tăng 22 câu so với baseline trước đó. Trong cách tính này, PASS bao gồm cả câu trả lời đúng hoàn toàn và câu trả lời đúng lõi, đủ dùng cho người đọc. Các nhóm multi-hop, causal và preference đạt trên 88\%, trong khi temporal chỉ đạt 41.7\%. Nhìn tổng thể, dự án đã đạt một milestone thực nghiệm đáng tin cậy: hệ thống không chỉ chạy được end-to-end mà còn vượt ngưỡng chất lượng đặt ra trên một benchmark hội thoại dài khó.
+Khi cô lập riêng kênh đồ thị để kiểm tra, cơ chế cộng dồn tín hiệu (SUM) cho thấy lợi thế rõ ràng hơn so với cơ chế chỉ lấy cực đại (MAX) ở top-5: tỉ lệ truy hồi phiên trung bình tăng từ 0,762 lên 0,805. SUM tốt hơn ở 2 câu và MAX không tốt hơn ở bất kỳ câu nào. Điều này xác nhận đóng góp của cơ chế cộng dồn trong đúng phạm vi của nó: cải thiện thứ tự bằng chứng trong truy hồi đồ thị, chứ không phải thay thế toàn bộ hệ thống đa kênh.
+
+Trên LoCoMo, cấu hình cuối cùng đạt 119/161 câu (73,9\%), vượt mục tiêu 70\% và tăng 22 câu so với baseline trước đó. Các nhóm truy hồi đa bước, nhân quả và sở thích đều đạt trên 88\%, trong khi nhóm suy luận thời gian chỉ đạt 41,7\%. Nhìn tổng thể, dự án đã đạt được một cột mốc thực nghiệm đáng tin cậy: hệ thống không chỉ vận hành được từ đầu đến cuối mà còn vượt ngưỡng chất lượng đặt ra trên một bộ dữ liệu hội thoại dài có độ khó cao.
+
+Về hiệu năng retain, CogMem xử lý một conversation trung bình khoảng 30 phút trên local model Ministral3-3B, nhanh hơn khoảng ba lần so với HINDSIGHT ở mức 90--120 phút. CogMem cũng tạo khoảng 700 node, dưới một nửa so với khoảng 1500 node của HINDSIGHT. Điều này giúp giảm chi phí ingest, giảm kích thước memory graph và làm hệ thống thực tế hơn cho triển khai dài hạn.
 
 \subsection{Hạn chế}
 
 Các hạn chế hiện tại tập trung vào ba điểm:
 
 \begin{enumerate}
-    \item \textbf{Temporal exactness còn yếu}: các câu hỏi cần tính chính xác số ngày, số tuần hoặc thứ tự sự kiện vẫn tạo ra nhiều lỗi hơn các nhóm causal/preference/multi-hop.
-    \item \textbf{List completeness chưa ổn định}: khi câu hỏi yêu cầu liệt kê toàn bộ item, generation vẫn có thể bỏ sót một số phần tử hoặc thêm item không thuộc gold.
-    \item \textbf{Habit chưa được chứng minh mạnh}: habit có cơ sở biểu diễn hợp lý, nhưng các benchmark hiện tại chưa cho thấy uplift rõ như action-effect hoặc intention trong workload nhắm đích.
+    \item \textbf{Suy luận thời gian chính xác còn yếu}: các câu hỏi cần tính chính xác số ngày, số tuần hoặc thứ tự sự kiện vẫn tạo ra nhiều lỗi hơn các nhóm nhân quả, sở thích hay truy hồi đa bước.
+    \item \textbf{Tính đầy đủ của danh sách chưa ổn định}: khi câu hỏi yêu cầu liệt kê toàn bộ các mục, hệ thống vẫn có thể bỏ sót một số phần tử hoặc thêm vào những mục không có trong đáp án chuẩn.
+    \item \textbf{Node thói quen chưa được chứng minh mạnh mẽ}: thói quen có cơ sở biểu diễn hợp lý về mặt lý thuyết, nhưng các bộ dữ liệu hiện tại chưa cho thấy sự cải thiện rõ rệt như node hành động--kết quả hay node ý định trong các thí nghiệm nhắm đích.
 \end{enumerate}
 
-Những hạn chế này chủ yếu nằm ở evidence selection, deterministic reasoning và generation control, hơn là ở việc thiếu một fact type mới.
+Những hạn chế này chủ yếu nằm ở khâu lựa chọn bằng chứng, suy luận tất định và kiểm soát quá trình sinh câu trả lời, hơn là ở việc thiếu một loại fact mới.
 
 \subsection{Hướng phát triển}
 
 Các hướng phát triển có tác động cao nhất cho phiên bản tiếp theo nên tập trung vào tính hữu dụng thực tế, không chỉ tối ưu thêm một benchmark:
 
 \begin{enumerate}
-    \item \textbf{Agentic memory workload}: thử nghiệm CogMem trên trace dài của AI agent thật, nơi action-effect có thể lưu quan hệ precondition -- tool action -- outcome thay vì chỉ dựa vào hội thoại mock ngắn.
-    \item \textbf{Prospective assistant scenarios}: thiết kế các case thực tế về kế hoạch chưa hoàn thành, kế hoạch bị hủy và kế hoạch được thực hiện để kiểm tra Intention Network trong vòng đời dài hơn.
-    \item \textbf{Routine and habit diary}: xây workload diary nhiều tuần để kiểm tra Habit Network trên trigger-context, routine break và thói quen lặp lại, thay vì chỉ hỏi fact đơn lẻ.
-    \item \textbf{Production reliability}: bổ sung temporal reasoner, list-completeness controller và negative-control calibration để giảm lỗi trong các ứng dụng assistant thật.
+    \item \textbf{Tình huống bộ nhớ cho tác nhân AI}: thử nghiệm CogMem trên các vết hội thoại dài của tác nhân AI thực tế, nơi node hành động--kết quả có thể lưu quan hệ ``điều kiện -- hành động công cụ -- kết quả'' thay vì chỉ dựa vào hội thoại mô phỏng ngắn.
+    \item \textbf{Kịch bản trợ lý hướng tương lai}: thiết kế các tình huống thực tế về kế hoạch chưa hoàn thành, kế hoạch bị hủy và kế hoạch được thực hiện để kiểm tra mạng Ý định trong vòng đời dài hơn.
+    \item \textbf{Nhật ký thói quen và hành vi lặp lại}: xây dựng tập dữ liệu dạng nhật ký nhiều tuần để kiểm tra mạng Thói quen trên các yếu tố như ngữ cảnh kích hoạt, sự gián đoạn thói quen và hành vi lặp lại, thay vì chỉ hỏi các fact đơn lẻ.
+    \item \textbf{Độ tin cậy trong triển khai thực tế}: bổ sung bộ suy luận thời gian, cơ chế kiểm soát tính đầy đủ của danh sách và hiệu chuẩn phủ định để giảm lỗi trong các ứng dụng trợ lý thực tế.
 \end{enumerate}
 
-Nhìn chung, CogMem chứng minh rằng cognitive graph, raw evidence preservation, multi-channel recall và adaptive routing đủ để tạo một long-term memory API khả dụng; các điểm yếu còn lại là temporal reasoning, exact enumeration và habit-specific evidence.
+Nhìn chung, CogMem đã chứng minh rằng đồ thị nhận thức, bảo toàn bằng chứng gốc, truy hồi đa kênh và định tuyến thích ứng là đủ để tạo ra một API bộ nhớ dài hạn khả dụng; các điểm yếu còn lại nằm ở suy luận thời gian, liệt kê chính xác và bằng chứng đặc thù cho thói quen.
+
+\vspace{1em}
+\noindent\textit{Báo cáo khép lại tại đây. Các phụ lục tiếp theo cung cấp thêm chi tiết về dữ liệu và cấu hình thí nghiệm.}
 
 \end{document}

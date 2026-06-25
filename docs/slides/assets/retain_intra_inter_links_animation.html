@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CogMem Retain: Intra- and Inter-session Links</title>
+  <style>
+    :root {
+      --ink: #13263b;
+      --muted: #5c6b78;
+      --red: #bd1730;
+      --gold: #e29a08;
+      --teal: #118b83;
+      --blue: #2669b5;
+      --green: #4d7f2a;
+      --paper: #fbfaf6;
+      --line: #d9e1ea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 1280px;
+      height: 720px;
+      background: linear-gradient(180deg, #fff 0%, var(--paper) 100%);
+      color: var(--ink);
+      font-family: "Arial", "Helvetica", sans-serif;
+      overflow: hidden;
+    }
+    svg { width: 1280px; height: 720px; display: block; }
+    .title { font-size: 31px; font-weight: 800; fill: var(--ink); }
+    .subtitle { font-size: 17px; fill: var(--muted); }
+    .label { font-size: 16px; font-weight: 700; fill: var(--ink); }
+    .small { font-size: 13px; fill: var(--muted); }
+    .tiny { font-size: 11px; fill: var(--muted); }
+    .session { fill: #ffffff; stroke: #c9d6e3; stroke-width: 2; }
+    .session-title { fill: #ffffff; font-size: 15px; font-weight: 800; }
+    .raw { fill: #f7f9fc; stroke: #cfdae6; stroke-width: 1.5; }
+    .node { stroke: #ffffff; stroke-width: 3; filter: drop-shadow(0 5px 8px rgba(20, 40, 70, 0.12)); }
+    .node-text { fill: #fff; font-size: 13px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+    .edge-intra { fill: none; stroke: var(--teal); stroke-width: 5; stroke-linecap: round; }
+    .edge-inter { fill: none; stroke: var(--gold); stroke-width: 5; stroke-dasharray: 12 9; stroke-linecap: round; }
+    .edge-recall { fill: none; stroke: var(--red); stroke-width: 6; stroke-linecap: round; filter: drop-shadow(0 3px 5px rgba(189, 23, 48, 0.25)); }
+    .arrow { marker-end: url(#arrow); }
+    .badge { fill: #10283f; rx: 14; }
+    .badge-text { fill: #fff; font-size: 13px; font-weight: 800; }
+    .note { fill: #fff4d8; stroke: #e29a08; stroke-width: 2; rx: 14; }
+    .stage { opacity: 0; transition: opacity 350ms ease; }
+    .active { opacity: 1; }
+  </style>
+</head>
+<body>
+<svg viewBox="0 0 1280 720" role="img" aria-label="CogMem retain animation with intra-session and inter-session links">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#13263b"></path>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#bd1730"></path>
+    </marker>
+  </defs>
+
+  <text class="title" x="60" y="52">Retain builds typed facts, then links them inside and across sessions</text>
+  <text class="subtitle" x="60" y="82">The important part is not only extraction: CogMem also creates intra-session and inter-session graph structure over time.</text>
+
+  <g transform="translate(42,112)">
+    <rect class="badge" x="0" y="0" width="170" height="34"></rect>
+    <text class="badge-text" x="18" y="22">Retain pipeline</text>
+    <text class="small" x="0" y="64">1. Read raw dialogue</text>
+    <text class="small" x="0" y="94">2. Extract typed facts</text>
+    <text class="small" x="0" y="124">3. Store nodes + metadata</text>
+    <text class="small" x="0" y="154">4. Add graph links</text>
+    <path class="edge-intra" d="M 0 184 H 46"></path>
+    <text class="tiny" x="58" y="189">intra-session link</text>
+    <path class="edge-inter" d="M 0 216 H 46"></path>
+    <text class="tiny" x="58" y="221">inter-session link</text>
+    <path class="edge-recall" d="M 0 248 H 46"></path>
+    <text class="tiny" x="58" y="253">recalled path</text>
+  </g>
+
+  <g id="s1" transform="translate(245,125)">
+    <rect class="session" x="0" y="0" width="275" height="455" rx="26"></rect>
+    <rect x="0" y="0" width="275" height="44" rx="22" fill="#118b83"></rect>
+    <text class="session-title" x="22" y="28">Session 1: preference + plan</text>
+    <g class="stage f0 f1 f2 f3 f4 f5 f6 f7">
+      <rect class="raw" x="24" y="70" width="227" height="82" rx="14"></rect>
+      <text class="small" x="42" y="100">"I prefer quiet hotels."</text>
+      <text class="small" x="42" y="126">"I plan to compost."</text>
+    </g>
+    <g class="stage f1 f2 f3 f4 f5 f6 f7">
+      <circle class="node" cx="82" cy="230" r="42" fill="#e29a08"></circle>
+      <text class="node-text" x="82" y="224">opinion</text>
+      <text class="node-text" x="82" y="242">quiet hotel</text>
+      <circle class="node" cx="194" cy="325" r="46" fill="#bd1730"></circle>
+      <text class="node-text" x="194" y="318">plan</text>
+      <text class="node-text" x="194" y="337">compost</text>
+    </g>
+    <g class="stage f2 f3 f4 f5 f6 f7">
+      <path class="edge-intra arrow" d="M 113 258 C 130 270, 140 279, 150 288"></path>
+      <text class="tiny" x="74" y="395">same document / same session context</text>
+    </g>
+  </g>
+
+  <g id="s2" transform="translate(585,125)">
+    <rect class="session" x="0" y="0" width="275" height="455" rx="26"></rect>
+    <rect x="0" y="0" width="275" height="44" rx="22" fill="#2669b5"></rect>
+    <text class="session-title" x="22" y="28">Session 2: event + entity</text>
+    <g class="stage f3 f4 f5 f6 f7">
+      <rect class="raw" x="24" y="70" width="227" height="82" rx="14"></rect>
+      <text class="small" x="42" y="100">"I stayed in Seattle."</text>
+      <text class="small" x="42" y="126">"Flying to Chicago next."</text>
+    </g>
+    <g class="stage f3 f4 f5 f6 f7">
+      <circle class="node" cx="84" cy="240" r="43" fill="#2669b5"></circle>
+      <text class="node-text" x="84" y="234">experience</text>
+      <text class="node-text" x="84" y="252">Seattle</text>
+      <circle class="node" cx="196" cy="330" r="43" fill="#4d7f2a"></circle>
+      <text class="node-text" x="196" y="324">entity</text>
+      <text class="node-text" x="196" y="342">Chicago</text>
+    </g>
+    <g class="stage f4 f5 f6 f7">
+      <path class="edge-intra arrow" d="M 115 266 C 140 282, 158 296, 170 306"></path>
+      <text class="tiny" x="58" y="395">temporal/order evidence within session</text>
+    </g>
+  </g>
+
+  <g id="s3" transform="translate(925,125)">
+    <rect class="session" x="0" y="0" width="275" height="455" rx="26"></rect>
+    <rect x="0" y="0" width="275" height="44" rx="22" fill="#4d7f2a"></rect>
+    <text class="session-title" x="22" y="28">Session 3: outcome</text>
+    <g class="stage f5 f6 f7">
+      <rect class="raw" x="24" y="70" width="227" height="82" rx="14"></rect>
+      <text class="small" x="42" y="100">"I bought compost bags."</text>
+      <text class="small" x="42" y="126">"Still have not started."</text>
+    </g>
+    <g class="stage f5 f6 f7">
+      <circle class="node" cx="84" cy="240" r="43" fill="#2669b5"></circle>
+      <text class="node-text" x="84" y="234">experience</text>
+      <text class="node-text" x="84" y="252">bags</text>
+      <circle class="node" cx="195" cy="330" r="47" fill="#bd1730"></circle>
+      <text class="node-text" x="195" y="322">plan</text>
+      <text class="node-text" x="195" y="340">not done</text>
+    </g>
+    <g class="stage f6 f7">
+      <path class="edge-intra arrow" d="M 115 266 C 140 282, 158 296, 170 306"></path>
+      <text class="tiny" x="58" y="395">same-session support for plan status</text>
+    </g>
+  </g>
+
+  <g class="stage f4 f5 f6 f7">
+    <path class="edge-inter arrow" d="M 520 318 C 550 334, 555 334, 585 318"></path>
+    <text class="tiny" x="500" y="300">inter-session: entity/time continuity</text>
+  </g>
+  <g class="stage f6 f7">
+    <path class="edge-inter arrow" d="M 518 430 C 672 535, 826 536, 946 430"></path>
+    <text class="tiny" x="622" y="568">inter-session: plan status connects old intention to later evidence</text>
+  </g>
+  <g class="stage f7">
+    <path class="edge-recall" style="marker-end:url(#arrow-red)" d="M 1095 492 C 1000 632, 500 632, 438 492"></path>
+    <rect class="note" x="520" y="602" width="445" height="64"></rect>
+    <text class="label" x="545" y="628">Recall path:</text>
+    <text class="small" x="645" y="628">question pulls the right facts because links span sessions</text>
+    <text class="small" x="545" y="650">Without the inter-session links, the graph becomes isolated islands.</text>
+  </g>
+  <g class="stage f1 f2 f3 f4 f5 f6 f7">
+    <text class="node-text" x="82" y="224">opinion</text>
+    <text class="node-text" x="82" y="242">quiet hotel</text>
+    <text class="node-text" x="194" y="318">plan</text>
+    <text class="node-text" x="194" y="337">compost</text>
+  </g>
+  <g class="stage f3 f4 f5 f6 f7">
+    <text class="node-text" x="84" y="234">experience</text>
+    <text class="node-text" x="84" y="252">Seattle</text>
+    <text class="node-text" x="196" y="324">entity</text>
+    <text class="node-text" x="196" y="342">Chicago</text>
+  </g>
+  <g class="stage f5 f6 f7">
+    <text class="node-text" x="84" y="234">experience</text>
+    <text class="node-text" x="84" y="252">bags</text>
+    <text class="node-text" x="195" y="322">plan</text>
+    <text class="node-text" x="195" y="340">not done</text>
+  </g>
+</svg>
+<script>
+  const params = new URLSearchParams(location.search);
+  const requested = Number(params.get("frame"));
+  const maxFrame = 7;
+  function setFrame(frame) {
+    document.querySelectorAll(".stage").forEach((el) => el.classList.remove("active"));
+    document.querySelectorAll(`.f${frame}`).forEach((el) => el.classList.add("active"));
+  }
+  if (Number.isFinite(requested)) {
+    setFrame(Math.max(0, Math.min(maxFrame, requested)));
+  } else {
+    let frame = 0;
+    setFrame(frame);
+    setInterval(() => {
+      frame = (frame + 1) % (maxFrame + 1);
+      setFrame(frame);
+    }, 900);
+  }
+</script>
+</body>
+</html>

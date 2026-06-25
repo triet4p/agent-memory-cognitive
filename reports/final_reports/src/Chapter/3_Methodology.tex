@@ -1,95 +1,105 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Dựa trên các giới hạn đã phân tích ở Chương 2, chương này trình bày kiến trúc phương pháp luận cốt lõi của CogMem: một hệ thống bộ nhớ hội thoại dài hạn dựa trên đồ thị dị thể, retain pipeline nhiều bước và recall pipeline có định tuyến thích ứng.}
+\textit{Dựa trên các giới hạn đã phân tích ở Chương 2, chương này trình bày CogMem như một khung bộ nhớ dài hạn cho tác nhân hội thoại. Mạch trình bày của chương đi từ cơ sở nhận thức, đến vấn đề hệ thống, rồi đến cách CogMem hiện thực hóa từng quyết định thiết kế trong ba luồng xử lý: ghi nhớ thông tin mới, truy vấn thông tin cũ, và tổng hợp câu trả lời từ bằng chứng thu được qua truy vấn.}
 
-\section{Phương pháp đề xuất}
+\section{Tổng quan hệ thống bộ nhớ CogMem}
 
-\subsection{Tổng quan kiến trúc hệ thống CogMem}
+CogMem được thiết kế để giải quyết một vấn đề cụ thể của tác nhân hội thoại dài hạn: hệ thống không chỉ cần nhớ lại một đoạn trò chuyện cũ, mà còn phải biết loại thông tin nào đang được hỏi, bằng chứng nào đáng tin, và các mảnh thông tin rải rác qua nhiều phiên liên hệ với nhau như thế nào. Trong chương này, mỗi \textit{fact} là một đơn vị thông tin được rút ra từ lời người dùng, chẳng hạn một sự kiện đã kể, một sở thích hoặc một kế hoạch tương lai. Nếu các fact này chỉ được lưu như những ghi chú rời nhau, hệ thống sẽ dễ xem mọi thông tin là ngang hàng. Khi đó, ``người dùng đã học Rust'' và ``người dùng định học Rust'' có thể cùng nằm trong bộ nhớ, nhưng hệ thống thiếu dấu hiệu rõ ràng để biết câu nào nói về quá khứ, câu nào nói về một kế hoạch chưa xảy ra.
 
-CogMem được thiết kế như một kiến trúc gồm ba pipeline liên tiếp:
+Ba yêu cầu trên không được giải quyết bằng một cơ chế duy nhất. Để phân biệt loại thông tin và quan hệ giữa các fact, CogMem biểu diễn hội thoại thành một đồ thị bộ nhớ có kiểu. Thay vì chỉ đặt các fact cạnh nhau, đồ thị gắn nhãn rõ ràng cho từng vai trò: một \textit{experience} là sự kiện đã xảy ra, một \textit{intention} là kế hoạch hướng tới tương lai, còn liên kết \textit{temporal} cho biết hai sự kiện diễn ra trước hay sau nhau.
+
+Riêng yêu cầu về bằng chứng được xử lý bằng một quyết định khác: mỗi đơn vị bộ nhớ không chỉ có bản tóm tắt để tìm kiếm nhanh, mà còn giữ đoạn trích nguyên văn để hỗ trợ câu trả lời cần chi tiết chính xác. Như vậy, phần tổng quan của chương đi qua ba lớp thiết kế liên quan nhưng không đồng nhất: đồ thị có kiểu để tổ chức thông tin, biểu diễn kép để bảo toàn bằng chứng, và truy vấn đa kênh để chọn bằng chứng phù hợp với câu hỏi.
+
+Ở mức kiến trúc, CogMem vận hành qua ba luồng xử lý chính, mỗi luồng là một chuỗi bước nối tiếp nhau, trong đó đầu ra của bước trước trở thành đầu vào của bước sau:
 
 \begin{enumerate}
-    \item \textbf{Retain pipeline}: chuẩn hóa hội thoại, trích xuất fact, sinh embedding, lưu node và tạo liên kết.
-    \item \textbf{Recall pipeline}: chạy song song nhiều kênh truy hồi, phân tích loại truy vấn, rồi dung hợp kết quả theo profile phù hợp.
-    \item \textbf{Reflect / Synthesis pipeline}: tổng hợp evidence được recall để sinh câu trả lời bám dữ kiện.
+    \item \textbf{Pipeline ghi nhớ (Retain)}: tiếp nhận hội thoại mới, trích xuất các đơn vị thông tin, phân loại chúng theo chức năng nhận thức, đổi mỗi đơn vị thành vector nhúng, lưu vào đồ thị bộ nhớ và tạo các liên kết giữa các đơn vị thông tin. Vector nhúng là dạng biểu diễn bằng số của ý nghĩa câu, nhờ đó hệ thống có thể so sánh hai câu có gần nhau về nội dung hay không.
+    \item \textbf{Pipeline truy vấn (Recall)}: tìm lại thông tin cũ khi có câu hỏi. Hệ thống chạy song song nhiều kênh truy vấn gồm truy vấn ngữ nghĩa, truy vấn từ khóa, truy vấn đồ thị và truy vấn theo thời gian. Sau đó, hệ thống kết hợp kết quả bằng cách trộn và xếp hạng lại các bằng chứng từ nhiều kênh theo trọng số phù hợp với loại câu hỏi.
+    \item \textbf{Pipeline tổng hợp (Synthesis/Reflection/Generation)}: chọn các bằng chứng đã truy vấn, đưa vào bước sinh câu trả lời, và ưu tiên câu trả lời bám vào bằng chứng thay vì suy đoán từ mô hình ngôn ngữ.
 \end{enumerate}
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
 \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/cogmem_pipeline_overview.png}};
-\node[reportlabel] at (10,51) {Conversation};
-\node[reportlabel] at (29,51) {Retain};
-\node[reportlabel] at (50,51) {Memory Graph};
-\node[reportlabel] at (71,51) {Recall Channels};
-\node[reportlabel] at (90,51) {Grounded Answer};
-\node[reportnote] at (49,7) {new turns update memory};
+\node[reportlabel] at (10,51) {Hội thoại};
+\node[reportlabel] at (29,51) {Ghi nhớ};
+\node[reportlabel] at (50,51) {Đồ thị bộ nhớ};
+\node[reportlabel] at (71,51) {Kênh truy vấn};
+\node[reportlabel] at (90,51) {Câu trả lời có căn cứ};
+\node[reportnote] at (49,7) {lượt mới cập nhật bộ nhớ};
 \end{tikzpicture}
-\caption{Tổng quan pipeline CogMem: hội thoại được retain thành memory graph, sau đó recall đa kênh và synthesis dựa trên evidence để trả lời truy vấn.}
+\caption{Tổng quan luồng xử lý CogMem: hội thoại được chuyển thành đồ thị bộ nhớ, sau đó hệ thống truy vấn đa kênh và sinh câu trả lời dựa trên bằng chứng.}
 \label{fig:ch3_pipeline_overview}
 \end{figure}
 
-Trong phạm vi luận án này, \textbf{BFS graph retrieval với SUM spreading activation và ba cycle guards} được xem là đường triển khai chuẩn của CogMem. Một số retriever khác được thêm vào ở các giai đoạn phát triển sau nhằm phục vụ nghiên cứu và ablation, nhưng không thay đổi lõi phương pháp luận được trình bày ở đây.
+\subsection{Phạm vi và giả định triển khai}
 
-\subsubsection{Phạm vi và giả định triển khai}
-
-Để giữ phần methodology trung thực, cần phân biệt rõ giữa \textit{ý tưởng kiến trúc} và \textit{đường triển khai được đánh giá trong luận án}. CogMem không giả định rằng mọi fact type đều luôn cần thiết trong mọi dữ liệu, và cũng không giả định rằng LLM extraction luôn phân loại đúng. Thay vào đó, hệ thống được thiết kế để cung cấp một cấu trúc biểu diễn giàu hơn bộ nhớ phẳng, rồi kiểm tra thực nghiệm xem cấu trúc đó giúp ích trong những loại câu hỏi nào.
+Chương này mô tả phương pháp được triển khai và đánh giá trong phạm vi đồ án, không giả định rằng mọi thành phần đều tạo cải thiện độc lập trên mọi bộ dữ liệu. CogMem cung cấp một cấu trúc biểu diễn giàu hơn bộ nhớ phẳng, nhưng hiệu quả thực tế của từng loại thông tin phụ thuộc vào dữ liệu, chất lượng trích xuất và loại câu hỏi trong các bộ benchmark. Benchmark là bộ dữ liệu đánh giá gồm câu hỏi và đáp án chuẩn, dùng để đo khả năng nhớ và trả lời của hệ thống.
 
 Các giả định triển khai chính gồm:
 
 \begin{itemize}
-    \item Fact extraction vẫn phụ thuộc vào LLM, vì vậy typed node có thể bị thiếu, bị gộp hoặc bị re-typed thành fact type khác.
-    \item Graph recall không thay thế semantic/BM25 retrieval; trong evaluation cuối, multi-channel recall mới là cấu hình chính.
-    \item \textit{raw\_snippet} được giữ như bằng chứng nguyên văn, nhưng generation có dùng trực tiếp snippet hay không phụ thuộc vào policy của từng run.
-    \item Các fact type như \textit{habit}, \textit{intention} và \textit{action\_effect} nên được hiểu là các slot biểu diễn có điều kiện, không phải các module luôn tạo uplift độc lập.
+    \item Trích xuất fact vẫn phụ thuộc vào mô hình ngôn ngữ, nên một đơn vị thông tin có thể bị thiếu, bị gộp với đơn vị khác, hoặc bị phân loại sang loại thông tin chưa thật phù hợp. Phần phương pháp của CogMem cải thiện cách biểu diễn và truy vấn sau khi fact đã được trích xuất; nó không loại bỏ hoàn toàn sai số ở bước đọc hiểu hội thoại ban đầu.
+    \item Truy vấn trên đồ thị không thay thế truy vấn ngữ nghĩa hoặc truy vấn từ khóa. Cấu hình chính của CogMem là truy vấn đa kênh, trong đó mỗi kênh bù cho điểm yếu của các kênh còn lại: kênh ngữ nghĩa tìm thông tin gần nghĩa với câu hỏi, kênh từ khóa tìm các đoạn có từ hoặc cụm từ trùng khớp, kênh đồ thị đi theo các liên kết đã lưu, và kênh thời gian ưu tiên các sự kiện đúng mốc hoặc đúng thứ tự.
+    \item Trường \textit{raw\_snippet} được giữ như bằng chứng nguyên văn của hội thoại gốc. Đây là đoạn văn bản gốc nơi fact được rút ra, không phải bản tóm tắt. Tùy chính sách của từng lần chạy, đoạn trích này có thể được đưa vào prompt sinh câu trả lời để làm ngữ cảnh đầu vào mà mô hình ngôn ngữ đọc trước khi trả lời.
+    \item Các loại thông tin như \textit{habit}, \textit{intention} và \textit{action\_effect} là các không gian biểu diễn có điều kiện. \textit{Habit} lưu thói quen lặp lại, \textit{intention} lưu kế hoạch tương lai, còn \textit{action\_effect} lưu quan hệ điều kiện--hành động--kết quả. Chúng được thêm vào để xử lý những loại câu hỏi mà world hoặc experience thường biểu diễn chưa đủ, không phải để khẳng định mọi câu hỏi đều cần chúng.
 \end{itemize}
 
-Do đó, đóng góp của chương này là mô tả một methodology có thể kiểm chứng: retain tạo typed memory graph, recall dùng nhiều kênh để lấy evidence, và reflect sinh câu trả lời dựa trên evidence đó. Các claims mạnh hơn về tác động của từng fact type phải được rút ra từ Chương 5, không được mặc định từ thiết kế.
+Trong phạm vi đồ án này, phương pháp truy vấn đồ thị mặc định là duyệt đồ thị theo chiều rộng: hệ thống bắt đầu từ các đơn vị thông tin gần câu hỏi nhất, rồi mở rộng dần sang các đơn vị lân cận theo từng lớp liên kết. Cách duyệt này được kết hợp với lan truyền tín hiệu cộng dồn và ba cơ chế kiểm soát chu trình. Một số biến thể truy vấn khác có thể được thêm trong quá trình phát triển để phục vụ so sánh, nhưng lõi phương pháp luận của chương này vẫn là: luồng ghi nhớ tạo đồ thị bộ nhớ có kiểu, luồng truy vấn lấy bằng chứng từ nhiều kênh, và luồng tổng hợp sinh câu trả lời dựa trên bằng chứng đó.
 
-\subsubsection{Retain pipeline}
+\section{Kiến trúc xử lý ba pipeline của CogMem}
 
-Retain pipeline hiện thực hóa bộ nhớ dài hạn theo chuỗi bước sau:
+Sau phần tổng quan, mục này mô tả ba pipeline ở mức vận hành: mỗi pipeline nhận đầu vào gì, tạo đầu ra gì, và chuyển thông tin cho pipeline kế tiếp như thế nào. Chi tiết về các cơ chế trong mỗi pipeline sẽ được trình bày ở những mục sau.
+
+\subsection{Luồng ghi nhớ thông tin mới}
+
+Trong luồng ghi nhớ, CogMem xử lý hội thoại theo sáu bước:
 
 \begin{enumerate}
-    \item \textbf{Chunking theo hội thoại}: hội thoại được chia thành các đoạn phù hợp cho extraction.
-    \item \textbf{Pass 1 extraction}: LLM đọc ngữ cảnh mixed-speaker để trích xuất đủ sáu fact type, đặc biệt là \textit{world} và \textit{action\_effect}.
-    \item \textbf{Pass 2 extraction}: một pass persona-focused đọc lại ngữ cảnh người dùng để tinh chỉnh các fact cá nhân như \textit{experience}, \textit{habit}, \textit{intention} và \textit{opinion}.
-    \item \textbf{Dedup và chuẩn hóa metadata}: hợp nhất kết quả giữa các pass, chuẩn hóa status, quan hệ chuyển pha và trường metadata chuyên biệt.
-    \item \textbf{Embedding + storage}: mỗi fact được gắn embedding và lưu vào đồ thị bộ nhớ cùng \textit{raw\_snippet}.
-    \item \textbf{Link creation}: tạo các liên kết entity, temporal, semantic, causal, s\_r\_link, a\_o\_causal và transition.
+    \item \textbf{Chia đoạn hội thoại}: hội thoại dài được chia thành các đoạn có kích thước phù hợp để mô hình ngôn ngữ có thể đọc và trích xuất ổn định.
+    \item \textbf{Trích xuất lượt toàn cục}: mô hình đọc cả lời người dùng và trợ lý để nhận diện tri thức, sự kiện, quan điểm, thói quen, ý định và quan hệ hành động--kết quả.
+    \item \textbf{Trích xuất lượt theo góc nhìn người dùng}: một lượt bổ sung tập trung vào các thông tin cá nhân của người dùng, đặc biệt là trải nghiệm, sở thích, thói quen và kế hoạch.
+    \item \textbf{Loại bỏ trùng lặp và chuẩn hóa}: hệ thống hợp nhất các kết quả lặp, chuẩn hóa trạng thái ý định, chuẩn hóa thời gian và các trường thông tin chuyên biệt.
+    \item \textbf{Tạo vector nhúng và lưu trữ}: mỗi đơn vị thông tin được chuyển thành vector số để phục vụ truy vấn ngữ nghĩa. Nếu hai đơn vị có ý nghĩa gần nhau, vector của chúng cũng thường gần nhau trong không gian số. Ở cùng bước lưu trữ, hệ thống giữ thêm đoạn trích nguyên văn để làm bằng chứng nguồn cho giai đoạn tổng hợp.
+    \item \textbf{Tạo liên kết}: hệ thống thiết lập các quan hệ giữa các đơn vị thông tin, gồm quan hệ thực thể, thời gian, ngữ nghĩa, nhân quả, kích thích--phản ứng, hành động--kết quả và chuyển trạng thái.
 \end{enumerate}
 
-Điểm quan trọng là retain pipeline không chỉ lưu một câu tóm tắt ngữ nghĩa, mà còn bảo toàn văn bản nguồn để phục vụ giai đoạn sinh câu trả lời về sau.
+\subsection{Luồng truy vấn thông tin cũ}
 
-\subsubsection{Recall pipeline}
+Luồng truy vấn bắt đầu từ câu hỏi của người dùng. Hệ thống trước hết phân tích câu hỏi để xác định nó thiên về thời gian, nguyên nhân, sở thích, kế hoạch tương lai, ngữ nghĩa chung hay suy luận nhiều bước. Với câu hỏi nhiều bước, câu trả lời không nằm trọn trong một fact duy nhất mà cần nối ít nhất hai mảnh bằng chứng.
 
-Recall pipeline của CogMem chạy song song bốn kênh:
-\begin{itemize}
-    \item semantic retrieval,
-    \item BM25 retrieval,
-    \item graph retrieval,
-    \item temporal retrieval.
-\end{itemize}
+Sau bước phân tích, CogMem chạy bốn kênh truy vấn song song: kênh ngữ nghĩa, kênh từ khóa (BM25), kênh đồ thị và kênh thời gian. Mỗi kênh tạo một danh sách ứng viên riêng. Các danh sách này được kết hợp bằng điểm xếp hạng có trọng số để tạo ra một danh sách bằng chứng cuối cùng cho bước tổng hợp. Phần \ref{sec:ch3_multichannel_query} trình bày chi tiết từng kênh và cách kết hợp.
 
-Trước khi fusion, hệ thống phân tích truy vấn để xác định \textit{query type} và \textit{temporal constraint} nếu có. Kết quả phân tích này quyết định:
-\begin{itemize}
-    \item fact types nào cần ưu tiên,
-    \item profile trọng số RRF nào cần dùng,
-    \item và có cần hậu xử lý đặc biệt cho bằng chứng prospective hoặc causal hay không.
-\end{itemize}
+\subsection{Luồng tổng hợp câu trả lời}
 
-\subsubsection{Reflect / Synthesis pipeline}
+Luồng tổng hợp nhận các bằng chứng mạnh nhất sau truy vấn, chuẩn hóa chúng thành các mục bằng chứng, rồi dựng ngữ cảnh đầu vào cho mô hình sinh câu trả lời. Ở bước này, đoạn trích nguyên văn được dùng cho một mục đích khác với vector nhúng: nó giúp mô hình trả lời những chi tiết dễ bị mất khi chỉ nhìn vào fact đã tóm tắt, ví dụ con số, ngày tháng, lời nói gốc hoặc sắc thái cảm xúc.
 
-Sau khi recall hoàn tất, hệ thống chọn top evidence để đưa vào prompt sinh câu trả lời. Trong luồng này, \textit{raw\_snippet} đóng vai trò là lớp bằng chứng nguyên văn. Tùy cấu hình của giai đoạn sinh, snippet có thể được đưa thẳng vào prompt hoặc chỉ được giữ như nguồn tham chiếu nội bộ; tuy nhiên, ở mức kiến trúc, trường \textit{raw\_snippet} luôn được bảo toàn end-to-end để tránh mất dữ kiện.
+Nếu có mô hình sinh câu trả lời, prompt yêu cầu mô hình chỉ trả lời dựa trên bằng chứng đã cung cấp, ưu tiên \textit{raw\_snippet} khi có và nói rõ khi bằng chứng chưa đủ. Nếu không có mô hình sinh, hệ thống vẫn có thể tạo một câu trả lời mặc định bằng cách liệt kê các bằng chứng đã chọn. Phần cuối chương quay lại pipeline này để mô tả logic chuẩn hóa bằng chứng, dựng prompt và kiểm soát suy đoán.
 
-\subsection{Đóng góp 1: Đồ thị Bộ nhớ Kế thừa Nhận thức (Cognitively-Grounded Memory Graph)}
+\section{Đồ thị tri thức từ khoa học nhận thức}
 
-\subsubsection{Nền tảng tâm lý}
+\subsection{Động lực nhận thức và cấu trúc đa hệ thống}
 
-Động lực của CogMem đến từ quan sát rằng bộ nhớ người không phải một kho đồng nhất. Các nhóm ký ức như semantic memory, episodic memory, habit memory, prospective memory hay action-effect binding có vai trò khác nhau trong suy luận và hành vi. Vì vậy, việc ép mọi dữ liệu hội thoại vào cùng một dạng fact sẽ làm suy yếu tính phân biệt về chức năng.
+Cơ sở nhận thức đầu tiên của CogMem là quan sát rằng bộ nhớ con người không vận hành như một kho lưu trữ đồng nhất. Trí nhớ ngữ nghĩa lưu tri thức tương đối ổn định; trí nhớ tình tiết lưu sự kiện đã xảy ra; trí nhớ thói quen lưu các mẫu hành vi lặp lại; trí nhớ triển vọng lưu việc cần làm trong tương lai; còn các cơ chế gắn kết hành động--kết quả giúp con người hiểu hành động nào dẫn tới hệ quả nào.
 
-CogMem chuyển trực giác này thành một memory graph dị thể gồm nhiều fact type chuyên biệt. Mỗi network không chỉ khác nhau về nhãn, mà còn khác nhau ở metadata, loại liên kết, và chiến lược truy hồi được ưu tiên khi đối mặt với từng loại câu hỏi.
+Vấn đề của một bộ nhớ hội thoại đồng nhất là các loại tín hiệu này bị đặt chung vào một kiểu biểu diễn. Câu ``người dùng định học Rust'' có thể bị lưu gần giống câu ``người dùng đã học Rust'', dù một câu nói về kế hoạch tương lai chưa xảy ra, còn câu kia nói về một trải nghiệm đã hoàn thành. Tương tự, ``người dùng thường kiểm tra email trước họp'' khác với ``người dùng đã kiểm tra email sáng thứ Hai'', vì một bên là mẫu hành vi lặp lại, bên còn lại là sự kiện đơn lẻ.
+
+CogMem hiện thực hóa nguyên tắc này bằng một đồ thị tri thức dị thể, nơi nhiều loại đơn vị thông tin và nhiều loại liên kết cùng tồn tại thay vì bị ép vào một dạng chung. Mỗi đơn vị thông tin là một nút trong đồ thị, mang loại, các trường mô tả bổ sung và liên kết phù hợp với vai trò nhận thức của nó. Các trường bổ sung này ghi những chi tiết như thời điểm xảy ra, độ tin cậy, hoặc trạng thái của một kế hoạch. Nhờ vậy, hệ thống có thể phân biệt những thông tin có câu chữ và ngữ nghĩa gần nhau nhưng chức năng khác nhau trong suy luận.
+
+\subsection{Các mạng phân định}
+
+CogMem sử dụng sáu loại thông tin cốt lõi với các tên gọi \textit{world}, \textit{experience}, \textit{opinion}, \textit{habit}, \textit{intention} và \textit{action-effect} là nhãn biểu diễn trong hệ thống; mỗi nhãn cho biết fact đó nên được hiểu và truy vấn theo cách nào. Mỗi loại được chọn vì nó tương ứng với một nhu cầu truy vấn khác nhau trong hội thoại dài hạn.
+
+\begin{enumerate}
+    \item \textbf{World}: lưu tri thức khách quan hoặc tương đối ổn định. Đây là các thông tin như nghề nghiệp, kỹ năng, tổ chức, mối quan tâm dài hạn hoặc tri thức chung. World khác experience ở chỗ nó không nhất thiết gắn với một lần xảy ra cụ thể. Ví dụ, ``người dùng là kỹ sư phần mềm'' là world; ``người dùng phỏng vấn ở một công ty hôm qua'' là experience.
+    \item \textbf{Experience}: lưu sự kiện cá nhân đã xảy ra, thường có thời gian, bối cảnh hoặc thứ tự trước--sau. Đây là loại thông tin phù hợp với câu hỏi ``đã xảy ra chuyện gì'', ``khi nào'', hoặc ``sau sự kiện nào''. Điểm quan trọng là experience luôn nói về một việc đã diễn ra, không phải kế hoạch hay thói quen.
+    \item \textbf{Opinion}: lưu đánh giá, niềm tin, sở thích hoặc lập trường chủ quan. Loại này có thể đi kèm độ tin cậy vì quan điểm có thể yếu, mạnh hoặc thay đổi theo thời gian. Ví dụ, ``người dùng thích Python hơn JavaScript cho thử nghiệm nhanh'' là opinion, không phải world, vì đó là đánh giá cá nhân.
+    \item \textbf{Habit}: lưu mẫu hành vi lặp lại. Một habit không chỉ là một sự kiện đã xảy ra, mà là khuynh hướng ``thường làm gì trong bối cảnh nào''. Vì vậy, habit thường được nối với nhiều experience cụ thể để những sự kiện đã quan sát được trở thành bằng chứng cho mẫu hành vi lặp lại.
+    \item \textbf{Intention}: lưu kế hoạch hoặc mục tiêu hướng tới tương lai. Một intention đại diện cho việc người dùng dự định làm nhưng tại thời điểm ghi nhớ có thể chưa xảy ra. Trạng thái \textit{planning} mô tả kế hoạch đang tồn tại và chưa hoàn tất; \textit{fulfilled} mô tả kế hoạch đã được thực hiện và thường có một experience mới làm bằng chứng; \textit{abandoned} mô tả trường hợp người dùng đã hủy bỏ hoặc thay đổi mục tiêu nên kế hoạch không còn được theo đuổi.
+    \item \textbf{Action-Effect}: lưu quan hệ nhân quả ở cấp hành động, gồm điều kiện ban đầu, hành động được chọn và kết quả quan sát được. Loại này phục vụ các câu hỏi như ``làm cách nào để khắc phục'', ``vì sao cách đó hiệu quả'', hoặc ``hành động nào dẫn tới kết quả này''.
+\end{enumerate}
 
 \begin{figure}[H]
 \centering
@@ -101,126 +111,257 @@ CogMem chuyển trực giác này thành một memory graph dị thể gồm nhi
 \node[reportlabel] at (82,33) {Habit};
 \node[reportlabel] at (35,14) {Intention};
 \node[reportlabel] at (65,14) {Action-Effect};
-\node[reportnote] at (50,31) {typed edges + shared entities};
+\node[reportnote] at (50,31) {liên kết có kiểu + thực thể chung};
 \end{tikzpicture}
-\caption{Sáu mạng bộ nhớ của CogMem}
+\caption{Sáu mạng bộ nhớ của CogMem, tương ứng với sáu loại thông tin có vai trò khác nhau trong truy vấn hội thoại dài hạn.}
 \label{fig:ch3_six_networks}
 \end{figure}
 
-\subsubsection{Sáu mạng bộ nhớ}
-
-CogMem hiện dùng sáu fact type cốt lõi:
-
-\begin{enumerate}
-    \item \textbf{World}: kiến thức khách quan hoặc tương đối ổn định về thế giới.
-    \item \textbf{Experience}: sự kiện cá nhân đã xảy ra, thường gắn với thời gian hoặc bối cảnh cụ thể.
-    \item \textbf{Opinion}: nhận định, sở thích hoặc đánh giá chủ quan.
-    \item \textbf{Habit}: mẫu hành vi lặp lại mang tính stimulus-response.
-    \item \textbf{Intention}: kế hoạch hoặc mục tiêu hướng tới tương lai, có trạng thái \textit{planning / fulfilled / abandoned}.
-    \item \textbf{Action-Effect}: bộ ba nhân quả \textit{precondition -- action -- outcome}.
-\end{enumerate}
-
 \begin{table}[H]
 \centering
-\caption{Các fact type cốt lõi và metadata chuyên biệt}
+\caption{Các loại fact cốt lõi và siêu dữ liệu chuyên biệt}
 \label{tab:node_schemas}
-\begin{tabular}{|p{2.7cm}|p{5.0cm}|p{4.8cm}|}
-\hline
-\textbf{Fact type} & \textbf{Vai trò biểu diễn} & \textbf{Metadata / tín hiệu chuyên biệt} \\
-\hline
+\small
+\begin{tabularx}{\linewidth}{@{}lYY@{}}
+\toprule
+\textbf{Loại fact} & \textbf{Vai trò biểu diễn} & \textbf{Siêu dữ liệu / tín hiệu chuyên biệt} \\
+\midrule
 world & Kiến thức khách quan, mô tả ổn định & text, entities, raw\_snippet \\
-\hline
 experience & Sự kiện cá nhân đã xảy ra & occurred\_start, occurred\_end, mentioned\_at \\
-\hline
 opinion & Đánh giá hoặc sở thích chủ quan & confidence \\
-\hline
 habit & Mẫu hành vi lặp lại & liên kết s\_r\_link đến các experience liên quan \\
-\hline
-intention & Kế hoạch và mục tiêu tương lai & intention\_status; có thể mang thêm mô tả ``why'' hoặc tín hiệu thời gian từ extraction \\
-\hline
+intention & Kế hoạch và mục tiêu tương lai & intention\_status; có thể mang thêm mô tả lý do hoặc tín hiệu thời gian từ bước trích xuất \\
 action\_effect & Quy luật nhân quả ở cấp hành động & precondition, action, outcome, confidence, devalue\_sensitive \\
-\hline
-\end{tabular}
+\bottomrule
+\end{tabularx}
 \end{table}
 
-Việc tách riêng \textit{habit}, \textit{intention} và \textit{action\_effect} không nên được hiểu như một khẳng định rằng ba mạng này luôn tạo ra cải thiện đồng đều trên mọi tập dữ liệu. Thay vào đó, chúng cung cấp các ``representational slots'' mới cho những tín hiệu mà \textit{world} hoặc \textit{experience} thường mô tả không đầy đủ, đặc biệt ở các câu hỏi preference, prospective và causal. Trong các thí nghiệm hiện tại, \textit{habit} là nhóm có bằng chứng uplift yếu nhất: nó hợp lý về mặt biểu diễn, nhưng benchmark chưa có đủ câu hỏi thật sự cần mô hình hóa routine lặp lại để chứng minh đóng góp độc lập.
+Các tên trường trong bảng như \textit{occurred\_start}, \textit{confidence} hay \textit{precondition} là tên ngắn dùng trong triển khai, nhưng ý nghĩa của chúng đơn giản hơn: thời điểm bắt đầu sự kiện, độ tin cậy của thông tin, và điều kiện ban đầu của một hành động. Nhờ các trường này, hai fact có câu chữ gần giống nhau vẫn có thể được xử lý khác nhau nếu một fact là sự kiện đã xảy ra còn fact kia là kế hoạch tương lai.
 
-\subsubsection{Phân biệt Habit vs. Action-Effect}
+Việc tách riêng ba loại habit, intention và action-effect không nhằm khẳng định chúng luôn cải thiện mọi tập dữ liệu. Mục tiêu của chúng là mở thêm không gian biểu diễn cho những tín hiệu mà world hoặc experience dễ mô tả thiếu: hành vi lặp lại, kế hoạch chưa hoàn thành và tri thức can thiệp kiểu ``nếu ở điều kiện P, làm hành động A thì tạo ra kết quả O''. Dạng tri thức này khác với tri thức mô tả đơn thuần vì nó giúp hệ thống suy luận về hành động có thể làm thay đổi kết quả. Trong các thí nghiệm hiện tại, habit là nhóm cần diễn giải thận trọng nhất vì benchmark chuẩn chưa có nhiều câu hỏi thật sự đòi hỏi mô hình hóa thói quen lặp lại qua nhiều tuần hoặc nhiều phiên.
 
-CogMem tách \textit{habit} và \textit{action\_effect} vì hai loại này phản ánh hai cơ chế nhận thức khác nhau:
+\subsubsection{Trí nhớ ngữ nghĩa và mạng World}
 
-\begin{itemize}
-    \item \textbf{Habit}: phản ứng lặp lại, mang tính S-R, hình thành từ tần suất và ngữ cảnh quen thuộc.
-    \item \textbf{Action-Effect}: quy luật nhân quả có chủ đích, nơi một hành động được chọn vì tạo ra một kết quả quan sát được.
-\end{itemize}
+Trí nhớ ngữ nghĩa lưu tri thức không phụ thuộc chặt vào một tình tiết riêng lẻ. Trong CogMem, world fact đảm nhận vai trò này. Khi người dùng nói ``tôi là kỹ sư phần mềm'' hoặc ``DI là công ty làm về hạ tầng LLM'', hệ thống nên lưu đó như tri thức tương đối ổn định, không phải như một experience chỉ có giá trị trong một phiên. LLM là mô hình ngôn ngữ lớn, loại mô hình AI có khả năng đọc, sinh và suy luận trên văn bản.
 
-Trong thực tế hội thoại, hai loại tín hiệu này dễ bị trộn lẫn nếu chỉ dùng fact phẳng. Việc tách riêng giúp truy hồi preference hoặc causal evidence rõ hơn, đồng thời mở đường cho các thí nghiệm ablation theo từng cấu phần.
+Sự phân biệt này giúp truy vấn đúng trọng tâm hơn, cụ thể là các câu hỏi về danh tính, năng lực, nơi làm việc hoặc tri thức chuyên ngành nên ưu tiên world fact. Ngược lại, câu hỏi về việc gì đã xảy ra hôm qua hoặc sau một biến cố cụ thể nên ưu tiên experience.
+
+\subsubsection{Habit Memory và Habit Network}
+
+Habit memory liên quan đến các mẫu hành vi được lặp lại trong bối cảnh quen thuộc. Trong CogMem, habit biểu diễn các câu kiểu ``người dùng thường làm gì'', ``hay chọn gì'', hoặc ``thường phản ứng ra sao khi gặp một tình huống''. Một experience nói về một lần xảy ra; một habit nói về một mẫu ổn định hơn được tổng quát từ nhiều lần. Vì vậy, nếu người dùng một lần nói ``sáng nay tôi kiểm tra email trước họp'', đó chưa đủ là habit; nếu nhiều phiên cho thấy hành vi này lặp lại, hệ thống mới có cơ sở mạnh hơn để xem đó là thói quen.
+
+Về triển khai, CogMem dùng liên kết kích thích--phản ứng để nối habit với các experience có liên quan. Kích thích là bối cảnh làm hành vi xuất hiện, ví dụ ``trước standup''; phản ứng là hành vi quen thuộc, ví dụ ``kiểm tra email''. Cách làm này không phải một mô hình học tăng cường đầy đủ, nhưng đủ để phân biệt mẫu lặp lại với sự kiện đơn lẻ và hỗ trợ các câu hỏi cá nhân hóa như ``người dùng thường chuẩn bị thế nào trước cuộc họp''.
 
 \begin{figure}[H]
 \centering
-\resizebox{0.92\textwidth}{!}{%
-\begin{tikzpicture}
-\node[reportboxgreen, minimum width=3.0cm] (stim) at (0,1.25) {Stimulus\\context};
-\node[reportboxgreen, minimum width=3.0cm] (routine) at (4.3,1.25) {Repeated\\response};
-\node[reportboxgold, minimum width=3.0cm] (habit) at (8.6,1.25) {Habit node\\S-R link};
-\draw[reportarrow] (stim) -- (routine);
-\draw[reportarrow] (routine) -- (habit);
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/habit_diary_workload.png}};
+\node[reportlabel] at (14,51) {Nhật ký tuần};
+\node[reportlabel] at (38,51) {Mẫu thói quen};
+\node[reportlabel] at (62,51) {Đơn vị thói quen};
+\node[reportlabel] at (76,51) {Điểm lệch};
+\node[reportlabel] at (91,51) {truy vấn};
+\node[reportnote] at (14,7) {lặp lại};
+\node[reportnote] at (38,7) {bối cảnh kích hoạt};
+\node[reportnote] at (62,7) {thói quen khái quát};
+\node[reportnote] at (76,7) {bất thường};
+\node[reportnote] at (91,7) {trả lời cá nhân hóa};
+\end{tikzpicture}
+\caption{Một chuỗi nhật ký nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}
+\label{fig:ch4_habit_diary_workload}
+\end{figure}
 
-\node[reportboxred, minimum width=3.0cm] (pre) at (0,-1.25) {Precondition\\P};
-\node[reportboxred, minimum width=3.0cm] (act) at (4.3,-1.25) {Chosen action\\A};
-\node[reportboxred, minimum width=3.0cm] (out) at (8.6,-1.25) {Observed\\outcome O};
-\node[reportboxcyan, minimum width=3.2cm] (ae) at (13.0,-1.25) {Action-effect\\P--A--O};
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=2.7cm] (e1) at (0,1.2) {Experience 1\\\scriptsize thứ Hai};
+\node[reportboxcyan, minimum width=2.7cm] (e2) at (0,0) {Experience 2\\\scriptsize thứ Tư};
+\node[reportboxcyan, minimum width=2.7cm] (e3) at (0,-1.2) {Experience 3\\\scriptsize thứ Sáu};
+\node[reportboxgreen, minimum width=3.7cm, minimum height=1.25cm] (pattern) at (4.2,0) {Mẫu lặp lại\\\scriptsize kích thích + phản ứng};
+\node[reportboxgold, minimum width=3.4cm] (habit) at (8.7,0) {Đơn vị habit\\\scriptsize thói quen khái quát};
+\node[reportboxred, minimum width=3.6cm] (recall) at (13.0,0) {truy vấn cá nhân hóa\\\scriptsize việc người dùng thường làm};
+\draw[reportarrow] (e1) -- (pattern);
+\draw[reportarrow] (e2) -- (pattern);
+\draw[reportarrow] (e3) -- (pattern);
+\draw[reportarrow] (pattern) -- node[above, font=\scriptsize]{S-R link} (habit);
+\draw[reportarrow] (habit) -- (recall);
+\end{tikzpicture}%
+}
+\caption{Habit Memory và Habit Network}
+\label{fig:ch4_habit_memory}
+\end{figure}
+
+\subsubsection{Prospective Memory và Intention Network}
+
+Prospective memory là năng lực giữ trong trí nhớ một việc cần làm ở tương lai. Nhờ dạng trí nhớ này, một người không chỉ nhớ điều đã xảy ra, mà còn nhớ rằng mình đang có một nhiệm vụ hoặc mục tiêu chưa hoàn thành. Trong hội thoại dài hạn, loại tín hiệu này rất quan trọng vì người dùng thường nói về kế hoạch, mục tiêu và việc chưa làm. Nếu hệ thống chỉ có world và experience, câu ``tôi định học Rust trong quý tới'' dễ bị hiểu mơ hồ như một thông tin ổn định hoặc một sự kiện đã xảy ra.
+
+CogMem biểu diễn kế hoạch bằng trường \textit{intention\_status}, dùng để theo dõi kế hoạch đang ở giai đoạn nào trong vòng đời của nó. Ba trạng thái có ý nghĩa cụ thể:
+
+\begin{itemize}
+    \item \textit{planning}: kế hoạch đang tồn tại, người dùng chưa nói rằng nó đã hoàn thành hoặc bị hủy bỏ.
+    \item \textit{fulfilled}: kế hoạch đã được thực hiện; hệ thống có thể tạo hoặc liên kết tới một experience mô tả việc hoàn thành.
+    \item \textit{abandoned}: kế hoạch đã bị hủy, bị thay thế, hoặc người dùng không còn theo đuổi mục tiêu đó nữa. Đây là trạng thái của chính intention, không phải một loại cạnh riêng.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Vòng đời của intention và ý nghĩa các liên kết chuyển trạng thái}
+\label{tab:intention_lifecycle}
+\small
+\begin{tabularx}{\linewidth}{@{}YYY@{}}
+\toprule
+\textbf{Tình huống} & \textbf{Biểu diễn trên intention} & \textbf{Ý nghĩa chuyển trạng thái} \\
+\midrule
+Lập kế hoạch mới & status = planning & kế hoạch chưa cần liên kết chuyển trạng thái \\
+Kế hoạch được thực hiện & status có thể cập nhật; experience mới được tạo & fulfilled\_by: intention $\rightarrow$ experience \\
+Sự kiện gợi ra kế hoạch mới & intention planning mới xuất hiện & triggered: experience $\rightarrow$ intention \\
+Kế hoạch phụ thuộc kế hoạch khác & hai intention cùng tồn tại & enabled\_by: intention $\rightarrow$ intention \\
+Kế hoạch bị hủy bỏ & status = abandoned & không cần cạnh riêng; trạng thái nằm trên intention \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxgold, minimum width=3.2cm] (plan) at (0,0) {Intention\\\scriptsize status=planning};
+\node[reportboxgreen, minimum width=3.2cm] (done) at (4.4,1.25) {Experience\\\scriptsize kế hoạch hoàn thành};
+\node[reportboxred, minimum width=3.2cm] (abandoned) at (4.4,-1.25) {Cùng đơn vị\\\scriptsize status=abandoned};
+\node[reportboxcyan, minimum width=3.2cm] (trigger) at (-4.4,-1.25) {Experience\\\scriptsize gợi ra kế hoạch mới};
+\node[reportboxgold, minimum width=3.2cm] (newplan) at (0,-2.5) {Intention mới\\\scriptsize status=planning};
+\draw[reportarrow] (plan) -- node[above, font=\scriptsize]{fulfilled\_by} (done);
+\draw[reportarrow] (plan) -- node[below, font=\scriptsize]{cập nhật trạng thái} (abandoned);
+\draw[reportarrow] (trigger) -- node[above, font=\scriptsize]{triggered} (newplan);
+\draw[reportarrow] (newplan) -- node[right, font=\scriptsize]{enabled\_by} (plan);
+\node[font=\scriptsize, align=center] at (4.4,-2.25) {abandoned là trạng thái,\\không phải liên kết riêng};
+\end{tikzpicture}%
+}
+\caption{Intention Lifecycle}
+\label{fig:ch4_intention_lifecycle}
+\end{figure}
+
+\subsubsection{Theory of Event Coding và Action-Effect Network}
+
+Theory of Event Coding nhấn mạnh rằng hành động và hệ quả cảm nhận được của hành động thường được biểu diễn cùng nhau. Nói theo ngôn ngữ đời thường, khi ta học một hành động, ta thường nhớ luôn kết quả mà hành động đó tạo ra. Với tác nhân hội thoại hoặc tác nhân sử dụng công cụ, đây là điểm rất quan trọng: hệ thống không chỉ cần nhớ ``lỗi đã xảy ra'', mà còn cần nhớ ``trong điều kiện đó, hành động nào đã dẫn tới kết quả nào''.
+
+CogMem hiện thực hóa ý tưởng này bằng action-effect, một loại thông tin gồm ba phần: \textit{precondition} là điều kiện ban đầu, \textit{action} là hành động được chọn, và \textit{outcome} là kết quả quan sát được. Ví dụ, precondition có thể là ``API trả về timeout'', action là ``chạy lại lệnh với retry'', và outcome là ``tác vụ hoàn tất''. Cấu trúc này hữu ích hơn một world fact chung chung khi câu hỏi yêu cầu giải thích nguyên nhân hoặc tái sử dụng một quy luật can thiệp đã từng thành công.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.01\textwidth,y=0.01\textwidth]
+\node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=\textwidth]{Images/agentic_action_effect_trace.png}};
+\node[reportlabel] at (10,51) {Bối cảnh lỗi};
+\node[reportlabel] at (31,51) {Hành động công cụ};
+\node[reportlabel] at (50,51) {Kết quả quan sát};
+\node[reportlabel] at (69,51) {Đơn vị Action-Effect};
+\node[reportlabel] at (89,51) {truy vấn về sau};
+\node[reportnote] at (10,7) {điều kiện đầu};
+\node[reportnote] at (31,7) {can thiệp};
+\node[reportnote] at (50,7) {kết quả};
+\node[reportnote] at (69,7) {bộ nhớ nhân quả có kiểu};
+\node[reportnote] at (89,7) {tái dùng quy luật};
+\end{tikzpicture}
+\caption{Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động công cụ và kết quả quan sát được.}
+\label{fig:ch4_agentic_action_effect_trace}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.2cm] (pre) at (0,0) {Điều kiện đầu\\\scriptsize HTTP 429, timeout, lỗi};
+\node[reportboxgold, minimum width=3.2cm] (act) at (4.2,0) {Hành động\\\scriptsize retry, vá lỗi, lệnh};
+\node[reportboxgreen, minimum width=3.2cm] (out) at (8.4,0) {Kết quả\\\scriptsize thành công, nhanh hơn, đã sửa};
+\node[reportboxred, minimum width=3.9cm] (ae) at (4.2,-1.85) {Đơn vị action-effect\\\scriptsize điều kiện -- hành động -- kết quả};
+\node[reportbox, minimum width=3.6cm] (why) at (12.4,0) {Câu trả lời nhân quả\\\scriptsize cách nào hiệu quả và vì sao};
 \draw[reportarrow] (pre) -- (act);
 \draw[reportarrow] (act) -- (out);
+\draw[reportarrow] (pre) -- (ae);
+\draw[reportarrow] (act) -- (ae);
 \draw[reportarrow] (out) -- (ae);
+\draw[reportarrow] (out) -- (why);
+\draw[reportarrow] (ae) -- (why);
+\end{tikzpicture}%
+}
+\caption{Theory of Event Coding và Action-Effect Network}
+\label{fig:ch4_tec_network}
+\end{figure}
 
-\node[font=\bfseries] at (-1.8,1.25) {Habit};
-\node[font=\bfseries] at (-1.8,-1.25) {Action-effect};
-\node[font=\scriptsize, align=center] at (4.3,0.35) {generalizes repeated behavior};
-\node[font=\scriptsize, align=center] at (6.5,-2.05) {stores intentional causal intervention};
+\subsection{Khác biệt cốt lõi giữa Habit và Action-Effect}
+
+Habit và action-effect đều liên quan đến hành vi, nhưng chúng không biểu diễn cùng một hiện tượng. Habit là mẫu kích thích--phản ứng hình thành qua lặp lại: gặp bối cảnh quen thuộc thì hành vi quen thuộc xuất hiện. Action-effect là quy luật nhân quả có chủ đích, trong đó một hành động được chọn vì người dùng hoặc tác nhân kỳ vọng nó tạo ra kết quả mong muốn.
+
+Ví dụ, ``người dùng thường kiểm tra email trước standup'' là habit vì nó mô tả một thói quen, một chuỗi hành vi quen thuộc. Ngược lại, ``khi API trả về timeout, chạy lại lệnh với tham số retry giúp hoàn tất tác vụ'' là action-effect vì nó mô tả một quan hệ điều kiện--hành động--kết quả có thể được dùng để suy luận nguyên nhân.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+\node[reportbox, minimum width=2.7cm, minimum height=0.95cm] (habitlabel) at (0,1.9) {\textbf{Nhánh Habit}};
+\node[reportboxgreen, minimum width=2.8cm, minimum height=1.05cm] (stim) at (3.5,1.9) {Kích thích\\bối cảnh};
+\node[reportboxgreen, minimum width=2.8cm, minimum height=1.05cm] (routine) at (6.8,1.9) {Phản ứng\\lặp lại};
+\node[reportboxgold, minimum width=3.2cm, minimum height=1.05cm] (habit) at (10.6,1.9) {Đơn vị habit\\\scriptsize mẫu thói quen};
+\draw[reportarrow] (habitlabel.east) -- (stim.west);
+\draw[reportarrow] (stim.east) -- (routine.west);
+\draw[reportarrow] (routine.east) -- (habit.west);
+
+\node[reportbox, minimum width=3.0cm, minimum height=0.95cm] (aelabel) at (0,-1.7) {\textbf{Nhánh Action-effect}};
+\node[reportboxred, minimum width=2.6cm, minimum height=1.05cm] (pre) at (3.8,-1.7) {Điều kiện\\P};
+\node[reportboxred, minimum width=2.6cm, minimum height=1.05cm] (act) at (7.0,-1.7) {Hành động\\A};
+\node[reportboxred, minimum width=2.8cm, minimum height=1.05cm] (out) at (10.4,-1.7) {Kết quả\\O};
+\node[reportboxcyan, minimum width=3.4cm, minimum height=1.05cm] (ae) at (14.4,-1.7) {Đơn vị action-effect\\\scriptsize quy luật nhân quả có chủ đích};
+\draw[reportarrow] (aelabel.east) -- (pre.west);
+\draw[reportarrow] (pre.east) -- (act.west);
+\draw[reportarrow] (act.east) -- (out.west);
+\draw[reportarrow] (out.east) -- (ae.west);
 \end{tikzpicture}%
 }
 \caption{Phân biệt Habit và Action-Effect}
 \label{fig:ch3_sr_vs_ao}
 \end{figure}
 
-\subsubsection{Bảy loại liên kết (Edge Types)}
+Sự phân biệt này cũng giúp thiết kế thí nghiệm rõ hơn. Với câu hỏi về sở thích hoặc thói quen lặp lại, habit là lựa chọn hợp lý hơn vì nó chứa tín hiệu lặp lại. Với câu hỏi về ``vì sao'' hoặc ``làm gì để đạt kết quả'', action-effect mới là biểu diễn trực tiếp hơn vì nó chứa quan hệ nhân quả. Nếu gộp hai loại này thành một fact chung, hệ thống khó biết nên truy vấn theo tần suất hành vi hay theo quan hệ nhân quả.
 
-Trên đồ thị CogMem, thông tin được kết nối bởi bảy nhóm liên kết chính:
+\subsection{Bản chất ngữ nghĩa của các liên kết đồ thị}
+
+Một đồ thị bộ nhớ chỉ hữu ích khi các liên kết có ý nghĩa rõ ràng. Mỗi liên kết trả lời cho câu hỏi: ``hai đơn vị thông tin này liên quan với nhau theo cách nào?'' CogMem dùng bảy loại liên kết, mỗi loại biểu diễn một quan hệ khác nhau giữa các đơn vị thông tin:
 
 \begin{enumerate}
-    \item \textbf{entity}: nối các node cùng nhắc tới một thực thể.
-    \item \textbf{temporal}: mô tả quan hệ trước-sau giữa các sự kiện.
-    \item \textbf{semantic}: nối các node có tương đồng ngữ nghĩa cao.
-    \item \textbf{causal}: quan hệ nhân quả hoặc ảnh hưởng giữa các fact.
-    \item \textbf{s\_r\_link}: liên kết hỗ trợ habit bằng các experience cùng mẫu kích thích-phản ứng.
-    \item \textbf{a\_o\_causal}: liên kết từ action\_effect tới các fact quan sát được làm bằng chứng outcome.
-    \item \textbf{transition}: liên kết chuyển pha trạng thái của một biểu diễn theo thời gian.
+    \item \textbf{entity}: nối các đơn vị thông tin cùng nhắc tới một thực thể, ví dụ cùng người, dự án, công ty hoặc công cụ. Nếu hai fact đều nhắc tới ``Project Alpha'', liên kết entity giúp hệ thống gom chúng lại.
+    \item \textbf{temporal}: mô tả thứ tự thời gian hoặc quan hệ trước--sau giữa các sự kiện. Loại liên kết này giúp trả lời các câu hỏi như ``sau khi đổi việc thì người dùng làm gì''.
+    \item \textbf{semantic}: nối các đơn vị thông tin có nội dung gần nhau về nghĩa, thường dựa trên độ tương đồng embedding. Ví dụ, ``học Rust'' và ``viết inference server bằng Rust'' có thể gần nhau về ngữ nghĩa dù không trùng toàn bộ từ khóa.
+    \item \textbf{causal}: biểu diễn quan hệ nguyên nhân, ảnh hưởng hoặc giải thích giữa các fact. Đây là liên kết cho câu hỏi kiểu ``vì sao''.
+    \item \textbf{s\_r\_link}: nối habit với các experience cùng mẫu kích thích--phản ứng. Ký hiệu S-R là viết tắt của stimulus-response, tương ứng với kích thích và phản ứng.
+    \item \textbf{a\_o\_causal}: nối action-effect với các fact quan sát được làm bằng chứng cho quan hệ hành động--kết quả. Ký hiệu A-O là viết tắt của action-outcome, tương ứng với hành động và kết quả.
+    \item \textbf{transition}: biểu diễn thay đổi trạng thái của cùng một ý niệm theo thời gian, ví dụ một kế hoạch được hoàn thành hoặc một quan điểm được sửa đổi. Nếu không có transition, hệ thống có thể biết hai fact cùng nói về Rust nhưng không biết fact sau đã hoàn tất kế hoạch ở fact trước.
 \end{enumerate}
 
-Riêng \textit{transition} là một edge type duy nhất nhưng mang \textit{transition\_type} bên trong. Trong implementation hiện tại, các typed transition cốt lõi gồm:
+Transition là một nhóm liên kết quan trọng vì nó giữ lại quá trình thay đổi của thông tin theo thời gian. Một thông tin có thể bắt đầu như kế hoạch, sau đó trở thành trải nghiệm đã hoàn thành, hoặc bị hủy bỏ khi mục tiêu thay đổi. Trong triển khai hiện tại, các kiểu chuyển trạng thái chính gồm:
+
 \begin{itemize}
-    \item \texttt{fulfilled\_by}: intention $\rightarrow$ experience,
-    \item \texttt{triggered}: experience $\rightarrow$ intention,
-    \item \texttt{enabled\_by}: intention $\rightarrow$ intention,
-    \item \texttt{revised\_to}: opinion $\rightarrow$ opinion,
-    \item \texttt{contradicted\_by}: world $\rightarrow$ world.
+    \item \texttt{fulfilled\_by}: intention $\rightarrow$ experience, khi một kế hoạch được thực hiện.
+    \item \texttt{triggered}: experience $\rightarrow$ intention, khi một sự kiện làm nảy sinh kế hoạch mới.
+    \item \texttt{enabled\_by}: intention $\rightarrow$ intention, khi một kế hoạch là điều kiện để kế hoạch khác trở nên khả thi.
+    \item \texttt{revised\_to}: opinion $\rightarrow$ opinion, khi người dùng điều chỉnh quan điểm.
+    \item \texttt{contradicted\_by}: world $\rightarrow$ world, khi một thông tin ổn định bị cập nhật hoặc phủ định bởi thông tin mới.
 \end{itemize}
 
-\textbf{Lưu ý:} \textit{abandoned} là một \textit{intention\_status}, không phải một transition edge riêng.
+\textit{abandoned} là trạng thái của intention, không phải một liên kết transition riêng. Thiết kế này giúp hệ thống vẫn nhớ rằng kế hoạch từng tồn tại, đồng thời biết rằng nó không còn được theo đuổi.
 
 \begin{figure}[H]
 \centering
 \resizebox{0.92\textwidth}{!}{%
 \begin{tikzpicture}
-\node[reportboxgold, minimum width=3.1cm, minimum height=1.0cm] (center) at (0,0) {Memory\\graph};
-\node[reportbox, minimum width=3.0cm] (entity) at (-4.8,1.9) {\textbf{entity}\\[-0.1em]\scriptsize shared people, places, tools};
-\node[reportbox, minimum width=3.0cm] (temporal) at (0,2.35) {\textbf{temporal}\\[-0.1em]\scriptsize before/after/session order};
-\node[reportbox, minimum width=3.0cm] (semantic) at (4.8,1.9) {\textbf{semantic}\\[-0.1em]\scriptsize meaning similarity};
-\node[reportbox, minimum width=3.0cm] (causal) at (-5.2,-0.25) {\textbf{causal}\\[-0.1em]\scriptsize why and because};
-\node[reportbox, minimum width=3.0cm] (sr) at (5.2,-0.25) {\textbf{s\_r\_link}\\[-0.1em]\scriptsize habit evidence};
-\node[reportbox, minimum width=3.0cm] (ao) at (-3.0,-2.25) {\textbf{a\_o\_causal}\\[-0.1em]\scriptsize action-outcome support};
-\node[reportbox, minimum width=3.0cm] (transition) at (3.0,-2.25) {\textbf{transition}\\[-0.1em]\scriptsize state lifecycle};
+\node[reportboxgold, minimum width=3.1cm, minimum height=1.0cm] (center) at (0,0) {Đồ thị\\bộ nhớ};
+\node[reportbox, minimum width=3.0cm] (entity) at (-4.8,1.9) {\textbf{entity}\\[-0.1em]\scriptsize chung người, nơi, công cụ};
+\node[reportbox, minimum width=3.0cm] (temporal) at (0,2.35) {\textbf{temporal}\\[-0.1em]\scriptsize trước/sau/theo phiên};
+\node[reportbox, minimum width=3.0cm] (semantic) at (4.8,1.9) {\textbf{semantic}\\[-0.1em]\scriptsize gần nhau về nghĩa};
+\node[reportbox, minimum width=3.0cm] (causal) at (-5.2,-0.25) {\textbf{causal}\\[-0.1em]\scriptsize vì sao và bởi vì};
+\node[reportbox, minimum width=3.0cm] (sr) at (5.2,-0.25) {\textbf{s\_r\_link}\\[-0.1em]\scriptsize bằng chứng habit};
+\node[reportbox, minimum width=3.0cm] (ao) at (-3.0,-2.25) {\textbf{a\_o\_causal}\\[-0.1em]\scriptsize hỗ trợ hành động-kết quả};
+\node[reportbox, minimum width=3.0cm] (transition) at (3.0,-2.25) {\textbf{transition}\\[-0.1em]\scriptsize vòng đời trạng thái};
 \foreach \n in {entity,temporal,semantic,causal,sr,ao,transition}{\draw[reportarrow] (center) -- (\n);}
 \end{tikzpicture}%
 }
@@ -228,13 +369,12 @@ Riêng \textit{transition} là một edge type duy nhất nhưng mang \textit{tr
 \label{fig:ch3_edge_types}
 \end{figure}
 
-\subsection{Đóng góp 2: Siêu dữ liệu Node phi tổn hao (Lossless Node Metadata) và Raw Snippet}
+\section{Biểu diễn song song: ghi nhớ tóm tắt và dấu vết nguyên văn}
 
-\subsubsection{Vấn đề: nén dữ liệu có tổn hao}
+\subsection{Vấn đề nén dữ liệu có mất thông tin}
 
-Các hệ thống bộ nhớ dựa trên extraction thường phải nén hội thoại dài thành một số fact ngắn hơn để có thể lập chỉ mục và truy hồi hiệu quả. Tuy nhiên, phép nén này không đảo ngược được. Những dữ kiện như con số chính xác, cụm từ nguyên văn, trạng thái cảm xúc hoặc các tín hiệu ``nhỏ nhưng quyết định'' thường biến mất khỏi bản tóm tắt.
+Các hệ thống bộ nhớ dựa trên trích xuất thường phải nén hội thoại dài thành một số fact ngắn để lập chỉ mục và truy vấn hiệu quả. Bước lập chỉ mục chuẩn bị dữ liệu thành dạng có thể tìm kiếm nhanh, tương tự tạo mục lục tự động cho một kho lưu trữ hội thoại. Cách làm này cần thiết, nhưng nó gây mất mát thông tin. Những chi tiết như con số chính xác, tên riêng, lời nói nguyên văn, cảm xúc hoặc bối cảnh nhỏ có thể biến mất khỏi fact tóm tắt.
 
-Ví dụ:
 \begin{lstlisting}
 Original conversation:
 "I just quit my job at VCCorp today.
@@ -247,17 +387,17 @@ Compressed fact:
 April 2024."
 \end{lstlisting}
 
-Fact nén trên đủ cho semantic retrieval cơ bản, nhưng không còn bảo toàn những chi tiết như tỷ lệ tăng lương, trạng thái cảm xúc hay chính xác ngày khởi đầu.
+Fact tóm tắt trên đủ để tìm đúng chủ đề ``chuyển việc'', nhưng không còn giữ chi tiết ``tăng 40\% lương'', cảm xúc buồn vì rời đội cũ, hay ngày bắt đầu chính xác. Nếu người dùng hỏi ``mức lương mới cao hơn bao nhiêu'', hệ thống có thể truy vấn đúng fact nhưng vẫn không đủ bằng chứng để trả lời.
 
-\subsubsection{Giải pháp: 2-layer node schema}
+\subsection{Fuzzy Trace Theory và giải pháp hai lớp}
 
-CogMem giải quyết vấn đề này bằng cách giữ đồng thời hai lớp biểu diễn:
+Fuzzy Trace Theory của Brainerd và Reyna cho rằng con người có thể lưu đồng thời hai dạng dấu vết trí nhớ. Dấu vết \textit{gist} giữ phần tóm tắt ý nghĩa, còn dấu vết \textit{verbatim} giữ chi tiết nguyên văn. Tên ``fuzzy trace'' không có nghĩa là trí nhớ mơ hồ theo nghĩa xấu; nó nhấn mạnh rằng ý chính và chi tiết có thể cùng tồn tại, nhưng phục vụ các nhiệm vụ khác nhau. CogMem chuyển nguyên tắc này thành schema hai lớp, một cấu trúc trường dữ liệu dùng để lưu một đơn vị bộ nhớ:
+
 \begin{itemize}
-    \item \textbf{fact text / embedding}: lớp nén dùng cho retrieval.
-    \item \textbf{raw\_snippet}: lớp nguyên văn dùng cho grounding khi cần sinh câu trả lời chi tiết.
+    \item \textbf{fact text / embedding}: lớp tóm tắt ngữ nghĩa, ngắn gọn và phù hợp cho truy vấn nhanh. \textit{Fact text} là câu tóm tắt đọc được bằng ngôn ngữ tự nhiên; \textit{embedding} là biểu diễn số của câu đó.
+    \item \textbf{raw\_snippet}: lớp nguyên văn, giữ lại bằng chứng gốc để hỗ trợ sinh câu trả lời chi tiết. Trường này đặc biệt hữu ích khi câu hỏi cần số liệu hoặc cách diễn đạt chính xác.
 \end{itemize}
 
-Minh họa:
 \begin{lstlisting}
 {
   "fact_type": "experience",
@@ -273,22 +413,22 @@ Minh họa:
 }
 \end{lstlisting}
 
-Thiết kế này cho phép CogMem vừa truy hồi nhanh trên representation đã nén, vừa giữ được bằng chứng nguyên văn khi giai đoạn synthesis cần chi tiết chính xác. Ở implementation hiện tại, snippet có thể được đưa trực tiếp vào prompt generate khi policy của evaluation hoặc runtime bật chế độ sử dụng verbatim evidence; nhưng ngay cả khi policy đó thay đổi, \textit{raw\_snippet} vẫn được bảo toàn như một thành phần lõi của dữ liệu.
+Hai lớp này phục vụ hai mục tiêu khác nhau. Lớp tóm tắt giúp truy vấn vì nó ngắn, rõ chủ đề và dễ biểu diễn thành vector. Lớp nguyên văn tạo grounding cho bước sinh câu trả lời: mô hình có bằng chứng gốc để bám vào thay vì chỉ dựa trên suy đoán từ fact đã nén. Nhờ vậy, CogMem không buộc hệ thống phải chọn giữa truy vấn hiệu quả và bảo toàn bằng chứng.
 
 \begin{figure}[H]
 \centering
-\resizebox{0.92\textwidth}{!}{%
+\resizebox{0.9\textwidth}{!}{%
 \begin{tikzpicture}
 \node[reportboxcyan, minimum width=4.0cm, minimum height=1.25cm] (chat) at (0,0)
-{Conversation chunk\\\scriptsize original user wording};
+{Hội thoại\\gốc};
 \node[reportboxgreen, minimum width=4.6cm, minimum height=1.45cm] (fact) at (5.2,1.15)
-{Layer 1: compressed fact\\\scriptsize text, type, entities, date, embedding};
+{Fact tóm tắt\\\scriptsize dễ truy vấn};
 \node[reportboxgold, minimum width=4.6cm, minimum height=1.45cm] (snippet) at (5.2,-1.15)
-{Layer 2: raw snippet\\\scriptsize verbatim detail, source, document id};
+{Đoạn trích gốc\\\scriptsize bằng chứng nguồn};
 \node[reportbox, minimum width=3.9cm, minimum height=1.15cm] (recall) at (10.6,1.15)
-{Retrieval\\\scriptsize semantic/BM25/graph/time};
+{truy vấn\\\scriptsize embedding, BM25, đồ thị};
 \node[reportboxred, minimum width=3.9cm, minimum height=1.15cm] (answer) at (10.6,-1.15)
-{Grounded answer\\\scriptsize exact numbers and names};
+{Câu trả lời có căn cứ\\\scriptsize giữ chi tiết chính xác};
 \draw[reportarrow] (chat) -- (fact);
 \draw[reportarrow] (chat) -- (snippet);
 \draw[reportarrow] (fact) -- (recall);
@@ -296,188 +436,294 @@ Thiết kế này cho phép CogMem vừa truy hồi nhanh trên representation �
 \draw[reportarrow] (recall) -- (answer);
 \end{tikzpicture}%
 }
-\caption{2-Layer Node Schema}
+\caption{Schema hai lớp cho một đơn vị bộ nhớ}
 \label{fig:ch3_two_layer_schema}
 \end{figure}
 
-\subsection{Đóng góp 3: Episodic Buffer với SUM Spreading Activation + Cycle Guards}
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=4.2cm, minimum height=1.15cm] (source) at (0,0)
+{Hội thoại gốc\\\scriptsize lời gốc, số liệu, cảm xúc};
+\node[reportboxgreen, minimum width=4.1cm] (gist) at (5.2,1.15)
+{Dấu vết ý chính\\\scriptsize fact tóm tắt};
+\node[reportboxgold, minimum width=4.1cm] (verb) at (5.2,-1.15)
+{Dấu vết nguyên văn\\\scriptsize raw\_snippet};
+\node[reportbox, minimum width=3.9cm] (retrieve) at (10.2,1.15)
+{truy vấn nhanh\\\scriptsize embedding + khớp từ};
+\node[reportboxred, minimum width=3.9cm] (ground) at (10.2,-1.15)
+{Tổng hợp có căn cứ\\\scriptsize giữ chi tiết chính xác};
+\draw[reportarrow] (source) -- (gist);
+\draw[reportarrow] (source) -- (verb);
+\draw[reportarrow] (gist) -- (retrieve);
+\draw[reportarrow] (verb) -- (ground);
+\draw[reportarrow] (retrieve) -- (ground);
+\end{tikzpicture}%
+}
+\caption{Fuzzy Trace Theory và Raw Snippet}
+\label{fig:ch4_fuzzy_trace}
+\end{figure}
 
-\subsubsection{Vấn đề: MAX chỉ giữ đường mạnh nhất}
+\section{Truy vấn đa kênh và kết hợp bằng chứng}
+\label{sec:ch3_multichannel_query}
 
-Một hạn chế của graph retrieval kiểu truyền thống là chỉ cho phép một nguồn bằng chứng ``mạnh nhất'' quyết định activation ở node đích. Dạng công thức này phù hợp với trường hợp evidence tập trung, nhưng dễ làm mất tín hiệu khi câu trả lời phụ thuộc vào nhiều đường yếu bổ sung cho nhau.
+\subsection{Vì sao không dùng một kênh duy nhất}
+
+Một câu hỏi hội thoại mang tính dài hạn có thể cần nhiều kiểu bằng chứng khác nhau. Câu hỏi ``người dùng thích công cụ nào'' thường cần bằng chứng ngữ nghĩa hoặc quan điểm; câu hỏi ``việc đó xảy ra khi nào'' cần dấu vết thời gian; câu hỏi ``vì sao cách sửa đó hiệu quả'' cần quan hệ nhân quả; còn câu hỏi suy luận nhiều bước cần đi qua các liên kết giữa nhiều fact. 
+
+Vì vậy, CogMem không chọn một cơ chế tìm kiếm duy nhất cho mọi câu hỏi mà lựa chọn luồng truy vấn đa kênh nhận cùng một câu hỏi đầu vào và chạy nhiều cách tìm kiếm song song trên cùng kho bộ nhớ. Mỗi kênh trả về một danh sách ứng viên kèm điểm riêng. Điểm của các kênh không được so sánh trực tiếp với nhau, vì điểm cosine của embedding, điểm BM25, điểm kích hoạt đồ thị và điểm thời gian có thang đo khác nhau. Do đó, CogMem kết hợp chúng ở mức thứ hạng thay vì cộng trực tiếp điểm gốc.
+
+\subsection{Bốn kênh truy vấn song song}
+
+Bốn kênh truy vấn có vai trò bổ sung cho nhau:
+
+\begin{enumerate}
+    \item \textbf{Kênh ngữ nghĩa}: chuyển câu hỏi thành vector và so sánh với vector của fact đã lưu. Kênh này mạnh khi câu hỏi dùng từ khác với hội thoại gốc nhưng vẫn gần nghĩa, ví dụ ``công việc mới'' gần với ``chuyển sang DI''. Điểm yếu của nó là có thể bỏ qua chi tiết chính xác như con số, ngày tháng hoặc tên riêng hiếm.
+    \item \textbf{Kênh từ khóa BM25}: tìm các fact hoặc đoạn liên quan dựa trên từ và cụm từ xuất hiện trong câu hỏi. BM25 hữu ích khi câu hỏi chứa tên riêng, công cụ, mã lỗi hoặc cụm từ đặc thù. Điểm yếu của nó là khó tìm được bằng chứng nếu người dùng diễn đạt cùng ý bằng từ khác.
+    \item \textbf{Kênh đồ thị}: bắt đầu từ các đơn vị thông tin gần câu hỏi rồi đi qua các liên kết như entity, temporal, causal, s\_r\_link, a\_o\_causal và transition. Kênh này hữu ích cho câu hỏi nhiều bước hoặc câu hỏi cần nối trải nghiệm, kế hoạch và quan hệ nhân quả. Điểm yếu của nó là phụ thuộc vào chất lượng liên kết đã tạo ở bước ghi nhớ.
+    \item \textbf{Kênh thời gian}: ưu tiên các fact có mốc thời gian phù hợp với câu hỏi, chẳng hạn ``hôm qua'', ``tuần trước'', ``sau khi đổi việc'' hoặc một tháng cụ thể. Kênh này mạnh với câu hỏi có ràng buộc thời gian rõ, nhưng ít hữu ích nếu câu hỏi không chứa tín hiệu thời gian.
+\end{enumerate}
+
+Kết quả của bốn kênh được giữ tách biệt cho đến bước kết hợp. Cách tổ chức này giúp hệ thống không phụ thuộc hoàn toàn vào một tín hiệu đơn lẻ. Một bằng chứng có thể không đứng đầu ở kênh ngữ nghĩa nhưng vẫn được nâng lên nếu nó cũng xuất hiện trong kênh từ khóa, đồ thị hoặc thời gian.
+
+\subsection{Kết hợp bằng chứng bằng weighted RRF}
+
+CogMem dùng weighted Reciprocal Rank Fusion để trộn các danh sách ứng viên. Reciprocal Rank Fusion, viết tắt là RRF, được tính bằng cộng điểm theo thứ hạng: bằng chứng ở hạng cao nhận điểm lớn hơn, và bằng chứng xuất hiện ở nhiều kênh sẽ được cộng điểm từ nhiều nguồn. Phiên bản có trọng số cho phép mỗi kênh đóng góp khác nhau tùy loại câu hỏi.
 
 \begin{equation}
-A(v, t+1) = \max_{u \in N(v)}
+\mathrm{RRF}_{\mathrm{weighted}}(d,q)
+= \sum_i w_i(q) \cdot \frac{1}{60 + \mathrm{rank}_i(d)}
+\end{equation}
+
+Trong công thức này, $d$ là một bằng chứng ứng viên, $q$ là câu hỏi, $i$ là kênh truy vấn, $w_i(q)$ là trọng số của kênh $i$ đối với loại câu hỏi $q$, và $\mathrm{rank}_i(d)$ là thứ hạng của $d$ trong kênh đó. Hằng số 60 làm giảm chênh lệch quá lớn giữa các hạng đầu, nhờ đó một bằng chứng tốt ở nhiều kênh vẫn có thể vượt một bằng chứng chỉ mạnh ở một kênh.
+
+\section{Truy vấn trên đồ thị tri thức}
+
+\subsection{Nhược điểm của toán tử MAX và khái niệm Episodic Buffer}
+
+Trong các câu hỏi nhiều bước, bằng chứng đúng thường không nằm ở một fact duy nhất. Nó có thể xuất hiện như sự hội tụ của nhiều dấu vết nhỏ: một mốc thời gian, một thực thể chung, một sự kiện trước đó và một đoạn trích nguyên văn. Nếu truy vấn đồ thị chỉ lấy đường có tín hiệu mạnh nhất, các dấu vết yếu hơn sẽ bị bỏ qua dù chúng cùng hướng tới một câu trả lời.
+
+Trong truy vấn đồ thị, cơ chế lấy cực đại, hay MAX, chỉ giữ đường có điểm cao nhất khi có nhiều đường dẫn cùng đi tới một đơn vị thông tin. Cơ chế này có thể viết như sau:
+
+\begin{equation}
+A(v,t+1) = \max_{u \in N(v)}
 \left[
-A(u, t) \cdot w(u,v) \cdot \delta \cdot \mu(\ell)
+A(u,t) \cdot w(u,v) \cdot \delta \cdot \mu(\ell)
 \right]
 \end{equation}
 
-Trong hội thoại dài hạn, đây là vấn đề thực sự vì thông tin trả lời thường bị chia nhỏ qua nhiều phiên, nhiều node và nhiều loại quan hệ.
+Trong công thức này, $u$ là đơn vị nguồn, $v$ là đơn vị đích, $t$ là bước lan truyền, $A$ là mức kích hoạt, $N(v)$ là tập láng giềng có thể truyền tín hiệu vào $v$, $w(u,v)$ là trọng số liên kết, $\delta$ là hệ số suy giảm theo bước lan truyền, và $\mu(\ell)$ là hệ số theo loại liên kết. Mức kích hoạt biểu thị mức độ ``đang được chú ý'' của một đơn vị thông tin trong quá trình tìm kiếm.
 
-\subsubsection{Giải pháp: SUM thay cho MAX}
+Từ góc nhìn nhận thức, mô hình Episodic Buffer của Baddeley gợi ý một cách nhìn khác. Episodic Buffer đóng vai trò như vùng làm việc tạm thời, nơi nhiều mảnh thông tin được ghép lại thành một bức tranh chung. Khi con người tái dựng một tình tiết, họ thường tích hợp nhiều nguồn thông tin tạm thời thành một ngữ cảnh làm việc thống nhất, thay vì chỉ chọn một dấu vết mạnh nhất. CogMem lấy cảm hứng từ nguyên tắc này để thiết kế truy vấn đồ thị theo hướng cộng dồn bằng chứng.
 
-CogMem dùng tư duy của \textit{episodic buffer}: activation ở một node nên có thể cộng dồn từ nhiều nguồn bằng chứng liên quan. Trên BFS graph retriever mặc định, CogMem dùng phép SUM với clipping để chặn bùng nổ tín hiệu:
+%% sai
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportbox, minimum width=3.0cm] (sem) at (0,1.6) {Tín hiệu\\ngữ nghĩa};
+\node[reportbox, minimum width=3.0cm] (time) at (0,0.55) {Tín hiệu\\thời gian};
+\node[reportbox, minimum width=3.0cm] (graph) at (0,-0.55) {Đường đi\\đồ thị};
+\node[reportbox, minimum width=3.0cm] (snippet) at (0,-1.6) {Đoạn trích\\nguyên văn};
+\node[reportboxgold, minimum width=4.0cm, minimum height=1.25cm] (sum) at (5.0,0) {Kích hoạt SUM\\\scriptsize bằng chứng hội tụ};
+\node[reportboxgreen, minimum width=4.0cm, minimum height=1.25cm] (buffer) at (10.2,0) {Episodic Buffer\\\scriptsize ngữ cảnh trả lời tạm thời};
+\foreach \n in {sem,time,graph,snippet}{\draw[reportarrow] (\n) -- (sum);}
+\draw[reportarrow] (sum) -- (buffer);
+\node[font=\scriptsize, align=center] at (5.0,-1.65) {nhiều đường yếu có thể cùng củng cố một câu trả lời};
+\end{tikzpicture}%
+}
+\caption{Episodic Buffer của Baddeley}
+\label{fig:ch4_episodic_buffer}
+\end{figure}
+
+\subsection{Lan truyền tín hiệu tích lũy}
+
+CogMem thay phép lấy cực đại bằng phép cộng dồn có giới hạn trên, gọi là SUM. Với SUM, nhiều đường bằng chứng cùng được cộng vào điểm của một đơn vị thông tin, còn giới hạn trên bảo đảm điểm không tăng vô hạn. Công thức truy vấn đồ thị mặc định là:
 
 \begin{equation}
-\begin{aligned}
-A(v, t+1) = \mathrm{clip}\Bigg(
-& A(v,t) + \delta \cdot \sum_{u \in N(v)}
-\Big[
-A(u,t) \cdot w(u,v) \\
-& \cdot \mu(\mathrm{edge}) \cdot
-\mathrm{refractory}(u)
-\Big],
-\; A_{\max}
-\Bigg)
-\end{aligned}
+A(v,t+1) =
+\mathrm{clip}
+\left[
+A(v,t) +
+\delta \cdot
+\sum_{u \in N(v)}
+A(u,t) \cdot w(u,v) \cdot \mu(\ell) \cdot \mathrm{refractory}(u),
+A_{\max}
+\right]
 \end{equation}
+
+Điểm khác biệt chính là nhiều nguồn $u$ có thể cùng đóng góp vào kích hoạt của $v$. Nhờ đó, một đơn vị thông tin không cần phải được tìm thấy qua một đường duy nhất thật mạnh, nó có thể được nâng hạng nếu nhiều bằng chứng yếu cùng hội tụ về nó. Đây là trực giác quan trọng của CogMem: một câu trả lời có thể đáng tin không phải vì một bằng chứng quá mạnh, mà vì nhiều bằng chứng vừa phải cùng chỉ về một hướng.
 
 \begin{table}[H]
 \centering
 \caption{So sánh HINDSIGHT (MAX) và CogMem (SUM)}
 \label{tab:max_vs_sum}
-\begin{tabular}{|p{3.2cm}|p{4.2cm}|p{4.2cm}|}
-\hline
+\small
+\begin{tabularx}{\linewidth}{@{}YYY@{}}
+\toprule
 \textbf{Khía cạnh} & \textbf{HINDSIGHT (MAX)} & \textbf{CogMem (SUM)} \\
-\hline
-Bằng chứng đa đường & chỉ giữ đường tốt nhất & cộng dồn tín hiệu từ nhiều đường \\
-\hline
-Multi-hop reasoning & dễ rơi khi một mắt xích yếu & bền hơn với evidence phân tán \\
-\hline
-Yêu cầu entry point & cần trúng node rất mạnh ngay từ đầu & cho phép nhiều tín hiệu vừa phải bổ sung nhau \\
-\hline
-Rủi ro kỹ thuật & ổn định hơn nhưng bảo thủ & mạnh hơn nhưng cần cycle guards \\
-\hline
-\end{tabular}
+\midrule
+Bằng chứng đa đường & chỉ giữ đường mạnh nhất & cộng dồn nhiều đường liên quan \\
+Yêu cầu điểm vào & cần trúng đơn vị thông tin rất mạnh ngay từ đầu & cho phép nhiều tín hiệu vừa phải bổ sung nhau \\
+Độ bền với truy vấn nhiều bước & dễ mất chuỗi nếu một liên kết yếu & nhiều liên kết yếu có thể củng cố cùng kết quả \\
+Rủi ro kỹ thuật & ít nguy cơ bùng nổ điểm & cần cơ chế kiểm soát chu trình và giới hạn điểm \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
-Để kiểm tra đóng góp này một cách công bằng, phần thực nghiệm bổ sung trong Chương 5 dùng một đối chứng hẹp: cùng retained memory banks, cùng graph-only recall, cùng tập fact type, cùng bỏ reranker, chỉ thay reducer của BFS graph activation từ SUM sang MAX. Vì vậy, khác biệt đo được trong thí nghiệm này không phải do semantic retrieval, BM25, temporal retrieval hay generation, mà chủ yếu phản ánh cách graph channel xếp hạng evidence khi nhiều đường yếu cùng hội tụ về một node trả lời.
+Để kiểm tra đóng góp này một cách công bằng, thí nghiệm ở Chương 4 dùng một đối chứng hẹp: cùng kho bộ nhớ đã được ghi, cùng truy vấn chỉ bằng đồ thị, cùng tập loại fact, cùng bỏ bộ xếp hạng lại (reranking), chỉ thay cách tổng hợp điểm kích hoạt trên đồ thị từ SUM sang MAX. Vì vậy, khác biệt đo được phản ánh chủ yếu cách kênh đồ thị xếp hạng bằng chứng khi nhiều đường yếu cùng hội tụ về một câu trả lời.
 
-\subsubsection{Ba cơ chế bảo vệ chu trình (Cycle Guards)}
+\subsection{Cơ sở thần kinh học và ba cơ chế bảo vệ chống nhiễu}
 
-SUM activation trên đồ thị có chu trình cần cơ chế ổn định hóa. CogMem dùng ba guard bổ sung cho nhau:
+Lan truyền cộng dồn trên đồ thị có thể gặp chu trình: đường đi theo các liên kết một lúc rồi quay lại đơn vị thông tin đã gặp trước đó. Nếu không kiểm soát, tín hiệu có thể dao động quanh cùng một cụm thông tin hoặc tăng điểm quá mức. CogMem dùng ba cơ chế bảo vệ:
 
 \begin{enumerate}
-    \item \textbf{Local Refractory Period}: một node vừa fire sẽ không được tái kích hoạt ngay ở bước kế tiếp.
-    \begin{equation}
-    \mathrm{refractory}(u) =
-    \begin{cases}
-    0, & \text{nếu } u \text{ vừa kích hoạt ở bước trước} \\
-    1, & \text{ngược lại}
-    \end{cases}
-    \end{equation}
-
-    \item \textbf{Global Firing Quota}: mỗi node chỉ được nhận số lần kích hoạt hữu hạn trong một đợt propagation, nhờ đó chặn chu trình dài.
-
-    \item \textbf{Saturation Threshold}: giá trị activation bị chặn trên để tránh score explosion và duy trì đa dạng kết quả retrieval.
+    \item \textbf{Local Refractory Period}: lấy cảm hứng từ refractory period trong thần kinh học, khoảng nghỉ ngắn sau khi neuron vừa phát tín hiệu. Trong CogMem, cơ chế này chặn một đơn vị vừa truyền tín hiệu khỏi việc được tái kích hoạt ngay ở bước kế tiếp. Nó làm giảm vòng lặp dao động tín hiệu giữa hai đơn vị thông tin.
+    \item \textbf{Global Firing Quota}: mỗi đơn vị chỉ được kích hoạt một số lần hữu hạn trong một lượt lan truyền. Khi một đơn vị đã đạt hạn mức kích hoạt, nó không tiếp tục nhận thêm điểm trong lượt đó. Cơ chế này chặn các chu trình dài hơn, nơi tín hiệu đi qua nhiều đơn vị rồi quay lại điểm cũ.
+    \item \textbf{Saturation Threshold}: điểm kích hoạt bị chặn trên bởi $A_{\max}$. Sau ngưỡng bão hòa này, điểm không tăng thêm nữa. Cơ chế này ngăn một nhóm bằng chứng lấn át toàn bộ danh sách kết quả và giúp giữ đa dạng ứng viên cho bước kết hợp và sinh câu trả lời.
 \end{enumerate}
 
-Ba guard này phản ánh lập luận nhận thức rằng hệ thống truy hồi không nên bị ``kẹt'' trong một vòng reverberation vô hạn chỉ vì đồ thị có nhiều vòng lặp cục bộ.
+Refractory period có thể viết dưới dạng một hệ số bật/tắt, hay mặt nạ: giá trị 0 chặn truyền tín hiệu, còn giá trị 1 cho phép truyền:
+
+\begin{equation}
+\mathrm{refractory}(u) =
+\begin{cases}
+0, & \text{nếu } u \text{ vừa được kích hoạt} \\
+1, & \text{ngược lại}
+\end{cases}
+\end{equation}
+
+Saturation threshold tương ứng với phép chặn điểm:
+
+\begin{equation}
+A(v,t+1) = \min(A(v,t+1)_{\text{raw}}, A_{\max})
+\end{equation}
+
+Ba cơ chế này bổ sung cho nhau. Refractory period chặn dao động cục bộ, firing quota chặn chu trình dài, còn saturation threshold chặn bùng nổ điểm ngay cả khi chu trình không rõ ràng.
 
 \begin{figure}[H]
 \centering
-\resizebox{0.92\textwidth}{!}{%
+\resizebox{0.86\textwidth}{!}{%
 \begin{tikzpicture}
-\node[reportboxcyan, minimum width=3.2cm] (signal) at (0,0) {Incoming\\activation};
-\node[reportboxgreen, minimum width=3.2cm] (refr) at (4.0,1.55) {Refractory\\\scriptsize block immediate refire};
-\node[reportboxgold, minimum width=3.2cm] (quota) at (4.0,0) {Firing quota\\\scriptsize finite activations};
-\node[reportboxred, minimum width=3.2cm] (sat) at (4.0,-1.55) {Saturation\\\scriptsize cap score};
-\node[reportbox, minimum width=3.5cm] (rank) at (8.4,0) {Stable ranked\\evidence list};
+\node[reportboxcyan, minimum width=3.2cm, minimum height=1.0cm] (signal) at (0,2.4) {Tín hiệu\\đi vào};
+\node[reportboxgreen, minimum width=3.3cm, minimum height=1.05cm] (refr) at (-4.2,0.3) {Refractory\\\scriptsize chặn tái kích hoạt ngay};
+\node[reportboxgold, minimum width=3.3cm, minimum height=1.05cm] (quota) at (0,0.3) {Hạn mức kích hoạt\\\scriptsize số lần hữu hạn};
+\node[reportboxred, minimum width=3.3cm, minimum height=1.05cm] (sat) at (4.2,0.3) {Bão hòa\\\scriptsize chặn điểm tối đa};
+\node[reportbox, minimum width=4.1cm, minimum height=1.15cm] (rank) at (0,-2.1) {Danh sách bằng chứng\\xếp hạng ổn định};
 \draw[reportarrow] (signal) -- (refr);
 \draw[reportarrow] (signal) -- (quota);
 \draw[reportarrow] (signal) -- (sat);
 \draw[reportarrow] (refr) -- (rank);
 \draw[reportarrow] (quota) -- (rank);
 \draw[reportarrow] (sat) -- (rank);
-\draw[reportarrow, dashed] (quota.south) .. controls (2.1,-2.6) and (2.1,2.6) .. node[left, font=\scriptsize]{cycle guard} (refr.north);
+\node[reportnote, minimum width=6.8cm] at (0,-3.6) {ba cơ chế cùng chặn dao động cục bộ và bùng nổ điểm};
 \end{tikzpicture}%
 }
 \caption{Ba cơ chế bảo vệ chu trình}
 \label{fig:ch3_cycle_guards}
 \end{figure}
 
-\subsection{Đóng góp 4: Adaptive Query Routing}
+\section{Định tuyến truy vấn thích ứng (Adaptive Query Routing)}
 
-\subsubsection{Vấn đề: equal-weight fusion không phản ánh ý định truy vấn}
+\subsection{Attentional Selection và vấn đề trọng số cố định}
 
-Nếu mọi câu hỏi đều dùng cùng một profile fusion, hệ thống sẽ đối xử như nhau với các truy vấn semantic, temporal, causal hay prospective. Điều đó mâu thuẫn với trực giác nhận thức: câu hỏi ``khi nào'' nên ưu tiên temporal evidence nhiều hơn, trong khi câu hỏi ``tại sao'' cần graph evidence và causal links nhiều hơn.
+Trong nhận thức người, chú ý không phân bổ đều cho mọi nguồn thông tin. Câu hỏi ``khi nào'' khiến ta ưu tiên dấu vết thời gian; câu hỏi ``vì sao'' khiến ta tìm nguyên nhân; câu hỏi ``tôi còn định làm gì'' khiến ta tìm các kế hoạch chưa hoàn tất. CogMem mô hình hóa nguyên tắc này bằng adaptive query routing, hay định tuyến truy vấn thích ứng: trước khi tìm kiếm, hệ thống chọn chiến lược truy vấn phù hợp với nội dung câu hỏi.
 
-\subsubsection{Giải pháp: định tuyến và dung hợp theo query type}
+Nếu mọi câu hỏi đều dùng cùng một bộ trọng số cho bốn kênh đã mô tả ở Mục \ref{sec:ch3_multichannel_query}, hệ thống dễ truy vấn lệch trọng tâm. Một câu hỏi về nguyên nhân-kết quả cần ưu tiên bằng chứng đồ thị và các quan hệ action-effect hơn một câu hỏi mô tả đơn giản. Một câu hỏi về kế hoạch tương lai hoặc việc chưa làm cần ưu tiên intention đang ở trạng thái planning hơn các experience đã xảy ra. Vì vậy, bước định tuyến không tạo thêm kênh truy vấn mới; nó điều chỉnh cách các kênh hiện có đóng góp vào danh sách bằng chứng cuối cùng.
 
-CogMem dùng một tầng \textit{query analysis} trước fusion. Bộ phân tích này kết hợp các lexical rules với temporal extraction để gán truy vấn vào một trong sáu loại:
-\begin{itemize}
-    \item semantic,
-    \item temporal,
-    \item causal,
-    \item prospective,
-    \item preference,
-    \item multi\_hop.
-\end{itemize}
+\subsection{Phân loại truy vấn và kết hợp theo nội dung câu hỏi}
 
-Mỗi loại truy vấn được gắn một profile trọng số riêng cho bốn channel. Các hệ số dưới đây là \textbf{trọng số tương đối} trong weighted RRF, không phải xác suất chuẩn hóa bắt buộc có tổng bằng 1:
+CogMem phân loại truy vấn thành sáu nhóm: \textit{semantic} cho câu hỏi mô tả chung theo ý nghĩa, \textit{temporal} cho câu hỏi về thời gian, \textit{causal} cho câu hỏi về nguyên nhân, \textit{prospective} cho câu hỏi về kế hoạch tương lai, \textit{preference} cho câu hỏi về sở thích hoặc khuynh hướng, và \textit{multi-hop} cho câu hỏi cần nối nhiều bằng chứng. Trong phiên bản triển khai hiện tại, việc phân loại này chủ yếu dựa trên các mẫu từ vựng và dấu hiệu thời gian: ví dụ các từ như ``why'' hoặc ``cause'' gợi ý causal, các từ như ``plan'' hoặc ``future'' gợi ý prospective, còn các biểu thức ngày tháng được nhận diện bằng bộ phân tích thời gian.
 
-\begin{equation}
-\mathrm{RRF}_{\mathrm{adaptive}}(d, q) =
-\sum_i
-w_i(q) \cdot \frac{1}{60 + \mathrm{rank}_i(d)}
-\end{equation}
+Kết quả phân loại này không trực tiếp tạo câu trả lời; nó quyết định trọng số $w_i(q)$ trong công thức RRF có trọng số. Bảng \ref{tab:adaptive_rrf} liệt kê cấu hình trọng số dùng trong phiên bản triển khai hiện tại.
 
 \begin{table}[H]
 \centering
-\caption{Adaptive RRF weights theo query type trong implementation hiện tại}
+\caption{Trọng số RRF thích ứng theo loại truy vấn trong phiên bản triển khai hiện tại}
 \label{tab:adaptive_rrf}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|c|c|c|c|p{4.0cm}|}
-\hline
-\textbf{Query Type} & $w_\text{sem}$ & $w_\text{bm25}$ & $w_\text{graph}$ & $w_\text{temp}$ & \textbf{Ghi chú} \\
-\hline
-semantic & 1.0 & 1.0 & 1.0 & 1.0 & baseline profile \\
-\hline
-temporal & 0.8 & 0.6 & 0.8 & 2.2 & ưu tiên temporal filtering và temporal evidence \\
-\hline
-causal & 0.8 & 0.7 & 2.4 & 1.0 & ưu tiên graph channel và action-effect evidence \\
-\hline
-prospective & 0.9 & 0.8 & 2.0 & 1.4 & ưu tiên planning intentions và transition evidence \\
-\hline
-preference & 1.0 & 1.2 & 1.4 & 0.5 & ưu tiên graph / habit-related evidence \\
-\hline
-multi\_hop & 0.9 & 0.7 & 2.6 & 0.8 & ưu tiên graph traversal đa bước \\
-\hline
-\end{tabular}% 
-}
+\footnotesize
+\begin{tabularx}{\linewidth}{@{}lcccY@{}}
+\toprule
+\textbf{Query type} & \textbf{semantic} & \textbf{BM25} & \textbf{graph} & \textbf{temporal / ghi chú} \\
+\midrule
+semantic & 1.0 & 1.0 & 1.0 & 1.0 \\
+temporal & 0.8 & 0.6 & 0.8 & 2.2; ưu tiên ràng buộc thời gian \\
+causal & 0.8 & 0.7 & 2.4 & 1.0; ưu tiên action-effect và bằng chứng nhân quả \\
+prospective & 0.9 & 0.8 & 2.0 & 1.4; ưu tiên intention đang lập kế hoạch và bằng chứng chuyển trạng thái \\
+preference & 1.0 & 1.2 & 1.4 & 0.5; ưu tiên habit và opinion \\
+multi-hop & 0.9 & 0.7 & 2.6 & 0.8; ưu tiên đi theo liên kết đồ thị \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
-Ngoài profile trọng số, implementation hiện tại còn có hai hậu xử lý đáng chú ý:
+Ngoài trọng số kênh, CogMem còn áp dụng các bước hậu xử lý:
+
 \begin{itemize}
-    \item \textbf{Prospective filtering}: nếu truy vấn được phân loại là \textit{prospective}, hệ thống ưu tiên \textit{intention} nodes có \textit{intention\_status=planning}. Nếu một ablation loại bỏ hẳn intention network, recall sẽ fallback sang các fact type còn lại để tránh chiến thắng giả do router thiên vị.
-    \item \textbf{Evidence priority}: sau weighted RRF, causal queries được boost thêm khi evidence đến từ \textit{action\_effect} hoặc graph-backed chains; prospective queries được boost thêm khi evidence là planning intention có graph/temporal backing.
+    \item \textbf{Ưu tiên theo loại thông tin}: câu hỏi causal đưa action-effect và các chuỗi bằng chứng có liên kết nhân quả lên vị trí cao hơn trong danh sách kết quả; câu hỏi preference ưu tiên opinion và habit; câu hỏi prospective ưu tiên intention đang ở trạng thái planning.
+    \item \textbf{Lọc kế hoạch tương lai}: với câu hỏi về việc sắp làm hoặc còn định làm, hệ thống ưu tiên intention chưa hoàn thành. Nếu thí nghiệm loại bỏ intention network, bộ định tuyến tự chuyển sang các fact còn lại để tránh thiên vị vào một loại thông tin không tồn tại. Cơ chế này giúp các thí nghiệm loại bỏ thành phần vẫn công bằng: hệ thống không bị ép tìm trong một mạng đã bị tắt.
+    \item \textbf{Ưu tiên bằng chứng có nền đồ thị hoặc thời gian}: những bằng chứng được nhiều kênh cùng hỗ trợ thường đáng tin hơn bằng chứng chỉ xuất hiện trong một kênh.
 \end{itemize}
 
 \begin{figure}[H]
 \centering
-\resizebox{0.92\textwidth}{!}{%
+\resizebox{0.9\textwidth}{!}{%
 \begin{tikzpicture}
-\node[reportboxcyan, minimum width=3.2cm] (query) at (0,0) {User query};
-\node[reportboxgold, minimum width=3.4cm] (analyzer) at (4.0,0) {Query analyzer\\\scriptsize lexical + temporal cues};
-\node[reportbox, minimum width=2.25cm] (sem) at (8.2,1.9) {semantic};
-\node[reportbox, minimum width=2.25cm] (temp) at (10.9,1.9) {temporal};
-\node[reportbox, minimum width=2.25cm] (causal) at (8.2,0.65) {causal};
-\node[reportbox, minimum width=2.25cm] (pros) at (10.9,0.65) {prospective};
-\node[reportbox, minimum width=2.25cm] (pref) at (8.2,-0.6) {preference};
-\node[reportbox, minimum width=2.25cm] (multi) at (10.9,-0.6) {multi-hop};
-\node[reportboxgreen, minimum width=4.0cm] (rrf) at (9.55,-2.25) {Weighted RRF\\\scriptsize semantic + BM25 + graph + time};
+\node[reportboxcyan, minimum width=3.1cm, minimum height=1.0cm] (query) at (0,0) {Truy vấn\\người dùng};
+\node[reportboxgold, minimum width=3.5cm, minimum height=1.05cm] (analyzer) at (4.4,0) {Bộ phân tích truy vấn\\\scriptsize dấu hiệu từ vựng + thời gian};
+\node[reportbox, minimum width=5.2cm, minimum height=1.8cm] (types) at (10.0,0) {Loại truy vấn phát hiện\\\scriptsize semantic \quad temporal \quad causal\\\scriptsize prospective \quad preference \quad multi-hop};
+\node[reportboxgreen, minimum width=4.4cm, minimum height=1.1cm] (rrf) at (15.9,0) {RRF có trọng số\\\scriptsize hồ sơ bằng chứng theo loại truy vấn};
 \draw[reportarrow] (query) -- (analyzer);
-\foreach \n in {sem,temp,causal,pros,pref,multi}{\draw[reportarrow] (analyzer) -- (\n);}
-\foreach \n in {sem,temp,causal,pros,pref,multi}{\draw[reportarrow] (\n) -- (rrf);}
+\draw[reportarrow] (analyzer) -- (types);
+\draw[reportarrow] (types) -- (rrf);
+\node[reportnote, minimum width=5.4cm] at (10.0,-2.0) {bộ chọn quyết định trọng số trước khi trộn bằng chứng đa kênh};
 \end{tikzpicture}%
 }
 \caption{Adaptive Query Routing}
 \label{fig:ch3_adaptive_routing}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\resizebox{0.9\textwidth}{!}{%
+\begin{tikzpicture}
+\node[reportboxcyan, minimum width=3.2cm] (query) at (0,0) {Câu hỏi};
+\node[reportboxgold, minimum width=3.7cm] (select) at (4.4,0) {Bộ chọn chú ý\\\scriptsize loại truy vấn};
+\node[reportbox, minimum width=3.1cm] (temporal) at (9.0,1.6) {Thời gian\\\scriptsize khi nào/bao lâu};
+\node[reportbox, minimum width=3.1cm] (causal) at (9.0,0.55) {Đồ thị + nhân quả\\\scriptsize vì sao/do đâu};
+\node[reportbox, minimum width=3.1cm] (preference) at (9.0,-0.55) {Habit + opinion\\\scriptsize sở thích};
+\node[reportbox, minimum width=3.1cm] (multi) at (9.0,-1.6) {Duyệt đồ thị\\\scriptsize nhiều bước};
+\node[reportboxgreen, minimum width=3.8cm] (rank) at (13.5,0) {Bằng chứng xếp hạng\\\scriptsize kênh có trọng số};
+\draw[reportarrow] (query) -- (select);
+\foreach \n in {temporal,causal,preference,multi}{\draw[reportarrow] (select) -- (\n);}
+\foreach \n in {temporal,causal,preference,multi}{\draw[reportarrow] (\n) -- (rank);}
+\end{tikzpicture}%
+}
+\caption{Attentional Selection và Adaptive Routing}
+\label{fig:ch4_attentional_selection}
+\end{figure}
+
+Như vậy, định tuyến truy vấn thích ứng không chỉ là một thủ thuật đổi trọng số mà đây là cách CogMem đưa nguyên tắc lựa chọn chú ý vào hệ thống truy vấn: trước khi tìm bằng chứng, hệ thống xác định câu hỏi đang cần loại bằng chứng nào. Điều này giúp luồng truy vấn bám sát nội dung truy vấn hơn, đặc biệt với các câu hỏi về thời gian, nhân quả, sở thích, kế hoạch tương lai và suy luận nhiều bước.
+
+\section{Sinh câu trả lời}
+
+\subsection{Tạo ngữ cảnh cho mô hình sinh}
+
+Sau khi các kênh truy vấn đã được kết hợp và xếp hạng, CogMem không đưa toàn bộ bộ nhớ vào mô hình sinh câu trả lời. Hệ thống chỉ chọn một số bằng chứng mạnh nhất, chuẩn hóa chúng thành các mục có cùng cấu trúc, rồi dựng prompt cho bước tổng hợp. Mỗi mục bằng chứng gồm định danh bộ nhớ, loại fact, nội dung tóm tắt, điểm xếp hạng, nguồn điểm và đoạn trích nguyên văn nếu có.
+
+Việc chuẩn hóa này giải quyết hai vấn đề. Thứ nhất, kết quả truy vấn có thể đến từ nhiều kênh khác nhau, nên cần được đưa về cùng một dạng trước khi chuyển sang mô hình sinh. Thứ hai, nhiều kênh có thể trả về cùng một đơn vị bộ nhớ; khi đó hệ thống giữ phiên bản có điểm mạnh hơn để tránh lặp bằng chứng trong prompt.
+
+Prompt tổng hợp của CogMem yêu cầu mô hình trả lời dựa trên bằng chứng đã truy vấn, ưu tiên \textit{raw\_snippet} khi trường này xuất hiện. Điều này nối trực tiếp với thiết kế biểu diễn kép ở Mục 3.4: fact tóm tắt giúp tìm đúng vùng thông tin, còn đoạn trích nguyên văn giúp câu trả lời giữ được chi tiết như số liệu, ngày tháng, tên riêng hoặc sắc thái cảm xúc.
+
+Logic tổng hợp cũng có cơ chế xử lý khi bằng chứng chưa đủ. Nếu danh sách bằng chứng rỗng, hệ thống không yêu cầu mô hình đoán; câu trả lời mặc định nói rằng không có đủ thông tin để trả lời chắc chắn. Nếu có bằng chứng nhưng thiếu chi tiết cần thiết, prompt yêu cầu mô hình nói rõ phần còn thiếu thay vì tự thêm tên, ngày hoặc sự kiện không được hỗ trợ.
+
+\subsection{Đầu ra phục vụ đánh giá và truy vết}
+
+Kết quả của bước tổng hợp không chỉ gồm câu trả lời cuối cùng. Hệ thống còn giữ danh sách định danh bộ nhớ đã dùng, số lượng bằng chứng, và các mạng bộ nhớ xuất hiện trong bằng chứng. Các trường này giúp Chương 4 kiểm tra xem câu trả lời dựa vào loại thông tin nào, có dùng đúng bằng chứng hay không, và lỗi nằm ở truy vấn hay ở bước sinh câu trả lời.
+
+Như vậy, reflect/generation trong CogMem không phải một lời gọi mô hình ngôn ngữ độc lập với bộ nhớ. Nó là bước tiêu thụ danh sách bằng chứng đã được truy vấn, kết hợp thông tin tóm tắt với dấu vết nguyên văn, và tạo câu trả lời có thể truy vết ngược về các đơn vị bộ nhớ cụ thể.
 
 \vspace{1em}
-\noindent\textit{Sau khi mô tả kiến trúc và bốn đóng góp cốt lõi của CogMem, Chương 4 sẽ chuyển sang phân tích cơ sở khoa học nhận thức của từng quyết định thiết kế.}
+\noindent\textit{Sau khi chương này làm rõ các quyết định thiết kế của CogMem và cơ sở nhận thức đi kèm, Chương 4 sẽ đánh giá thực nghiệm xem từng giả thuyết biểu hiện như thế nào trên dữ liệu benchmark.}
 
 \end{document}

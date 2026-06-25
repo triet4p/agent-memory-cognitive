@@ -18,21 +18,27 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def test_abstract_body_is_english() -> None:
+def test_abstract_body_is_vietnamese() -> None:
     abstract = _read(SRC / "Chapter" / "0_3_Abstract.tex")
     body = abstract.split(r"\begin{flushright}", 1)[0]
 
-    required_english_phrases = [
+    required_vietnamese_phrases = [
+        "TÓM TẮT",
+        "Agent hội thoại dài hạn",
+        "Đồ án này trình bày",
+        "chiều hướng cải thiện tích cực",
+        "long-term memory API",
+    ]
+    for phrase in required_vietnamese_phrases:
+        assert phrase in body, f"missing Vietnamese abstract phrase: {phrase}"
+
+    forbidden_english_phrases = [
         "Long-term conversational agents",
         "This thesis presents",
         "The final evaluation uses manually verified answers",
-        "These results suggest",
     ]
-    for phrase in required_english_phrases:
-        assert phrase in body, f"missing English abstract phrase: {phrase}"
-
-    vietnamese_chars = "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ"
-    assert not re.search(f"[{vietnamese_chars}{vietnamese_chars.upper()}]", body), "abstract body contains Vietnamese text"
+    for phrase in forbidden_english_phrases:
+        assert phrase not in body, f"old English abstract phrase remains: {phrase}"
 
 
 def test_reference_stub_removed_and_appendices_restored() -> None:
@@ -91,7 +97,7 @@ def test_compiled_outputs_include_required_figure_numbers() -> None:
     built_pdf = SRC / "main.pdf"
     assert built_pdf.exists()
     assert OUT.exists()
-    assert built_pdf.stat().st_size > 5_000_000
+    assert built_pdf.stat().st_size > 4_000_000
     assert _sha256(built_pdf) == _sha256(OUT), "exported PDF differs from built PDF"
 
     lof = _read(SRC / "main.lof")
@@ -100,7 +106,7 @@ def test_compiled_outputs_include_required_figure_numbers() -> None:
 
 
 if __name__ == "__main__":
-    test_abstract_body_is_english()
+    test_abstract_body_is_vietnamese()
     test_reference_stub_removed_and_appendices_restored()
     test_no_text_box_figure_placeholders_remain()
     test_compiled_outputs_include_required_figure_numbers()

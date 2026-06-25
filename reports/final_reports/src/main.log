@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  11 JUN 2026 22:43
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  24 JUN 2026 20:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -782,6 +782,10 @@ File: pgflibraryarrows.meta.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarycalc.code.te
 x
 File: tikzlibrarycalc.code.tex 2025-08-29 v3.1.11a (3.1.11a)
+)
+(F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibrarypositioning.
+code.tex
+File: tikzlibrarypositioning.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 )
 (F:\MikTeX\tex/generic/pgf/frontendlayer/tikz/libraries\tikzlibraryshapes.geome
 tric.code.tex
@@ -1797,19 +1801,7 @@ been already used, duplicate ignored
                    \relax 
 l.34 \end{titlepage}
                      [1]) (Chapter/0_2_Acknowledgment.tex) [1]
-(Chapter/0_3_Abstract.tex
-Underfull \hbox (badness 4403) in paragraph at lines 11--12
-\T5/ptm/m/n/13 architecture for conversational agents. CogMem organizes memory 
-as a
- []
-
-
-Underfull \hbox (badness 1178) in paragraph at lines 13--14
-[]\T5/ptm/m/n/13 The final evaluation uses manually verified answers rather tha
-n trusting
- []
-
-)
+(Chapter/0_3_Abstract.tex)
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
@@ -1820,10 +1812,22 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.60 ...»©c cho Raw Snippet}{25}{subsection.4.1.2}
+l.34 ... há»™i thoáº¡i dÃ i}{15}{subsection.2.4.2}
                                                   % [1
 
-])
+]
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
+een already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.62 ...á»‡ chá»‘ng nhiá»…u}{36}{subsection.3.6.3}
+                                                  % [2]
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
+een already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.95 ...› tá»« CogMem Bench}{56}{subsection.4.4.3}
+                                                  % [3])
 \tf@toc=\write7
 \openout7 = `main.toc'.
 
@@ -1833,26 +1837,13 @@ een already used, duplicate ignored
 <to be read again> 
                    \relax 
 l.276 \cleardoublepage
-                       [2]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.276 \cleardoublepage
-                       [3]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.276 \cleardoublepage
-                       [4
-
-
-] (main.lof)
+                       [4] (main.lof)
 \tf@lof=\write8
 \openout8 = `main.lof'.
 
  [1
+
+
 
 ] (main.lot)
 \tf@lot=\write9
@@ -1861,215 +1852,322 @@ l.276 \cleardoublepage
  [2
 
 ]
-CHAPTER 1.
+CHÆ¯Æ NG 1.
 (Chapter/1_Introduction.tex
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
-7.
- (F:\MikTeX\tex/latex/psnfss\ts1ptm.fd
-File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-)
 pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.21 \end{itemize}
-                   [1
+l.20 ...áº¡n cá»§a cÃ¡c giáº£i phÃ¡p phá»• biáº¿n}
+                                                   [1
 
-{F:/MikTeX/fonts/enc/dvips/base/8r.enc}] [2]) [3]
-CHAPTER 2.
-(Chapter/2_Literature_review.tex [4
+]
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 2
+5.
 
-] [5] [6] [7]) [8]
-CHAPTER 3.
-(Chapter/3_Methodology.tex
-<Images/cogmem_pipeline_overview.png, id=449, 1678.27pt x 944.52875pt>
+(F:\MikTeX\tex/latex/psnfss\ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+) [2{F:/MikTeX/fonts/enc/dvips/base/8r.enc}] [3]) [4]
+CHÆ¯Æ NG 2.
+(Chapter/2_Literature_review.tex [5
+
+] [6] [7] [8] [9] [10] [11] [12]
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/b/n/10.83347 Ph¥n t¦ng
+ []
+
+
+Overfull \hbox (1.76741pt too wide) in paragraph at lines 158--158
+[]|\T5/ptm/b/n/10.83347 HINDSIGHT| 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 K¸ ho¤ch /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Khæng t¡ch
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Khæng ph£i
+ []
+
+
+Underfull \hbox (badness 1946) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Ch÷a chuy¶n
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Ch÷a câ
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Khæng t¡ch
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Khæng ph£i
+ []
+
+
+Underfull \hbox (badness 1946) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Ch÷a chuy¶n
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Ch÷a câ
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Truy hçi
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 nhanh, d¹
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 triºn khai;
+ []
+
+
+Underfull \hbox (badness 1348) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Gi£m ¡p lüc
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 prompt, húu
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 M¤nh nèi
+ []
+
+
+Underfull \hbox (badness 7030) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 thüc thº v 
+ []
+
+
+Underfull \hbox (badness 6236) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 K¸t hñp ^^_ç
+ []
+
+
+Underfull \hbox (badness 1371) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 hçi ^^_a k¶nh,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T5/ptm/m/n/10.83347 Mð rëng
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 ^^_ç thà theo
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 h÷îng nhªn
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 thùc; giú
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 b¬ng chùng
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 gèc; ^^_ành
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T5/ptm/m/n/10.83347 tuy¸n theo
+ []
+
+[13] [14] [15] [16]) [17]
+CHÆ¯Æ NG 3.
+(Chapter/3_Methodology.tex [18
+
+]
+<Images/cogmem_pipeline_overview.png, id=767, 1678.27pt x 944.52875pt>
 File: Images/cogmem_pipeline_overview.png Graphic file (type png)
 <use Images/cogmem_pipeline_overview.png>
 Package pdftex.def Info: Images/cogmem_pipeline_overview.png  used on input lin
-e 21.
+e 25.
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
-
-Underfull \hbox (badness 1043) in paragraph at lines 33--34
-[]\T5/ptm/m/n/13 Trong ph¤m vi luªn ¡n n y, \T5/ptm/b/n/13 BFS graph retrieval 
-vîi SUM spreading
- []
-
-[9
-
- <./Images/cogmem_pipeline_overview.png (PNG copy)>] [10]
-<Images/cogmem_memory_graph.png, id=469, 1678.27pt x 944.52875pt>
+ [19 <./Images/cogmem_pipeline_overview.png (PNG copy)>] [20] [21]
+<Images/cogmem_memory_graph.png, id=790, 1678.27pt x 944.52875pt>
 File: Images/cogmem_memory_graph.png Graphic file (type png)
 <use Images/cogmem_memory_graph.png>
-Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 97.
+Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 94.
 
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
- [11]
-Underfull \hbox (badness 10000) in paragraph at lines 129--130
-[]|\T5/ptm/b/n/13 Metadata / t½n hi»u
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 133--134
-[]|\T5/ptm/m/n/13 occurred_start,
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 133--134
-\T5/ptm/m/n/13 occurred_end,
- []
-
-
-Underfull \hbox (badness 7099) in paragraph at lines 139--140
-[]|\T5/ptm/m/n/13 intention_status; câ thº
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 141--142
-[]|\T5/ptm/m/n/13 precondition, action,
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 141--142
-\T5/ptm/m/n/13 outcome, confidence,
- []
-
-[12 <./Images/cogmem_memory_graph.png (PNG copy)>] [13]
-LaTeX Font Info:    Trying to load font information for T5+pcr on input line 20
-3.
-
-(F:\MikTeX\tex/latex/vntex\t5pcr.fd
-File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
-) [14] [15] [16]
-Underfull \hbox (badness 3769) in paragraph at lines 344--344
-[]|\T5/ptm/m/n/13 B¬ng chùng ^^_a
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 346--346
-[]|\T5/ptm/m/n/13 Multi-hop
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 348--348
-[]|\T5/ptm/m/n/13 Y¶u c¦u entry
- []
-
-
-Underfull \hbox (badness 7814) in paragraph at lines 348--348
-[]|\T5/ptm/m/n/13 c¦n tróng node r§t
- []
-
-[17] [18]
-Underfull \hbox (badness 10000) in paragraph at lines 448--448
-[]|\T5/ptm/m/n/13 ÷u ti¶n temporal
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 448--448
-\T5/ptm/m/n/13 v  action-effect
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 448--448
-[]|\T5/ptm/m/n/13 ÷u ti¶n planning
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 448--448
-\T5/ptm/m/n/13 intentions v 
- []
-
-[19]) [20]
-CHAPTER 4.
-(Chapter/4_Theoretical_analysis.tex [21
-
-]
-<Images/habit_diary_workload.png, id=583, 1678.27pt x 944.52875pt>
+ [22] [23 <./Images/cogmem_memory_graph.png (PNG copy)>]
+[24]
+<Images/habit_diary_workload.png, id=809, 1678.27pt x 944.52875pt>
 File: Images/habit_diary_workload.png Graphic file (type png)
 <use Images/habit_diary_workload.png>
-Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 55
-.
+Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 15
+8.
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
- [22 <./Images/habit_diary_workload.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 110--110
-[]|\T5/ptm/b/n/13 Biºu di¹n tr¶n
- []
-
-
-Underfull \hbox (badness 6592) in paragraph at lines 112--112
-[]|\T5/ptm/m/n/13 Lªp k¸ ho¤ch
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 114--115
-[]|\T5/ptm/m/n/13 fulfilled_by: intention
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 116--116
-[]|\T5/ptm/m/n/13 intention planning
- []
-
-
-Underfull \hbox (badness 4229) in paragraph at lines 118--118
-[]|\T5/ptm/m/n/13 K¸ ho¤ch phö
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 118--119
-[]|\T5/ptm/m/n/13 enabled_by: intention
- []
-
-[23]
-<Images/agentic_action_effect_trace.png, id=594, 1678.27pt x 944.52875pt>
+ [25] [26 <./Images/habit_diary_workload.png (PNG copy)>] [27]
+<Images/agentic_action_effect_trace.png, id=827, 1678.27pt x 944.52875pt>
 File: Images/agentic_action_effect_trace.png Graphic file (type png)
 <use Images/agentic_action_effect_trace.png>
 Package pdftex.def Info: Images/agentic_action_effect_trace.png  used on input 
-line 158.
+line 254.
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
- [24] [25 <./Images/agentic_action_effect_trace.png (PNG copy)>] [26]
-Underfull \hbox (badness 1057) in paragraph at lines 280--281
-[]\T5/ptm/m/n/13 Adaptive Query Routing cõa CogMem câ thº ^^_÷ñc xem nh÷ mët d¤
-ng
- []
+ [28 <./Images/agentic_action_effect_trace.png (PNG copy)>] [29]
+LaTeX Font Info:    Trying to load font information for T5+pcr on input line 34
+4.
 
-) [27]
-CHAPTER 5.
-(Chapter/5_Numerical_results.tex
-<Images/manual_evaluation_flow.png, id=617, 1678.27pt x 944.52875pt>
-File: Images/manual_evaluation_flow.png Graphic file (type png)
-<use Images/manual_evaluation_flow.png>
-Package pdftex.def Info: Images/manual_evaluation_flow.png  used on input line 
-22.
-(pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
-
-Overfull \hbox (2.17229pt too wide) in paragraph at lines 29--30
- [][] 
- []
-
-[28
-
- <./Images/manual_evaluation_flow.png (PNG copy)>] [29] [30] [31] [32])
-[33]
-CHAPTER 6.
-(Chapter/6_Conclusions.tex [34
+(F:\MikTeX\tex/latex/vntex\t5pcr.fd
+File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
+) [30] [31] [32] [33] [34] [35] [36]
+[37] [38] [39]) [40]
+CHÆ¯Æ NG 4.
+(Chapter/5_Numerical_results.tex [41
 
 ]
-Underfull \hbox (badness 4660) in paragraph at lines 49--50
-[]\T5/ptm/b/n/13 Production reliability\T5/ptm/m/n/13 : bê sung temporal reason
-er, list-completeness
+Underfull \hbox (badness 1735) in paragraph at lines 73--73
+[]|\T5/ptm/m/n/11.86258 Méi c¥u häi g­n
  []
 
-[35]
-Underfull \hbox (badness 1701) in paragraph at lines 52--53
-[]\T5/ptm/m/n/13 Nh¼n chung, CogMem chùng minh r¬ng cognitive graph, raw eviden
-ce
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+\T5/ptm/m/n/11.86258 phi¶n hëi tho¤i;
  []
 
-) [36]
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+\T5/ptm/m/n/11.86258 trung b¼nh 1,97
+ []
+
+
+Underfull \hbox (badness 1655) in paragraph at lines 73--73
+[]|\T5/ptm/m/n/11.86258 C¡c hëi tho¤i câ
+ []
+
+
+Underfull \hbox (badness 2671) in paragraph at lines 73--73
+\T5/ptm/m/n/11.86258 40--64 phi¶n méi
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+\T5/ptm/m/n/11.86258 cuëc; c¥u häi
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+[]|\T5/ptm/m/n/11.86258 CogMem
+ []
+
+
+Underfull \hbox (badness 1168) in paragraph at lines 73--73
+[]|\T5/ptm/m/n/11.86258 Kiºm tra nh­m ^^_½ch node
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+[]|\T5/ptm/m/n/11.86258 Gçm pilot,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
+\T5/ptm/m/n/11.86258 necessity v 
+ []
+
+
+Overfull \hbox (22.83813pt too wide) in alignment at lines 73--73
+[][][][] 
+ []
+
+[42] [43] [44] [45] [46] [47] [48]
+Underfull \hbox (badness 10000) in paragraph at lines 204--204
+[]|\T5/ptm/m/n/11.86258 HINDSIGHT
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 204--204
+[]|\T5/ptm/m/n/11.86258 CogMem multi-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 204--204
+[]|\T5/ptm/m/n/11.86258 CogMem graph-
+ []
+
+
+Underfull \hbox (badness 2302) in paragraph at lines 204--204
+[]|\T5/ptm/m/n/11.86258 Lo¤i bä tøng lo¤i
+ []
+
+
+Underfull \hbox (badness 10000) in alignment at lines 204--204
+[][] 
+ []
+
+[49]
+Underfull \hbox (badness 10000) in alignment at lines 237--237
+[][][] 
+ []
+
+[50]
+Underfull \hbox (badness 10000) in alignment at lines 287--287
+[][][] 
+ []
+
+[51]
+Underfull \hbox (badness 10000) in alignment at lines 312--312
+[][][][] 
+ []
+
+[52] [53]
+<Images/cogmem_bench_intention_graph.png, id=1010, 1284.8pt x 722.7pt>
+File: Images/cogmem_bench_intention_graph.png Graphic file (type png)
+<use Images/cogmem_bench_intention_graph.png>
+Package pdftex.def Info: Images/cogmem_bench_intention_graph.png  used on input
+ line 377.
+(pdftex.def)             Requested size: 409.72255pt x 230.46371pt.
+ [54] [55 <./Images/cogmem_bench_intention_graph.png (PNG copy)>]
+<Images/cogmem_bench_action_effect_graph.png, id=1020, 1284.8pt x 722.7pt>
+File: Images/cogmem_bench_action_effect_graph.png Graphic file (type png)
+<use Images/cogmem_bench_action_effect_graph.png>
+Package pdftex.def Info: Images/cogmem_bench_action_effect_graph.png  used on i
+nput line 394.
+(pdftex.def)             Requested size: 409.72255pt x 230.46371pt.
+
+[56 <./Images/cogmem_bench_action_effect_graph.png (PNG copy)>] [57]) [58]
+CHÆ¯Æ NG 5.
+(Chapter/6_Conclusions.tex [59
+
+] [60]) [61]
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'latimer2025hindsight' on input line 348.
+(biblatex)                at entry 'latimer2025hindsight' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2079,14 +2177,14 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Overfull \hbox (8.77127pt too wide) in paragraph at lines 349--349
+Overfull \hbox (8.77127pt too wide) in paragraph at lines 344--344
 []\T5/ptm/m/n/13 C. Latimer [], ``HINDSIGHT: Long-Term Memory for Conversationa
 l
  []
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'wu2025longmemeval' on input line 348.
+(biblatex)                at entry 'wu2025longmemeval' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2097,7 +2195,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'maharana2024locomo' on input line 348.
+(biblatex)                at entry 'maharana2024locomo' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2122,19 +2220,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 348.
+(biblatex)                at entry 'squire1991medial' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 348.
+(biblatex)                at entry 'squire1991medial' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 348.
+(biblatex)                at entry 'squire1991medial' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 348.
+(biblatex)                at entry 'squire1991medial' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2146,22 +2244,22 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 Package biblatex Warning: Bibliography string 'and' untranslated
 (biblatex)                at entry 'dickinson1994motivational' on input line 34
-8.
+3.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
 (biblatex)                at entry 'dickinson1994motivational' on input line 34
-8.
+3.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
 (biblatex)                at entry 'dickinson1994motivational' on input line 34
-8.
+3.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
 (biblatex)                at entry 'dickinson1994motivational' on input line 34
-8.
+3.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2172,15 +2270,15 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 348.
+(biblatex)                at entry 'baddeley2000episodic' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 348.
+(biblatex)                at entry 'baddeley2000episodic' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 348.
+(biblatex)                at entry 'baddeley2000episodic' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2190,7 +2288,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 5578) in paragraph at lines 349--349
+Underfull \hbox (badness 5578) in paragraph at lines 344--344
 \T5/ptm/m/n/13 Memory?'' \T5/ptm/m/it/13 Trends in Cognitive Sciences\T5/ptm/m/
 n/13 , [] 4, [] 11,
  []
@@ -2198,7 +2296,7 @@ n/13 , [] 4, [] 11,
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
 (biblatex)                at entry 'brandimonte1996prospective' on input line 3
-48.
+43.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2209,19 +2307,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 348.
+(biblatex)                at entry 'hommel2001tec' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 348.
+(biblatex)                at entry 'hommel2001tec' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 348.
+(biblatex)                at entry 'hommel2001tec' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 348.
+(biblatex)                at entry 'hommel2001tec' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2231,26 +2329,26 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 1297) in paragraph at lines 349--349
+Underfull \hbox (badness 1297) in paragraph at lines 344--344
 \T5/ptm/m/n/13 for Perception and Action Planning,'' \T5/ptm/m/it/13 Behavioral
  and Brain Sciences\T5/ptm/m/n/13 ,
  []
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 348.
+(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2260,29 +2358,29 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 1231) in paragraph at lines 349--349
+Underfull \hbox (badness 1231) in paragraph at lines 344--344
 []\T5/ptm/m/n/13 C. J. Brainerd [] V. F. Reyna, ``Fuzzy Trace Theory and Storag
 e-
  []
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
 
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
 
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
 
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 348.
+(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
 
 
 
@@ -2294,19 +2392,19 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 348.
+(biblatex)                at entry 'wilson1972excitatory' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 348.
+(biblatex)                at entry 'wilson1972excitatory' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 348.
+(biblatex)                at entry 'wilson1972excitatory' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 348.
+(biblatex)                at entry 'wilson1972excitatory' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2317,11 +2415,11 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 
 
 Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 348.
+(biblatex)                at entry 'packer2023memgpt' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'in' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 348.
+(biblatex)                at entry 'packer2023memgpt' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2345,18 +2443,18 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                for \mkbibdatelong.
 
 
-Underfull \hbox (badness 3323) in paragraph at lines 349--349
+Underfull \hbox (badness 3323) in paragraph at lines 344--344
 []\T5/ptm/m/n/13 F. C. Bartlett, \T5/ptm/m/it/13 Remembering: A Study in Experi
 mental and Social
  []
 
 
 Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 348.
+(biblatex)                at entry 'robertson2006what' on input line 343.
 
 
 Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 348.
+(biblatex)                at entry 'robertson2006what' on input line 343.
 
 
 Package biblatex Warning: Using fallback definition for \mkbibdatelong.
@@ -2365,7 +2463,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
 
-[37
+[62
 
 ]
 
@@ -2377,7 +2475,7 @@ Package biblatex Warning: Using fallback definition for \mkbibordinal.
 
 
 Package biblatex Warning: Bibliography string 'edition' untranslated
-(biblatex)                at entry 'anderson2008architecture' on input line 348
+(biblatex)                at entry 'anderson2008architecture' on input line 343
 .
 
 
@@ -2387,7 +2485,7 @@ Package biblatex Warning: Using fallback definition for \mkbibdatelong.
 (biblatex)                loaded, is faulty or does not contain a definition
 (biblatex)                for \mkbibdatelong.
 
-[38] (Chapter/Appendix_A.tex
+[63] (Chapter/Appendix_A.tex
 Ph\d {u} l\d {u}c A.
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
@@ -2396,12 +2494,12 @@ Package hyperref Warning: Difference (2) between bookmark levels is greater
 \g__tcobox_out_iow=\write10
 \openout10 = `main.listing'.
 
-(main.listing) [39
+(main.listing) [64
 
 ]
 \openout10 = `main.listing'.
 
- (main.listing)) [40] (Chapter/Appendix_B.tex
+ (main.listing)) [65] (Chapter/Appendix_B.tex
 Ph\d {u} l\d {u}c B.
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
@@ -2409,18 +2507,18 @@ Package hyperref Warning: Difference (2) between bookmark levels is greater
 
 \openout10 = `main.listing'.
 
-(main.listing)
+(main.listing) [66
+
+]
 \openout10 = `main.listing'.
 
- (main.listing) [41
-
-])
+ (main.listing))
 
 Package glossaries Warning: No \printnoidxglossary or \printnoidxglossaries
  found. (Remove \makenoidxglossaries if you don't want any glossaries.)
 This document will not have a glossary.
 
-[42] (main.aux)
+[67] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -2431,19 +2529,19 @@ LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 22EDDCE51798A49483785B28BF282EDB;11998.
+(rerunfilecheck)             Checksum: 7CBFBEE76E9D1F855425F802D242B2BE;25961.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 50087 strings out of 467871
- 992511 string characters out of 5435212
- 1900128 words of memory out of 5000000
- 77810 multiletter control sequences out of 15000+600000
- 672368 words of font info for 81 fonts, out of 8000000 for 9000
+ 50283 strings out of 467871
+ 995600 string characters out of 5435212
+ 1902281 words of memory out of 5000000
+ 77927 multiletter control sequences out of 15000+600000
+ 682868 words of font info for 110 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 108i,13n,107p,2507b,1670s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,12n,107p,2507b,2254s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <F:/MikTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><F:/MikTeX/fonts/type1/p
 ublic/amsfonts/cm/cmmi12.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmmi9.pf
 b><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><F:/MikTeX/fonts/type1/pu
@@ -2452,9 +2550,9 @@ blic/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
 x/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><F:/MikTeX/fon
 ts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.pfb><F:
 /MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (52 pages, 5969153 bytes).
+Output written on main.pdf (77 pages, 5257544 bytes).
 PDF statistics:
- 949 PDF objects out of 1000 (max. 8388607)
- 357 named destinations out of 1000 (max. 500000)
- 414 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1345 PDF objects out of 1440 (max. 8388607)
+ 427 named destinations out of 1000 (max. 500000)
+ 763 words of extra memory for PDF output out of 10000 (max. 10000000)
 

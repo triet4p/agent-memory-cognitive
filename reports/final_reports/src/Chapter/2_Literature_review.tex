@@ -1,139 +1,272 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\textit{Tiếp nối bối cảnh bài toán từ Chương 1, chương này tổng hợp nền tảng khoa học nhận thức, đồ thị tri thức và các hệ thống bộ nhớ dài hạn liên quan, từ đó xác định rõ khoảng trống mà CogMem hướng tới.}
+\textit{Chương này đặt nền tảng cho toàn bộ báo cáo. Trước khi mô tả CogMem, cần làm rõ các kiến thức cơ bản về: mô hình ngôn ngữ lớn vận hành ra sao, tác nhân AI hiện đại được xây dựng như thế nào, vì sao chatbot cần bộ nhớ ngoài, khoa học nhận thức và đồ thị tri thức gợi ý cấu trúc biểu diễn nào, các hệ thống liên quan đã giải quyết bài toán ra sao, và các bộ dữ liệu nào thực sự đo được năng lực bộ nhớ dài hạn.}
 
-\section{Tổng quan Lý thuyết và Các hệ thống liên quan}
+% ============================================================
+\section{Nền tảng của tác nhân hội thoại hiện đại}
+% ============================================================
 
-Chương này tập trung vào hai trụ cột: (1) khoa học nhận thức như một nguồn cảm hứng cho việc chuyên biệt hóa các loại ký ức, và (2) đồ thị tri thức như một hình thức biểu diễn cho phép truy hồi đa bước có kiểm soát. Trên nền tảng đó, chúng tôi đối chiếu các hệ thống bộ nhớ đương đại để chỉ ra những hạn chế còn tồn tại về nén thông tin, tổ chức fact type và định tuyến truy vấn.
+\subsection{Mô hình ngôn ngữ lớn: kiến trúc, huấn luyện và năng lực cốt lõi}
 
-\subsection{Thách thức cốt lõi về Bộ nhớ của Mô hình Ngôn ngữ Lớn (LLMs)}
+Mô hình ngôn ngữ lớn (Large Language Model -- LLM) là thành phần trung tâm đứng sau phần lớn hệ thống hội thoại hiện nay. Về mặt kiến trúc, các LLM hiện đại hầu hết được xây dựng dựa trên kiến trúc Transformer do Vaswani và cộng sự đề xuất năm 2017. Điểm cốt lõi của Transformer là cơ chế tự chú ý (self-attention), cho phép mô hình tính toán mức độ liên quan giữa mọi cặp từ trong một chuỗi đầu vào cùng một lúc, thay vì phải xử lý tuần tự như các kiến trúc hồi quy trước đây. Chính cơ chế này đã mở đường cho việc huấn luyện trên lượng văn bản khổng lồ và cho ra đời các mô hình có khả năng hiểu ngữ cảnh rất dài.
 
-Mặc dù các Mô hình Ngôn ngữ Lớn (LLMs) đạt thành tựu cao trong xử lý ngôn ngữ tự nhiên, chúng vẫn gặp những giới hạn cơ bản khi phải duy trì ký ức dài hạn cho một người dùng hoặc một agent cụ thể:
-
-\begin{itemize}
-    \item \textbf{Giới hạn cửa sổ ngữ cảnh}: Đưa toàn bộ lịch sử hội thoại dài hạn vào prompt là tốn kém và không bền vững. Khi lịch sử tăng lên, hệ thống buộc phải chọn lọc hoặc bỏ bớt thông tin.
-    \item \textbf{Hiện tượng mất tín hiệu ở ngữ cảnh dài}: Các nghiên cứu về ``lost in the middle'' cho thấy thông tin ở giữa cửa sổ ngữ cảnh thường khó được sử dụng ổn định bằng thông tin ở đầu hoặc cuối.
-    \item \textbf{Thiếu grounding dài hạn}: Nếu không có một bộ nhớ ngoài được tổ chức tốt, mô hình dễ sinh câu trả lời dựa trên xác suất ngôn ngữ thay vì bằng chứng đã quan sát.
-    \item \textbf{Khó cập nhật liên tục}: Fine-tuning không phải là cơ chế phù hợp để tiếp nhận dòng hội thoại cá nhân hóa theo thời gian thực; bộ nhớ ngoài là hướng thực tế hơn cho bài toán này.
-\end{itemize}
-
-Vì vậy, bộ nhớ dài hạn cho tác nhân hội thoại nên được xem như một \textit{hệ thống ngoài mô hình} (\textit{external memory system}) với cấu trúc lưu trữ, truy hồi và tổng hợp riêng, thay vì chỉ là phần kéo dài của context window.
-
-\subsection{Cơ sở Lý thuyết: Khoa học Nhận thức và Đồ thị Tri thức}
-
-\subsubsection{Khoa học Nhận thức và Hệ thống Phân loại Bộ nhớ}
-
-Một điểm then chốt của khoa học nhận thức là bộ nhớ người không phải một khối đơn nhất. Theo các phân loại cổ điển của Tulving, Squire và các cộng sự, bộ nhớ dài hạn bao gồm nhiều hệ con với vai trò và nền tảng thần kinh khác nhau:
+Quá trình huấn luyện một LLM thường trải qua nhiều giai đoạn. 
 
 \begin{itemize}
-    \item \textbf{Semantic memory}: lưu trữ kiến thức chung, tương đối độc lập với ngữ cảnh cụ thể.
-    \item \textbf{Episodic memory}: lưu trữ các sự kiện cá nhân gắn với thời gian và trải nghiệm.
-    \item \textbf{Habit / procedural memory}: gắn với các mẫu hành vi lặp lại và phản xạ hành động.
-    \item \textbf{Prospective memory}: liên quan tới việc ``nhớ để làm'' trong tương lai, tức các kế hoạch và mục tiêu chưa hoàn tất.
+    \item \textbf{Tiền huấn luyện (pre-training)}: mô hình được cho tiếp xúc với hàng nghìn tỉ từ văn bản từ internet, sách, bài báo khoa học và mã nguồn. Mục tiêu của giai đoạn này đơn giản là dự đoán từ tiếp theo trong một chuỗi, nhưng nó buộc mô hình phải học được một lượng lớn tri thức về ngữ pháp, sự kiện, quan hệ logic và những kiểu suy luận cơ bản.
+    \item \textbf{Tinh chỉnh theo hướng dẫn (instruction fine-tuning)}: mô hình được huấn luyện thêm trên các cặp câu hỏi--câu trả lời có chất lượng cao để học cách làm theo yêu cầu của người dùng.
+    \item \textbf{Huấn luyện từ phản hồi của con người (RLHF -- Reinforcement Learning from Human Feedback)}: giúp mô hình sinh ra câu trả lời an toàn hơn, hữu ích hơn và phù hợp với mong đợi của người dùng hơn.
 \end{itemize}
 
-Ý tưởng cốt lõi rút ra cho hệ thống AI là: nếu nhiều loại tín hiệu nhận thức có bản chất khác nhau, chúng không nên bị ép vào cùng một kiểu biểu diễn phẳng. Đây chính là động lực cho kiến trúc nhiều fact type của CogMem.
+Nhờ quá trình huấn luyện nhiều tầng như vậy, LLM sở hữu những năng lực vượt xa việc chỉ sinh văn bản trôi chảy. Chúng có thể phân tích yêu cầu phức tạp, chia nhỏ bài toán thành các bước, gọi công cụ bên ngoài, tổng hợp thông tin từ nhiều nguồn, và thậm chí lập kế hoạch nhiều bước. Những năng lực này khiến LLM trở thành ``bộ não'' lý tưởng cho các hệ thống tác nhân AI (AI agent), nơi mô hình không chỉ trả lời câu hỏi mà còn thực hiện hành động trong môi trường thực tế.
 
-\subsubsection{Đồ thị Tri thức (Knowledge Graphs) và Chức năng Biểu diễn}
+\subsection{Giới hạn của cửa sổ ngữ cảnh và vấn đề trí nhớ}
 
-Đồ thị tri thức (Knowledge Graph - KG) cho phép biểu diễn các thực thể và quan hệ của chúng dưới dạng cấu trúc tường minh. So với một kho vector thuần túy, KG có hai lợi thế quan trọng:
+Dù năng lực của LLM đã tiến bộ vượt bậc, một giới hạn căn bản vẫn tồn tại: mỗi lần suy luận, mô hình chỉ có thể ``nhìn thấy'' một lượng văn bản hữu hạn được nạp vào cửa sổ ngữ cảnh (Context Window). Cửa sổ này, dù đã được mở rộng đáng kể từ vài nghìn từ lên hàng trăm nghìn từ ở các mô hình mới nhất, vẫn bị chặn bởi chi phí tính toán bậc hai của cơ chế tự chú ý: xử lý một ngữ cảnh dài gấp đôi đòi hỏi tài nguyên tính toán gấp bốn lần.
+
+Hệ quả trong thực tế là khi lịch sử hội thoại kéo dài qua hàng chục phiên, hệ thống buộc phải lựa chọn: hoặc cắt bớt nội dung cũ, hoặc nén chúng thành tóm tắt, hoặc chỉ giữ lại những phần được đánh giá là quan trọng nhất. Mỗi lựa chọn đều đánh đổi một phần thông tin. Một câu hỏi tưởng như đơn giản, ví dụ ``người dùng hiện còn đang theo đuổi kế hoạch nào?'', có thể phụ thuộc vào ít nhất ba loại tín hiệu nằm rải rác qua nhiều phiên: lần đầu nêu kế hoạch, một lần cập nhật tiến độ, và một câu phủ định cho biết việc đó vẫn chưa được hoàn thành. Nếu một trong các tín hiệu đó không còn nằm trong ngữ cảnh hiện tại, mô hình rất dễ suy luận sai hoặc trả lời dựa trên phỏng đoán.
+
+Vấn đề này càng nghiêm trọng hơn trong các kịch bản cá nhân hóa, nơi người dùng kỳ vọng hệ thống nhớ được không chỉ những gì họ đã nói, mà còn cả những gì họ đã làm, những gì họ thích, những gì họ định làm và những gì họ đã từ bỏ. Đây không còn là bài toán ``nhớ nhiều hơn'', mà là bài toán ``nhớ đúng loại thông tin vào đúng thời điểm''.
+
+\subsection{Tác nhân AI: từ chatbot đơn lượt đến hệ thống đa năng}
+
+Khi LLM được tích hợp vào một vòng lặp tương tác với môi trường, chúng trở thành \textit{tác nhân AI}. Khác với chatbot truyền thống chỉ nhận tin nhắn và trả lời, một tác nhân AI hiện đại thường vận hành theo chu trình: quan sát môi trường, suy nghĩ về bước tiếp theo, chọn và thực thi một hành động (có thể là gọi API, chạy lệnh, truy vấn cơ sở dữ liệu, mở tập tin), nhận kết quả, rồi tiếp tục chu trình cho đến khi hoàn thành nhiệm vụ.
+
+\textbf{Tác nhân hội thoại} là một trường hợp đặc biệt của tác nhân AI, nơi môi trường chính là cuộc hội thoại với người dùng. Ở đây, bộ nhớ không chỉ giúp duy trì ngữ cảnh, mà còn cần lưu giữ các tín hiệu cá nhân hóa: sở thích, thói quen, lịch sử tương tác, và các mục tiêu dài hạn của người dùng. Việc thiết kế bộ nhớ cho tác nhân hội thoại vì thế đòi hỏi sự kết hợp giữa khả năng truy hồi nhanh, khả năng lưu trữ lâu dài và khả năng phân loại thông tin theo chức năng.
+
+Một số framework tiêu biểu cho mô hình tác nhân bao gồm:
 
 \begin{itemize}
-    \item \textbf{Biểu diễn quan hệ hiện hình}: Quan hệ thời gian, nhân quả, đồng tham chiếu thực thể hay chuyển pha trạng thái có thể được lưu trực tiếp bằng edge thay vì phải suy ngược hoàn toàn từ tương đồng ngữ nghĩa.
-    \item \textbf{Truy hồi đa bước}: KG hỗ trợ các thuật toán đi đồ thị, spreading activation và các dạng kết hợp tín hiệu xuyên nhiều node, phù hợp với các câu hỏi multi-hop hoặc cross-session.
+    \item \textbf{ReAct (Reasoning + Acting)}: đan xen giữa suy luận và hành động, trong đó mô hình suy nghĩ kỹ trước khi quyết định gọi công cụ nào, rồi quan sát kết quả để điều chỉnh hướng suy luận tiếp theo.
+    \item \textbf{Plan-and-Execute}: mô hình lập một kế hoạch tổng thể trước, sau đó thực thi từng bước, cho phép nhìn xa hơn và tránh bị lạc hướng bởi các kết quả trung gian.
+    \item \textbf{Multi-agent collaboration}: nhiều tác nhân với vai trò khác nhau cùng phối hợp để giải quyết một nhiệm vụ phức tạp, mỗi tác nhân có bộ nhớ và mục tiêu riêng.
 \end{itemize}
 
-Với các bài toán bộ nhớ hội thoại, KG đặc biệt hữu ích khi thông tin trả lời không nằm gọn trong một câu duy nhất mà bị phân tán qua nhiều phiên, nhiều sự kiện hoặc nhiều loại fact khác nhau.
+Trong tất cả các mô hình trên, một thành phần xuyên suốt và không thể thiếu là \textbf{bộ nhớ (memory)}. Tác nhân cần nhớ những gì đã xảy ra trong phiên hiện tại (trí nhớ ngắn hạn), những gì đã xảy ra trong các phiên trước (trí nhớ dài hạn), những quy luật hay mẫu hành vi đã được kiểm chứng, và những kế hoạch hay mục tiêu còn đang dang dở. Không có bộ nhớ, tác nhân sẽ liên tục lặp lại sai lầm, không thể học từ kinh nghiệm và không thể duy trì mối quan hệ lâu dài với người dùng.
 
-\subsection{Tiến trình phát triển hệ thống Bộ nhớ Dài hạn cho Tác nhân}
+\subsection{Bộ nhớ ngoài cho các tác nhân hội thoại: các mô hình tổ chức phổ biến}
 
-\subsubsection{HINDSIGHT: Đồ thị dị thể và truy hồi đa kênh}
+Để vượt qua giới hạn của cửa sổ ngữ cảnh, một hướng tiếp cận đã trở thành tiêu chuẩn là \textit{Retrieval-Augmented Generation} (RAG). Ý tưởng cốt lõi của RAG rất trực quan: thay vì buộc mô hình phải nhớ mọi thứ, hệ thống giữ một kho tài liệu bên ngoài và truy vấn những thành phần liên quan đến câu hỏi hiện tại trước khi sinh câu trả lời. Kho tài liệu này có thể là văn bản thô, các đoạn hội thoại cũ, các bản ghi sự kiện, hoặc các đơn vị tri thức đã được trích xuất và cấu trúc hóa.
 
-HINDSIGHT là một trong những hệ thống đáng chú ý nhất trong dòng bộ nhớ dài hạn dạng đồ thị cho agent hội thoại. Ở mức khái niệm, HINDSIGHT kết hợp:
+Trong thực tế, có ba mô hình tổ chức bộ nhớ ngoài phổ biến:
+
+\begin{enumerate}
+    \item \textbf{Kho lưu trữ vector (Vector Store)}: mỗi đoạn văn bản được biểu diễn nhúng thành một vector và lưu trong cơ sở dữ liệu vector. Khi có câu hỏi, hệ thống tìm các vector gần nhất (theo độ tương đồng) và đưa văn bản tương ứng vào prompt. Mô hình này đơn giản, nhanh, nhưng không giữ được quan hệ giữa các mảnh thông tin.
+    \item \textbf{Bộ nhớ phân tầng}: thông tin được tổ chức thành nhiều mức, từ bộ nhớ làm việc (working memory) chứa ngữ cảnh gần nhất, đến bộ nhớ ngắn hạn chứa các phiên gần đây, và bộ nhớ dài hạn chứa tri thức ổn định. Mỗi tầng có chiến lược truy vấn và tần suất cập nhật riêng.
+    \item \textbf{Bộ nhớ có cấu trúc}: thay vì lưu văn bản thô, hệ thống trích xuất các đơn vị tri thức có cấu trúc (thực thể, sự kiện, quan hệ) và tổ chức chúng thành đồ thị tri thức hoặc cơ sở dữ liệu quan hệ. Mô hình này cho phép truy vấn chính xác hơn và suy luận đa bước tốt hơn.
+\end{enumerate}
+
+Mỗi mô hình đều có những đánh đổi riêng. Kho lưu trữvector dễ triển khai nhưng gặp khó khăn trước các câu hỏi cần nối nhiều mảnh thông tin. Bộ nhớ phân tầng giúp quản lý ngữ cảnh hiệu quả nhưng chưa trả lời được câu hỏi ``lưu dưới dạng gì''. Bộ nhớ có cấu trúc mạnh về suy luận nhưng chất lượng phụ thuộc rất nhiều vào khâu trích xuất. CogMem, như sẽ được trình bày ở Chương 3, theo đuổi mô hình thứ ba nhưng bổ sung thêm chiều sâu về nhận thức: không chỉ lưu trữ có cấu trúc, mà còn lưu trữ theo đúng kiểu trí nhớ mà con người vẫn dùng.
+
+\subsection{Luồng xử lý có bộ nhớ trong tác nhân hội thoại}
+
+Để hiểu rõ vị trí của bộ nhớ trong một hệ thống hoàn chỉnh, cần hình dung toàn bộ vòng đời xử lý của một tác nhân hội thoại. Mỗi khi người dùng gửi một tin nhắn, hệ thống trải qua các bước sau:
+
+\begin{enumerate}
+    \item \textbf{Tiếp nhận và phân tích}: hệ thống nhận tin nhắn, phân tích ý định người dùng, trích xuất các thực thể và ràng buộc thời gian nếu có.
+    \item \textbf{Truy vấn bộ nhớ}: dựa trên nội dung và ý định đã phân tích, hệ thống truy vấn tầng bộ nhớ để lấy các thông tin liên quan từ các phiên trước. Bước này có thể bao gồm nhiều kênh truy vấn song song.
+    \item \textbf{Xây dựng ngữ cảnh suy luận}: hệ thống ghép tin nhắn hiện tại, lịch sử gần đây, và các mảnh bộ nhớ đã truy vấn thành một prompt hoàn chỉnh cho LLM.
+    \item \textbf{Suy luận và sinh phản hồi}: LLM đọc prompt, suy luận, và sinh ra câu trả lời cuối cùng cho người dùng.
+    \item \textbf{Cập nhật bộ nhớ}: sau khi trả lời, hệ thống trích xuất những thông tin mới từ lượt tương tác vừa rồi và cập nhật vào tầng bộ nhớ dài hạn.
+\end{enumerate}
+
+Trong vòng lặp này, bộ nhớ đóng vai trò kép: vừa là nguồn cung cấp ngữ cảnh cho suy luận, vừa là nơi lưu giữ kết quả của tương tác. Một bộ nhớ được thiết kế tốt cần đáp ứng đồng thời cả hai chiều: đọc (truy vấn) phải nhanh và chính xác, còn ghi (lưu trữ) phải bảo toàn được thông tin và tổ chức phục vụ cho lần đọc sau.
+
+% ============================================================
+\section{Cơ sở lý thuyết cho việc thiết kế bộ nhớ}
+% ============================================================
+
+\subsection{Khoa học nhận thức và các hệ con của bộ nhớ dài hạn}
+
+Một luận điểm quan trọng của khoa học nhận thức là bộ nhớ con người không phải một khối đồng nhất. Từ những năm 1970, Tulving đã phân biệt giữa trí nhớ tình tiết (episodic memory) -- nơi lưu những trải nghiệm cá nhân gắn với thời gian và bối cảnh, và trí nhớ ngữ nghĩa (semantic memory) -- nơi lưu tri thức khái quát về thế giới. Sau này, các nghiên cứu tiếp tục mở rộng bức tranh với nhiều hệ con khác: trí nhớ thủ tục (procedural memory) cho kỹ năng và thói quen, trí nhớ triển vọng (prospective memory) cho những việc cần làm trong tương lai, và hệ thống gắn kết hành động--kết quả (action-effect binding) cho việc học quan hệ nhân quả giữa hành vi và hệ quả của nó.
+
+Mỗi hệ con này không chỉ khác nhau về nội dung lưu trữ, mà còn khác nhau về cách truy xuất. Khi một người cố nhớ ``tối qua ăn gì'', họ dùng trí nhớ tình tiết và thường tìm theo mốc thời gian. Khi trả lời ``thủ đô của Pháp là gì'', họ dùng trí nhớ ngữ nghĩa và tìm theo liên tưởng khái niệm. Khi quyết định ``sáng mai thức dậy sẽ làm gì đầu tiên'', họ dùng trí nhớ triển vọng kết hợp với trí nhớ thói quen. Sự khác biệt trong cách truy xuất này gợi ý một nguyên tắc thiết kế then chốt: \textit{nếu các loại tín hiệu nhận thức có bản chất khác nhau, chúng không nên bị ép chung vào một kiểu biểu diễn duy nhất}.
+
+Đối với bài toán bộ nhớ hội thoại, có thể rút ra bốn nhóm ý tưởng từ khoa học nhận thức:
 
 \begin{itemize}
-    \item fact extraction từ hội thoại,
-    \item lưu trữ dưới dạng heterogeneous graph,
-    \item truy hồi song song trên nhiều channel như semantic, BM25, graph và temporal,
-    \item và dung hợp bằng Reciprocal Rank Fusion (RRF).
+    \item \textbf{Trí nhớ ngữ nghĩa}: lưu tri thức tương đối ổn định, ít phụ thuộc vào một lần trải nghiệm cụ thể. Trong hội thoại, đây là những fact như nghề nghiệp, kỹ năng, mối quan tâm dài hạn của người dùng.
+    \item \textbf{Trí nhớ tình tiết}: lưu những gì đã xảy ra, gắn với thời gian và hoàn cảnh. Đây là những sự kiện cụ thể mà người dùng đã kể, đã trải qua trong các phiên hội thoại.
+    \item \textbf{Trí nhớ thói quen}: phản ánh các mẫu hành vi lặp lại, thường bền vững hơn một sự kiện đơn lẻ. Ví dụ: ``người dùng thường kiểm tra email vào buổi sáng'' là một thói quen, không phải một sự kiện một lần.
+    \item \textbf{Trí nhớ triển vọng}: liên quan đến việc nhớ những gì sẽ làm trong tương lai, tức các kế hoạch và mục tiêu chưa hoàn tất. Đây là loại trí nhớ quan trọng cho các trợ lý cá nhân, vì người dùng thường xuyên đề cập đến những điều họ định làm.
 \end{itemize}
 
-Đóng góp lớn của HINDSIGHT là chứng minh rằng bộ nhớ dạng đồ thị có thể vượt xa vector store thuần trong các bài toán hội thoại dài. Tuy nhiên, khi nhìn từ góc độ kiến trúc, HINDSIGHT vẫn để lộ một số giới hạn mà CogMem muốn giải quyết:
+Điểm cốt yếu ở đây không nằm ở việc sao chép một mô hình nhận thức của con người sang hệ thống phần mềm. Điều đáng học hỏi chính là nguyên tắc thiết kế: các loại tín hiệu nhận thức khác nhau cần có không gian biểu diễn khác nhau, với thông tin bổ trợ, kiểu liên kết và chiến lược truy vấn phù hợp với bản chất riêng của từng loại. Đây chính là nền tảng trực tiếp cho quyết định chia bộ nhớ của CogMem thành sáu loại chuyên biệt thay vì chỉ lưu một dạng biểu diễn duy nhất.
+
+\subsection{Đồ thị tri thức và truy vấn nhiều bước}
+
+Đồ thị tri thức (Knowledge Graph) cung cấp một cách biểu diễn rất phù hợp cho bộ nhớ dài hạn vì nó cho phép mô tả đồng thời \textit{nội dung} và \textit{quan hệ}. Một node có thể lưu một sự kiện, một tri thức hoặc một kế hoạch; một cạnh có thể biểu diễn rằng hai node cùng nhắc tới một thực thể, diễn ra trước--sau, có quan hệ nhân quả, hay nằm trong cùng một vòng đời trạng thái.
+
+Về mặt hình thức, một đồ thị tri thức có thể được định nghĩa là $G = (V, E, L_V, L_E)$, trong đó $V$ là tập đỉnh (node), $E \subseteq V \times V$ là tập cạnh (edge), $L_V$ là hàm gán nhãn cho đỉnh (ví dụ: loại fact), và $L_E$ là hàm gán nhãn cho cạnh (ví dụ: quan hệ thời gian, quan hệ nhân quả). Khi áp dụng vào bộ nhớ hội thoại, mỗi đỉnh tương ứng với một đơn vị thông tin đã được trích xuất từ hội thoại, và mỗi cạnh tương ứng với một mối liên hệ giữa các đơn vị thông tin đó.
+
+So với cách lưu từng fact độc lập, đồ thị có ba ưu điểm cốt lõi:
 
 \begin{itemize}
-    \item chưa có các typed network riêng cho \textit{habit}, \textit{intention} và \textit{action\_effect},
-    \item chiến lược fusion mặc định dùng profile trọng số tĩnh cho mọi loại truy vấn,
-    \item và lan truyền kích hoạt kiểu lấy cực đại khiến bằng chứng yếu từ nhiều đường khó cộng dồn.
+    \item \textbf{Giữ quan hệ một cách tường minh}: thay vì phải suy ra mọi liên kết chỉ từ độ tương đồng ngữ nghĩa, hệ thống có thể lưu trực tiếp các quan hệ như thời gian, nhân quả, hay tham chiếu tới các thực thể giống nhau. Điều này đặc biệt quan trọng với các câu hỏi dạng ``tại sao'' hay ``sau khi'', vốn cần truy vấn chính xác loại quan hệ chứ không chỉ cần nội dung liên quan.
+    \item \textbf{Hỗ trợ truy vấn nhiều bước}: câu trả lời có thể được khôi phục qua một chuỗi liên kết trên đồ thị, thay vì chỉ tìm kiếm một lần. Ví dụ, để trả lời câu hỏi ``người dùng đã làm gì sau khi mất việc'', hệ thống có thể đi từ node sự kiện mất việc, qua cạnh thời gian, đến node sự kiện tiếp theo.
+    \item \textbf{Cho phép kiểm soát quá trình lan truyền bằng chứng}: thay vì chỉ xếp hạng từng mảnh tri thức độc lập, hệ thống có thể dùng cấu trúc đồ thị để tích lũy tín hiệu từ nhiều đường đi. Một bằng chứng đúng đôi khi không nằm ở một fact thật mạnh, mà xuất hiện như kết quả hội tụ của nhiều dấu vết vừa phải nằm ở các phiên khác nhau.
 \end{itemize}
 
-\subsubsection{HippoRAG2: Truy hồi đồ thị nhấn mạnh liên kết tri thức}
+Trong bài toán hội thoại dài hạn, ưu điểm thứ ba mang ý nghĩa then chốt. Thông tin cần để trả lời thường bị phân tán qua nhiều phiên: một phần ở phiên đầu, một phần ở phiên giữa, và một chi tiết quyết định lại nằm ở phiên gần cuối. Nếu chỉ dùng truy vấn vector dựa trên độ tương đồng đơn thuần, mỗi mảnh được đánh giá độc lập và có thể không đủ mạnh để lọt vào danh sách kết quả. Trên đồ thị, các mảnh này được nối với nhau qua các cạnh, và tín hiệu lan truyền từ nhiều nguồn có thể hội tụ để đẩy bằng chứng đúng lên vị trí cao hơn.
 
-HippoRAG2 thể hiện hướng đi nổi bật ở phía graph retrieval, đặc biệt trong các bài toán cần liên kết nhiều thực thể hoặc nhiều facts rời nhau. Ưu điểm của dòng tiếp cận này là biến truy hồi thành một quá trình lan truyền tín hiệu trên topology của đồ thị thay vì chỉ dựa vào embedding similarity.
+% ============================================================
+\section{Các hướng nghiên cứu liên quan}
+% ============================================================
 
-Tuy nhiên, các hệ thống kiểu HippoRAG2 vẫn chủ yếu mạnh ở lớp quan hệ ngữ nghĩa và liên kết tri thức, trong khi những cấu trúc như kế hoạch tương lai, thói quen hành vi hay bộ ba nhân quả hành động-kết quả chưa được mô hình hóa như các memory network chuyên biệt.
+\subsection{Các hệ thống lưu trữ phẳng hoặc dùng kho lưu trữ vector}
 
-\subsubsection{Các hệ lưu trữ phẳng và vector-centric (Mem0, MemGPT)}
+Một nhánh phổ biến của bộ nhớ cho tác nhân hội thoại là lưu lại các bản ghi ngắn rồi truy vấn bằng độ tương đồng ngữ nghĩa. \textit{Mem0} là một đại diện tiêu biểu cho hướng này: hệ thống lưu các fact dưới dạng văn bản ngắn, nhúng chúng thành vector, và truy vấn bằng tìm kiếm tương đồng. Ưu điểm của nhánh này là dễ triển khai, tốc độ cao và tương thích tốt với các quy trình RAG hiện có.
 
-Bên cạnh nhánh đồ thị, nhiều hệ thống khác chọn cách lưu fact hoặc chunk trong vector store và tổ chức truy hồi quanh similarity search hoặc memory paging:
+Tuy nhiên, điểm yếu cốt lõi của hướng tiếp cận này nằm ở hai khía cạnh. \textit{Thứ nhất}, các fact sau khi được tách ra thường đứng độc lập với nhau, khiến hệ thống khó nắm bắt được những quan hệ như một kế hoạch bị trì hoãn, một hành động dẫn tới kết quả cụ thể, hay một cập nhật làm thay đổi trạng thái của một fact đã có từ trước. \textit{Thứ hai}, khi câu hỏi đòi hỏi truy hồi qua nhiều bước -- ví dụ ``người dùng đã từng định làm gì nhưng chưa làm?'' -- việc chỉ tìm những đoạn văn bản giống nhất về mặt ngôn từ không phải lúc nào cũng đưa được đúng bằng chứng lên đầu danh sách, bởi câu trả lời thường nằm ở sự kết hợp của nhiều fact chứ không nằm gọn trong một fact đơn lẻ.
 
-\begin{itemize}
-    \item \textbf{Mem0}: nhấn mạnh extraction + vector retrieval, phù hợp với memory lookup nhanh nhưng hạn chế hơn khi cần quan hệ nhiều bước.
-    \item \textbf{MemGPT}: mô phỏng phân tầng bộ nhớ theo kiểu hệ điều hành, tách vùng context đang hoạt động và vùng lưu trữ ngoài.
-\end{itemize}
+\subsection{Các hệ thống quản lý ngữ cảnh và phân tầng bộ nhớ}
 
-Các hướng này hữu ích về mặt vận hành, nhưng khi đánh giá theo nhu cầu của hội thoại dài hạn, chúng thường thiếu topology đủ rõ để mô hình hóa temporal chains, causal links hay lifecycle của kế hoạch chưa hoàn thành.
+Một số nghiên cứu khác không tập trung vào biểu diễn tri thức, mà nhấn mạnh cách quản lý ngữ cảnh và chuyển thông tin giữa vùng đang hoạt động và vùng lưu trữ lâu dài. Các hệ thống như MemGPT hay Letta đã chứng minh rằng việc mô phỏng hệ điều hành bộ nhớ -- với phân trang, ngắt, và chuyển đổi ngữ cảnh -- có thể giúp LLM xử lý các phiên hội thoại dài hơn nhiều so với cửa sổ ngữ cảnh vật lý. Hướng này rất hữu ích trong bối cảnh trợ lý hội thoại vì nó giảm gánh nặng phải giữ toàn bộ lịch sử trong prompt và giúp hệ thống mở rộng tốt hơn theo thời gian.
+
+Tuy vậy, nếu chỉ dừng ở mức quản lý ngữ cảnh mà không làm rõ cấu trúc của dữ liệu được lưu, hệ thống vẫn gặp khó khi phải phân biệt giữa tri thức ổn định, kinh nghiệm cá nhân, thói quen hay kế hoạch tương lai. Nói cách khác, phân tầng bộ nhớ giải quyết tốt câu hỏi ``lưu ở đâu'' và ``khi nào nên chuyển dữ liệu giữa các tầng'', nhưng chưa giải quyết triệt để câu hỏi ``lưu dưới dạng gì'' -- câu hỏi mà CogMem đặt làm trọng tâm.
+
+\subsection{Các hệ thống dựa trên đồ thị tri thức}
+
+Nhóm hệ thống gần với CogMem nhất là các bộ nhớ hội thoại dựa trên đồ thị tri thức. HINDSIGHT là đại diện nổi bật trong nhóm này. Hệ thống này đã chứng minh rằng việc lưu trữ hội thoại thành đồ thị dị thể với các loại thông tin như world, experience, opinion, observation và truy vấn bằng nhiều kênh song song (semantic, BM25, graph, temporal) có thể tạo ra chất lượng rất mạnh trên các benchmark hội thoại dài. Ở mức phương pháp luận, đây là một cột mốc quan trọng vì nó cho thấy bộ nhớ đồ thị không chỉ hấp dẫn về mặt ý tưởng mà còn có hiệu quả thực nghiệm.
+
+Tuy nhiên, khi phân tích kỹ kiến trúc của HINDSIGHT, có thể thấy một số giới hạn. \textit{Thứ nhất}, hệ thống vận hành với bốn nhóm trí nhớ chính nhưng chưa có các cấu trúc chuyên biệt hơn cho hành động, tương lai hay thói quen. Điều này có nghĩa là những tín hiệu như ``tôi định học Rust nhưng chưa bắt đầu'' hay ``gọi API với header Retry-After thì được 200'' không có một không gian biểu diễn phù hợp trong đồ thị. Thứ hai, cơ chế kết hợp kết quả truy vấn từ các kênh của HINDSIGHT dùng trọng số cố định cho các kênh, trong khi nhiều câu hỏi hội thoại rõ ràng cần ưu tiên một loại bằng chứng hơn loại khác tùy theo bản chất câu hỏi. Thứ ba, cơ chế lan truyền trên đồ thị của HINDSIGHT dùng phép lấy cực đại (MAX), chỉ giữ đường mạnh nhất, có thể bỏ lỡ các tín hiệu yếu nhưng bổ sung cho nhau từ nhiều phía.
+
+Một hướng đồ thị khác, tiêu biểu như HippoRAG và HippoRAG2, cho thấy sức mạnh của việc coi truy vấn như quá trình lan truyền trên mạng tri thức thay vì chỉ đơn thuần tìm láng giềng gần nhất trong không gian vector. Các hệ thống này sử dụng thuật toán lan truyền xác suất (Personalized PageRank) để mô phỏng quá trình suy nghĩ liên tưởng của con người trên đồ thị, và đã đạt được kết quả ấn tượng trên các bài toán đòi hỏi suy luận qua nhiều bước. Tuy vậy, các hệ thống này thường thiên về liên kết tri thức khách quan và suy luận quan hệ trong miền mở, trong khi bài toán hội thoại cá nhân hóa còn cần biểu diễn rõ những thành phần chủ quan như thói quen, ý định và trạng thái chưa hoàn thành.
+
+\subsection{Bộ nhớ cho tác nhân AI và kịch bản sử dụng công cụ}
+
+Trong bối cảnh tác nhân AI sử dụng công cụ, bộ nhớ không chỉ phải lưu ``điều gì đã được nói'' mà còn phải lưu ``điều gì đã được làm'' và ``hành động đó dẫn tới kết quả gì''. Đây là một sự dịch chuyển quan trọng: tri thức hữu ích không còn chỉ là tri thức mô tả (declarative knowledge), mà còn là tri thức can thiệp (interventional knowledge). Các benchmark như ToolEval, AgentBench hay SWE-Bench đã cho thấy nhu cầu này một cách gián tiếp: tác nhân thường thất bại không phải vì thiếu năng lực suy luận, mà vì không nhớ được rằng một chuỗi hành động cụ thể đã từng thất bại hoặc thành công trong quá khứ.
+
+Ý tưởng này rất gần với loại node \textit{action-effect} của CogMem. Nếu một tác nhân từng gặp lỗi xác thực, thử một lệnh tái đăng nhập với tham số cụ thể và sau đó triển khai thành công, hệ thống cần nhớ được toàn bộ quan hệ ``điều kiện -- hành động -- kết quả'', chứ không chỉ nhớ riêng lẻ rằng lỗi đã xảy ra hoặc rằng lệnh nào đó có tồn tại. Việc lưu trữ tách rời ba thành phần này cho phép hệ thống trả lời chính xác các câu hỏi như ``làm cách nào để khắc phục lỗi này'' bằng cách truy xuất đúng quy luật nhân quả đã được kiểm chứng, thay vì chỉ liệt kê các fact liên quan đến lỗi một cách rời rạc.
 
 \begin{table}[H]
 \centering
-\caption{So sánh khái quát các hệ thống bộ nhớ dài hạn liên quan}
+\caption{So sánh khái quát các hướng xây dựng bộ nhớ dài hạn liên quan}
 \label{tab:memory_systems_compare}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{|l|c|c|c|c|c|l|}
-\hline
-\textbf{Hệ thống} & \textbf{Graph-based} & \textbf{Temporal} & \textbf{Habit} & \textbf{Intention} & \textbf{Action-Effect} & \textbf{Cơ chế truy hồi chính} \\
-\hline
-HINDSIGHT & Yes & Yes & No & No & No & 4-channel retrieval + equal-weight RRF \\
-\hline
-HippoRAG2 & Yes & Limited & No & No & No & Graph retrieval / spreading activation \\
-\hline
-Mem0 & No & Limited & No & No & No & Vector similarity + extracted memories \\
-\hline
-MemGPT & No & Limited & No & No & No & Memory paging / context management \\
-\hline
-\textbf{CogMem (đề xuất)} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Adaptive routing + BFS/SUM graph recall} \\
-\hline
-\end{tabular}% 
-}
+\footnotesize
+\begin{tabularx}{\linewidth}{@{}p{2.2cm}XXXXX@{}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Kho vector / Mem0} & \textbf{Phân tầng ngữ cảnh} & \textbf{HippoRAG2} & \textbf{HINDSIGHT} & \textbf{CogMem (đề xuất)} \\
+\midrule
+Đồ thị & Không & Hạn chế & Có & Có & \textbf{Có} \\
+Thời gian & Hạn chế & Có (vận hành) & Có & Có & \textbf{Có} \\
+Kế hoạch / Thói quen & Không tách riêng & Không phải trọng tâm & Chưa chuyên biệt & Chưa có mạng riêng & \textbf{Có} \\
+Nhân quả & Không tách riêng & Không phải trọng tâm & Chưa chuyên biệt & Chưa có mạng riêng & \textbf{Có} \\
+Đặc trưng nổi bật & Truy hồi nhanh, dễ triển khai; khó suy luận nhiều bước. & Giảm áp lực prompt, hữu ích cho phiên dài. & Mạnh nối thực thể và truy hồi nhiều bước trên đồ thị. & Kết hợp đồ thị dị thể, truy hồi đa kênh, dung hợp kết quả. & Mở rộng đồ thị theo hướng nhận thức; giữ bằng chứng gốc; định tuyến theo loại câu hỏi. \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
-\subsection{Dữ liệu đánh giá (Evaluation Benchmarks)}
+% ============================================================
+\section{Các bộ dữ liệu đánh giá bộ nhớ dài hạn}
+% ============================================================
 
-\subsubsection{LongMemEval-S (Hội thoại đa phiên)}
+\subsection{LongMemEval: đánh giá trí nhớ cá nhân qua hội thoại dài}
 
-LongMemEval-S là benchmark phù hợp để đánh giá khả năng xử lý hội thoại dài qua nhiều phiên, đặc biệt ở các nhóm câu hỏi liên quan tới multi-session retrieval, temporal reasoning và preference. Đây là benchmark quan trọng để đo hiệu năng hệ thống ở cấp end-to-end.
+LongMemEval là một trong những benchmark đầu tiên được thiết kế chuyên biệt để đo năng lực nhớ thông tin cá nhân của hệ thống qua các cuộc hội thoại rất dài. Bộ dữ liệu này được xây dựng dựa trên ý tưởng rằng một trợ lý cá nhân thực thụ cần nhớ được không chỉ những fact đơn lẻ, mà còn cả những thay đổi, cập nhật, và mối liên hệ giữa các thông tin qua thời gian.
 
-\subsubsection{LoCoMo (Lý luận multi-hop)}
+Trong phiên bản được sử dụng làm nguồn dữ liệu cho dự án, LongMemEval bao gồm các cuộc hội thoại nhiều phiên với độ dài trung bình khoảng 115 nghìn từ cho mỗi câu hỏi. Mỗi cuộc hội thoại mô phỏng tương tác giữa một người dùng và một trợ lý AI qua nhiều ngày, trong đó người dùng dần tiết lộ thông tin về bản thân, công việc, sở thích, kế hoạch và các mối quan hệ. Cái khó của LongMemEval không nằm ở một câu chuyện quá phức tạp, mà nằm ở việc thông tin trả lời thường bị rải ra ở nhiều phiên và có thể bị nhiễu bởi các chi tiết cập nhật hoặc tương tự.
 
-LoCoMo tập trung mạnh hơn vào truy hồi nhiều bước và nối bằng chứng qua các đoạn hội thoại dài. Vì vậy, benchmark này đặc biệt hữu ích để quan sát khả năng giữ mạch reasoning khi thông tin trả lời không nằm trọn trong một fact riêng lẻ.
+Các nhóm câu hỏi quan trọng của LongMemEval bao gồm:
 
-\subsubsection{Giới hạn của benchmark chuẩn}
+\begin{itemize}
+    \item \textbf{Truy hồi nhiều phiên}: câu hỏi yêu cầu tổng hợp thông tin từ ít nhất hai phiên khác nhau. Ví dụ: ``Người dùng đã đến những thành phố nào trong năm qua?'', đòi hỏi hệ thống phải gom các lần nhắc đến địa điểm trong nhiều phiên.
+    \item \textbf{Cập nhật tri thức}: câu hỏi kiểm tra xem hệ thống có nhận biết được khi một thông tin cũ bị ghi đè bởi thông tin mới hay không. Ví dụ: người dùng nói đã đổi việc ở phiên 12, nhưng ở phiên 25 lại nhắc đến công việc cũ trong một ngữ cảnh khác -- hệ thống cần phân biệt được đâu là thông tin hiện tại.
+    \item \textbf{Suy luận thời gian}: câu hỏi yêu cầu xác định thứ tự hoặc khoảng cách thời gian giữa các sự kiện. Ví dụ: ``Người dùng bắt đầu công việc mới trước hay sau khi chuyển nhà?''
+    \item \textbf{Câu hỏi về sở thích}: hỏi về những gì người dùng thích hoặc không thích, thường được đề cập thoáng qua trong hội thoại.
+\end{itemize}
 
-LongMemEval-S và LoCoMo là các benchmark hệ thống rất cần thiết, nhưng chúng không phải lúc nào cũng đủ để cô lập giá trị của từng typed network mới. Trong quá trình phát triển CogMem, điều này dẫn tới nhu cầu bổ sung các thí nghiệm nhắm đích để kiểm tra riêng những dạng tín hiệu như prospective memory hoặc action-effect reasoning. Trong báo cáo này, nhận định đó chỉ được dùng như bối cảnh phương pháp luận; phần thực nghiệm chính thức vẫn được trình bày ở Chương 5.
+\begin{tcolorbox}[colback=black!1,colframe=black!30,breakable,title={Ví dụ mẫu từ LongMemEval}]
+\textbf{Bối cảnh:} Một người dùng trò chuyện với trợ lý AI trong 50 phiên, trải dài từ tháng 3 đến tháng 9. Dưới đây là các đoạn hội thoại rải rác có liên quan đến cùng một câu hỏi:
 
-\subsection{Hạn chế cốt lõi của các Khung hệ thống Bộ nhớ hiện nay (Problem Formulation)}
+\bigskip
+\noindent\textbf{[Phiên 3 — 12/03]} \\
+\textbf{User:} I just got assigned as the lead for Project Alpha. It's a big data migration project. \\
+\textbf{Assistant:} Congratulations! That sounds like a major responsibility.
 
-Từ tổng quan trên, có thể quy các khoảng trống chính của các hệ bộ nhớ đương đại về bốn nhóm:
+\bigskip
+\noindent\textbf{[Phiên 17 — 05/05]} \\
+\textbf{User:} Good news — they added me to Project Beta as well. So now I'm juggling two projects. \\
+\textbf{Assistant:} Two projects at once? That must be demanding.
+
+\bigskip
+\noindent\textbf{[Phiên 28 — 18/07]} \\
+\textbf{User:} Just wrapped up Project Alpha yesterday. Feels good to have that one off my plate. \\
+\textbf{Assistant:} Well done! Does this mean you're back to just one project now?
+
+\bigskip
+\noindent\textbf{[Phiên 42 — 03/09]} \\
+\textbf{User:} I'm looking for a co-lead for Project Gamma. It's ramping up and I can't handle it alone.
+
+\medskip
+\noindent\textbf{Câu hỏi:} How many projects have I led or am currently leading?
+
+\noindent\textbf{Đáp án đúng:} 2 — gồm Project Beta (vẫn đang dẫn dắt) và Project Gamma (mới nhận, đang tìm người hỗ trợ). Project Alpha đã kết thúc ở phiên 28 nên không còn được tính.
+
+\noindent\textbf{Ý nghĩa:} Hệ thống không thể chỉ nhớ lời nói gần nhất. Nó phải tổng hợp thông tin từ bốn phiên rải rác trong suốt 6 tháng, hiểu được trạng thái ``đã kết thúc'' khác với ``đang dẫn dắt'', và phân biệt giữa dự án đã đóng với dự án còn hoạt động.
+\end{tcolorbox}
+
+\subsection{LoCoMo: suy luận chuỗi bằng chứng trên hội thoại dài}
+
+LoCoMo (Long Context Memory) là một benchmark được thiết kế với trọng tâm mạnh hơn vào suy luận nối chuỗi bằng chứng qua nhiều bước. Không giống LongMemEval vốn tập trung vào nhớ thông tin cá nhân, LoCoMo đặt ra các câu hỏi mà để trả lời đúng, hệ thống cần kết nối nhiều mảnh thông tin rải rác -- đôi khi nằm cách nhau hàng chục nghìn từ -- thành một chuỗi suy luận có ý nghĩa.
+
+Dữ liệu gốc của LoCoMo bao gồm 50 cuộc hội thoại dài, mỗi cuộc có trung bình khoảng 305 lượt trao đổi giữa hai người nói. Các cuộc hội thoại này mô phỏng những câu chuyện đời thường kéo dài qua nhiều năm: một người kể về công việc, gia đình, sở thích, các mối quan hệ và những thay đổi lớn trong cuộc sống. Điểm đặc biệt của LoCoMo là các sự kiện không được kể theo trình tự thời gian tuyến tính; người kể thường nhảy qua lại giữa các mốc thời gian, khiến cho việc xâu chuỗi sự kiện trở nên khó khăn hơn nhiều.
+
+Câu hỏi trong LoCoMo được phân thành năm nhóm lớn, mỗi nhóm kiểm tra một năng lực truy hồi khác nhau:
+
+\begin{itemize}
+    \item \textbf{Single-hop}: câu hỏi chỉ cần một mảnh thông tin duy nhất để trả lời. Đây là nhóm dễ nhất, chiếm đa số câu hỏi (khoảng 109/161 câu trong bản rút gọn), nhưng vẫn khó vì thông tin có thể bị chôn vùi giữa hàng trăm nghìn từ.
+    \item \textbf{Multi-hop}: câu hỏi cần nối ít nhất hai mảnh thông tin từ các phần khác nhau của hội thoại. Ví dụ: ``Jon làm nghề gì trước khi mở vũ trường?'', đòi hỏi hệ thống phải biết Jon từng làm nghề gì và mở vũ trường là sự kiện xảy ra sau đó.
+    \item \textbf{Temporal}: câu hỏi về thời gian, thứ tự hoặc khoảng cách giữa các sự kiện. Đây là nhóm khó nhất đối với CogMem.
+    \item \textbf{Preference}: câu hỏi về sở thích, ý kiến hoặc đánh giá cá nhân của nhân vật trong hội thoại.
+    \item \textbf{Causal}: câu hỏi về nguyên nhân, lý do đằng sau một sự kiện hoặc quyết định. Ví dụ: ``Tại sao Jon quyết định mở vũ trường riêng?''
+\end{itemize}
+
+\begin{tcolorbox}[colback=black!1,colframe=black!30,breakable,title={Ví dụ mẫu từ LoCoMo}]
+\textbf{Bối cảnh:} Jon trò chuyện với một người bạn qua 40 phiên, kể về cuộc đời mình trong suốt nhiều năm. Các sự kiện được kể không theo trình tự thời gian — Jon thường nhảy cóc giữa quá khứ và hiện tại. Dưới đây là các đoạn hội thoại rải rác có liên quan đến cùng một câu hỏi:
+
+\bigskip
+\noindent\textbf{[Phiên 5]} \\
+\textbf{Jon:} I worked at Miller \& Sons for about ten years. It was stable, comfortable — you know, the kind of job you don't leave unless something pushes you.
+
+\bigskip
+\noindent\textbf{[Phiên 12 — Jon đang kể về thời thơ ấu]} \\
+\textbf{Jon:} I've been dancing since I was seven. My mom put me in a ballet class because I wouldn't sit still. By high school, I was competing in ballroom and Latin. If I'm being honest, dance is the only thing I've ever truly loved doing.
+
+\bigskip
+\noindent\textbf{[Phiên 18 — Jon quay lại chuyện công việc]} \\
+\textbf{Jon:} So they let me go. After ten years. The company restructured and my whole division got cut. I sat in the parking lot for an hour, not knowing what to do next.
+
+\bigskip
+\noindent\textbf{[Phiên 22]} \\
+\textbf{Jon:} I think I'm going to do it. Open my own dance studio. It's terrifying — I've never run a business before — but after the layoff, I realized I don't want to spend another decade doing something I don't care about.
+
+\bigskip
+\noindent\textbf{[Phiên 30]} \\
+\textbf{Jon:} The studio's been open for three months now. We have about forty students. It's not making me rich, but I wake up every morning actually excited to go to work. That's worth more than the paycheck ever was.
+
+\medskip
+\noindent\textbf{Câu hỏi:} Why did Jon decide to start his dance studio?
+
+\noindent\textbf{Đáp án đúng:} After being laid off from his ten-year job at Miller \& Sons, he decided to pursue his lifelong passion for dance and open his own studio rather than find another corporate job.
+
+\noindent\textbf{Ý nghĩa:} Đây là câu hỏi nhân quả điển hình của LoCoMo. Để trả lời đúng, hệ thống phải nối ba mảnh thông tin nằm ở ba phiên khác nhau, cách nhau hàng chục nghìn từ: (1) đam mê khiêu vũ từ nhỏ (phiên 12), (2) bị sa thải sau 10 năm (phiên 18), và (3) quyết định mở studio (phiên 22). Thiếu bất kỳ mảnh nào, câu trả lời sẽ không đầy đủ. Thêm vào đó, thông tin về việc studio đã hoạt động 3 tháng (phiên 30) là một yếu tố gây nhiễu — nó có vẻ liên quan nhưng không trả lời câu hỏi ``tại sao''.
+\end{tcolorbox}
+
+% ============================================================
+\section{Khoảng trống nghiên cứu mà CogMem hướng tới}
+% ============================================================
+
+Từ các phân tích trên, có thể tóm lược khoảng trống nghiên cứu hiện tại thành bốn ý chính:
 
 \begin{enumerate}
-    \item \textbf{Lossy compression}: fact extraction làm gọn bộ nhớ nhưng dễ đánh mất số liệu, cảm xúc và văn bản gốc cần cho generation.
-    \item \textbf{Thiếu typed cognitive structures}: các tín hiệu như habit, intention hay action-effect thường không có ``chỗ ở'' riêng trong mô hình dữ liệu.
-    \item \textbf{Lan truyền bằng chứng chưa đủ giàu}: retrieval kiểu chỉ chọn đường mạnh nhất có thể làm rơi mất nhiều tín hiệu yếu nhưng bổ sung cho nhau.
-    \item \textbf{Định tuyến truy vấn còn cào bằng}: cùng một recipe fusion được áp cho semantic, temporal, causal hay prospective queries, dù bản chất truy hồi của chúng khác nhau.
+    \item \textbf{Các hệ thống mạnh nhất hiện nay vẫn chưa biểu diễn đầy đủ các dạng trí nhớ khác nhau}. Nhiều kiến trúc đã rất tốt ở tri thức chung và sự kiện, nhưng chưa có không gian biểu diễn thật rõ cho thói quen lặp lại, kế hoạch chưa hoàn thành và quy luật hành động--kết quả. Đây là những dạng trí nhớ mà khoa học nhận thức đã chỉ ra là cần thiết cho hành vi thông minh, nhưng lại chưa được phản ánh đầy đủ trong các hệ thống bộ nhớ hội thoại.
+    \item \textbf{Nén thông tin vẫn gây mất mát đáng kể}. Khi hội thoại dài được rút gọn thành các fact ngắn, nhiều chi tiết quan trọng như con số chính xác, tên riêng, sắc thái cảm xúc và ngữ cảnh trích dẫn thường bị mất đi. Hệ thống có thể trả lời trúng chủ đề nhưng sai chi tiết -- một lỗi đặc biệt nghiêm trọng trong các ứng dụng trợ lý cá nhân.
+    \item \textbf{Truy vấn nhiều bước cần được xem như quá trình tích lũy bằng chứng, không chỉ là chọn một kết quả tốt nhất}. Các cơ chế truy hồi hiện tại thường dừng ở việc tìm một fact mạnh nhất hoặc một đường dẫn ngắn nhất. Trong thực tế, câu trả lời đúng thường đến từ sự hội tụ của nhiều dấu vết yếu, và việc chỉ giữ đường mạnh nhất có thể bỏ lỡ chính xác bằng chứng cần thiết.
+    \item \textbf{Cùng một công thức không phù hợp cho mọi loại truy vấn}. Một câu hỏi về thời gian cần ưu tiên bằng chứng temporal, câu hỏi về nguyên nhân cần ưu tiên liên kết causal trên đồ thị, câu hỏi về kế hoạch cần ưu tiên intention node. Việc dùng một bộ trọng số cố định cho mọi truy vấn là một thiếu sót về mặt phương pháp luận.
 \end{enumerate}
 
-
-\vspace{1em}
-\noindent\textit{Từ khoảng trống lý thuyết và kỹ thuật đó, Chương 3 sẽ trình bày CogMem như một kiến trúc bộ nhớ dài hạn nhằm kết hợp biểu diễn nhận thức chuyên biệt với cơ chế truy hồi thích ứng theo loại truy vấn.}
+Từ khoảng trống đó, Chương 3 sẽ trình bày CogMem như một đề xuất kiến trúc vừa giàu cấu trúc hơn về mặt biểu diễn, vừa thận trọng hơn về mặt thực nghiệm: hệ thống được xây dựng để cung cấp không gian cho các loại tín hiệu nhận thức khác nhau, sau đó đánh giá xem mỗi cấu phần giúp ích đến đâu trên từng loại dữ liệu cụ thể.
 
 \end{document}

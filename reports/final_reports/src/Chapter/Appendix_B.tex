@@ -43,10 +43,14 @@ EVIDENCE RULES:
 
 \subsection{B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}
 
-Prompt judge dùng cho benchmark pipeline để so sánh câu trả lời sinh ra với đáp án chuẩn. Các luật chấm ưu tiên semantic correctness hơn là trùng khớp ký tự tuyệt đối, và chấp nhận một số sai số nhỏ ở nhóm câu hỏi temporal.
+Như đã trình bày trong Chương 4, đồ án sử dụng phương pháp \textbf{LLM làm giám khảo} để đánh giá chất lượng câu trả lời của hệ thống. Mô hình giám khảo nhận vào ba thông tin: câu hỏi gốc, đáp án chuẩn và câu trả lời do CogMem sinh ra. Nhiệm vụ của nó là gán một điểm số từ 0,0 đến 1,0 và giải thích ngắn gọn lý do.
+
+Các nguyên tắc chấm điểm cốt lõi bao gồm: ưu tiên độ chính xác về mặt ngữ nghĩa hơn là trùng khớp từng ký tự, chấp nhận khác biệt nhỏ về cách diễn đạt, và khoan dung với sai số một đơn vị trong các câu hỏi về thời gian.
+
+Dưới đây là prompt đầy đủ được sử dụng cho mô hình giám khảo:
 
 \begin{tcblisting}{
-title=System Prompt: LLM Judge (Temporal Focus),
+title=Prompt: LLM Judge -- Chấm điểm câu trả lời,
 colback=gray!5!white,
 colframe=black!75!black,
 breakable,

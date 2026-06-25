@@ -2,17 +2,17 @@
 \begin{document}
 
 \begin{center}
-    \Large{\textbf{ABSTRACT}}\\
+    \Large{\textbf{TÓM TẮT}}\\
 \end{center}
 \vspace{0.8cm}
 
-Long-term conversational agents need more than a large context window. They must preserve user facts across sessions, retrieve scattered evidence, and answer questions whose solution depends on time, preferences, causal links, or multi-hop reasoning. Plain vector retrieval and aggressively compressed summaries are often insufficient because they flatten different memory types and lose exact details needed at generation time.
+Các tác nhân AI (AI Agent) hiện tại, đặc biệt là các tác nhân hội thoại không chỉ cần một cửa sổ ngữ cảnh lớn trong các đoạn hội thoại dài, mà còn phải lưu giữ thông tin người dùng qua nhiều phiên, nối lại các thành phần phân tán, và trả lời những câu hỏi phụ thuộc vào thời gian, sở thích, quan hệ nhân quả hoặc suy luận nhiều bước. Các hướng tiếp cận hiện tại chỉ dựa vào truy vấn dựa trên ngữ nghĩa hoặc tóm tắt, nén thông tin thường chưa đủ, vì chúng dễ làm phẳng các loại thông tin khác nhau và làm mất dấu các chi tiết gốc quan trọng.
 
-This thesis presents \textbf{CogMem}, a cognitively grounded long-term memory architecture for conversational agents. CogMem organizes memory as a heterogeneous graph with six fact types -- \textit{world, experience, opinion, habit, intention, action\_effect} -- and seven edge families. It keeps lossless \textit{raw\_snippet} metadata beside compressed fact text, uses SUM-based spreading activation with cycle guards for graph recall, and routes queries adaptively across semantic, BM25, graph, and temporal channels.
+Đồ án này trình bày \textbf{CogMem}, một hướng tiếp cận bộ nhớ dài hạn cho các tác nhân hội thoại theo định hướng cấu trúc hóa trí nhớ (memory) dựa trên khoa học nhận thức. Ở mức tổng quan, hệ thống hướng tới ba mục tiêu: biểu diễn thông tin theo nhiều nhóm ký ức có chức năng khác nhau, giữ được liên hệ với các hội thoại gốc khi cần trả lời chi tiết, và ưu tiên những tín hiệu phù hợp hơn với ý định của truy vấn thay vì xem mọi câu hỏi là như nhau.
 
-The final evaluation uses manually verified answers rather than trusting automatic judge fields. On the LongMemEval v16 verified subset, the best multi-channel configuration reaches \textbf{29/35 PASS} (82.9\%), while the full six-type multi-channel baseline reaches \textbf{26/35 PASS} (74.3\%). A graph-only recall control further isolates the activation rule: replacing MAX with SUM improves mean session recall@5 from \textbf{0.7624} to \textbf{0.8052}, with no top-5 cases where MAX outperforms SUM. On LoCoMo, the final evidence-guard configuration reaches \textbf{119/161 manual PASS} (73.9\%), improving over the previous baseline of 97/161 (60.2\%). The strongest LoCoMo slices are multi-hop (11/12), causal (10/11), and preference (15/17), while temporal questions remain the main limitation at 5/12.
+Các đánh giá trong báo cáo cho thấy hướng tiếp cận này có chiều hướng cải thiện tích cực ở những tình huống cần kết hợp tín hiệu qua nhiều phiên hoặc cần phân biệt rõ hơn giữa các dạng thông tin cá nhân khác nhau. Điểm đáng chú ý của CogMem là nỗ lực kết hợp giữa biểu diễn giàu quan hệ hơn và chiến lược truy vấn có chọn lọc hơn, từ đó nâng cao chất lượng ngữ cảnh đưa vào quá trình trả lời của AI.
 
-These results suggest that CogMem is already a viable long-term memory system for difficult dialogue benchmarks, especially when evidence diversity and generation grounding are treated as first-class design goals. The remaining failures are concentrated in exact enumeration, temporal span calculation, and a small number of blank-gold hallucination cases.
+Tuy vậy, những điểm cần cải thiện vẫn còn rõ ở các truy vấn đòi hỏi suy luận thời gian thật chính xác, liệt kê đầy đủ nhiều mục, hoặc kiểm chứng sâu hơn vai trò của các tín hiệu trong các đoạn hội thoại thực tế. Vì vậy, CogMem nên được xem như một bước tiến có định hướng rõ ràng cho bộ nhớ dài hạn hơn là một lời giải đã hoàn tất.
 
 \begin{flushright}
 \large Lê Minh Triết\\
