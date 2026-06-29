@@ -20,9 +20,8 @@
 \contentsline {figure}{\numberline {3.16}{\ignorespaces Attentional Selection và Adaptive Routing}}{41}{figure.caption.26}%
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {4.1}{\ignorespaces Luồng đánh giá ngoại tuyến của CogMem trên các bộ dữ liệu hội thoại dài}}{44}{figure.caption.27}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ cụm ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa.}}{58}{figure.caption.37}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry.}}{59}{figure.caption.38}%
-\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ cụm ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa.}}{57}{figure.caption.35}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry.}}{58}{figure.caption.36}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

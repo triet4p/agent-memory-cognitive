@@ -110,6 +110,16 @@ So với cách lưu từng fact độc lập, đồ thị có ba ưu điểm c�
 
 Trong bài toán hội thoại dài hạn, ưu điểm thứ ba mang ý nghĩa then chốt. Thông tin cần để trả lời thường bị phân tán qua nhiều phiên: một phần ở phiên đầu, một phần ở phiên giữa, và một chi tiết quyết định lại nằm ở phiên gần cuối. Nếu chỉ dùng truy vấn vector dựa trên độ tương đồng đơn thuần, mỗi mảnh được đánh giá độc lập và có thể không đủ mạnh để lọt vào danh sách kết quả. Trên đồ thị, các mảnh này được nối với nhau qua các cạnh, và tín hiệu lan truyền từ nhiều nguồn có thể hội tụ để đẩy bằng chứng đúng lên vị trí cao hơn.
 
+\subsection{Xếp hạng lại bằng CrossEncoder trong truy vấn bộ nhớ}
+
+Trong các hệ thống RAG và bộ nhớ ngoài, truy vấn thường được chia thành hai tầng. Tầng đầu tiên có nhiệm vụ tìm nhanh một tập ứng viên rộng từ kho lưu trữ: đó có thể là các đoạn văn bản gần nhất trong không gian vector, các kết quả khớp từ khóa, hoặc các node được kích hoạt trên đồ thị. Tầng này cần bao phủ tốt, vì nếu bằng chứng đúng không xuất hiện trong tập ứng viên thì các bước phía sau không còn cơ hội sửa sai. Tuy nhiên, bao phủ rộng cũng kéo theo nhiễu: nhiều ứng viên có thể nhắc tới cùng thực thể hoặc cùng chủ đề nhưng không thật sự trả lời câu hỏi.
+
+\textbf{Xếp hạng lại} (reranking) là bước xử lý tầng hai nhằm giải quyết vấn đề đó. Thay vì tìm thêm ứng viên mới, hệ thống đọc lại một danh sách ứng viên đã có và sắp xếp chúng theo mức độ phù hợp với câu hỏi. Khác với các cơ chế dung hợp như Reciprocal Rank Fusion, vốn chủ yếu dựa trên thứ hạng do nhiều kênh truy vấn trả về, reranking đánh giá trực tiếp từng cặp \textit{câu hỏi--bằng chứng}. Vì vậy, nó phù hợp với giai đoạn cuối của truy vấn: số lượng ứng viên đã đủ nhỏ để có thể dùng một mô hình chậm hơn nhưng tinh hơn.
+
+CrossEncoder là một kiến trúc thường được dùng cho bước xếp hạng lại này. Điểm khác biệt chính của CrossEncoder nằm ở cách nó đọc đầu vào: Với mô hình hai bộ mã hóa, câu hỏi và bằng chứng được mã hóa riêng thành hai vector, sau đó hệ thống so sánh hai vector bằng một độ đo khoảng cách. Cách này nhanh và cho phép tính trước vector của tài liệu, nhưng nó chỉ so sánh hai biểu diễn đã tách rời. Ngược lại, CrossEncoder đưa cả câu hỏi và bằng chứng vào cùng một mô hình, để cơ chế chú ý có thể xét trực tiếp từng từ của câu hỏi với từng từ của bằng chứng. Nhờ đó, mô hình có thể phân biệt những khác biệt nhỏ như phủ định, trạng thái đã hoàn thành hay chưa hoàn thành, quan hệ trước--sau, hoặc một chi tiết số liệu quyết định.
+
+Đổi lại, CrossEncoder tốn chi phí tính toán cao hơn vì mỗi cặp câu hỏi--bằng chứng phải được chạy qua mô hình một lần. Đây là lý do nó hiếm khi được dùng làm bước truy vấn đầu tiên trên toàn bộ kho nhớ. Vai trò hợp lý hơn của nó là đứng sau tầng truy vấn nhanh: tầng đầu tạo danh sách ứng viên, còn CrossEncoder chọn lại những bằng chứng đáng tin nhất trước khi đưa vào prompt cho LLM. Trong bộ nhớ hội thoại dài hạn, sự phân vai này đặc biệt quan trọng vì các bằng chứng sai thường không hoàn toàn lạc đề; chúng thường giống đúng ở tên người, thời điểm hoặc chủ đề, nhưng sai ở trạng thái, quan hệ nhân quả hoặc chi tiết cần trả lời.
+
 % ============================================================
 \section{Các hướng nghiên cứu liên quan}
 % ============================================================

@@ -56,7 +56,7 @@ Một điểm quan trọng cần nhấn mạnh: hệ thống không được đ�
 
 \subsection{Chắt lọc dữ liệu}
 
-\subsubsection{Tại sao cần chắt lọc dữ liệu}
+\subsubsection{Lý do chắt lọc dữ liệu}
 
 Chi phí nạp dữ liệu (retain) cho hội thoại dài là rất lớn. Mỗi cuộc hội thoại trong LongMemEval có thể dài tới hơn 100 nghìn từ, và việc trích xuất fact từ lượng văn bản này thông qua LLM đòi hỏi thời gian xử lý và chi phí đáng kể. Nếu giữ nguyên toàn bộ tập dữ liệu gốc, mỗi vòng phát triển và kiểm thử sẽ mất nhiều ngày, khiến cho việc thử nghiệm nhanh các ý tưởng mới trở nên bất khả thi. Hơn nữa, chi phí này còn tăng lên gấp bội khi cần chạy nhiều cấu hình ablation khác nhau.
 
@@ -69,22 +69,25 @@ Vì vậy, dự án sử dụng các bản chắt lọc (distilled) được chu
 \caption{Tóm tắt dữ liệu đã chắt lọc dùng trong đánh giá}
 \label{tab:distilled_dataset_summary}
 \small
-\begin{tabularx}{\linewidth}{@{}p{2.6cm}p{4.8cm}cp{3.2cm}@{}}
+\begin{tabularx}{\linewidth}{@{}p{3.0cm}Yp{2.4cm}Y@{}}
 \toprule
 \textbf{Bộ dữ liệu} & \textbf{Vai trò trong thí nghiệm} & \textbf{Quy mô} & \textbf{Ghi chú} \\
 \midrule
 LongMemEval & So sánh các cấu hình recall và ablation & 35 câu hỏi & Mỗi câu hỏi gắn với trung bình 45,5 phiên hội thoại; trung bình 1,97 phiên chứa đáp án. \\
 LoCoMo & Đánh giá cấu hình cuối cùng & 5 hội thoại, 161 câu hỏi & Các hội thoại có 40--64 phiên mỗi cuộc; câu hỏi trải đều trên năm nhóm. \\
-CogMem Bench & Kiểm tra nhắm đích node type mới & 39 kịch bản & Gồm pilot, necessity và agentic; dùng cho đánh giá định tính. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
+\subsubsection{LongMemEval: tập so sánh cấu hình và ablation}
+
 Với LongMemEval, tập 35 câu hỏi được chọn lọc để bao phủ nhiều kiểu truy vấn khác nhau mà vẫn giữ kích thước nhỏ hơn dữ liệu gốc, phản ánh trung thực độ khó của bộ dữ liệu gốc. Phân bố sau chắt lọc cụ thể như sau: 8 câu hỏi yêu cầu tổng hợp thông tin từ nhiều phiên, 8 câu hỏi kiểm tra khả năng nhận biết cập nhật tri thức, 7 câu hỏi suy luận thời gian, 6 câu hỏi một phiên về người dùng, 4 câu hỏi một phiên về sở thích, và 2 câu hỏi một phiên liên quan đến trợ lý. 
+
+\subsubsection{LoCoMo: tập đánh giá cấu hình cuối trên hội thoại dài}
 
 Với LoCoMo, bản chắt lọc bao gồm 161 câu hỏi được rút ra từ 5 cuộc hội thoại dài. Năm cuộc hội thoại này có số phiên lần lượt là 40, 56, 60, 62 và 64 phiên, với tổng độ dài lên tới hàng trăm nghìn từ. Các câu hỏi trong LoCoMo được phân vào năm nhóm chính: truy vấn đơn (single-hop) -- cần một mảnh thông tin, truy vấn đa bước (multi-hop) -- cần nối nhiều mảnh, suy luận thời gian (temporal), sở thích (preference) và quan hệ nhân quả (causal). 
 
-\subsubsection{CogMem Bench: bộ dữ liệu tự xây dựng để kiểm định các loại nút}
+\subsection{CogMem Bench: bộ dữ liệu tự xây dựng để kiểm định các loại nút}
 
 Trong khi LongMemEval và LoCoMo đo lường năng lực bộ nhớ tổng quát, cả hai đều có chung một giới hạn: chúng không được thiết kế để kiểm tra trực diện xem một loại node nhận thức cụ thể, đặc biệt là ý định hay hành động--kết quả, có thực sự cần thiết cho câu trả lời đúng hay không. Một câu hỏi trong LongMemEval có thể được trả lời đúng nhờ fact thông thường mà không cần đến node ý định; một câu hỏi nhân quả trong LoCoMo có thể được giải quyết bằng fact tri thức khách quan mà không cần đến node hành động--kết quả. Nói cách khác, các benchmark chuẩn không cho phép ta cô lập được đóng góp của từng loại node và cũng không được thiết kế để kiểm tra khả năng trả lời về các dữ kiện tương lai cũng như hành động.
 
@@ -97,6 +100,48 @@ Trong khi LongMemEval và LoCoMo đo lường năng lực bộ nhớ tổng quá
     \item \textbf{Sinh hội thoại bằng mô hình độc lập}: một mô hình ngôn ngữ mạnh (Minimax-M2.7) -- khác với mô hình dùng để nạp dữ liệu và trả lời câu hỏi (Ministral3-3B) -- đọc đặc tả và sinh ra các cuộc hội thoại tự nhiên dài 7--10 phiên. Việc dùng mô hình sinh khác với mô hình đọc là một lựa chọn có chủ đích: nó ngăn chặn vòng lặp tự tham chiếu, nơi cùng một mô hình vừa tạo ra dữ liệu vừa tự chấm điểm mình.
     \item \textbf{Hai cổng kiểm định}: mỗi kịch bản phải vượt qua hai cổng trước khi được tính là hợp lệ. \textit{Cổng nhúng} kiểm tra xem fact trung tâm có thực sự được trích xuất và lưu đúng loại node trong ngân hàng đầy đủ hay không -- nếu không, kịch bản bị loại. \textit{Cổng phân biệt} chạy cặp câu hỏi trên cả hai ngân hàng và chỉ giữ lại những kịch bản mà ngân hàng đầy đủ trả lời đúng còn ngân hàng đối chứng trả lời sai. Các kịch bản không tạo được sự phân biệt bị loại bỏ hoàn toàn, không được sửa chữa hay điều chỉnh.
 \end{enumerate}
+
+\textbf{Cấu trúc một đặc tả CogMem Bench.} Mỗi kịch bản được lưu như một đặc tả có cấu trúc cố định trước khi sinh hội thoại. Bảng \ref{tab:cogmem_bench_spec_structure} minh họa rút gọn cấu trúc này bằng kịch bản \textit{neg\_intention\_14}, nơi đáp án đúng là kế hoạch bắt đầu ủ phân hữu cơ nhưng người dùng chưa thực hiện.
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ rút gọn về cấu trúc một đặc tả CogMem Bench}
+\label{tab:cogmem_bench_spec_structure}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.4cm}Y@{}}
+\toprule
+\textbf{Trường trong đặc tả} & \textbf{Ví dụ trong kịch bản \textit{neg\_intention\_14}} \\
+\midrule
+Loại node mục tiêu & \textit{intention}: kế hoạch vẫn ở trạng thái \textit{planning}. \\
+Fact trung tâm & Người dùng dự định bắt đầu composting nhưng chưa thực hiện. \\
+Mảnh hội thoại bắt buộc & Một phiên nêu kế hoạch; một phiên sau xác nhận việc composting vẫn chưa được bắt đầu. \\
+Câu hỏi & Người dùng đã định bắt đầu thói quen bền vững nào nhưng chưa làm? \\
+Đáp án chuẩn & Composting. \\
+Bẫy gây nhiễu & Một kế hoạch khác đã hoàn thành, ví dụ lắp smart plugs, nhằm kiểm tra hệ thống có nhầm trạng thái kế hoạch hay không. \\
+Đối chứng & Ngân hàng đầy đủ giữ đủ sáu loại node; ngân hàng loại bỏ không được tạo node \textit{intention} ngay từ bước nạp dữ liệu. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Ví dụ cấu trúc hội thoại được sinh.} Từ đặc tả trên, mô hình sinh dữ liệu không viết trực tiếp một bản ghi nhớ, mà tạo ra một chuỗi phiên hội thoại có nhiễu và cập nhật trạng thái. Bảng \ref{tab:cogmem_bench_dialogue_structure} minh họa cấu trúc rút gọn của một hội thoại kiểu này; đây không phải toàn bộ transcript, mà là khung thông tin cần có để kiểm tra xem bộ nhớ có giữ đúng trạng thái ý định hay không.
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ rút gọn về cấu trúc hội thoại sinh từ đặc tả \textit{neg\_intention\_14}}
+\label{tab:cogmem_bench_dialogue_structure}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.6cm}Y@{}}
+\toprule
+\textbf{Vai trò phiên} & \textbf{Nội dung cần xuất hiện trong hội thoại} \\
+\midrule
+Phiên nêu kế hoạch & Người dùng nói về ý định bắt đầu composting cho rác nhà bếp. \\
+Phiên gây nhiễu & Hội thoại nhắc tới một lựa chọn bền vững khác, chẳng hạn thu gom nước mưa hoặc một thiết bị tiết kiệm điện đã được hoàn tất. \\
+Phiên cập nhật trạng thái & Người dùng thừa nhận composting vẫn chưa được bắt đầu, nên kế hoạch vẫn ở trạng thái chưa hoàn thành. \\
+Câu hỏi đánh giá & Hệ thống được hỏi về thói quen bền vững mà người dùng đã định bắt đầu nhưng chưa làm. \\
+Điểm kiểm tra & Ngân hàng đầy đủ cần trả lời composting; ngân hàng loại bỏ ý định dễ bị kéo sang phương án gây nhiễu. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \textbf{Quy mô và cấu trúc.} Ở thời điểm hiện tại, CogMem Bench bao gồm 39 đặc tả kịch bản đã được tiền đăng ký, chia thành bốn nhóm:
 
@@ -111,13 +156,15 @@ Trong khi LongMemEval và LoCoMo đo lường năng lực bộ nhớ tổng quá
 
 \begin{itemize}
     \item \textbf{Phân biệt rõ ràng (5/12)}: ngân hàng đầy đủ trả lời đúng, ngân hàng đối chứng trả lời sai. Các kịch bản thuộc nhóm này -- như HTTP 429 với Retry-After, Azure token với device-code, hay Docker pull với nhiều lần thử -- có đặc điểm chung là quy luật nhân quả không dễ bị mã hóa lại thành fact tri thức khách quan đơn thuần. Ví dụ, ``chờ theo giá trị của header Retry-After rồi thử lại thì được 200'' là một quy luật can thiệp, không phải một mô tả tĩnh.
-    \item \textbf{Rò rỉ thông tin (5/12)}: mô hình sinh (Minimax-M2) đã vô tình mã hóa lại quy luật nhân quả thành fact tri thức khách quan trong lời thoại -- ví dụ: ``việc đặt NODE\_OPTIONS thành --max-old-space-size=8192 đã giải quyết được lỗi OOM'' được viết như một câu mô tả khách quan. Khi đó, ngân hàng đối chứng vẫn có thể trả lời đúng nhờ fact world. Đây không phải lỗi của CogMem, mà là một phát hiện quan trọng: mô hình ngôn ngữ có xu hướng tự nhiên là ``phẳng hóa'' tri thức nhân quả thành tri thức mô tả.
+    \item \textbf{Rò rỉ thông tin (5/12)}: mô hình sinh (Minimax-M2.7) đã vô tình mã hóa lại quy luật nhân quả thành fact tri thức khách quan trong lời thoại. Thay vì chỉ để quan hệ điều kiện--hành động--kết quả nằm trong node chuyên biệt, lời thoại đôi khi viết thẳng kết luận theo dạng mô tả, chẳng hạn ``một thiết lập bộ nhớ lớn hơn đã giải quyết lỗi thiếu bộ nhớ''. Khi đó, ngân hàng đối chứng vẫn có thể trả lời đúng nhờ fact world. Đây không phải lỗi của CogMem, mà là một phát hiện quan trọng: mô hình ngôn ngữ có xu hướng tự nhiên là ``phẳng hóa'' tri thức nhân quả thành tri thức mô tả.
     \item \textbf{Mô hình trả lời bỏ lỡ (2/12)}: ngay cả ngân hàng đầy đủ cũng trả lời sai vì mô hình trả lời (Ministral3-3B) chọn nhầm một phương án thất bại thay vì phương án thành công. Đây là lỗi ở khâu tổng hợp câu trả lời, không liên quan đến việc có hay không có node hành động--kết quả.
 \end{itemize}
 
 Kết quả 5/12 phân biệt rõ ràng tuy khiêm tốn về mặt thống kê (kiểm định McNemar cho $p \approx 0{,}22$, chưa đạt ý nghĩa ở cỡ mẫu này), nhưng mang một ý nghĩa thực tế quan trọng: nó chứng minh rằng \textbf{có tồn tại} những tình huống mà node hành động--kết quả là cần thiết, và những tình huống này xuất hiện khi quy luật nhân quả mang tính can thiệp -- không dễ bị quy về một câu mô tả tĩnh. Đây là một phát hiện ``có điều kiện'' (conditional necessity), hoàn toàn phù hợp với tinh thần thực nghiệm thận trọng của toàn bộ đồ án.
 
 Đối với node ý định, kết quả từ nhóm necessity cho thấy một bức tranh tương tự: ý định trở nên cần thiết trong khoảng 12,5\% các tình huống -- cụ thể là những tình huống mà trạng thái ``đã định làm nhưng chưa làm'' không bị các fact trải nghiệm hay tri thức hấp thụ một cách tự nhiên. Chi tiết về các kịch bản ý định và hành động--kết quả sẽ được phân tích kỹ hơn trong phần đánh giá định tính ở cuối chương này.
+
+\textbf{Các kịch bản ý định thành công.} Nhóm intention không chỉ kiểm tra một trạng thái duy nhất. Một nhóm kịch bản nhắm vào kế hoạch vẫn còn ở trạng thái \textit{planning}, nơi đáp án đúng là việc người dùng đã định làm nhưng chưa thực hiện, ví dụ kịch bản composting trong phần đánh giá định tính. Một nhóm khác kiểm tra khả năng nối kế hoạch ban đầu với kết quả về sau, chẳng hạn đặc tả pilot trong đó người dùng dự định chuyển sang bàn đứng và sau đó hoàn thành kế hoạch. Hai kiểu này cùng kiểm tra vai trò của node ý định: hệ thống phải phân biệt được ``đã định nhưng chưa làm'', ``đã làm xong'', và các phương án gây nhiễu nghe hợp lý nhưng thuộc trạng thái khác.
 
 \subsection{Các thước đo đánh giá}
 
@@ -160,7 +207,7 @@ Dựa trên ba thông tin này, mô hình giám khảo đánh giá mức độ c
 
 Một điểm quan trọng trong thiết kế bộ tiêu chí là \textbf{quy tắc khoan dung cho câu hỏi về thời gian}. Với các câu hỏi yêu cầu đếm số ngày, số tuần hoặc số tháng, mô hình giám khảo được hướng dẫn không trừ điểm đối với sai số một đơn vị (off-by-one). Ví dụ: nếu đáp án chuẩn là ``19 ngày'' nhưng hệ thống trả lời ``18 ngày'', câu trả lời vẫn được chấm 1,0. Quy tắc này được đưa ra vì trong thực tế, việc tính toán chính xác tuyệt đối khoảng cách thời gian từ văn bản hội thoại là cực kỳ khó, và sai số một đơn vị thường không làm thay đổi ý nghĩa của câu trả lời.
 
-\subsubsection{Khi nào Đạt, khi nào Không đạt}
+\subsubsection{Điều kiện đạt (PASS)}
 
 Để chuyển từ điểm số liên tục sang nhãn nhị phân PASS/FAIL, đồ án áp dụng ngưỡng quyết định như sau:
 
@@ -179,7 +226,7 @@ Phương pháp LLM-as-a-Judge được áp dụng cho cả hai bộ dữ liệu 
     \item \textbf{Trên CogMem Bench}: do tính chất nhắm đích của bộ dữ liệu này, kết quả được đánh giá định tính thủ công hoàn toàn, tập trung vào việc xác định xem liệu sự khác biệt giữa ngân hàng bộ nhớ đầy đủ và ngân hàng loại bỏ có dẫn đến thay đổi trong câu trả lời hay không.
 \end{itemize}
 
-Prompt chi tiết của mô hình giám khảo được cung cấp trong Phụ lục B.2 ở cuối báo cáo.
+Prompt chi tiết của mô hình giám khảo được cung cấp trong mục prompt chấm điểm ở Phụ lục B.
 
 \subsection{Các cấu hình so sánh}
 
@@ -314,12 +361,13 @@ LoCoMo được sử dụng để kiểm tra cấu hình cuối cùng của CogM
 \textbf{Cấu hình} & \textbf{Tổng số câu} & \textbf{Đạt} & \textbf{Tỉ lệ} \\
 \midrule
 Baseline trước bộ luật bám bằng chứng & 161 & 97 & 60,2\% \\
+HINDSIGHT baseline & 161 & 105 & 65,2\% \\
 Cấu hình cuối với bảo vệ bằng chứng và cửa sổ trích & 161 & 119 & 73,9\% \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Cấu hình cuối cùng tăng thêm 22 câu đạt so với baseline trước đó và vượt mục tiêu đề ra là 70\%. Mức tăng này không đến từ một thay đổi đơn lẻ, mà là kết quả tích lũy của nhiều cải tiến bổ sung cho nhau:
+Cấu hình cuối cùng tăng thêm 22 câu đạt so với baseline trước đó và vượt mục tiêu đề ra là 70\%. Khi so với HINDSIGHT baseline, CogMem tăng thêm 14 câu đạt, tương ứng cải thiện 8,7 điểm phần trăm trên cùng tập 161 câu hỏi. Mức tăng này không đến từ một thay đổi đơn lẻ, mà là kết quả tích lũy của nhiều cải tiến bổ sung cho nhau:
 
 \begin{enumerate}
     \item \textbf{Truy hồi cho câu hỏi dạng danh sách và phân loại}: các câu hỏi yêu cầu liệt kê (ban nhạc, hoạt động, trò chơi, địa điểm) được hỗ trợ bằng cơ chế alias theo loại danh sách. Nhờ vậy, hệ thống ít bị mắc kẹt vào một tên gọi phổ biến và có cơ hội kéo đủ các phần tử liên quan vào ngữ cảnh.
@@ -373,7 +421,9 @@ LongMemEval và LoCoMo đã chứng minh rằng CogMem hoạt động hiệu qu�
 
 Phần này tập trung vào hai loại node có tín hiệu thực nghiệm rõ ràng nhất trong dự án: \textit{ý định} và \textit{hành động--kết quả}. Node thói quen vẫn được giữ lại trong thiết kế vì có cơ sở nhận thức vững chắc, nhưng kết quả thực nghiệm hiện tại cho thấy nó chưa tạo ra khác biệt rõ rệt trên các khối lượng công việc đã chạy.
 
-\subsection{Node ý định: khi kế hoạch chưa hoàn thành là thông tin quyết định}
+Các ví dụ thành công chi tiết hơn của phần này được ghi lại ở Phụ lục \ref{app:cogmem_bench_success_cases}, bao gồm kịch bản ý định chưa hoàn thành, kịch bản ý định đã hoàn tất và kịch bản hành động--kết quả trong vết công cụ.
+
+\subsection{Nút ý định và kế hoạch chưa hoàn thành}
 
 Một kịch bản định tính tiêu biểu từ CogMem Bench đặt ra câu hỏi: người dùng đã định bắt đầu thói quen bền vững nào nhưng vẫn chưa thực hiện? Trong ngân hàng bộ nhớ đầy đủ, hệ thống lưu giữ các fact thuộc loại ý định như ``người dùng dự định bắt đầu ủ phân hữu cơ (composting)'' và ``người dùng vẫn chưa bắt đầu''. Những fact này được đưa vào danh sách truy vấn và câu trả lời cuối cùng chính xác là \textit{composting}.
 
@@ -381,14 +431,38 @@ Khi loại bỏ hoàn toàn node ý định ngay từ bước nạp dữ liệu,
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.96\textwidth]{Images/cogmem_bench_intention_graph.png}
-\caption{Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ các node ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất hoàn toàn biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa. Các node màu đỏ là ý định, viền xanh dày là các fact được truy vấn vào top-25.}
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}
+\node[font=\bfseries] at (0,3.0) {Ngân hàng đầy đủ};
+\node[reportboxred, minimum width=3.2cm] (fi1) at (-2.4,1.6) {Ý định\\\scriptsize bắt đầu composting};
+\node[reportboxred, minimum width=3.2cm] (fi2) at (-2.4,0.2) {Ý định\\\scriptsize vẫn chưa thực hiện};
+\node[reportboxgreen, minimum width=3.0cm] (fe1) at (1.6,0.9) {Bằng chứng phụ\\\scriptsize túi compostable};
+\node[reportboxgold, minimum width=3.4cm] (fa) at (0,-1.3) {Câu trả lời đúng\\\scriptsize composting};
+\draw[reportarrow] (fi1) -- (fa);
+\draw[reportarrow] (fi2) -- (fa);
+\draw[reportarrow] (fe1) -- (fa);
+\node[font=\scriptsize, align=center] at (0,-2.4) {cụm ý định giữ trạng thái\\đã định nhưng chưa làm};
+
+\node[font=\bfseries] at (8.0,3.0) {Ngân hàng loại bỏ ý định};
+\node[reportbox, minimum width=3.1cm] (aw1) at (5.7,1.4) {Fact còn lại\\\scriptsize đồ gia dụng};
+\node[reportbox, minimum width=3.1cm] (aw2) at (5.7,0.0) {Fact còn lại\\\scriptsize túi nhà bếp};
+\node[reportboxcyan, minimum width=3.3cm] (decoy) at (10.1,0.8) {Gây nhiễu\\\scriptsize thùng nước mưa};
+\node[reportboxgold, minimum width=3.4cm] (aa) at (8.0,-1.3) {Câu trả lời sai\\\scriptsize thu gom nước mưa};
+\draw[reportarrow, dashed] (aw1) -- (aa);
+\draw[reportarrow, dashed] (aw2) -- (aa);
+\draw[reportarrow, very thick] (decoy) -- (aa);
+\node[font=\scriptsize, align=center] at (8.0,-2.4) {không còn nút ý định chứa đáp án\\nên truy vấn bị kéo sang decoy};
+\end{tikzpicture}%
+}
+\caption{Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ cụm ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa.}
 \label{fig:ch4_cogmem_bench_intention}
 \end{figure}
 
 Điểm quan trọng của ví dụ này là: lỗi của ngân hàng đối chứng không phải do truy vấn thất bại hoàn toàn. Hệ thống vẫn có rất nhiều fact để truy xuất, nhưng không có fact nào mang đúng trạng thái ``đã định làm nhưng chưa làm''. Đây chính là bằng chứng định tính cho thấy node ý định có giá trị thực sự trong các tình huống mà thông tin đúng bị phân tán mỏng (sparse-context), nơi một kế hoạch chưa hoàn thành không thể được hấp thụ một cách tự nhiên bởi các fact thông thường như world hay experience.
 
-\subsection{Node hành động--kết quả: khi cần nhớ quan hệ điều kiện, hành động và kết quả}
+Hình \ref{fig:ch4_cogmem_bench_intention} không nhằm tái hiện toàn bộ đồ thị bộ nhớ, mà cô đọng phần quyết định của kịch bản: ngân hàng đầy đủ còn giữ cụm thông tin biểu diễn trạng thái ``đã định nhưng chưa làm'', trong khi ngân hàng loại bỏ ý định chỉ còn các fact lân cận và bị kéo sang phương án gây nhiễu. Cách trình bày này làm rõ rằng mất node ý định không chỉ là mất một fact riêng lẻ, mà là mất không gian biểu diễn cho trạng thái kế hoạch.
+
+\subsection{Nút hành động--kết quả và quan hệ can thiệp}
 
 Một kịch bản agentic tiêu biểu từ CogMem Bench mô phỏng vết công cụ của tác nhân AI: khi gọi API của Stripe, hệ thống nhận được mã lỗi HTTP 429 cùng với header Retry-After. Câu hỏi đặt ra là: tác nhân đã làm gì và kết quả ra sao?
 
@@ -398,22 +472,41 @@ Ngân hàng đối chứng -- nơi node hành động--kết quả bị loại b
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.96\textwidth]{Images/cogmem_bench_action_effect_graph.png}
-\caption{Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry. Các node màu tím là hành động--kết quả.}
+\resizebox{0.96\textwidth}{!}{%
+\begin{tikzpicture}
+\node[font=\bfseries] at (0,3.0) {Ngân hàng đầy đủ};
+\node[reportboxred, minimum width=2.8cm] (pre) at (-3.5,1.1) {Điều kiện\\\scriptsize HTTP 429 + Retry-After};
+\node[reportboxred, minimum width=2.8cm] (act) at (0,1.1) {Hành động\\\scriptsize retry có backoff};
+\node[reportboxred, minimum width=2.8cm] (out) at (3.5,1.1) {Kết quả\\\scriptsize trả về 200};
+\node[reportboxgold, minimum width=3.8cm] (ans) at (0,-1.1) {Câu trả lời đúng\\\scriptsize hành động và kết quả};
+\draw[reportarrow] (pre) -- (act);
+\draw[reportarrow] (act) -- (out);
+\draw[reportarrow] (act) -- (ans);
+\draw[reportarrow] (out) -- (ans);
+\node[font=\scriptsize, align=center] at (0,-2.2) {bộ ba điều kiện--hành động--kết quả\\được giữ trong cùng cấu trúc};
+
+\node[font=\bfseries] at (9.0,3.0) {Ngân hàng loại bỏ action-effect};
+\node[reportbox, minimum width=3.0cm] (rw) at (6.3,1.3) {Fact mô tả\\\scriptsize Stripe có Retry-After};
+\node[reportbox, minimum width=3.0cm] (re) at (6.3,-0.1) {Fact lân cận\\\scriptsize đã thêm backoff};
+\node[reportboxred, minimum width=3.1cm] (miss) at (11.6,0.6) {Thiếu liên kết\\\scriptsize kết quả 200};
+\node[reportboxgold, minimum width=3.6cm] (bad) at (9.0,-1.3) {Câu trả lời thiếu\\\scriptsize chỉ biết một phần};
+\draw[reportarrow, dashed] (rw) -- (bad);
+\draw[reportarrow, dashed] (re) -- (bad);
+\draw[reportarrow, dashed] (miss) -- (bad);
+\node[font=\scriptsize, align=center] at (9.0,-2.4) {các fact còn lại không khôi phục được\\quan hệ can thiệp đầy đủ};
+\end{tikzpicture}%
+}
+\caption{Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry.}
 \label{fig:ch4_cogmem_bench_action_effect}
 \end{figure}
+
+Hình \ref{fig:ch4_cogmem_bench_action_effect} cô đọng khác biệt giữa hai ngân hàng bộ nhớ: ngân hàng đầy đủ giữ được bộ ba điều kiện--hành động--kết quả, còn ngân hàng đối chứng chỉ nhớ các mô tả rời rạc như sự tồn tại của Retry-After hoặc việc đã thêm backoff. Lỗi của ngân hàng đối chứng vì vậy không phải là không truy vấn được gì, mà là truy vấn được các fact không mang đúng cấu trúc can thiệp cần thiết để trả lời.
 
 Trong số 12 kịch bản agentic được đánh giá tại thời điểm viết báo cáo, có 5 kịch bản tạo ra được sự phân biệt rõ ràng theo tiêu chí: ngân hàng đầy đủ trả lời đúng, ngân hàng loại bỏ hành động--kết quả trả lời sai. Con số 5/12 tuy khiêm tốn nhưng mang một ý nghĩa thực tế quan trọng: nó chứng minh rằng trong các vết công cụ nơi quan hệ can thiệp là phần thông tin cốt lõi, việc lưu riêng node hành động--kết quả giúp hệ thống giữ được tri thức mà các fact phẳng dễ dàng làm mờ hoặc bỏ sót. 
 
 Đáng chú ý, trong 5 kịch bản phân biệt được, có những trường hợp mà sự khác biệt giữa hai ngân hàng bộ nhớ là rất lớn. Ví dụ, ở kịch bản về Azure token (xác thực thiết bị với mã lỗi AADSTS70043), ngân hàng đầy đủ có tới 24 fact, trong khi ngân hàng loại bỏ chỉ còn 5 fact. Điều này cho thấy mô hình trích xuất đã phân bổ phần lớn thông tin quan trọng vào đúng loại node chuyên biệt, và khi loại node này bị vô hiệu hóa, một lượng lớn tri thức biến mất khỏi đồ thị.
 
-\subsection{Hình ảnh hóa đồ thị bộ nhớ từ CogMem Bench}
-
-Để minh họa trực quan hơn cho sự khác biệt giữa ngân hàng bộ nhớ đầy đủ và ngân hàng đã loại bỏ, dự án đã xây dựng công cụ hình ảnh hóa đồ thị dựa trên thư viện Cytoscape. Mỗi hình ảnh hiển thị song song hai đồ thị: bên trái là ngân hàng đầy đủ, bên phải là ngân hàng đã loại bỏ. Các node được tô màu theo loại fact: màu đỏ cho ý định, màu tím cho hành động--kết quả, màu xanh dương cho trải nghiệm, màu xám cho tri thức khách quan, màu cam cho quan điểm, và màu xanh ngọc cho thói quen. Đường viền xanh dày đánh dấu các fact nằm trong top-25 được truy vấn -- tức những fact thực sự được đưa vào prompt để sinh câu trả lời. Các node màu vàng và có kích thước lớn hơn là những fact được mô hình ngôn ngữ trích dẫn trực tiếp trong câu trả lời cuối cùng.
-
-Hình \ref{fig:ch4_cogmem_bench_intention} và \ref{fig:ch4_cogmem_bench_action_effect} ở trên là hai ví dụ tiêu biểu được trích xuất từ công cụ này. Trong cả hai trường hợp, có thể quan sát thấy rõ rằng khi loại node chuyên biệt bị loại bỏ, không chỉ các node màu tương ứng biến mất, mà toàn bộ cụm (cluster) thông tin liên quan cũng bị ảnh hưởng -- các fact được trích dẫn trong câu trả lời (node vàng) hoặc biến mất hoàn toàn, hoặc chuyển sang một cụm khác không liên quan đến đáp án đúng.
-
-Những hình ảnh trực quan này cung cấp một bằng chứng mạnh mẽ cho luận điểm cốt lõi của CogMem: \textit{không phải mọi thông tin đều có thể được biểu diễn một cách thỏa đáng dưới dạng fact phẳng}. Có những loại tri thức -- như một kế hoạch chưa hoàn thành hay một quy luật nhân quả có cấu trúc -- đòi hỏi một không gian biểu diễn chuyên biệt với thông tin bổ trợ, kiểu liên kết và ngữ nghĩa riêng. Khi không gian đó bị loại bỏ, hệ thống không chỉ mất đi một vài fact, mà còn mất đi khả năng phân biệt giữa các loại tín hiệu nhận thức khác nhau -- một mất mát mà các con số accuracy đơn thuần khó lòng phản ánh hết.
+Nhìn chung, hai hình minh họa trong phần này cung cấp bằng chứng trực quan cho luận điểm cốt lõi của CogMem: \textit{không phải mọi thông tin đều có thể được biểu diễn một cách thỏa đáng dưới dạng fact phẳng}. Có những loại tri thức -- như một kế hoạch chưa hoàn thành hay một quy luật nhân quả có cấu trúc -- đòi hỏi một không gian biểu diễn chuyên biệt với thông tin bổ trợ, kiểu liên kết và ngữ nghĩa riêng. Khi không gian đó bị loại bỏ, hệ thống không chỉ mất đi một vài fact, mà còn mất đi khả năng phân biệt giữa các loại tín hiệu nhận thức khác nhau -- một mất mát mà các con số accuracy đơn thuần khó lòng phản ánh hết.
 
 % ============================================================
 \section{Tổng kết thực nghiệm}
@@ -423,7 +516,7 @@ Kết quả từ LongMemEval, LoCoMo và CogMem Bench cùng hướng tới một
 
 CogMem vận hành hiệu quả từ đầu đến cuối trên các bộ dữ liệu hội thoại dài: đạt 88,6\% trên LongMemEval ở cấu hình đa kênh đầy đủ và 73,9\% trên LoCoMo ở cấu hình cuối cùng, vượt mục tiêu đề ra. Cấu trúc đồ thị và cơ chế cộng dồn tín hiệu giúp kết nối các bằng chứng một cách hiệu quả, nhưng hệ thống hoàn chỉnh vẫn cần sự kết hợp của cả bốn kênh truy vấn: ngữ nghĩa, từ khóa, đồ thị và thời gian. Không một kênh đơn lẻ nào có thể thay thế được sức mạnh tổng hợp của cả bốn.
 
-Các loại node chuyên biệt không đóng góp một cách đồng đều. Node ý định và node hành động--kết quả có bằng chứng định tính và định lượng rõ ràng: việc loại bỏ chúng làm giảm độ chính xác từ 2 đến 6 điểm phần trăm tùy cấu hình. Node thói quen, ngược lại, hiện mới chỉ là một lựa chọn biểu diễn có cơ sở lý thuyết nhưng chưa được chứng minh mạnh mẽ bằng thực nghiệm trên các bộ dữ liệu hiện có.
+Các loại node chuyên biệt không đóng góp một cách đồng đều. Node ý định và node hành động--kết quả có bằng chứng định tính và định lượng rõ ràng: việc loại bỏ chúng làm giảm độ chính xác từ 2 đến 6 điểm phần trăm tùy cấu hình. Tuy vậy, cơ chế đo lường hiện tại mới cô lập đóng góp theo \textit{loại node}; nó chưa đo riêng được đóng góp của các dạng quan hệ chuyển giao như experience--intention, intention--experience, hay chuỗi cập nhật liên tục của cùng một kế hoạch qua nhiều phiên. Node thói quen, ngược lại, hiện mới chỉ là một lựa chọn biểu diễn có cơ sở lý thuyết nhưng chưa được chứng minh mạnh mẽ bằng thực nghiệm trên các bộ dữ liệu hiện có.
 
 Kết luận then chốt rút ra từ chương này là: một hệ thống bộ nhớ dài hạn cho tác nhân hội thoại cần hội tụ đủ ba yếu tố -- biểu diễn giàu cấu trúc với nhiều loại node và nhiều kiểu liên kết, cơ chế truy vấn đa kênh không phụ thuộc vào một kênh duy nhất, và quy trình kiểm chứng thực nghiệm có kiểm soát theo từng loại câu hỏi để hiểu rõ thành phần nào đang thực sự tạo ra giá trị. CogMem đã đạt được một phiên bản vận hành đáng tin cậy của cách tiếp cận này, đồng thời chỉ rõ những phần cần tiếp tục cải thiện: suy luận thời gian chính xác, liệt kê đầy đủ, hiệu chuẩn bằng chứng, và mở rộng thử nghiệm trên các tình huống thực tế thay vì chỉ tối ưu hóa trên bộ dữ liệu chuẩn.
 

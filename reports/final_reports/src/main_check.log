@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  26 JUN 2026 10:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.1.1)  25 JUN 2026 15:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1619,10 +1619,10 @@ File: t5utm.fd 2005/08/24 Fontinst v1.929 font definitions for T5/ptm.
 LaTeX Warning: Unused global option(s):
     [13pt,3p].
 
-(main.aux
+(main_check.aux
 \g__glossaries_gls_ref_acronym_int=\count547
 )
-\openout1 = `main.aux'.
+\openout1 = `main_check.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 223.
 LaTeX Font Info:    ... okay on input line 223.
@@ -1733,17 +1733,17 @@ Package biblatex Info: Automatic encoding selection.
 Package biblatex Info: Input encoding 'utf8' detected.
 Package biblatex Info: Data encoding 'utf8' specified.
 (biblatex)             No need to reencode data.
-\openout5 = `main-blx.bib'.
+\openout5 = `main_check-blx.bib'.
 
 Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'main.bbl' found.
-(main.bbl)
+Package biblatex Info: ... file 'main_check.bbl' not found.
+No file main_check.bbl.
 Package biblatex Info: Reference section=0 on input line 223.
 Package biblatex Info: Reference segment=0 on input line 223.
 Package hyperref Info: Link coloring OFF on input line 223.
- (main.out) (main.out)
+(main_check.out) (main_check.out)
 \@outlinefile=\write6
-\openout6 = `main.out'.
+\openout6 = `main_check.out'.
 
  (Cover.tex
 LaTeX Font Info:    Calculating math sizes for size <13> on input line 30.
@@ -1807,7 +1807,7 @@ een already used, duplicate ignored
 <to be read again> 
                    \relax 
 l.248 \newpage
-               [1] (main.toc
+               [1] (main_check.toc
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
@@ -1826,16 +1826,10 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
 een already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.97 ...an há»‡ can thiá»‡p}{59}{subsection.4.4.2}
-                                                  % [3]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.122 ...g (LLM-as-a-Judge)}{74}{subsection.B.0.2}
-                                                  % [4])
+l.97 ...™ng vÃ  káº¿t quáº£}{57}{subsection.4.4.2}
+                                                  % [3])
 \tf@toc=\write7
-\openout7 = `main.toc'.
+\openout7 = `main_check.toc'.
 
 
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
@@ -1843,30 +1837,17 @@ een already used, duplicate ignored
 <to be read again> 
                    \relax 
 l.276 \cleardoublepage
-                       [5]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.276 \cleardoublepage
-                       [6
-
-
-] (main.lof)
+                       [4] (main_check.lof)
 \tf@lof=\write8
-\openout8 = `main.lof'.
+\openout8 = `main_check.lof'.
 
  [1
 
-] (main.lot
-Underfull \hbox (badness 1400) in paragraph at lines 13--13
- [][] []\T5/ptm/m/n/13 Table []V½ dö rót gån v· c§u tróc hëi tho¤i sinh tø ^^_°
-c t£ 
- []
 
-)
+
+] (main_check.lot)
 \tf@lot=\write9
-\openout9 = `main.lot'.
+\openout9 = `main_check.lot'.
 
  [2
 
@@ -2030,14 +2011,14 @@ CHÆ¯Æ NG 3.
 (Chapter/3_Methodology.tex [19
 
 ]
-<Images/cogmem_pipeline_overview.png, id=888, 1678.27pt x 944.52875pt>
+<Images/cogmem_pipeline_overview.png, id=785, 1678.27pt x 944.52875pt>
 File: Images/cogmem_pipeline_overview.png Graphic file (type png)
 <use Images/cogmem_pipeline_overview.png>
 Package pdftex.def Info: Images/cogmem_pipeline_overview.png  used on input lin
 e 25.
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
  [20 <./Images/cogmem_pipeline_overview.png (PNG copy)>] [21] [22] [23]
-<Images/cogmem_memory_graph.png, id=916, 1678.27pt x 944.52875pt>
+<Images/cogmem_memory_graph.png, id=814, 1678.27pt x 944.52875pt>
 File: Images/cogmem_memory_graph.png Graphic file (type png)
 <use Images/cogmem_memory_graph.png>
 Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 107
@@ -2045,14 +2026,14 @@ Package pdftex.def Info: Images/cogmem_memory_graph.png  used on input line 107
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
  [24 <./Images/cogmem_memory_graph.png (PNG copy)>]
 [25]
-<Images/habit_diary_workload.png, id=931, 1678.27pt x 944.52875pt>
+<Images/habit_diary_workload.png, id=828, 1678.27pt x 944.52875pt>
 File: Images/habit_diary_workload.png Graphic file (type png)
 <use Images/habit_diary_workload.png>
 Package pdftex.def Info: Images/habit_diary_workload.png  used on input line 15
 8.
 (pdftex.def)             Requested size: 426.79135pt x 240.19588pt.
  [26 <./Images/habit_diary_workload.png (PNG copy)>] [27]
-<Images/agentic_action_effect_trace.png, id=942, 1678.27pt x 944.52875pt>
+<Images/agentic_action_effect_trace.png, id=840, 1678.27pt x 944.52875pt>
 File: Images/agentic_action_effect_trace.png Graphic file (type png)
 <use Images/agentic_action_effect_trace.png>
 Package pdftex.def Info: Images/agentic_action_effect_trace.png  used on input 
@@ -2093,443 +2074,88 @@ Underfull \hbox (badness 6859) in paragraph at lines 79--79
 []|\T5/ptm/m/n/11.86258 5 hëi tho¤i,
  []
 
-[45] [46]
-Underfull \hbox (badness 4779) in paragraph at lines 143--143
-[]|\T5/ptm/m/n/11.86258 Phi¶n n¶u k¸
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 143--143
-[]|\T5/ptm/m/n/11.86258 Phi¶n g¥y
- []
-
-
-Underfull \hbox (badness 2726) in paragraph at lines 143--143
-[]|\T5/ptm/m/n/11.86258 C¥u häi ^^_¡nh
- []
-
-[47] [48] [49] [50] [51]
-Underfull \hbox (badness 10000) in paragraph at lines 258--258
+[45] [46] [47] [48] [49] [50]
+Underfull \hbox (badness 10000) in paragraph at lines 216--216
 []|\T5/ptm/m/n/11.86258 HINDSIGHT
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 258--258
+Underfull \hbox (badness 10000) in paragraph at lines 216--216
 []|\T5/ptm/m/n/11.86258 CogMem multi-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 258--258
+Underfull \hbox (badness 10000) in paragraph at lines 216--216
 []|\T5/ptm/m/n/11.86258 CogMem graph-
  []
 
 
-Underfull \hbox (badness 2302) in paragraph at lines 258--258
+Underfull \hbox (badness 2302) in paragraph at lines 216--216
 []|\T5/ptm/m/n/11.86258 Lo¤i bä tøng lo¤i
  []
 
 
-Underfull \hbox (badness 10000) in alignment at lines 258--258
+Underfull \hbox (badness 10000) in alignment at lines 216--216
 [][] 
  []
 
+[51]
+Underfull \hbox (badness 10000) in alignment at lines 249--249
+[][][] 
+ []
+
 [52]
-Underfull \hbox (badness 10000) in alignment at lines 291--291
+Underfull \hbox (badness 10000) in alignment at lines 299--299
 [][][] 
  []
 
 [53]
-Underfull \hbox (badness 10000) in alignment at lines 341--341
-[][][] 
- []
-
-[54]
-Underfull \hbox (badness 10000) in alignment at lines 367--367
+Underfull \hbox (badness 10000) in alignment at lines 324--324
 [][][][] 
  []
 
-[55] [56] [57] [58] [59] [60]) [61]
+[54] [55] [56] [57] [58] [59]) [60]
 CHÆ¯Æ NG 5.
-(Chapter/6_Conclusions.tex [62
+(Chapter/6_Conclusions.tex [61
 
-] [63] [64] [65] [66] [67] [68]) [69]
+] [62]) [63]
 
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'latimer2025hindsight' on input line 343.
+LaTeX Warning: Empty bibliography on input line 343.
 
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (8.77127pt too wide) in paragraph at lines 344--344
-[]\T5/ptm/m/n/13 C. Latimer [], ``HINDSIGHT: Long-Term Memory for Conversationa
-l
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'wu2025longmemeval' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'maharana2024locomo' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'squire1991medial' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 34
-3.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 34
-3.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 34
-3.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'dickinson1994motivational' on input line 34
-3.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'baddeley2000episodic' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Underfull \hbox (badness 5578) in paragraph at lines 344--344
-\T5/ptm/m/n/13 Memory?'' \T5/ptm/m/it/13 Trends in Cognitive Sciences\T5/ptm/m/
-n/13 , [] 4, [] 11,
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'brandimonte1996prospective' on input line 3
-43.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hommel2001tec' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Underfull \hbox (badness 1297) in paragraph at lines 344--344
-\T5/ptm/m/n/13 for Perception and Action Planning,'' \T5/ptm/m/it/13 Behavioral
- and Brain Sciences\T5/ptm/m/n/13 ,
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'brainerd2004fuzzy' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Underfull \hbox (badness 1231) in paragraph at lines 344--344
-[]\T5/ptm/m/n/13 C. J. Brainerd [] V. F. Reyna, ``Fuzzy Trace Theory and Storag
-e-
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
-
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
-
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
-
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'hodgkin1952quantitative' on input line 343.
-
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'number' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'wilson1972excitatory' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'in' untranslated
-(biblatex)                at entry 'packer2023memgpt' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Underfull \hbox (badness 3323) in paragraph at lines 344--344
-[]\T5/ptm/m/n/13 F. C. Bartlett, \T5/ptm/m/it/13 Remembering: A Study in Experi
-mental and Social
- []
-
-
-Package biblatex Warning: Bibliography string 'jourvol' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 343.
-
-
-Package biblatex Warning: Bibliography string 'pages' untranslated
-(biblatex)                at entry 'robertson2006what' on input line 343.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-[70
-
-]
-
-Package biblatex Warning: Using fallback definition for \mkbibordinal.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibordinal.
-
-
-Package biblatex Warning: Bibliography string 'edition' untranslated
-(biblatex)                at entry 'anderson2008architecture' on input line 343
-.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-[71] (Chapter/Appendix_A.tex
+(Chapter/Appendix_A.tex
 Ph\d {u} l\d {u}c A.
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 8.
 
 \g__tcobox_out_iow=\write10
-\openout10 = `main.listing'.
+\openout10 = `main_check.listing'.
 
-(main.listing) [72
+(main_check.listing) [64
 
 ]
-\openout10 = `main.listing'.
+\openout10 = `main_check.listing'.
 
- (main.listing)) [73] (Chapter/Appendix_B.tex
+ (main_check.listing)) [65] (Chapter/Appendix_B.tex
 Ph\d {u} l\d {u}c B.
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 8.
 
-\openout10 = `main.listing'.
+\openout10 = `main_check.listing'.
 
-(main.listing) [74
+(main_check.listing) [66
 
 ]
-\openout10 = `main.listing'.
+\openout10 = `main_check.listing'.
 
- (main.listing)) [75] (Chapter/Appendix_C.tex
-Ph\d {u} l\d {u}c C.
-
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 9.
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 29--29
-[]|\T5/ptm/m/n/11.86258 Lo¤i node möc
- []
-
-
-Underfull \hbox (badness 5460) in paragraph at lines 29--29
-[]|\T5/ptm/m/n/11.86258 Thæng tin trung
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 29--29
-[]|\T5/ptm/m/n/11.86258 ^^^i·u ki»n ph¥n
- []
-
-[76
-
-])
+ (main_check.listing))
 
 Package glossaries Warning: No \printnoidxglossary or \printnoidxglossaries
  found. (Remove \makenoidxglossaries if you don't want any glossaries.)
 This document will not have a glossary.
 
-[77] (main.aux)
+[67] (main_check.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -2539,18 +2165,26 @@ L3 programming layer <2025-12-24>
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
-Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 0F95A76685FE73BEB04AB179AF8DF1DC;29229.
-Package logreq Info: Writing requests to 'main.run.xml'.
-\openout1 = `main.run.xml'.
+
+LaTeX Warning: There were undefined references.
+
+Package rerunfilecheck Info: File `main_check.out' has not changed.
+(rerunfilecheck)             Checksum: 6EE4E860FBA3C5F130D6BD0F18FAF4F3;26235.
+
+Package biblatex Warning: Please (re)run BibTeX on the file(s):
+(biblatex)                main_check
+(biblatex)                and rerun LaTeX afterwards.
+
+Package logreq Info: Writing requests to 'main_check.run.xml'.
+\openout1 = `main_check.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 50542 strings out of 467871
- 999183 string characters out of 5435212
- 1903876 words of memory out of 5000000
- 78163 multiletter control sequences out of 15000+600000
- 689304 words of font info for 121 fonts, out of 8000000 for 9000
+ 50189 strings out of 467871
+ 989811 string characters out of 5435212
+ 1899322 words of memory out of 5000000
+ 77852 multiletter control sequences out of 15000+600000
+ 684792 words of font info for 119 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  108i,12n,107p,2507b,2254s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <F:/MikTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><F:/MikTeX/fonts/type1/p
@@ -2560,12 +2194,11 @@ blic/amsfonts/cm/cmr6.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><F
 :/MikTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><F:/MikTeX/fonts/type1/public/
 amsfonts/cm/cmsy10.pfb><F:/MikTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><F:/
 MikTeX/fonts/type1/vntex/urwvn/ucrr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/ut
-mb8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmbi8v.pfb><F:/MikTeX/fonts/type1/
-urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmr8v.pfb><F:/MikTeX/f
-onts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (89 pages, 5113308 bytes).
+mb8v.pfb><F:/MikTeX/fonts/type1/urw/times/utmr8a.pfb><F:/MikTeX/fonts/type1/vnt
+ex/urwvn/utmr8v.pfb><F:/MikTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
+Output written on main_check.pdf (77 pages, 5055821 bytes).
 PDF statistics:
- 1514 PDF objects out of 1728 (max. 8388607)
- 448 named destinations out of 1000 (max. 500000)
- 889 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1344 PDF objects out of 1440 (max. 8388607)
+ 412 named destinations out of 1000 (max. 500000)
+ 769 words of extra memory for PDF output out of 10000 (max. 10000000)
 

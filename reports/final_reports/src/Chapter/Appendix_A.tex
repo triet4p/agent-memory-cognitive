@@ -5,7 +5,7 @@
 
 Phụ lục này trình bày các prompt cốt lõi của retain pipeline. Từ thời điểm hệ thống chuyển sang cơ chế trích xuất hai pass, Pass 1 và Pass 2 không còn đóng cùng một vai trò: Pass 1 xử lý ngữ cảnh mixed-speaker để nhận diện đủ các fact type, còn Pass 2 tập trung tinh chỉnh các fact mang tính persona của người dùng.
 
-\subsection{A.1. Prompt Trích xuất Pass 1 (Fact Extraction)}
+\subsection{Prompt Trích xuất Pass 1 (Fact Extraction)}
 
 Pass 1 chịu trách nhiệm đọc bối cảnh hội thoại rộng và trích xuất đủ sáu fact type của CogMem, bao gồm cả \textit{world} và \textit{action\_effect}. Đây là nơi hệ thống thu nhận các quy luật nhân quả, các sự kiện khách quan và các tín hiệu không thuần túy thuộc persona của người dùng.
 
@@ -49,7 +49,7 @@ FACT TYPE GUIDE:
    "action", "outcome", "devalue_sensitive".
 \end{tcblisting}
 
-\subsection{A.2. Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}
+\subsection{Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}
 
 Pass 2 được dùng để rà lại các memory mang tính người dùng và loại bỏ nhiễu hội thoại. Khác với Pass 1, pass này không nhắm tới việc trích xuất toàn bộ thế giới tri thức, mà ưu tiên giữ các fact cá nhân bền vững như experience, habit, intention và opinion.
 

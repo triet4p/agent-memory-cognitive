@@ -5,7 +5,7 @@
 
 Phụ lục này ghi lại các prompt ở tầng synthesis và evaluation. Đây là phần nối giữa evidence do recall pipeline trả về và câu trả lời cuối cùng của hệ thống, đồng thời cũng là nơi phục vụ chấm điểm tự động trong các benchmark chuẩn.
 
-\subsection{B.1. Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}
+\subsection{Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}
 
 Prompt generation nhận đầu vào là tập bằng chứng đã được recall. Ở kiến trúc hiện tại, \textit{raw\_snippet} có thể được đưa inline cùng mỗi memory khi policy generate yêu cầu thêm grounding nguyên văn; vì vậy, prompt nhấn mạnh việc trả lời chỉ từ evidence được cung cấp.
 
@@ -41,7 +41,7 @@ EVIDENCE RULES:
 <--- END EVIDENCE --->
 \end{tcblisting}
 
-\subsection{B.2. Prompt Chấm điểm Tự động (LLM-as-a-Judge)}
+\subsection{Prompt Chấm điểm Tự động (LLM-as-a-Judge)}
 
 Như đã trình bày trong Chương 4, đồ án sử dụng phương pháp \textbf{LLM làm giám khảo} để đánh giá chất lượng câu trả lời của hệ thống. Mô hình giám khảo nhận vào ba thông tin: câu hỏi gốc, đáp án chuẩn và câu trả lời do CogMem sinh ra. Nhiệm vụ của nó là gán một điểm số từ 0,0 đến 1,0 và giải thích ngắn gọn lý do.
 

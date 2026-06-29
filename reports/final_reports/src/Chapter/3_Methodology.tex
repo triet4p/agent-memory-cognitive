@@ -498,6 +498,12 @@ CogMem dùng weighted Reciprocal Rank Fusion để trộn các danh sách ứng 
 
 Trong công thức này, $d$ là một bằng chứng ứng viên, $q$ là câu hỏi, $i$ là kênh truy vấn, $w_i(q)$ là trọng số của kênh $i$ đối với loại câu hỏi $q$, và $\mathrm{rank}_i(d)$ là thứ hạng của $d$ trong kênh đó. Hằng số 60 làm giảm chênh lệch quá lớn giữa các hạng đầu, nhờ đó một bằng chứng tốt ở nhiều kênh vẫn có thể vượt một bằng chứng chỉ mạnh ở một kênh.
 
+\subsection{Xếp hạng lại bằng CrossEncoder}
+
+Sau khi RRF tạo danh sách ứng viên thống nhất, CogMem có thể dùng CrossEncoder để xếp hạng lại các bằng chứng mạnh nhất. Khác với kênh ngữ nghĩa dùng hai vector tách rời rồi so sánh khoảng cách, CrossEncoder đọc đồng thời cặp \textit{câu hỏi--bằng chứng} và ước lượng trực tiếp mức độ phù hợp của bằng chứng với câu hỏi. Vì vậy, bước này phù hợp với các trường hợp cần phân biệt tinh hơn giữa hai fact có từ khóa giống nhau nhưng trả lời các ý khác nhau.
+
+Trong pipeline đầy đủ, CrossEncoder nằm sau RRF: RRF quyết định những bằng chứng nào đủ tốt để được xem xét, còn CrossEncoder sắp xếp lại cửa sổ ứng viên trước khi đưa sang bước sinh câu trả lời. Riêng trong thí nghiệm so sánh SUM và MAX trên kênh đồ thị, bước xếp hạng lại này được tắt để kết quả phản ánh riêng khác biệt giữa hai cách lan truyền tín hiệu trên đồ thị, thay vì bị trộn thêm bởi một bộ chấm điểm sau truy vấn.
+
 \section{Truy vấn trên đồ thị tri thức}
 
 \subsection{Nhược điểm của toán tử MAX và khái niệm Episodic Buffer}
@@ -517,20 +523,22 @@ Trong công thức này, $u$ là đơn vị nguồn, $v$ là đơn vị đích, 
 
 Từ góc nhìn nhận thức, mô hình Episodic Buffer của Baddeley gợi ý một cách nhìn khác. Episodic Buffer đóng vai trò như vùng làm việc tạm thời, nơi nhiều mảnh thông tin được ghép lại thành một bức tranh chung. Khi con người tái dựng một tình tiết, họ thường tích hợp nhiều nguồn thông tin tạm thời thành một ngữ cảnh làm việc thống nhất, thay vì chỉ chọn một dấu vết mạnh nhất. CogMem lấy cảm hứng từ nguyên tắc này để thiết kế truy vấn đồ thị theo hướng cộng dồn bằng chứng.
 
-%% sai
 \begin{figure}[H]
 \centering
 \resizebox{0.9\textwidth}{!}{%
 \begin{tikzpicture}
-\node[reportbox, minimum width=3.0cm] (sem) at (0,1.6) {Tín hiệu\\ngữ nghĩa};
-\node[reportbox, minimum width=3.0cm] (time) at (0,0.55) {Tín hiệu\\thời gian};
-\node[reportbox, minimum width=3.0cm] (graph) at (0,-0.55) {Đường đi\\đồ thị};
-\node[reportbox, minimum width=3.0cm] (snippet) at (0,-1.6) {Đoạn trích\\nguyên văn};
-\node[reportboxgold, minimum width=4.0cm, minimum height=1.25cm] (sum) at (5.0,0) {Kích hoạt SUM\\\scriptsize bằng chứng hội tụ};
-\node[reportboxgreen, minimum width=4.0cm, minimum height=1.25cm] (buffer) at (10.2,0) {Episodic Buffer\\\scriptsize ngữ cảnh trả lời tạm thời};
-\foreach \n in {sem,time,graph,snippet}{\draw[reportarrow] (\n) -- (sum);}
-\draw[reportarrow] (sum) -- (buffer);
-\node[font=\scriptsize, align=center] at (5.0,-1.65) {nhiều đường yếu có thể cùng củng cố một câu trả lời};
+\node[reportbox, minimum width=3.0cm] (time) at (0,2.1) {Mốc thời gian\\\scriptsize tuần trước};
+\node[reportbox, minimum width=3.0cm] (entity) at (0,0.7) {Thực thể chung\\\scriptsize dự án / công cụ};
+\node[reportbox, minimum width=3.0cm] (event) at (0,-0.7) {Sự kiện liên quan\\\scriptsize lần sửa trước};
+\node[reportbox, minimum width=3.0cm] (snippet) at (0,-2.1) {Đoạn trích\\\scriptsize lời gốc};
+\node[reportboxgold, minimum width=3.5cm, minimum height=1.2cm] (buffer) at (5.0,0) {Vùng làm việc\\tạm thời};
+\node[reportboxgreen, minimum width=3.6cm, minimum height=1.2cm] (answer) at (9.6,0) {Ngữ cảnh\\trả lời};
+\draw[reportarrow] (time) -- node[above, font=\scriptsize]{temporal} (buffer);
+\draw[reportarrow] (entity) -- node[above, font=\scriptsize]{entity} (buffer);
+\draw[reportarrow] (event) -- node[below, font=\scriptsize]{causal} (buffer);
+\draw[reportarrow] (snippet) -- node[below, font=\scriptsize]{verbatim} (buffer);
+\draw[reportarrow] (buffer) -- node[above, font=\scriptsize]{tích hợp} (answer);
+\node[font=\scriptsize, align=center] at (5.0,-2.0) {nhiều dấu vết riêng lẻ được giữ chung\\trong một ngữ cảnh làm việc};
 \end{tikzpicture}%
 }
 \caption{Episodic Buffer của Baddeley}
@@ -553,7 +561,48 @@ A_{\max}
 \right]
 \end{equation}
 
+Các thành phần trong công thức SUM được hiểu như sau:
+
+\begin{itemize}
+    \item $A(v,t+1)$ là mức kích hoạt mới của đơn vị thông tin $v$ sau một bước lan truyền; $A(v,t)$ là mức kích hoạt đã có của chính đơn vị đó ở bước trước.
+    \item $u$ là một đơn vị thông tin nguồn đang truyền tín hiệu sang $v$; $N(v)$ là tập các đơn vị nguồn có liên kết đi vào $v$.
+    \item $A(u,t)$ là mức kích hoạt hiện tại của nguồn $u$, còn $w(u,v)$ là độ mạnh của liên kết từ $u$ sang $v$.
+    \item $\mu(\ell)$ điều chỉnh tín hiệu theo loại liên kết $\ell$, ví dụ liên kết thời gian, ngữ nghĩa, nhân quả hoặc chuyển trạng thái có thể đóng góp khác nhau.
+    \item $\delta$ là hệ số suy giảm theo bước lan truyền, giúp tín hiệu yếu dần khi đi xa khỏi các điểm khởi đầu.
+    \item $\mathrm{refractory}(u)$ là mặt nạ chống tái kích hoạt ngay: giá trị 0 chặn nguồn vừa phát tín hiệu, giá trị 1 cho phép nguồn đó tiếp tục đóng góp.
+    \item $\mathrm{clip}[\cdot, A_{\max}]$ là phép chặn trên, bảo đảm tổng kích hoạt không vượt quá ngưỡng $A_{\max}$.
+\end{itemize}
+
 Điểm khác biệt chính là nhiều nguồn $u$ có thể cùng đóng góp vào kích hoạt của $v$. Nhờ đó, một đơn vị thông tin không cần phải được tìm thấy qua một đường duy nhất thật mạnh, nó có thể được nâng hạng nếu nhiều bằng chứng yếu cùng hội tụ về nó. Đây là trực giác quan trọng của CogMem: một câu trả lời có thể đáng tin không phải vì một bằng chứng quá mạnh, mà vì nhiều bằng chứng vừa phải cùng chỉ về một hướng.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.94\textwidth}{!}{%
+\begin{tikzpicture}
+\node[font=\bfseries] at (2.4,3.0) {MAX};
+\node[reportboxcyan, minimum width=2.2cm] (ma) at (0,1.8) {$u_1$\\\scriptsize 0.70};
+\node[reportbox, minimum width=2.2cm] (mb) at (0,0.4) {$u_2$\\\scriptsize 0.45};
+\node[reportbox, minimum width=2.2cm] (mc) at (0,-1.0) {$u_3$\\\scriptsize 0.40};
+\node[reportboxgold, minimum width=2.7cm] (mv) at (4.8,0.4) {$v$\\\scriptsize giữ 0.70};
+\draw[reportarrow, very thick] (ma) -- node[above, font=\scriptsize]{đường mạnh nhất} (mv);
+\draw[reportarrow, dashed] (mb) -- (mv);
+\draw[reportarrow, dashed] (mc) -- (mv);
+\node[font=\scriptsize, align=center] at (2.4,-2.0) {hai đường yếu bị bỏ qua\\dù cùng hướng tới $v$};
+
+\node[font=\bfseries] at (10.4,3.0) {SUM};
+\node[reportboxcyan, minimum width=2.2cm] (sa) at (8.0,1.8) {$u_1$\\\scriptsize 0.40};
+\node[reportboxcyan, minimum width=2.2cm] (sb) at (8.0,0.4) {$u_2$\\\scriptsize 0.35};
+\node[reportboxcyan, minimum width=2.2cm] (sc) at (8.0,-1.0) {$u_3$\\\scriptsize 0.30};
+\node[reportboxgreen, minimum width=2.9cm] (sv) at (12.8,0.4) {$v$\\\scriptsize cộng dồn};
+\draw[reportarrow, very thick] (sa) -- (sv);
+\draw[reportarrow, very thick] (sb) -- (sv);
+\draw[reportarrow, very thick] (sc) -- (sv);
+\node[font=\scriptsize, align=center] at (10.4,-2.0) {nhiều đường vừa phải\\cùng nâng điểm cho $v$};
+\end{tikzpicture}%
+}
+\caption{Minh họa trực quan sự khác biệt giữa MAX và SUM trên cùng một cấu trúc đồ thị}
+\label{fig:ch3_max_vs_sum_graph}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -606,18 +655,31 @@ Ba cơ chế này bổ sung cho nhau. Refractory period chặn dao động cục
 \centering
 \resizebox{0.86\textwidth}{!}{%
 \begin{tikzpicture}
-\node[reportboxcyan, minimum width=3.2cm, minimum height=1.0cm] (signal) at (0,2.4) {Tín hiệu\\đi vào};
-\node[reportboxgreen, minimum width=3.3cm, minimum height=1.05cm] (refr) at (-4.2,0.3) {Refractory\\\scriptsize chặn tái kích hoạt ngay};
-\node[reportboxgold, minimum width=3.3cm, minimum height=1.05cm] (quota) at (0,0.3) {Hạn mức kích hoạt\\\scriptsize số lần hữu hạn};
-\node[reportboxred, minimum width=3.3cm, minimum height=1.05cm] (sat) at (4.2,0.3) {Bão hòa\\\scriptsize chặn điểm tối đa};
-\node[reportbox, minimum width=4.1cm, minimum height=1.15cm] (rank) at (0,-2.1) {Danh sách bằng chứng\\xếp hạng ổn định};
-\draw[reportarrow] (signal) -- (refr);
-\draw[reportarrow] (signal) -- (quota);
-\draw[reportarrow] (signal) -- (sat);
-\draw[reportarrow] (refr) -- (rank);
-\draw[reportarrow] (quota) -- (rank);
-\draw[reportarrow] (sat) -- (rank);
-\node[reportnote, minimum width=6.8cm] at (0,-3.6) {ba cơ chế cùng chặn dao động cục bộ và bùng nổ điểm};
+\node[font=\bfseries] at (-5.0,2.2) {Refractory};
+\node[reportboxcyan, minimum width=1.4cm] (ra) at (-6.5,0.6) {A};
+\node[reportboxcyan, minimum width=1.4cm] (rb) at (-3.5,0.6) {B};
+\draw[reportarrow] (ra) -- node[above, font=\scriptsize]{t} (rb);
+\draw[reportarrow, dashed] (rb) .. controls (-5.0,-0.9) .. node[below, font=\scriptsize]{t+1 bị chặn} (ra);
+\node[font=\scriptsize, align=center] at (-5.0,-1.7) {không cho A--B\\kích hoạt qua lại ngay};
+
+\node[font=\bfseries] at (0,2.2) {Firing quota};
+\node[reportboxgold, minimum width=1.4cm] (qa) at (-1.5,0.9) {A};
+\node[reportboxgold, minimum width=1.4cm] (qb) at (1.5,0.9) {B};
+\node[reportboxgold, minimum width=1.4cm] (qc) at (0,-0.9) {C};
+\draw[reportarrow] (qa) -- (qb);
+\draw[reportarrow] (qb) -- (qc);
+\draw[reportarrow] (qc) -- (qa);
+\node[font=\scriptsize, align=center] at (0,-1.9) {chu trình dừng khi\\đạt số lần kích hoạt};
+
+\node[font=\bfseries] at (5.2,2.2) {Saturation};
+\node[reportboxred, minimum width=1.4cm] (s1) at (3.4,1.2) {$u_1$};
+\node[reportboxred, minimum width=1.4cm] (s2) at (3.4,0.1) {$u_2$};
+\node[reportboxred, minimum width=1.4cm] (s3) at (3.4,-1.0) {$u_3$};
+\node[reportboxgreen, minimum width=1.9cm] (sv) at (7.0,0.1) {$v$\\\scriptsize $A_{\max}$};
+\draw[reportarrow] (s1) -- (sv);
+\draw[reportarrow] (s2) -- (sv);
+\draw[reportarrow] (s3) -- (sv);
+\node[font=\scriptsize, align=center] at (5.2,-1.9) {nhiều cạnh cùng vào\\nhưng điểm bị chặn trên};
 \end{tikzpicture}%
 }
 \caption{Ba cơ chế bảo vệ chu trình}

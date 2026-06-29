@@ -1,0 +1,59 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\chapter{Các kịch bản thành công của CogMem Bench}
+\label{app:cogmem_bench_success_cases}
+
+Phụ lục này ghi lại ba ví dụ thành công tiêu biểu được nhắc tới trong phần đánh giá định tính ở Chương 4.4. Mục tiêu của phụ lục không phải là mở rộng thêm kết quả định lượng, mà là làm rõ cấu trúc của các kịch bản nơi loại node chuyên biệt thật sự quyết định câu trả lời.
+
+\subsection{Cấu trúc đọc một kịch bản CogMem Bench}
+
+Mỗi kịch bản trong CogMem Bench nên được đọc như một phép kiểm tra có đối chứng, không phải như một ví dụ hội thoại đơn lẻ. Một kịch bản đầy đủ gồm sáu thành phần: loại node mục tiêu, thông tin trung tâm cần nhớ, các phiên hội thoại chứa bằng chứng, các phiên gây nhiễu, câu hỏi đánh giá, và điều kiện phân biệt giữa ngân hàng đầy đủ với ngân hàng loại bỏ node mục tiêu.
+
+\begin{table}[H]
+\centering
+\caption{Cấu trúc chung của một kịch bản CogMem Bench}
+\label{tab:appendix_cogmem_bench_case_structure}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.1cm}Y@{}}
+\toprule
+\textbf{Thành phần} & \textbf{Vai trò trong kịch bản} \\
+\midrule
+Loại node mục tiêu & Xác định loại biểu diễn đang được kiểm tra, ví dụ \textit{intention} hoặc \textit{action\_effect}. \\
+Thông tin trung tâm & Fact mà hệ thống phải nhớ để trả lời đúng câu hỏi. \\
+Phiên bằng chứng & Các lượt hội thoại chứa thông tin trả lời hoặc cập nhật trạng thái của thông tin đó. \\
+Phiên gây nhiễu & Các lượt hội thoại có chủ đề gần giống đáp án nhưng khác trạng thái, khác điều kiện hoặc khác kết quả. \\
+Câu hỏi và đáp án chuẩn & Truy vấn cuối cùng và câu trả lời đúng đã được cố định trước khi sinh hội thoại. \\
+Điều kiện phân biệt & Ngân hàng đầy đủ phải trả lời đúng, còn ngân hàng loại bỏ node mục tiêu phải trả lời sai hoặc bị kéo sang bẫy gây nhiễu. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ý định chưa hoàn thành: composting}
+\label{app:success_composting}
+
+Kịch bản \textit{neg\_intention\_14} kiểm tra một kế hoạch vẫn còn ở trạng thái \textit{planning}. Người dùng nói rằng họ định bắt đầu composting cho rác nhà bếp, sau đó ở một phiên khác thừa nhận rằng việc này vẫn chưa được thực hiện. Câu hỏi đặt ra là: người dùng đã định bắt đầu thói quen bền vững nào nhưng chưa làm?
+
+Trong ngân hàng đầy đủ, thông tin trả lời tồn tại dưới dạng node \textit{intention}: kế hoạch composting và trạng thái chưa hoàn thành. Ngân hàng loại bỏ ý định không có các node này, nên truy vấn bị kéo sang một phương án gây nhiễu liên quan đến thu gom nước mưa. Đây là ví dụ thành công vì đáp án đúng không chỉ phụ thuộc vào chủ đề ``bền vững'', mà phụ thuộc vào trạng thái của kế hoạch: đã định làm nhưng chưa làm.
+
+\textbf{Cấu trúc kịch bản.} Phiên bằng chứng thứ nhất giới thiệu kế hoạch composting. Một phiên gây nhiễu đưa vào lựa chọn bền vững khác để tạo bẫy theo chủ đề. Phiên bằng chứng sau đó xác nhận composting vẫn chưa được bắt đầu. Vì vậy, điều kiện phân biệt không nằm ở từ khóa ``bền vững'', mà nằm ở trạng thái của ý định.
+
+\subsection{Ý định đã hoàn tất: bàn đứng}
+\label{app:success_standing_desk}
+
+Kịch bản \textit{pilot\_intention\_02} kiểm tra trạng thái \textit{fulfilled}. Người dùng ban đầu dự định chuyển sang dùng bàn đứng trước tháng 3. Ở một phiên sau, họ nhắc rằng bàn đứng đã được giao và lắp đặt. Câu hỏi đặt ra là liệu người dùng có thực sự làm theo kế hoạch ban đầu hay không.
+
+Điểm khó của kịch bản này là hệ thống phải nối hai mảnh thông tin ở hai thời điểm khác nhau: kế hoạch ban đầu và bằng chứng hoàn tất về sau. Nếu chỉ giữ từng fact rời rạc, hệ thống dễ nhầm với một kế hoạch khác còn dang dở, chẳng hạn kế hoạch mua màn hình mới. Đây là ví dụ cho thấy node ý định không chỉ hữu ích khi kế hoạch chưa làm, mà còn hữu ích khi cần theo dõi vòng đời của một kế hoạch từ lúc nêu ra đến lúc hoàn tất.
+
+\textbf{Cấu trúc kịch bản.} Phiên đầu đặt ra kế hoạch chuyển sang bàn đứng. Phiên sau cung cấp bằng chứng hoàn tất: bàn đã được giao và lắp đặt. Phiên gây nhiễu có thể chứa một kế hoạch văn phòng khác chưa hoàn thành. Câu hỏi đánh giá buộc hệ thống phân biệt kế hoạch đã hoàn tất với kế hoạch còn dang dở.
+
+\subsection{Hành động--kết quả: HTTP 429 với Retry-After}
+\label{app:success_http_429}
+
+Kịch bản \textit{agentic\_ae\_01\_http\_429} mô phỏng một tác nhân AI gọi Stripe API và gặp HTTP 429 kèm header Retry-After. Ở lần đầu, tác nhân thử lại ngay và tiếp tục thất bại. Ở lần sau, khi gặp cùng mẫu lỗi, tác nhân retry bằng exponential backoff và tôn trọng giá trị Retry-After; các lần gọi tiếp theo trả về mã 200.
+
+Đáp án đúng cần cả ba phần: điều kiện là HTTP 429 với Retry-After, hành động là retry theo thời gian chờ từ header, và kết quả là các request sau thành công với mã 200. Ngân hàng loại bỏ action-effect vẫn có thể giữ một số fact mô tả gần đúng, nhưng thiếu cấu trúc điều kiện--hành động--kết quả. Đây là ví dụ thành công vì node action-effect giữ được tri thức can thiệp mà fact mô tả đơn lẻ khó bảo toàn.
+
+\textbf{Cấu trúc kịch bản.} Phiên bằng chứng đầu cho thấy cách xử lý sai: retry ngay lập tức sau HTTP 429 và tiếp tục thất bại. Phiên bằng chứng sau cho thấy cách xử lý đúng: chờ theo Retry-After, dùng backoff, rồi nhận kết quả 200. Phiên gây nhiễu có thể chứa lỗi API khác hoặc một lần retry thất bại. Câu hỏi đánh giá cần truy hồi đúng bộ ba điều kiện--hành động--kết quả, không chỉ nhớ rằng đã có lỗi HTTP 429.
+
+\end{document}

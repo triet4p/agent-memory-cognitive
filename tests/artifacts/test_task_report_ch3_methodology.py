@@ -6,18 +6,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 METHODOLOGY = ROOT / "reports" / "final_reports" / "src" / "Chapter" / "3_Methodology.tex"
+RESULTS = ROOT / "reports" / "final_reports" / "src" / "Chapter" / "5_Numerical_results.tex"
 SUMMARY = ROOT / "logs" / "task_report_ch3_methodology_summary.md"
 
 
 EXPECTED_SECTIONS = [
     "Tổng quan hệ thống bộ nhớ CogMem",
     "Kiến trúc xử lý ba pipeline của CogMem",
-    "Đồ thị bộ nhớ kế thừa nhận thức",
-    "Biểu diễn kép: ghi nhớ tóm tắt và dấu vết nguyên văn",
+    "Đồ thị tri thức từ khoa học nhận thức",
+    "Biểu diễn song song: ghi nhớ tóm tắt và dấu vết nguyên văn",
     "Truy vấn đa kênh và kết hợp bằng chứng",
-    "Truy vấn đồ thị tích lũy và bảo vệ chu trình",
-    "Định tuyến truy vấn thích ứng",
-    "Tổng hợp câu trả lời có căn cứ",
+    "Truy vấn trên đồ thị tri thức",
+    "Định tuyến truy vấn thích ứng (Adaptive Query Routing)",
+    "Sinh câu trả lời",
 ]
 
 EXPECTED_LABELS = [
@@ -35,6 +36,7 @@ EXPECTED_LABELS = [
     "fig:ch3_two_layer_schema",
     "fig:ch4_fuzzy_trace",
     "fig:ch4_episodic_buffer",
+    "fig:ch3_max_vs_sum_graph",
     "tab:max_vs_sum",
     "fig:ch3_cycle_guards",
     "tab:adaptive_rrf",
@@ -106,7 +108,7 @@ def test_first_time_reader_terms_are_explained_in_place() -> None:
         "Benchmark là bộ dữ liệu đánh giá",
         "raw\\_snippet} được giữ như bằng chứng nguyên văn",
         "prompt sinh câu trả lời để làm ngữ cảnh đầu vào",
-        "đồ thị bộ nhớ dị thể, nơi nhiều loại đơn vị thông tin",
+        "đồ thị tri thức dị thể, nơi nhiều loại đơn vị thông tin",
         "Các trường bổ sung này ghi những chi tiết",
         "LLM là mô hình ngôn ngữ lớn",
         "S-R là viết tắt của stimulus-response",
@@ -120,8 +122,19 @@ def test_first_time_reader_terms_are_explained_in_place() -> None:
         "hạn mức kích hoạt",
         "ngưỡng bão hòa",
         "BM25 hữu ích khi câu hỏi chứa tên riêng",
-        "RRF, cộng điểm theo thứ hạng",
-        "không có đủ ký ức đã truy vấn",
+        "RRF, được tính bằng cộng điểm theo thứ hạng",
+        "không có đủ thông tin để trả lời chắc chắn",
+        "Xếp hạng lại bằng CrossEncoder",
+        "CrossEncoder đọc đồng thời cặp",
+        "$A(v,t+1)$ là mức kích hoạt mới",
+        "$A(v,t)$ là mức kích hoạt đã có",
+        "$N(v)$ là tập các đơn vị nguồn",
+        "$w(u,v)$ là độ mạnh của liên kết",
+        "$\\mu(\\ell)$ điều chỉnh tín hiệu",
+        "$\\delta$ là hệ số suy giảm",
+        "$\\mathrm{refractory}(u)$ là mặt nạ",
+        "$\\mathrm{clip}[\\cdot, A_{\\max}]$ là phép chặn trên",
+        "Minh họa trực quan sự khác biệt giữa MAX và SUM",
     ]
     for phrase in required_explanations:
         assert phrase in text, f"missing in-place explanation: {phrase}"
@@ -143,6 +156,24 @@ def test_code_jargon_was_reduced_in_prose() -> None:
     assert " node " not in prose_only.lower(), "English 'node' should not appear in prose"
 
 
+def test_results_chapter_separates_bench_and_replaces_large_graphs() -> None:
+    text = _read(RESULTS)
+    assert "CogMem Bench &" not in text, "CogMem Bench should not be in distilled dataset table"
+    assert r"\subsection{CogMem Bench: bộ dữ liệu tự xây dựng để kiểm định các loại nút}" in text
+    assert r"\subsubsection{LongMemEval: tập so sánh cấu hình và ablation}" in text
+    assert r"\subsubsection{LoCoMo: tập đánh giá cấu hình cuối trên hội thoại dài}" in text
+    assert "Images/cogmem_bench_intention_graph.png" not in text
+    assert "Images/cogmem_bench_action_effect_graph.png" not in text
+    assert "Ngân hàng đầy đủ" in text
+    assert "Ngân hàng loại bỏ ý định" in text
+    assert "Ngân hàng loại bỏ action-effect" in text
+    assert "Các kịch bản ý định thành công" in text
+    assert "composting" in text
+    assert "bàn đứng" in text
+    assert "NODE\\_OPTIONS" not in text
+    assert "một thiết lập bộ nhớ lớn hơn đã giải quyết lỗi thiếu bộ nhớ" in text
+
+
 def test_required_task_artifact_exists() -> None:
     assert SUMMARY.exists(), "missing required task summary log"
     summary = _read(SUMMARY)
@@ -156,6 +187,7 @@ def main() -> None:
     test_reader_friendly_intention_and_routing_explanations()
     test_first_time_reader_terms_are_explained_in_place()
     test_code_jargon_was_reduced_in_prose()
+    test_results_chapter_separates_bench_and_replaces_large_graphs()
     test_required_task_artifact_exists()
     print("task_report_ch3_methodology checks passed")
 

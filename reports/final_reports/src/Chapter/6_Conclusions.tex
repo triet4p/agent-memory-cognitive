@@ -5,55 +5,101 @@
 
 \section{Kết luận}
 
-\subsection{Tổng kết đóng góp}
+\subsection{Mức độ hoàn thành mục tiêu}
 
-Đồ án đã xây dựng CogMem như một hệ thống bộ nhớ hội thoại dài hạn có cấu trúc, thay vì chỉ đơn thuần là một tầng truy hồi vector đặt ngoài mô hình ngôn ngữ. Bốn đóng góp chính có thể tóm tắt như sau:
+Mục tiêu ban đầu của đồ án không chỉ là xây dựng một hệ thống có thể lưu thêm nhiều đoạn hội thoại cũ, mà là trả lời một câu hỏi rộng hơn: \textit{một tác nhân hội thoại dài hạn nên tổ chức bộ nhớ như thế nào để truy vấn được đúng bằng chứng khi người dùng hỏi lại sau nhiều phiên?} Từ góc nhìn đó, CogMem được thiết kế để giải quyết ba vấn đề cùng lúc. Thứ nhất, hệ thống cần phân biệt bản chất của thông tin được lưu: sự kiện đã xảy ra, tri thức ổn định, sở thích, thói quen, kế hoạch tương lai và quan hệ hành động--kết quả không nên bị ép vào cùng một dạng fact phẳng. Thứ hai, hệ thống cần giữ lại bằng chứng đủ chi tiết để câu trả lời cuối cùng không chỉ đúng chủ đề mà còn đúng tên riêng, số liệu và ngữ cảnh. Thứ ba, hệ thống cần truy vấn theo nhiều cách khác nhau, vì một câu hỏi về thời gian, một câu hỏi về sở thích và một câu hỏi về kế hoạch chưa hoàn thành không sử dụng cùng một loại bằng chứng.
 
-\begin{enumerate}
-    \item \textbf{Đồ thị bộ nhớ dựa trên khoa học nhận thức}: bộ nhớ được chia thành sáu loại fact và bảy họ liên kết, tạo không gian biểu diễn riêng cho sự kiện, thói quen, ý định, sở thích và quan hệ nhân quả.
-    \item \textbf{Siêu dữ liệu bảo toàn thông tin gốc}: mỗi node bộ nhớ giữ đồng thời phần tóm tắt ngữ nghĩa (fact text) và đoạn trích nguyên văn (raw snippet) từ hội thoại gốc, giúp giai đoạn sinh câu trả lời có thể khôi phục chính xác con số, tên riêng và ngữ cảnh khi cần.
-    \item \textbf{Cơ chế cộng dồn bằng chứng}: quá trình truy hồi trên đồ thị sử dụng phép cộng dồn tín hiệu từ nhiều đường, kết hợp với ba cơ chế bảo vệ (chặn kích hoạt lại ngay lập tức, giới hạn số lần kích hoạt, bão hòa giá trị) để tránh vòng lặp vô hạn.
-    \item \textbf{Định tuyến truy vấn thích ứng}: mỗi câu hỏi được phân loại thành một trong sáu kiểu (ngữ nghĩa, thời gian, nhân quả, kế hoạch, sở thích, đa bước) để chọn bộ trọng số trộn kết quả phù hợp nhất.
-\end{enumerate}
+Qua quá trình triển khai và đánh giá, đồ án đã đạt được một phiên bản vận hành được từ đầu đến cuối của hướng tiếp cận này. Pipeline retain có thể chuyển hội thoại thành đồ thị bộ nhớ có loại. Pipeline recall có thể kết hợp truy vấn ngữ nghĩa, từ khóa, đồ thị và thời gian. Pipeline generation có thể sinh câu trả lời từ tập bằng chứng đã truy vấn, đồng thời ưu tiên đoạn trích nguyên văn khi cần căn cứ cụ thể. Quan trọng hơn, hệ thống không chỉ được mô tả ở mức ý tưởng: các thành phần chính đều được đặt vào thí nghiệm so sánh, ablation hoặc đánh giá định tính để kiểm tra xem chúng đóng góp ở đâu và chưa đóng góp ở đâu.
 
-Các đóng góp này không nên được hiểu như những mô-đun luôn tạo ra cải thiện độc lập trong mọi tình huống. Kết quả thực nghiệm cho thấy giá trị của chúng phụ thuộc vào loại câu hỏi và chất lượng bằng chứng thu thập được. Tuy vậy, việc có các không gian biểu diễn chuyên biệt giúp hệ thống xử lý các câu hỏi khó tốt hơn so với bộ nhớ phẳng truyền thống.
+Vì vậy, kết luận chính của đồ án là: bộ nhớ dài hạn cho tác nhân hội thoại không nên được xem như một kho lưu trữ bổ sung nằm bên ngoài LLM, mà nên được xem như một tầng biểu diễn và truy vấn độc lập, có cấu trúc, có chiến lược chọn bằng chứng và có cơ chế kiểm chứng riêng. CogMem chưa giải quyết trọn vẹn mọi vấn đề của bộ nhớ dài hạn, nhưng nó cho thấy hướng thiết kế dựa trên nhận thức học có thể được chuyển thành một hệ thống thực thi được, đánh giá được và mở rộng được.
 
-\subsection{Kết quả chính}
+\subsection{Các đóng góp chính}
 
-Trên LongMemEval, hệ thống nền HINDSIGHT đạt 30/35 câu (85,7\%). CogMem ở cấu hình đa kênh với đầy đủ sáu loại node đạt 31/35 câu (88,6\%), và biến thể loại bỏ node thói quen vẫn giữ mức tương đương. Khi loại bỏ node hành động--kết quả hoặc node ý định, kết quả giảm còn 29/35 câu (82,9\%), cho thấy hai loại node này có tín hiệu đóng góp rõ ràng hơn trên tập dữ liệu hiện tại.
+\textbf{Đóng góp thứ nhất} của đồ án là thiết kế đồ thị bộ nhớ dựa trên các hệ con của trí nhớ. Thay vì lưu mọi thông tin thành những câu mô tả ngắn không phân biệt chức năng, CogMem chia bộ nhớ thành sáu loại fact và bảy họ liên kết. Cách chia này không nhằm mô phỏng hoàn toàn trí nhớ con người, mà dùng khoa học nhận thức như một nguyên tắc tổ chức: thông tin có bản chất khác nhau cần không gian biểu diễn khác nhau. Trong thực nghiệm, lựa chọn này đặc biệt có ý nghĩa với các câu hỏi liên quan đến ý định và hành động--kết quả, nơi đáp án đúng phụ thuộc vào trạng thái kế hoạch hoặc chuỗi điều kiện--hành động--kết quả chứ không chỉ phụ thuộc vào độ giống ngữ nghĩa của một đoạn văn bản.
 
-Ở nhóm chỉ dùng kênh đồ thị, CogMem với sáu loại node đạt 26/35 câu (74,3\%); loại bỏ thói quen đạt 27/35 (77,1\%); loại bỏ hành động--kết quả hoặc ý định đạt 24/35 (68,6\%); còn đối chứng với ba loại node gốc kiểu HINDSIGHT chỉ đạt 22/35 (62,9\%). Kết quả này củng cố kết luận rằng cấu trúc đồ thị rất hữu ích, nhưng truy hồi đa kênh vẫn là yếu tố cần thiết cho bộ nhớ hội thoại dài hạn.
+\textbf{Đóng góp thứ hai} là schema lưu trữ hai lớp: bản tóm tắt có cấu trúc và đoạn trích nguyên văn. Đây là một điểm quan trọng vì quá trình nén hội thoại thành fact luôn có nguy cơ làm mất chi tiết. Một fact tóm tắt giúp hệ thống truy vấn nhanh và tổ chức đồ thị tốt hơn, nhưng đoạn trích nguyên văn giúp phần sinh câu trả lời kiểm tra lại tên riêng, con số, câu phủ định và ngữ cảnh thực tế. Nhìn ở mức hệ thống, đây là cách cân bằng giữa hai yêu cầu thường xung đột: bộ nhớ phải đủ gọn để truy vấn được, nhưng cũng phải đủ giàu để trả lời có căn cứ.
 
-Khi cô lập riêng kênh đồ thị để kiểm tra, cơ chế cộng dồn tín hiệu (SUM) cho thấy lợi thế rõ ràng hơn so với cơ chế chỉ lấy cực đại (MAX) ở top-5: tỉ lệ truy hồi phiên trung bình tăng từ 0,762 lên 0,805. SUM tốt hơn ở 2 câu và MAX không tốt hơn ở bất kỳ câu nào. Điều này xác nhận đóng góp của cơ chế cộng dồn trong đúng phạm vi của nó: cải thiện thứ tự bằng chứng trong truy hồi đồ thị, chứ không phải thay thế toàn bộ hệ thống đa kênh.
+\textbf{Đóng góp thứ ba} là cơ chế truy vấn trên đồ thị bằng tín hiệu tích lũy. Trong hội thoại dài, bằng chứng đúng thường không nằm ở một fact duy nhất có điểm rất cao, mà xuất hiện như sự hội tụ của nhiều dấu vết vừa phải. Do đó, CogMem dùng SUM spreading activation để cộng dồn tín hiệu từ nhiều đường đi, đồng thời dùng các cơ chế bảo vệ chu trình để tránh vòng lặp kích hoạt không kiểm soát. Ý nghĩa của đóng góp này không phải là thay thế hoàn toàn các kênh truy vấn khác, mà là bổ sung một cách nhìn khác về bằng chứng: bằng chứng có thể mạnh vì nó được nhiều đường liên quan cùng ủng hộ.
 
-Trên LoCoMo, cấu hình cuối cùng đạt 119/161 câu (73,9\%), vượt mục tiêu 70\% và tăng 22 câu so với baseline trước đó. Các nhóm truy hồi đa bước, nhân quả và sở thích đều đạt trên 88\%, trong khi nhóm suy luận thời gian chỉ đạt 41,7\%. Nhìn tổng thể, dự án đã đạt được một cột mốc thực nghiệm đáng tin cậy: hệ thống không chỉ vận hành được từ đầu đến cuối mà còn vượt ngưỡng chất lượng đặt ra trên một bộ dữ liệu hội thoại dài có độ khó cao.
+\textbf{Đóng góp thứ tư} là định tuyến truy vấn thích ứng. Các hệ thống RAG thông thường thường dùng một công thức truy vấn tương đối cố định cho mọi câu hỏi. CogMem thay đổi cách trộn kết quả dựa trên bản chất của câu hỏi: câu hỏi thời gian cần ưu tiên tín hiệu thời gian, câu hỏi nhân quả cần ưu tiên đồ thị và action-effect, câu hỏi kế hoạch cần chú ý đến intention, còn câu hỏi sở thích cần khai thác tốt cả từ khóa và ngữ nghĩa. Đây là một đóng góp nhỏ ở mức cài đặt nhưng quan trọng ở mức phương pháp luận, vì nó thừa nhận rằng ``liên quan'' không phải một khái niệm duy nhất cho mọi loại câu hỏi.
 
-Về hiệu năng retain, CogMem xử lý một conversation trung bình khoảng 30 phút trên local model Ministral3-3B, nhanh hơn khoảng ba lần so với HINDSIGHT ở mức 90--120 phút. CogMem cũng tạo khoảng 700 node, dưới một nửa so với khoảng 1500 node của HINDSIGHT. Điều này giúp giảm chi phí ingest, giảm kích thước memory graph và làm hệ thống thực tế hơn cho triển khai dài hạn.
+\subsection{Diễn giải kết quả thực nghiệm}
 
-\subsection{Hạn chế}
+Các kết quả ở Chương 4 cho thấy CogMem hoạt động tốt nhất khi các thành phần của nó được nhìn như một hệ thống phối hợp, không phải như những mô-đun độc lập luôn tạo ra cải thiện riêng lẻ. Đồ thị bộ nhớ có ích vì nó giữ được quan hệ giữa các fact, nhưng đồ thị một mình không đủ. Truy vấn ngữ nghĩa và BM25 vẫn cần thiết để tìm đúng tên riêng, cụm từ đặc thù và các đoạn diễn đạt gần nghĩa. Tín hiệu thời gian vẫn cần thiết để xử lý câu hỏi có ràng buộc theo phiên hoặc theo mốc ngày. Từ đó có thể rút ra một bài học tổng quát: bộ nhớ hội thoại dài hạn cần nhiều cơ chế truy vấn cùng tồn tại, mỗi cơ chế bù cho điểm yếu của cơ chế còn lại.
 
-Các hạn chế hiện tại tập trung vào ba điểm:
+Kết quả cũng cho thấy giá trị của các node chuyên biệt là giá trị theo điều kiện. Node ý định không phải lúc nào cũng làm tăng độ chính xác, vì trong nhiều hội thoại tự nhiên, thông tin về một kế hoạch có thể bị hấp thụ vào các fact trải nghiệm hoặc mô tả khác. Tuy nhiên, trong những trường hợp kế hoạch còn dang dở, bị hủy hoặc đã hoàn tất sau nhiều phiên, việc có một không gian biểu diễn riêng giúp hệ thống phân biệt trạng thái tốt hơn. Tương tự, node hành động--kết quả đặc biệt hữu ích khi thông tin cần nhớ là một quy luật can thiệp: gặp điều kiện nào, thực hiện hành động nào, và kết quả ra sao. Đây là loại tri thức rất quan trọng cho tác nhân AI sử dụng công cụ, nhưng dễ bị làm phẳng nếu chỉ lưu thành các câu mô tả.
 
-\begin{enumerate}
-    \item \textbf{Suy luận thời gian chính xác còn yếu}: các câu hỏi cần tính chính xác số ngày, số tuần hoặc thứ tự sự kiện vẫn tạo ra nhiều lỗi hơn các nhóm nhân quả, sở thích hay truy hồi đa bước.
-    \item \textbf{Tính đầy đủ của danh sách chưa ổn định}: khi câu hỏi yêu cầu liệt kê toàn bộ các mục, hệ thống vẫn có thể bỏ sót một số phần tử hoặc thêm vào những mục không có trong đáp án chuẩn.
-    \item \textbf{Node thói quen chưa được chứng minh mạnh mẽ}: thói quen có cơ sở biểu diễn hợp lý về mặt lý thuyết, nhưng các bộ dữ liệu hiện tại chưa cho thấy sự cải thiện rõ rệt như node hành động--kết quả hay node ý định trong các thí nghiệm nhắm đích.
-\end{enumerate}
+Một ý nghĩa khác của kết quả là CogMem Bench không chỉ đóng vai trò phụ trợ, mà giúp làm rõ những điều các benchmark chuẩn khó đo được. LongMemEval và LoCoMo cho biết hệ thống trả lời tốt đến đâu trên hội thoại dài, nhưng chúng không được thiết kế để cô lập xem một loại node nhận thức có thật sự cần thiết hay không. CogMem Bench bổ sung góc nhìn đó bằng cách so sánh hai ngân hàng bộ nhớ có kiểm soát: một ngân hàng đầy đủ và một ngân hàng loại bỏ loại node mục tiêu. Dù quy mô hiện tại còn nhỏ, cách đánh giá này giúp chuyển câu hỏi từ ``hệ thống có đúng nhiều hơn không'' sang ``thành phần nào là điều kiện cần trong tình huống nào''.
 
-Những hạn chế này chủ yếu nằm ở khâu lựa chọn bằng chứng, suy luận tất định và kiểm soát quá trình sinh câu trả lời, hơn là ở việc thiếu một loại fact mới.
+Kết quả về hiệu năng cũng có ý nghĩa thực tế. Một hệ thống bộ nhớ dài hạn không chỉ cần chính xác, mà còn cần có chi phí nạp dữ liệu và kích thước đồ thị hợp lý. CogMem cho thấy việc thêm cấu trúc nhận thức không nhất thiết làm hệ thống cồng kềnh hơn. Khi quá trình trích xuất được thiết kế trực tiếp theo loại fact và quan hệ cần lưu, hệ thống có thể tạo đồ thị gọn hơn baseline HINDSIGHT, đồng thời vẫn giữ được các tín hiệu quan trọng cho truy vấn. Đây là điểm quan trọng nếu muốn đưa bộ nhớ dài hạn ra khỏi phạm vi thí nghiệm và tiến gần hơn tới triển khai thực tế.
 
-\subsection{Hướng phát triển}
+\subsection{Bài học thiết kế}
 
-Các hướng phát triển có tác động cao nhất cho phiên bản tiếp theo nên tập trung vào tính hữu dụng thực tế, không chỉ tối ưu thêm một benchmark:
+Bài học đầu tiên là không nên đánh đồng ``nhớ'' với ``tìm lại đoạn văn giống câu hỏi''. Trong nhiều câu hỏi hội thoại dài, đáp án đúng nằm ở trạng thái, quan hệ hoặc sự thay đổi qua thời gian. Một người dùng có thể từng định làm một việc, sau đó bỏ dở, rồi nhắc lại bằng một cách diễn đạt khác. Nếu hệ thống chỉ tìm đoạn gần nghĩa nhất, nó có thể tìm đúng chủ đề nhưng sai trạng thái. Vì vậy, bộ nhớ cần lưu cả nội dung lẫn vai trò của nội dung trong vòng đời thông tin.
 
-\begin{enumerate}
-    \item \textbf{Tình huống bộ nhớ cho tác nhân AI}: thử nghiệm CogMem trên các vết hội thoại dài của tác nhân AI thực tế, nơi node hành động--kết quả có thể lưu quan hệ ``điều kiện -- hành động công cụ -- kết quả'' thay vì chỉ dựa vào hội thoại mô phỏng ngắn.
-    \item \textbf{Kịch bản trợ lý hướng tương lai}: thiết kế các tình huống thực tế về kế hoạch chưa hoàn thành, kế hoạch bị hủy và kế hoạch được thực hiện để kiểm tra mạng Ý định trong vòng đời dài hơn.
-    \item \textbf{Nhật ký thói quen và hành vi lặp lại}: xây dựng tập dữ liệu dạng nhật ký nhiều tuần để kiểm tra mạng Thói quen trên các yếu tố như ngữ cảnh kích hoạt, sự gián đoạn thói quen và hành vi lặp lại, thay vì chỉ hỏi các fact đơn lẻ.
-    \item \textbf{Độ tin cậy trong triển khai thực tế}: bổ sung bộ suy luận thời gian, cơ chế kiểm soát tính đầy đủ của danh sách và hiệu chuẩn phủ định để giảm lỗi trong các ứng dụng trợ lý thực tế.
-\end{enumerate}
+Bài học thứ hai là bằng chứng cần được xử lý như một đối tượng trung tâm của hệ thống, không phải phần phụ sau truy vấn. Việc giữ raw snippet, xếp hạng lại bằng CrossEncoder, dùng RRF có trọng số và ưu tiên cửa sổ trích dẫn đều hướng tới cùng một mục tiêu: đưa bằng chứng đúng, đủ chi tiết và ít nhiễu vào prompt. Với LLM, chất lượng câu trả lời cuối cùng phụ thuộc rất mạnh vào chất lượng của ngữ cảnh được cung cấp. Do đó, cải thiện generation không chỉ là sửa prompt, mà còn là cải thiện toàn bộ chuỗi chọn bằng chứng trước đó.
 
-Nhìn chung, CogMem đã chứng minh rằng đồ thị nhận thức, bảo toàn bằng chứng gốc, truy hồi đa kênh và định tuyến thích ứng là đủ để tạo ra một API bộ nhớ dài hạn khả dụng; các điểm yếu còn lại nằm ở suy luận thời gian, liệt kê chính xác và bằng chứng đặc thù cho thói quen.
+Bài học thứ ba là đánh giá bộ nhớ cần kết hợp nhiều cấp độ. Benchmark chuẩn giúp đo năng lực tổng quát, ablation giúp kiểm tra đóng góp của từng nhóm thành phần, còn các kịch bản nhắm đích như CogMem Bench giúp quan sát những tình huống mà một biểu diễn cụ thể trở thành điều kiện cần. Nếu chỉ nhìn vào accuracy tổng, ta dễ bỏ qua những lỗi hiếm nhưng quan trọng; nếu chỉ nhìn vào case định tính, ta lại khó biết hệ thống có vận hành ổn định trên khối lượng công việc rộng hay không. Một hệ thống bộ nhớ dài hạn đáng tin cậy cần được đánh giá bằng cả hai góc nhìn.
+
+\section{Hạn chế}
+
+\subsection{Biểu diễn bộ nhớ}
+
+Giới hạn đầu tiên của CogMem nằm ở mức biểu diễn. Hệ thống đã có cơ chế phân loại theo sáu loại fact, nhưng các quan hệ chuyển giao giữa các loại fact vẫn chưa được đánh giá đầy đủ. Ví dụ, một kế hoạch có thể bắt đầu như intention, sau đó được thực hiện và trở thành experience; một thói quen có thể bị gián đoạn bởi một sự kiện; một hành động có thể thay đổi sở thích hoặc kế hoạch tương lai của người dùng. Các thí nghiệm hiện tại đã có cơ chế cô lập đóng góp theo loại node, đặc biệt là intention và action-effect, nhưng chưa có một bộ đo riêng cho các quan hệ chuyển trạng thái như experience--intention, intention--experience, hay việc một kế hoạch thay đổi liên tục qua nhiều phiên.
+
+Node thói quen cũng là một giới hạn quan trọng. Về mặt lý thuyết, habit là một thành phần cần thiết nếu muốn hệ thống hiểu hành vi lặp lại và ngữ cảnh kích hoạt. Tuy nhiên, các bộ dữ liệu đã đánh giá chưa tạo đủ áp lực để loại node này thể hiện đóng góp rõ ràng. Điều này không có nghĩa thói quen là không cần thiết, mà cho thấy cần một loại dữ liệu khác: nhật ký hành vi dài ngày, có sự lặp lại, gián đoạn, thay đổi lịch trình và các tín hiệu kích hoạt theo ngữ cảnh.
+
+\subsection{Truy vấn và xếp hạng bằng chứng}
+
+Giới hạn thứ hai nằm ở truy vấn. CogMem đã dùng truy vấn đa kênh, nhưng việc phối hợp các kênh vẫn còn dựa trên một số quyết định tương đối thủ công. Bộ định tuyến truy vấn phân loại câu hỏi thành các nhóm cố định và áp dụng trọng số tương ứng. Cách làm này dễ kiểm soát và phù hợp với phạm vi đồ án, nhưng chưa đủ linh hoạt cho mọi cách người dùng diễn đạt trong thực tế. Một câu hỏi có thể vừa là temporal, vừa là causal, vừa cần multi-hop; việc ép nó vào một nhóm chính có thể làm mất một phần tín hiệu.
+
+Ngoài ra, suy luận thời gian vẫn là điểm yếu rõ nhất. Các câu hỏi cần tính chính xác số ngày, số tuần, thứ tự sự kiện hoặc khoảng cách giữa hai mốc thời gian thường đòi hỏi một cơ chế tất định hơn so với truy vấn ngữ nghĩa thông thường. CogMem hiện đã có kênh thời gian và một số gợi ý thời gian hẹp, nhưng chưa có một bộ suy luận thời gian tổng quát có thể chuẩn hóa mốc ngày, xử lý khoảng thời gian, so sánh thứ tự và giải quyết các biểu thức thời gian tương đối.
+
+\subsection{Tổng hợp câu trả lời}
+
+Giới hạn thứ ba nằm ở tầng tổng hợp. Ngay cả khi truy vấn đã đưa được bằng chứng liên quan vào prompt, mô hình sinh vẫn có thể bỏ sót một phần tử trong câu hỏi liệt kê, chọn bằng chứng dễ diễn giải hơn thay vì bằng chứng chính xác hơn, hoặc trả lời đúng chủ đề nhưng sai chi tiết. Đây là giới hạn phổ biến của các hệ thống RAG dùng LLM làm tầng cuối: retrieval tốt là điều kiện cần, nhưng chưa đủ để đảm bảo generation đúng.
+
+Việc ưu tiên raw snippet đã giúp giảm một phần lỗi mất chi tiết, nhưng chưa giải quyết hoàn toàn vấn đề kiểm soát câu trả lời. Các câu hỏi dạng danh sách, câu hỏi yêu cầu phủ định và câu hỏi cần đối chiếu nhiều bằng chứng vẫn cần cơ chế kiểm tra sau sinh hoặc chiến lược sinh có cấu trúc hơn. Nói cách khác, CogMem đã cải thiện chất lượng ngữ cảnh cho LLM, nhưng chưa biến phần sinh câu trả lời thành một quá trình suy luận có thể kiểm chứng đầy đủ.
+
+\subsection{Thiết kế đánh giá}
+
+Giới hạn cuối cùng là phạm vi đánh giá. LongMemEval và LoCoMo là hai benchmark hữu ích cho hội thoại dài, nhưng chúng vẫn là các tập dữ liệu chuẩn với cấu trúc cố định. CogMem Bench giúp kiểm tra các loại node mới, nhưng quy mô hiện tại còn nhỏ và phần lớn dữ liệu vẫn được sinh từ đặc tả mô phỏng. Do đó, kết quả nên được hiểu như bằng chứng khả thi và bằng chứng điều kiện, không phải khẳng định rằng CogMem đã bao phủ toàn bộ các tình huống bộ nhớ dài hạn trong thực tế.
+
+Một hệ thống bộ nhớ dùng trong sản phẩm thật sẽ phải xử lý nhiều yếu tố chưa xuất hiện đầy đủ trong thí nghiệm: người dùng thay đổi cách nói theo thời gian, thông tin cũ bị phủ định, nhiều người dùng có lịch sử đan xen, dữ liệu có lỗi hoặc thiếu mốc thời gian, và tác nhân AI thực hiện hành động bên ngoài hội thoại. Những yếu tố này đòi hỏi một vòng đánh giá rộng hơn, có dữ liệu thực hơn và có tiêu chí an toàn rõ ràng hơn.
+
+\section{Hướng phát triển}
+
+\subsection{Đánh giá quan hệ chuyển giao}
+
+Hướng phát triển đầu tiên là xây dựng một bộ đánh giá dành riêng cho các quan hệ chuyển giao giữa các loại fact. Thay vì chỉ hỏi việc loại bỏ intention hay action-effect làm giảm kết quả bao nhiêu, bộ đánh giá mới cần kiểm tra các chuỗi trạng thái như: một kế hoạch được nêu ra, bị trì hoãn, được cập nhật, hoàn thành hoặc bị hủy; một experience làm thay đổi opinion; một hành động thành công trở thành quy tắc cho lần sau. Đây là bước cần thiết để kiểm tra sâu hơn giả thuyết rằng bộ nhớ hội thoại dài hạn không chỉ cần nhiều loại node, mà còn cần mô hình hóa vòng đời của thông tin.
+
+Về mặt triển khai, hướng này có thể mở rộng CogMem Bench bằng các đặc tả nhiều phiên dài hơn. Mỗi kịch bản nên xác định rõ trạng thái ban đầu, các cập nhật trung gian, trạng thái cuối và các phương án gây nhiễu. Khi đó, ablation không chỉ loại bỏ một loại node, mà còn có thể loại bỏ một loại cạnh hoặc một quan hệ chuyển trạng thái cụ thể. Điều này sẽ giúp đo được đóng góp của edge semantics, không chỉ node semantics.
+
+\subsection{Suy luận thời gian và truy vấn danh sách}
+
+Hướng phát triển thứ hai là bổ sung một tầng suy luận thời gian rõ ràng hơn. Tầng này nên chuẩn hóa tất cả mốc thời gian về dạng có thể so sánh, lưu cả thời gian tuyệt đối và tương đối, đồng thời hỗ trợ các phép truy vấn như trước--sau, gần nhất, xa nhất, kéo dài bao lâu và xảy ra bao nhiêu lần. Với những câu hỏi cần tính toán, hệ thống nên dùng một thủ tục tất định thay vì để LLM tự suy luận trong prompt.
+
+Bên cạnh thời gian, các câu hỏi dạng danh sách cũng cần được xử lý có cấu trúc hơn. Một hướng khả thi là tách riêng quá trình sinh câu trả lời thành hai bước: trước hết tạo tập ứng viên đầy đủ từ bằng chứng, sau đó mới diễn đạt thành câu trả lời tự nhiên. Với cách này, hệ thống có thể kiểm tra trùng lặp, thiếu phần tử và các mục không có bằng chứng trước khi trả lời. Đây là cải tiến quan trọng nếu CogMem được dùng trong các trợ lý cá nhân cần trả lời danh sách sở thích, địa điểm, công việc hoặc lịch sử hoạt động của người dùng.
+
+\subsection{CogMem Bench mở rộng}
+
+Hướng phát triển thứ ba là mở rộng CogMem Bench cả về quy mô lẫn độ đa dạng. Phiên bản hiện tại đã chứng minh rằng paired-bank ablation là một phương pháp hữu ích để kiểm tra giá trị của loại node, nhưng số lượng kịch bản còn nhỏ. Phiên bản tiếp theo nên bổ sung nhiều nhóm hơn: intention ở trạng thái planning, fulfilled và abandoned; habit có ngữ cảnh kích hoạt rõ; action-effect trong các miền công cụ khác nhau; và các kịch bản có nhiều cập nhật qua thời gian.
+
+Ngoài ra, quá trình sinh dữ liệu nên giảm nguy cơ rò rỉ thông tin. Một số kịch bản hiện tại bị thất bại vì mô hình sinh hội thoại vô tình viết lại quy luật nhân quả thành một fact mô tả, khiến ngân hàng đối chứng vẫn trả lời được. Điều này cho thấy benchmark không chỉ cần nhiều mẫu hơn, mà cần quy trình kiểm soát chặt hơn: prompt sinh dữ liệu nghiêm ngặt hơn, kiểm tra tự động về rò rỉ thông tin, và bước đọc thủ công để phân loại nguyên nhân thất bại.
+
+\subsection{Ứng dụng trong tác nhân AI}
+
+Hướng phát triển thứ tư là đưa CogMem vào các vết hoạt động thật của tác nhân AI. Trong môi trường thực tế, tác nhân không chỉ trò chuyện mà còn đọc file, gọi API, chạy lệnh, sửa mã nguồn và quan sát lỗi. Những vết này là nơi node action-effect có thể phát huy giá trị mạnh nhất, vì hệ thống cần nhớ rằng một hành động cụ thể đã từng giải quyết một lỗi cụ thể trong một điều kiện cụ thể. Đây cũng là môi trường phù hợp để kiểm tra xem CogMem có giúp tác nhân tránh lặp lại lỗi, tái sử dụng kinh nghiệm và đưa ra quyết định tốt hơn qua thời gian hay không.
+
+Để triển khai theo hướng này, CogMem cần được bổ sung cơ chế retain tăng dần, vì tác nhân thực tế không thể nạp lại toàn bộ lịch sử sau mỗi lượt. Hệ thống cũng cần quản lý phiên bản bộ nhớ, phát hiện fact cũ bị thay thế, và kiểm soát quyền riêng tư khi lưu vết công cụ. Đây là những yêu cầu vượt ra ngoài phạm vi đồ án hiện tại, nhưng là bước cần thiết để biến CogMem từ một nguyên mẫu nghiên cứu thành một hạ tầng bộ nhớ có thể dùng lâu dài.
+
+\subsection{Hiệu năng vận hành}
+
+Hướng phát triển cuối cùng là tối ưu hóa vận hành. Dù CogMem đã nhanh hơn baseline trong giai đoạn nạp dữ liệu, thời gian xử lý vẫn còn lớn nếu triển khai cho nhiều người dùng hoặc nhiều tác nhân song song. Các cải tiến có thể bao gồm batch embedding hiệu quả hơn, cache cho truy vấn lặp lại, cập nhật đồ thị theo lô nhỏ, và lựa chọn linh hoạt khi nào cần dùng CrossEncoder. Không phải mọi câu hỏi đều cần tầng xếp hạng lại đắt hơn; hệ thống có thể chỉ kích hoạt nó khi tập ứng viên có nhiều bằng chứng gần nhau hoặc khi câu hỏi có rủi ro nhầm lẫn cao.
+
+Ở tầng lưu trữ, cần tiếp tục giảm kích thước đồ thị mà không làm mất quan hệ quan trọng. Một hướng khả thi là gom các fact tương tự theo thời gian, làm giàu node ổn định thay vì tạo node mới cho mọi biến thể, và dùng cơ chế quên có kiểm soát đối với thông tin tạm thời. Bộ nhớ dài hạn không nên chỉ tăng mãi; nó cần biết thông tin nào đã lỗi thời, thông tin nào vẫn còn giá trị và thông tin nào cần được giữ nguyên văn vì có vai trò bằng chứng.
+
+Nhìn chung, CogMem đã chứng minh rằng đồ thị nhận thức, bảo toàn bằng chứng gốc, truy vấn đa kênh và định tuyến thích ứng có thể tạo thành một nền tảng khả thi cho bộ nhớ hội thoại dài hạn. Phần còn lại của hướng nghiên cứu nằm ở việc làm cho nền tảng đó sâu hơn về quan hệ chuyển trạng thái, chắc hơn ở suy luận tất định, rộng hơn ở đánh giá thực tế và hiệu quả hơn trong vận hành lâu dài.
 
 \vspace{1em}
 \noindent\textit{Báo cáo khép lại tại đây. Các phụ lục tiếp theo cung cấp thêm chi tiết về dữ liệu và cấu hình thí nghiệm.}
