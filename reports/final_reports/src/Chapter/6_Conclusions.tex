@@ -75,6 +75,12 @@ Hướng phát triển đầu tiên là xây dựng một bộ đánh giá dành
 
 Về mặt triển khai, hướng này có thể mở rộng CogMem Bench bằng các đặc tả nhiều phiên dài hơn. Mỗi kịch bản nên xác định rõ trạng thái ban đầu, các cập nhật trung gian, trạng thái cuối và các phương án gây nhiễu. Khi đó, ablation không chỉ loại bỏ một loại node, mà còn có thể loại bỏ một loại cạnh hoặc một quan hệ chuyển trạng thái cụ thể. Điều này sẽ giúp đo được đóng góp của edge semantics, không chỉ node semantics.
 
+\subsection{Truy vấn ưu tiên theo loại node}
+
+Một hướng phát triển khác xuất phát trực tiếp từ phân tích định tính ở Chương 4 là làm cho recall nhạy hơn với loại node mà câu hỏi đang cần. Hiện tại CogMem đã có định tuyến truy vấn thích ứng ở mức trọng số giữa các kênh, nhưng hệ thống vẫn chủ yếu truy vấn trên không gian ứng viên rộng, sau đó để RRF và CrossEncoder xếp hạng lại. Các case thành công của CogMem Bench gợi ý rằng trong một số câu hỏi, loại node mục tiêu đã mang phần lớn thông tin quyết định: câu hỏi về kế hoạch chưa hoàn thành thường cần \textit{intention}; câu hỏi về lỗi, hành động sửa và kết quả thường cần \textit{action\_effect}.
+
+Vì vậy, một cải tiến tự nhiên là bổ sung cơ chế recall theo loại node: trước hết nhận diện nhu cầu nhận thức của câu hỏi, sau đó ưu tiên hoặc mở rộng tìm kiếm trên những fact type tương ứng thay vì cào bằng mọi node. Cách này không có nghĩa loại bỏ truy vấn đa kênh, mà là thêm một tầng điều khiển ứng viên trước khi hợp nhất điểm. Ví dụ, truy vấn \textit{prospective} có thể lấy nhiều ứng viên \textit{intention} hơn và theo dõi trạng thái \textit{planning}/\textit{fulfilled}; truy vấn \textit{causal} có thể tăng quota cho \textit{action\_effect} và các cạnh điều kiện--hành động--kết quả. Nếu làm tốt, hệ thống có thể giảm nhiễu, giảm phụ thuộc vào CrossEncoder ở các câu hỏi có tín hiệu loại node rõ ràng, đồng thời tận dụng tốt hơn chính cấu trúc nhận thức đã được lưu trong đồ thị.
+
 \subsection{Suy luận thời gian và truy vấn danh sách}
 
 Hướng phát triển thứ hai là bổ sung một tầng suy luận thời gian rõ ràng hơn. Tầng này nên chuẩn hóa tất cả mốc thời gian về dạng có thể so sánh, lưu cả thời gian tuyệt đối và tương đối, đồng thời hỗ trợ các phép truy vấn như trước--sau, gần nhất, xa nhất, kéo dài bao lâu và xảy ra bao nhiêu lần. Với những câu hỏi cần tính toán, hệ thống nên dùng một thủ tục tất định thay vì để LLM tự suy luận trong prompt.

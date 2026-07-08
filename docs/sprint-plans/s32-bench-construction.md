@@ -83,7 +83,7 @@ uv run python .claude/skills/cogmem-bench-author/scripts/validate_specs.py --dir
 uv run python -m cogmem_bench.generate              # --dry-run for offline wiring, --only <id>, --last-k N
 
 # Step 3 — gate (needs running cogmem-api with Ministral)
-uv run python -m cogmem_bench.gate                  # writes logs/bench_gate_report.md + data/bench/gate_results.json
+uv run python -m cogmem_bench.gate                  # writes experiments/cogmem_bench/bench_gate_report.md + gate_results.json
 ```
 
 ## Verification (artifacts + tests)
@@ -97,7 +97,7 @@ real harness, gate decision logic, 6 specs valid, generate dry-run, env preceden
 
 **Live pilot pending:** `python -m cogmem_bench.generate` then `gate` need Minimax +
 running Ministral endpoints (unset in dev env). Run on the Kaggle+NGROK setup → yields
-`logs/bench_gate_report.md`.
+`experiments/cogmem_bench/bench_gate_report.md`.
 
 ## Deferred to S33
 

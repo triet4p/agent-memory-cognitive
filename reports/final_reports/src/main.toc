@@ -43,86 +43,91 @@
 \contentsline {subsection}{\numberline {3.2.3}Luồng tổng hợp câu trả lời}{22}{subsection.3.2.3}%
 \contentsline {section}{\numberline {3.3}Đồ thị tri thức từ khoa học nhận thức}{23}{section.3.3}%
 \contentsline {subsection}{\numberline {3.3.1}Động lực nhận thức và cấu trúc đa hệ thống}{23}{subsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.3.2}Các mạng phân định}{23}{subsection.3.3.2}%
-\contentsline {subsubsection}{\numberline {a}Trí nhớ ngữ nghĩa và mạng World}{25}{subsubsection.3.3.2.1}%
-\contentsline {subsubsection}{\numberline {b}Habit Memory và Habit Network}{26}{subsubsection.3.3.2.2}%
-\contentsline {subsubsection}{\numberline {c}Prospective Memory và Intention Network}{27}{subsubsection.3.3.2.3}%
-\contentsline {subsubsection}{\numberline {d}Theory of Event Coding và Action-Effect Network}{28}{subsubsection.3.3.2.4}%
-\contentsline {subsection}{\numberline {3.3.3}Khác biệt cốt lõi giữa Habit và Action-Effect}{29}{subsection.3.3.3}%
-\contentsline {subsection}{\numberline {3.3.4}Bản chất ngữ nghĩa của các liên kết đồ thị}{30}{subsection.3.3.4}%
-\contentsline {section}{\numberline {3.4}Biểu diễn song song: ghi nhớ tóm tắt và dấu vết nguyên văn}{31}{section.3.4}%
-\contentsline {subsection}{\numberline {3.4.1}Vấn đề nén dữ liệu có mất thông tin}{31}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {3.4.2}Fuzzy Trace Theory và giải pháp hai lớp}{32}{subsection.3.4.2}%
-\contentsline {section}{\numberline {3.5}Truy vấn đa kênh và kết hợp bằng chứng}{33}{section.3.5}%
-\contentsline {subsection}{\numberline {3.5.1}Vì sao không dùng một kênh duy nhất}{33}{subsection.3.5.1}%
-\contentsline {subsection}{\numberline {3.5.2}Bốn kênh truy vấn song song}{34}{subsection.3.5.2}%
-\contentsline {subsection}{\numberline {3.5.3}Kết hợp bằng chứng bằng weighted RRF}{34}{subsection.3.5.3}%
-\contentsline {subsection}{\numberline {3.5.4}Xếp hạng lại bằng CrossEncoder}{35}{subsection.3.5.4}%
-\contentsline {section}{\numberline {3.6}Truy vấn trên đồ thị tri thức}{35}{section.3.6}%
-\contentsline {subsection}{\numberline {3.6.1}Nhược điểm của toán tử MAX và khái niệm Episodic Buffer}{35}{subsection.3.6.1}%
-\contentsline {subsection}{\numberline {3.6.2}Lan truyền tín hiệu tích lũy}{36}{subsection.3.6.2}%
-\contentsline {subsection}{\numberline {3.6.3}Cơ sở thần kinh học và ba cơ chế bảo vệ chống nhiễu}{38}{subsection.3.6.3}%
-\contentsline {section}{\numberline {3.7}Định tuyến truy vấn thích ứng (Adaptive Query Routing)}{39}{section.3.7}%
-\contentsline {subsection}{\numberline {3.7.1}Attentional Selection và vấn đề trọng số cố định}{39}{subsection.3.7.1}%
-\contentsline {subsection}{\numberline {3.7.2}Phân loại truy vấn và kết hợp theo nội dung câu hỏi}{39}{subsection.3.7.2}%
-\contentsline {section}{\numberline {3.8}Sinh câu trả lời}{41}{section.3.8}%
-\contentsline {subsection}{\numberline {3.8.1}Tạo ngữ cảnh cho mô hình sinh}{41}{subsection.3.8.1}%
-\contentsline {subsection}{\numberline {3.8.2}Đầu ra phục vụ đánh giá và truy vết}{42}{subsection.3.8.2}%
-\contentsline {chapter}{\numberline {4}KẾT QUẢ THỰC NGHIỆM VÀ ĐÁNH GIÁ}{43}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Thiết kế thực nghiệm}{43}{section.4.1}%
-\contentsline {subsection}{\numberline {4.1.1}Luồng đánh giá tổng quát}{43}{subsection.4.1.1}%
-\contentsline {subsection}{\numberline {4.1.2}Chắt lọc dữ liệu}{44}{subsection.4.1.2}%
-\contentsline {subsubsection}{\numberline {a}Lý do chắt lọc dữ liệu}{44}{subsubsection.4.1.2.1}%
-\contentsline {subsubsection}{\numberline {b}Phân bố dữ liệu sau chắt lọc}{45}{subsubsection.4.1.2.2}%
-\contentsline {subsubsection}{\numberline {c}LongMemEval: tập so sánh cấu hình và ablation}{45}{subsubsection.4.1.2.3}%
-\contentsline {subsubsection}{\numberline {d}LoCoMo: tập đánh giá cấu hình cuối trên hội thoại dài}{45}{subsubsection.4.1.2.4}%
-\contentsline {subsection}{\numberline {4.1.3}CogMem Bench: bộ dữ liệu tự xây dựng để kiểm định các loại nút}{45}{subsection.4.1.3}%
-\contentsline {subsection}{\numberline {4.1.4}Các thước đo đánh giá}{49}{subsection.4.1.4}%
-\contentsline {subsection}{\numberline {4.1.5}Phương pháp chấm điểm: LLM làm giám khảo (LLM-as-a-Judge)}{50}{subsection.4.1.5}%
-\contentsline {subsubsection}{\numberline {a}Nguyên tắc chấm điểm}{50}{subsubsection.4.1.5.1}%
-\contentsline {subsubsection}{\numberline {b}Quy tắc đặc biệt cho câu hỏi thời gian}{51}{subsubsection.4.1.5.2}%
-\contentsline {subsubsection}{\numberline {c}Điều kiện đạt (PASS)}{51}{subsubsection.4.1.5.3}%
-\contentsline {subsubsection}{\numberline {d}Phạm vi áp dụng}{51}{subsubsection.4.1.5.4}%
-\contentsline {subsection}{\numberline {4.1.6}Các cấu hình so sánh}{52}{subsection.4.1.6}%
-\contentsline {section}{\numberline {4.2}Kết quả trên LongMemEval}{52}{section.4.2}%
-\contentsline {subsection}{\numberline {4.2.1}So sánh tổng quan các cấu hình}{53}{subsection.4.2.1}%
-\contentsline {subsection}{\numberline {4.2.2}Đối chứng SUM và MAX trên kênh đồ thị}{54}{subsection.4.2.2}%
-\contentsline {subsection}{\numberline {4.2.3}Hiệu năng nạp dữ liệu}{54}{subsection.4.2.3}%
-\contentsline {section}{\numberline {4.3}Kết quả trên LoCoMo}{55}{section.4.3}%
-\contentsline {subsection}{\numberline {4.3.1}Kết quả tổng quan}{55}{subsection.4.3.1}%
-\contentsline {subsection}{\numberline {4.3.2}Phân tích theo nhóm câu hỏi}{56}{subsection.4.3.2}%
-\contentsline {subsection}{\numberline {4.3.3}Phân tích lỗi còn tồn tại}{56}{subsection.4.3.3}%
-\contentsline {section}{\numberline {4.4}Đánh giá định tính trên CogMem Bench}{57}{section.4.4}%
-\contentsline {subsection}{\numberline {4.4.1}Nút ý định và kế hoạch chưa hoàn thành}{57}{subsection.4.4.1}%
-\contentsline {subsection}{\numberline {4.4.2}Nút hành động--kết quả và quan hệ can thiệp}{59}{subsection.4.4.2}%
-\contentsline {section}{\numberline {4.5}Tổng kết thực nghiệm}{60}{section.4.5}%
-\contentsline {chapter}{\numberline {5}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{62}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Kết luận}{62}{section.5.1}%
-\contentsline {subsection}{\numberline {5.1.1}Mức độ hoàn thành mục tiêu}{62}{subsection.5.1.1}%
-\contentsline {subsection}{\numberline {5.1.2}Các đóng góp chính}{63}{subsection.5.1.2}%
-\contentsline {subsection}{\numberline {5.1.3}Diễn giải kết quả thực nghiệm}{63}{subsection.5.1.3}%
-\contentsline {subsection}{\numberline {5.1.4}Bài học thiết kế}{64}{subsection.5.1.4}%
-\contentsline {section}{\numberline {5.2}Hạn chế}{65}{section.5.2}%
-\contentsline {subsection}{\numberline {5.2.1}Biểu diễn bộ nhớ}{65}{subsection.5.2.1}%
-\contentsline {subsection}{\numberline {5.2.2}Truy vấn và xếp hạng bằng chứng}{66}{subsection.5.2.2}%
-\contentsline {subsection}{\numberline {5.2.3}Tổng hợp câu trả lời}{66}{subsection.5.2.3}%
-\contentsline {subsection}{\numberline {5.2.4}Thiết kế đánh giá}{66}{subsection.5.2.4}%
-\contentsline {section}{\numberline {5.3}Hướng phát triển}{67}{section.5.3}%
-\contentsline {subsection}{\numberline {5.3.1}Đánh giá quan hệ chuyển giao}{67}{subsection.5.3.1}%
-\contentsline {subsection}{\numberline {5.3.2}Suy luận thời gian và truy vấn danh sách}{67}{subsection.5.3.2}%
-\contentsline {subsection}{\numberline {5.3.3}CogMem Bench mở rộng}{68}{subsection.5.3.3}%
-\contentsline {subsection}{\numberline {5.3.4}Ứng dụng trong tác nhân AI}{68}{subsection.5.3.4}%
-\contentsline {subsection}{\numberline {5.3.5}Hiệu năng vận hành}{68}{subsection.5.3.5}%
-\contentsline {chapter}{TÀI LIỆU THAM KHẢO}{71}{section*.40}%
-\contentsline {chapter}{\numberline {A}Knowledge Extraction Prompts (Retain Pipeline)}{72}{appendix.A}%
-\contentsline {subsection}{\numberline {A.0.1}Prompt Trích xuất Pass 1 (Fact Extraction)}{72}{subsection.A.0.1}%
-\contentsline {subsection}{\numberline {A.0.2}Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{73}{subsection.A.0.2}%
-\contentsline {chapter}{\numberline {B}Evaluation and Reflection Prompts}{74}{appendix.B}%
-\contentsline {subsection}{\numberline {B.0.1}Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{74}{subsection.B.0.1}%
-\contentsline {subsection}{\numberline {B.0.2}Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{74}{subsection.B.0.2}%
-\contentsline {chapter}{\numberline {C}Các kịch bản thành công của CogMem Bench}{76}{appendix.C}%
-\contentsline {subsection}{\numberline {C.0.1}Cấu trúc đọc một kịch bản CogMem Bench}{76}{subsection.C.0.1}%
-\contentsline {subsection}{\numberline {C.0.2}Ý định chưa hoàn thành: composting}{76}{subsection.C.0.2}%
-\contentsline {subsection}{\numberline {C.0.3}Ý định đã hoàn tất: bàn đứng}{77}{subsection.C.0.3}%
-\contentsline {subsection}{\numberline {C.0.4}Hành động--kết quả: HTTP 429 với Retry-After}{77}{subsection.C.0.4}%
+\contentsline {subsection}{\numberline {3.3.2}Lược đồ lưu trữ chung của đồ thị bộ nhớ}{23}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Các mạng phân định}{25}{subsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {a}Trí nhớ ngữ nghĩa và mạng World}{27}{subsubsection.3.3.3.1}%
+\contentsline {subsubsection}{\numberline {b}Habit Memory và Habit Network}{28}{subsubsection.3.3.3.2}%
+\contentsline {subsubsection}{\numberline {c}Prospective Memory và Intention Network}{29}{subsubsection.3.3.3.3}%
+\contentsline {subsubsection}{\numberline {d}Theory of Event Coding và Action-Effect Network}{30}{subsubsection.3.3.3.4}%
+\contentsline {subsection}{\numberline {3.3.4}Khác biệt cốt lõi giữa Habit và Action-Effect}{31}{subsection.3.3.4}%
+\contentsline {subsection}{\numberline {3.3.5}Bản chất ngữ nghĩa của các liên kết đồ thị}{32}{subsection.3.3.5}%
+\contentsline {section}{\numberline {3.4}Biểu diễn song song: ghi nhớ tóm tắt và dấu vết nguyên văn}{33}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Vấn đề nén dữ liệu có mất thông tin}{33}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Fuzzy Trace Theory và giải pháp hai lớp}{34}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}Truy vấn đa kênh và kết hợp bằng chứng}{35}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Vì sao không dùng một kênh duy nhất}{35}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Bốn kênh truy vấn song song}{36}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}Kết hợp bằng chứng bằng weighted RRF}{36}{subsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.5.4}Xếp hạng lại bằng CrossEncoder}{37}{subsection.3.5.4}%
+\contentsline {section}{\numberline {3.6}Truy vấn trên đồ thị tri thức}{37}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}Nhược điểm của toán tử MAX và khái niệm Episodic Buffer}{37}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}Lan truyền tín hiệu tích lũy}{38}{subsection.3.6.2}%
+\contentsline {subsection}{\numberline {3.6.3}Cơ sở thần kinh học và ba cơ chế bảo vệ chống nhiễu}{40}{subsection.3.6.3}%
+\contentsline {section}{\numberline {3.7}Định tuyến truy vấn thích ứng (Adaptive Query Routing)}{41}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Attentional Selection và vấn đề trọng số cố định}{41}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Phân loại truy vấn và kết hợp theo nội dung câu hỏi}{41}{subsection.3.7.2}%
+\contentsline {section}{\numberline {3.8}Sinh câu trả lời}{43}{section.3.8}%
+\contentsline {subsection}{\numberline {3.8.1}Tạo ngữ cảnh cho mô hình sinh}{43}{subsection.3.8.1}%
+\contentsline {subsection}{\numberline {3.8.2}Đầu ra phục vụ đánh giá và truy vết}{44}{subsection.3.8.2}%
+\contentsline {chapter}{\numberline {4}KẾT QUẢ THỰC NGHIỆM VÀ ĐÁNH GIÁ}{45}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Thiết kế thực nghiệm}{45}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Cấu hình thực nghiệm và mô hình sử dụng}{45}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}Luồng đánh giá tổng quát}{46}{subsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.1.3}Chắt lọc dữ liệu}{48}{subsection.4.1.3}%
+\contentsline {subsubsection}{\numberline {a}Lý do chắt lọc dữ liệu}{48}{subsubsection.4.1.3.1}%
+\contentsline {subsubsection}{\numberline {b}Phân bố dữ liệu sau chắt lọc}{48}{subsubsection.4.1.3.2}%
+\contentsline {subsubsection}{\numberline {c}LongMemEval: tập so sánh cấu hình và ablation}{49}{subsubsection.4.1.3.3}%
+\contentsline {subsubsection}{\numberline {d}LoCoMo: tập đánh giá cấu hình cuối trên hội thoại dài}{49}{subsubsection.4.1.3.4}%
+\contentsline {subsection}{\numberline {4.1.4}CogMem Bench: bộ dữ liệu tự xây dựng để kiểm định các loại nút}{49}{subsection.4.1.4}%
+\contentsline {subsection}{\numberline {4.1.5}Các thước đo đánh giá}{53}{subsection.4.1.5}%
+\contentsline {subsection}{\numberline {4.1.6}Phương pháp chấm điểm: LLM làm giám khảo (LLM-as-a-Judge)}{53}{subsection.4.1.6}%
+\contentsline {subsubsection}{\numberline {a}Nguyên tắc chấm điểm}{54}{subsubsection.4.1.6.1}%
+\contentsline {subsubsection}{\numberline {b}Quy tắc đặc biệt cho câu hỏi thời gian}{54}{subsubsection.4.1.6.2}%
+\contentsline {subsubsection}{\numberline {c}Điều kiện đạt (PASS)}{55}{subsubsection.4.1.6.3}%
+\contentsline {subsubsection}{\numberline {d}Phạm vi áp dụng}{55}{subsubsection.4.1.6.4}%
+\contentsline {subsection}{\numberline {4.1.7}Các cấu hình so sánh}{55}{subsection.4.1.7}%
+\contentsline {section}{\numberline {4.2}Kết quả tổng quan}{56}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}LongMemEval}{56}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}LoCoMo}{57}{subsection.4.2.2}%
+\contentsline {section}{\numberline {4.3}Kết quả trên LongMemEval}{58}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}So sánh tổng quan các cấu hình}{58}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Đối chứng SUM và MAX trên kênh đồ thị}{59}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}Hiệu năng nạp dữ liệu}{59}{subsection.4.3.3}%
+\contentsline {section}{\numberline {4.4}Kết quả trên LoCoMo}{60}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Kết quả tổng quan}{60}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Phân tích theo nhóm câu hỏi}{61}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Phân tích lỗi còn tồn tại}{62}{subsection.4.4.3}%
+\contentsline {section}{\numberline {4.5}Đánh giá định tính trên CogMem Bench}{62}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Nút ý định và kế hoạch chưa hoàn thành}{63}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Nút hành động--kết quả và quan hệ can thiệp}{64}{subsection.4.5.2}%
+\contentsline {section}{\numberline {4.6}Tổng kết thực nghiệm}{65}{section.4.6}%
+\contentsline {chapter}{\numberline {5}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{67}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Kết luận}{67}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Mức độ hoàn thành mục tiêu}{67}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Các đóng góp chính}{68}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}Diễn giải kết quả thực nghiệm}{68}{subsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.1.4}Bài học thiết kế}{69}{subsection.5.1.4}%
+\contentsline {section}{\numberline {5.2}Hạn chế}{70}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Biểu diễn bộ nhớ}{70}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}Truy vấn và xếp hạng bằng chứng}{71}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Tổng hợp câu trả lời}{71}{subsection.5.2.3}%
+\contentsline {subsection}{\numberline {5.2.4}Thiết kế đánh giá}{71}{subsection.5.2.4}%
+\contentsline {section}{\numberline {5.3}Hướng phát triển}{72}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Đánh giá quan hệ chuyển giao}{72}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Suy luận thời gian và truy vấn danh sách}{72}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}CogMem Bench mở rộng}{73}{subsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.3.4}Ứng dụng trong tác nhân AI}{73}{subsection.5.3.4}%
+\contentsline {subsection}{\numberline {5.3.5}Hiệu năng vận hành}{73}{subsection.5.3.5}%
+\contentsline {chapter}{TÀI LIỆU THAM KHẢO}{76}{section*.45}%
+\contentsline {chapter}{\numberline {A}Knowledge Extraction Prompts (Retain Pipeline)}{77}{appendix.A}%
+\contentsline {subsection}{\numberline {A.0.1}Prompt Trích xuất Pass 1 (Fact Extraction)}{77}{subsection.A.0.1}%
+\contentsline {subsection}{\numberline {A.0.2}Prompt Tinh chỉnh Pass 2 (Persona-Focused Revision)}{78}{subsection.A.0.2}%
+\contentsline {chapter}{\numberline {B}Evaluation and Reflection Prompts}{79}{appendix.B}%
+\contentsline {subsection}{\numberline {B.0.1}Prompt Tổng hợp Câu trả lời (Reflection \& Generation)}{79}{subsection.B.0.1}%
+\contentsline {subsection}{\numberline {B.0.2}Prompt Chấm điểm Tự động (LLM-as-a-Judge)}{79}{subsection.B.0.2}%
+\contentsline {chapter}{\numberline {C}Các kịch bản thành công của CogMem Bench}{81}{appendix.C}%
+\contentsline {subsection}{\numberline {C.0.1}Cấu trúc đọc một kịch bản CogMem Bench}{81}{subsection.C.0.1}%
+\contentsline {subsection}{\numberline {C.0.2}Ý định chưa hoàn thành: composting}{81}{subsection.C.0.2}%
+\contentsline {subsection}{\numberline {C.0.3}Ý định đã hoàn tất: bàn đứng}{82}{subsection.C.0.3}%
+\contentsline {subsection}{\numberline {C.0.4}Hành động--kết quả: HTTP 429 với Retry-After}{82}{subsection.C.0.4}%
 \contentsfinish 

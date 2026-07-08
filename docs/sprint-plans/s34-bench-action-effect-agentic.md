@@ -24,7 +24,7 @@ captures the same content under a different type, defeating the ablation. Action
 value, like intention's in S33, is **conditional on extractor behaviour and conversational
 density**. Full report: [experiments/v19/action_effect_agentic/REPORT.md](../../experiments/v19/action_effect_agentic/REPORT.md).
 
-Visualizations: `data/bench/visualization/agentic_ae_01_http_429_*` + `agentic_ae_08_azure_token_*`
+Visualizations: `experiments/cogmem_bench/visualization/agentic_ae_01_http_429_*` + `agentic_ae_08_azure_token_*`
 (2 clean-discriminate cases, side-by-side cytoscape graphs + per-case explanation MD + S34_README.md).
 
 ## Why a separate sprint

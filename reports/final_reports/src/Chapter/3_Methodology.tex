@@ -88,6 +88,30 @@ Vấn đề của một bộ nhớ hội thoại đồng nhất là các loại 
 
 CogMem hiện thực hóa nguyên tắc này bằng một đồ thị tri thức dị thể, nơi nhiều loại đơn vị thông tin và nhiều loại liên kết cùng tồn tại thay vì bị ép vào một dạng chung. Mỗi đơn vị thông tin là một nút trong đồ thị, mang loại, các trường mô tả bổ sung và liên kết phù hợp với vai trò nhận thức của nó. Các trường bổ sung này ghi những chi tiết như thời điểm xảy ra, độ tin cậy, hoặc trạng thái của một kế hoạch. Nhờ vậy, hệ thống có thể phân biệt những thông tin có câu chữ và ngữ nghĩa gần nhau nhưng chức năng khác nhau trong suy luận.
 
+\subsection{Lược đồ lưu trữ chung của đồ thị bộ nhớ}
+
+Một điểm dễ gây hiểu nhầm là sáu mạng bộ nhớ của CogMem không phải là sáu kho dữ liệu tách rời. Về mặt lưu trữ, tất cả các đơn vị thông tin đều được đặt trong cùng một đồ thị bộ nhớ. Mỗi fact được lưu như một node có lược đồ lõi chung: định danh, nội dung fact đã tóm tắt, loại fact, vector nhúng, đoạn trích nguyên văn, thông tin phiên hội thoại, thực thể liên quan và một trường \textit{metadata}. Chính trường \textit{fact\_type} và nội dung trong \textit{metadata} quyết định node đó được hiểu như một tri thức ổn định, một sự kiện đã xảy ra, một quan điểm, một thói quen, một kế hoạch hay một quan hệ hành động--kết quả.
+
+Thiết kế này cho phép CogMem vừa giữ được sự thống nhất của kho bộ nhớ, vừa tránh làm phẳng mọi thông tin về cùng một dạng ghi chú. Một node \textit{experience} có thể mang thời điểm xảy ra trong \textit{metadata}; một node \textit{intention} có thể mang trạng thái \textit{planning}, \textit{fulfilled} hoặc \textit{abandoned}; một node \textit{action\_effect} có thể lưu bộ ba \textit{precondition}, \textit{action} và \textit{outcome}. Các trường chuyên biệt này không làm thay đổi việc node vẫn nằm trong cùng đồ thị, mà bổ sung ngữ nghĩa cần thiết để hệ thống truy vấn và diễn giải node đúng vai trò.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{Images/cogmem_conversation_nodes_report.png}
+\caption{Một đoạn hội thoại được chuyển thành nhiều node cùng nằm trong một đồ thị bộ nhớ. Các node chia sẻ lược đồ lõi, nhưng khác nhau ở \textit{fact\_type}, metadata và vai trò nhận thức.}
+\label{fig:ch3_common_node_storage}
+\end{figure}
+
+Các liên kết giữa node cũng được lưu trong cùng đồ thị dưới dạng cạnh có kiểu. Một cạnh gồm node nguồn, node đích và loại liên kết, chẳng hạn \textit{entity}, \textit{temporal}, \textit{semantic}, \textit{causal}, \textit{s\_r\_link}, \textit{fulfilled\_by}, \textit{a\_o\_causal} hoặc \textit{transition}. Nhờ vậy, truy vấn đồ thị không chỉ đi từ fact này sang fact khác theo sự gần nghĩa bề mặt, mà còn có thể đi theo quan hệ có ngữ nghĩa: một thói quen được hỗ trợ bởi các trải nghiệm lặp lại, một kế hoạch được hoàn thành bởi một trải nghiệm về sau, hoặc một hành động tạo ra một kết quả quan sát được.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{Images/cogmem_special_links_report.png}
+\caption{Các cạnh có kiểu nối các node trong cùng đồ thị bộ nhớ, cho phép hệ thống truy vấn theo quan hệ nhận thức thay vì chỉ theo độ gần ngữ nghĩa.}
+\label{fig:ch3_typed_edge_storage}
+\end{figure}
+
+Nói cách khác, các ``mạng'' được trình bày trong phần tiếp theo là một cách nhìn theo vai trò nhận thức của node, không phải một cách chia cắt vật lý kho dữ liệu. Khi cần truy vấn, CogMem có thể xem toàn bộ đồ thị như một không gian chung, nhưng vẫn ưu tiên hoặc lọc theo loại node, metadata và loại cạnh tùy vào câu hỏi.
+
 \subsection{Các mạng phân định}
 
 CogMem sử dụng sáu loại thông tin cốt lõi với các tên gọi \textit{world}, \textit{experience}, \textit{opinion}, \textit{habit}, \textit{intention} và \textit{action-effect} là nhãn biểu diễn trong hệ thống; mỗi nhãn cho biết fact đó nên được hiểu và truy vấn theo cách nào. Mỗi loại được chọn vì nó tương ứng với một nhu cầu truy vấn khác nhau trong hội thoại dài hạn.

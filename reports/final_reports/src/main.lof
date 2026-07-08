@@ -3,25 +3,27 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {3.1}{\ignorespaces Tổng quan luồng xử lý CogMem: hội thoại được chuyển thành đồ thị bộ nhớ, sau đó hệ thống truy vấn đa kênh và sinh câu trả lời dựa trên bằng chứng.}}{20}{figure.caption.7}%
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Sáu mạng bộ nhớ của CogMem, tương ứng với sáu loại thông tin có vai trò khác nhau trong truy vấn hội thoại dài hạn.}}{24}{figure.caption.8}%
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Một chuỗi nhật ký nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}}{26}{figure.caption.10}%
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Habit Memory và Habit Network}}{27}{figure.caption.11}%
-\contentsline {figure}{\numberline {3.5}{\ignorespaces Intention Lifecycle}}{28}{figure.caption.13}%
-\contentsline {figure}{\numberline {3.6}{\ignorespaces Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động công cụ và kết quả quan sát được.}}{29}{figure.caption.14}%
-\contentsline {figure}{\numberline {3.7}{\ignorespaces Theory of Event Coding và Action-Effect Network}}{29}{figure.caption.15}%
-\contentsline {figure}{\numberline {3.8}{\ignorespaces Phân biệt Habit và Action-Effect}}{30}{figure.caption.16}%
-\contentsline {figure}{\numberline {3.9}{\ignorespaces Bảy loại liên kết trong CogMem}}{31}{figure.caption.17}%
-\contentsline {figure}{\numberline {3.10}{\ignorespaces Schema hai lớp cho một đơn vị bộ nhớ}}{33}{figure.caption.18}%
-\contentsline {figure}{\numberline {3.11}{\ignorespaces Fuzzy Trace Theory và Raw Snippet}}{33}{figure.caption.19}%
-\contentsline {figure}{\numberline {3.12}{\ignorespaces Episodic Buffer của Baddeley}}{36}{figure.caption.20}%
-\contentsline {figure}{\numberline {3.13}{\ignorespaces Minh họa trực quan sự khác biệt giữa MAX và SUM trên cùng một cấu trúc đồ thị}}{37}{figure.caption.21}%
-\contentsline {figure}{\numberline {3.14}{\ignorespaces Ba cơ chế bảo vệ chu trình}}{39}{figure.caption.23}%
-\contentsline {figure}{\numberline {3.15}{\ignorespaces Adaptive Query Routing}}{40}{figure.caption.25}%
-\contentsline {figure}{\numberline {3.16}{\ignorespaces Attentional Selection và Adaptive Routing}}{41}{figure.caption.26}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Một đoạn hội thoại được chuyển thành nhiều node cùng nằm trong một đồ thị bộ nhớ. Các node chia sẻ lược đồ lõi, nhưng khác nhau ở \textit {fact\_type}, metadata và vai trò nhận thức.}}{24}{figure.caption.8}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Các cạnh có kiểu nối các node trong cùng đồ thị bộ nhớ, cho phép hệ thống truy vấn theo quan hệ nhận thức thay vì chỉ theo độ gần ngữ nghĩa.}}{25}{figure.caption.9}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Sáu mạng bộ nhớ của CogMem, tương ứng với sáu loại thông tin có vai trò khác nhau trong truy vấn hội thoại dài hạn.}}{26}{figure.caption.10}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Một chuỗi nhật ký nhiều tuần phù hợp hơn để kiểm tra Habit Network so với benchmark chỉ hỏi fact đơn lẻ.}}{28}{figure.caption.12}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Habit Memory và Habit Network}}{29}{figure.caption.13}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Intention Lifecycle}}{30}{figure.caption.15}%
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Action-effect phù hợp với trace AI agent thật, nơi hệ thống cần nhớ quan hệ giữa điều kiện lỗi, hành động công cụ và kết quả quan sát được.}}{31}{figure.caption.16}%
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Theory of Event Coding và Action-Effect Network}}{31}{figure.caption.17}%
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Phân biệt Habit và Action-Effect}}{32}{figure.caption.18}%
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Bảy loại liên kết trong CogMem}}{33}{figure.caption.19}%
+\contentsline {figure}{\numberline {3.12}{\ignorespaces Schema hai lớp cho một đơn vị bộ nhớ}}{35}{figure.caption.20}%
+\contentsline {figure}{\numberline {3.13}{\ignorespaces Fuzzy Trace Theory và Raw Snippet}}{35}{figure.caption.21}%
+\contentsline {figure}{\numberline {3.14}{\ignorespaces Episodic Buffer của Baddeley}}{38}{figure.caption.22}%
+\contentsline {figure}{\numberline {3.15}{\ignorespaces Minh họa trực quan sự khác biệt giữa MAX và SUM trên cùng một cấu trúc đồ thị}}{39}{figure.caption.23}%
+\contentsline {figure}{\numberline {3.16}{\ignorespaces Ba cơ chế bảo vệ chu trình}}{41}{figure.caption.25}%
+\contentsline {figure}{\numberline {3.17}{\ignorespaces Adaptive Query Routing}}{42}{figure.caption.27}%
+\contentsline {figure}{\numberline {3.18}{\ignorespaces Attentional Selection và Adaptive Routing}}{43}{figure.caption.28}%
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Luồng đánh giá ngoại tuyến của CogMem trên các bộ dữ liệu hội thoại dài}}{44}{figure.caption.27}%
-\contentsline {figure}{\numberline {4.2}{\ignorespaces Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ cụm ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa.}}{58}{figure.caption.37}%
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry.}}{59}{figure.caption.38}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Luồng đánh giá ngoại tuyến của CogMem trên các bộ dữ liệu hội thoại dài}}{48}{figure.caption.30}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Kịch bản ý định trong CogMem Bench: ngân hàng đầy đủ (trái) giữ cụm ý định về composting, trong khi ngân hàng loại bỏ ý định (phải) mất biểu diễn của đáp án đúng và bị kéo sang phương án gây nhiễu về nước mưa.}}{63}{figure.caption.42}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Kịch bản hành động--kết quả trong CogMem Bench: ngân hàng đầy đủ (trái) lưu trọn vẹn bộ ba nhân quả, còn ngân hàng loại bỏ (phải) chỉ còn các fact lân cận và không thể khôi phục được kết quả 200 sau retry.}}{64}{figure.caption.43}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

@@ -4,8 +4,8 @@ Runs the embedding + discrimination gates over already-generated (frozen) fixtur
 writes a yield report. Needs a running cogmem-api with Ministral (COGMEM_API_LLM_*).
 Run cogmem_bench.generate first.
 
-  uv run python -m cogmem_bench.gate                            # gate pilot work fixtures
-  uv run python -m cogmem_bench.gate --specs-dir <dir> --out-dir <dir> --api-base-url ...
+  uv run python -m cogmem_bench.gate                            # gate data fixtures -> experiments/cogmem_bench
+  uv run python -m cogmem_bench.gate --specs-dir <dir> --data-dir <dir> --out-dir <dir> --api-base-url ...
   uv run python -m cogmem_bench.gate --only pilot_habit_01
 """
 
@@ -17,7 +17,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .datasets import DEFAULT_OUT_DIR, DEFAULT_REPORT, PILOT_SPECS_DIR, load_specs, work_fixture_path
+from .datasets import DEFAULT_DATA_DIR, DEFAULT_EXPERIMENT_DIR, DEFAULT_REPORT, PILOT_SPECS_DIR, load_specs, work_fixture_path
 from .schema import GateResult, ScenarioSpec
 
 
@@ -62,7 +62,7 @@ def write_report(
             "",
             "## Manual verification (judge.correct is unreliable — compare answers to gold yourself)",
             "",
-            "Full recall + answers per case: `data/bench/gate_detail/<scenario_id>.json`.",
+        "Full recall + answers per case: `experiments/cogmem_bench/gate_detail/<scenario_id>.json`.",
         ]
         for r in results:
             d = details.get(r.scenario_id)
@@ -83,6 +83,7 @@ def write_report(
 
 def gate_all(
     specs_dir: Path,
+    data_dir: Path,
     out_dir: Path,
     api_base_url: str,
     report_path: Path,
@@ -109,7 +110,7 @@ def gate_all(
     results: list[GateResult] = []
     details: dict[str, dict] = {}
     for spec in specs:
-        fixture_path = work_fixture_path(out_dir, spec.scenario_id)
+        fixture_path = work_fixture_path(data_dir, spec.scenario_id)
         if not fixture_path.exists():
             print(f"[skip] {spec.scenario_id}: no work fixture at {fixture_path} (run generate first)")
             continue
@@ -151,7 +152,10 @@ def gate_all(
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Gate generated benchmark conversations (manual).")
     ap.add_argument("--specs-dir", default=str(PILOT_SPECS_DIR))
-    ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
+    ap.add_argument("--data-dir", default=str(DEFAULT_DATA_DIR),
+                    help="benchmark fixture root containing work/<scenario_id>.json (default data/bench)")
+    ap.add_argument("--out-dir", default=str(DEFAULT_EXPERIMENT_DIR),
+                    help="experiment output root for gate_results, gate_detail, accepted fixtures")
     ap.add_argument("--api-base-url", default="http://localhost:8888")
     ap.add_argument("--report", default=str(DEFAULT_REPORT))
     ap.add_argument("--only", default=None, help="gate a single scenario_id")
@@ -165,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="HTTP read timeout in seconds for retain/recall/generate/judge (default 3600).")
     args = ap.parse_args(argv)
     return gate_all(
-        Path(args.specs_dir), Path(args.out_dir), args.api_base_url, Path(args.report),
+        Path(args.specs_dir), Path(args.data_dir), Path(args.out_dir), args.api_base_url, Path(args.report),
         only=args.only, skip_retain=args.skip_retain,
         retain_level_ablation=args.retain_level_ablation,
         timeout_seconds=args.timeout,

@@ -22,3 +22,12 @@ site/*
 logs/
 
 experiments/
+
+# Generated slide drafts and assets
+docs/slides/DATN_Final_Defense_*.md
+docs/slides/DATN_Final_Defense_*.pptx
+docs/slides/DATN_Proposal - Copy (2).pptx
+docs/slides/assets/*
+
+# One-off planning scratch files
+_plan_*.py

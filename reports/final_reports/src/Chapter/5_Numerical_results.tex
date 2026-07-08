@@ -7,6 +7,33 @@
 \section{Thiết kế thực nghiệm}
 % ============================================================
 
+\subsection{Cấu hình thực nghiệm và mô hình sử dụng}
+
+Các thí nghiệm trong chương này được chạy theo cùng một nguyên tắc cấu hình: khi so sánh hai phương án, chỉ thay đổi đúng thành phần cần kiểm tra và giữ nguyên các phần còn lại của pipeline. Điều này đặc biệt quan trọng với các thí nghiệm ablation, vì nếu đồng thời thay đổi mô hình sinh, mô hình chấm điểm hoặc cách truy vấn, kết quả sẽ khó quy về đóng góp của thành phần đang xét.
+
+Bảng \ref{tab:experiment_runtime_config} tóm tắt các mô hình và thành phần chính được sử dụng trong quá trình đánh giá. Các mô hình ngôn ngữ được gọi thông qua giao diện tương thích OpenAI API; địa chỉ dịch vụ và khóa truy cập được cấu hình bằng biến môi trường trong từng lần chạy, nhưng vai trò của từng mô hình trong pipeline được giữ cố định.
+
+\begin{table}[H]
+\centering
+\caption{Cấu hình mô hình và thành phần chính trong thí nghiệm}
+\label{tab:experiment_runtime_config}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.8cm}p{4.2cm}Y@{}}
+\toprule
+\textbf{Thành phần} & \textbf{Mô hình / cấu hình} & \textbf{Vai trò trong thí nghiệm} \\
+\midrule
+Trích xuất fact và sinh câu trả lời & Ministral3-3B & Đọc hội thoại để tạo fact trong bước retain và tổng hợp câu trả lời từ các bằng chứng đã truy vấn. Đây là mô hình chính của hệ thống CogMem trong các lần chạy đánh giá. \\
+Embedding ngữ nghĩa & BAAI/bge-small-en-v1.5 & Sinh vector cho fact để phục vụ truy vấn ngữ nghĩa và so sánh độ gần nghĩa giữa câu hỏi và đơn vị bộ nhớ. \\
+Reranking bằng CrossEncoder & cross-encoder/ms-marco-MiniLM-L-6-v2 & Xếp hạng lại các ứng viên mạnh nhất sau bước RRF trong các cấu hình có bật reranking. Riêng thí nghiệm SUM so với MAX tắt bước này để cô lập ảnh hưởng của cơ chế đồ thị. \\
+Chấm điểm tự động & MiniMax-M2.7 & Đóng vai trò LLM-as-a-Judge cho các kết quả được chấm tự động, đọc câu hỏi, đáp án chuẩn và câu trả lời để đưa ra điểm và nhãn đạt/không đạt. \\
+Sinh hội thoại CogMem Bench & MiniMax-M2.7 & Sinh các hội thoại benchmark từ đặc tả đã tiền đăng ký. Mô hình sinh dữ liệu được tách khỏi mô hình retain/generation để tránh cùng một mô hình vừa tạo dữ liệu vừa đọc lại dữ liệu của chính nó. \\
+Truy vấn đồ thị mặc định & BFS + SUM activation & Bắt đầu từ các fact gần câu hỏi, mở rộng qua các cạnh trong đồ thị và cộng dồn tín hiệu từ nhiều đường bằng chứng. Biến thể MAX chỉ được dùng trong thí nghiệm đối chứng riêng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Về hạ tầng, CogMem được đánh giá như một hệ thống ngoại tuyến chạy trên các memory bank đã nạp sẵn. Cơ sở dữ liệu lưu các node, cạnh, vector nhúng và metadata; API của CogMem chỉ được dùng để chạy các bước retain, recall, generate và judge theo cùng một giao thức cho mọi cấu hình. Các tập dữ liệu đã chắt lọc được giữ cố định giữa các lần chạy, nhằm bảo đảm khác biệt kết quả phản ánh thay đổi của cấu hình hệ thống chứ không phải thay đổi dữ liệu đầu vào.
+
 \subsection{Luồng đánh giá tổng quát}
 
 Toàn bộ thí nghiệm được thiết kế theo luồng đánh giá ngoại tuyến (offline evaluation). Điều này có nghĩa là mỗi câu hỏi trong tập dữ liệu được chạy qua cùng một chuỗi xử lý cố định, thay vì tương tác tự do với người dùng như trong môi trường triển khai thực tế. 
@@ -97,7 +124,7 @@ Trong khi LongMemEval và LoCoMo đo lường năng lực bộ nhớ tổng quá
 
 \begin{enumerate}
     \item \textbf{Soạn đặc tả kịch bản}: mỗi kịch bản được định nghĩa trước khi có bất kỳ cuộc hội thoại nào được sinh ra. Đặc tả bao gồm: loại node mục tiêu (ý định hoặc hành động--kết quả), fact trung tâm với đầy đủ thông tin bổ trợ (ví dụ: trạng thái của ý định là \textit{planning}), câu hỏi, đáp án chuẩn, và các phương án gây nhiễu (bẫy) được cài vào để đảm bảo hệ thống không thể đoán đúng một cách ngẫu nhiên. Đặc tả cũng quy định rõ kế hoạch phiên: phiên nào chứa thông tin trả lời, phiên nào chứa thông tin gây nhiễu.
-    \item \textbf{Sinh hội thoại bằng mô hình độc lập}: một mô hình ngôn ngữ mạnh (Minimax-M2.7) -- khác với mô hình dùng để nạp dữ liệu và trả lời câu hỏi (Ministral3-3B) -- đọc đặc tả và sinh ra các cuộc hội thoại tự nhiên dài 7--10 phiên. Việc dùng mô hình sinh khác với mô hình đọc là một lựa chọn có chủ đích: nó ngăn chặn vòng lặp tự tham chiếu, nơi cùng một mô hình vừa tạo ra dữ liệu vừa tự chấm điểm mình.
+    \item \textbf{Sinh hội thoại bằng mô hình độc lập}: một mô hình ngôn ngữ mạnh (MiniMax-M2.7) -- khác với mô hình dùng để nạp dữ liệu và trả lời câu hỏi (Ministral3-3B) -- đọc đặc tả và sinh ra các cuộc hội thoại tự nhiên dài 7--10 phiên. Việc dùng mô hình sinh khác với mô hình đọc là một lựa chọn có chủ đích: nó ngăn chặn vòng lặp tự tham chiếu, nơi cùng một mô hình vừa tạo ra dữ liệu vừa tự chấm điểm mình.
     \item \textbf{Hai cổng kiểm định}: mỗi kịch bản phải vượt qua hai cổng trước khi được tính là hợp lệ. \textit{Cổng nhúng} kiểm tra xem fact trung tâm có thực sự được trích xuất và lưu đúng loại node trong ngân hàng đầy đủ hay không -- nếu không, kịch bản bị loại. \textit{Cổng phân biệt} chạy cặp câu hỏi trên cả hai ngân hàng và chỉ giữ lại những kịch bản mà ngân hàng đầy đủ trả lời đúng còn ngân hàng đối chứng trả lời sai. Các kịch bản không tạo được sự phân biệt bị loại bỏ hoàn toàn, không được sửa chữa hay điều chỉnh.
 \end{enumerate}
 
@@ -156,7 +183,7 @@ Câu hỏi đánh giá & Hệ thống được hỏi về thói quen bền vữn
 
 \begin{itemize}
     \item \textbf{Phân biệt rõ ràng (5/12)}: ngân hàng đầy đủ trả lời đúng, ngân hàng đối chứng trả lời sai. Các kịch bản thuộc nhóm này -- như HTTP 429 với Retry-After, Azure token với device-code, hay Docker pull với nhiều lần thử -- có đặc điểm chung là quy luật nhân quả không dễ bị mã hóa lại thành fact tri thức khách quan đơn thuần. Ví dụ, ``chờ theo giá trị của header Retry-After rồi thử lại thì được 200'' là một quy luật can thiệp, không phải một mô tả tĩnh.
-    \item \textbf{Rò rỉ thông tin (5/12)}: mô hình sinh (Minimax-M2.7) đã vô tình mã hóa lại quy luật nhân quả thành fact tri thức khách quan trong lời thoại. Thay vì chỉ để quan hệ điều kiện--hành động--kết quả nằm trong node chuyên biệt, lời thoại đôi khi viết thẳng kết luận theo dạng mô tả, chẳng hạn ``một thiết lập bộ nhớ lớn hơn đã giải quyết lỗi thiếu bộ nhớ''. Khi đó, ngân hàng đối chứng vẫn có thể trả lời đúng nhờ fact world. Đây không phải lỗi của CogMem, mà là một phát hiện quan trọng: mô hình ngôn ngữ có xu hướng tự nhiên là ``phẳng hóa'' tri thức nhân quả thành tri thức mô tả.
+    \item \textbf{Rò rỉ thông tin (5/12)}: mô hình sinh (MiniMax-M2.7) đã vô tình mã hóa lại quy luật nhân quả thành fact tri thức khách quan trong lời thoại. Thay vì chỉ để quan hệ điều kiện--hành động--kết quả nằm trong node chuyên biệt, lời thoại đôi khi viết thẳng kết luận theo dạng mô tả, chẳng hạn ``một thiết lập bộ nhớ lớn hơn đã giải quyết lỗi thiếu bộ nhớ''. Khi đó, ngân hàng đối chứng vẫn có thể trả lời đúng nhờ fact world. Đây không phải lỗi của CogMem, mà là một phát hiện quan trọng: mô hình ngôn ngữ có xu hướng tự nhiên là ``phẳng hóa'' tri thức nhân quả thành tri thức mô tả.
     \item \textbf{Mô hình trả lời bỏ lỡ (2/12)}: ngay cả ngân hàng đầy đủ cũng trả lời sai vì mô hình trả lời (Ministral3-3B) chọn nhầm một phương án thất bại thay vì phương án thành công. Đây là lỗi ở khâu tổng hợp câu trả lời, không liên quan đến việc có hay không có node hành động--kết quả.
 \end{itemize}
 
@@ -257,6 +284,74 @@ Cấu hình cuối trên LoCoMo & Đánh giá hệ thống sau tất cả các c
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% ============================================================
+\section{Kết quả tổng quan}
+% ============================================================
+
+Trước khi đi vào từng bộ dữ liệu, cần đặt kết quả của CogMem trong bối cảnh rộng hơn của các hệ thống bộ nhớ đã công bố. Tuy nhiên, các con số trong phần này không nhằm khẳng định một so sánh trực tiếp tuyệt đối giữa mọi hệ thống. Lý do là các baseline công bố trong tài liệu gốc thường được đánh giá trên toàn bộ benchmark, trong khi các kết quả của CogMem trong đồ án này được đo trên các tập chắt lọc nhỏ hơn, được thiết kế để có thể chạy lặp lại nhiều cấu hình ablation với chi phí hợp lý.
+
+Vì vậy, hai bảng dưới đây chỉ dùng các giá trị \textit{overall} để định vị tương đối: các baseline công bố cho biết mức hiệu năng đã được báo cáo trên dữ liệu đầy đủ, còn các dòng CogMem và HINDSIGHT chạy lại trong đồ án cho biết kết quả trên cùng phạm vi dữ liệu chắt lọc dùng cho các thí nghiệm ở các phần sau. Các kết luận chính của chương vẫn dựa trên các so sánh trong cùng một tập dữ liệu và cùng một pipeline đánh giá.
+
+\subsection{LongMemEval}
+
+Bảng \ref{tab:longmemeval_published_overall_context} tóm tắt một số kết quả overall đã công bố trên LongMemEval và đặt cạnh kết quả chạy trong đồ án trên tập 35 câu hỏi. Các dòng đầu dùng phạm vi toàn bộ benchmark theo báo cáo gốc; hai dòng cuối là kết quả trên tập chắt lọc dùng trong đồ án.
+
+\begin{table}[H]
+\centering
+\caption{LongMemEval: bối cảnh overall so với các baseline công bố}
+\label{tab:longmemeval_published_overall_context}
+\small
+\begin{tabularx}{\linewidth}{@{}p{5.0cm}p{5.6cm}cc@{}}
+\toprule
+\textbf{Hệ thống} & \textbf{Phạm vi đánh giá} & \textbf{Đạt/Tổng} & \textbf{Overall} \\
+\midrule
+Full-context (GPT-4o) & Full benchmark công bố & -- & 60,2\% \\
+Full-context (OSS-20B) & Full benchmark công bố & -- & 39,0\% \\
+Zep (GPT-4o) & Full benchmark công bố & -- & 71,2\% \\
+Supermemory (GPT-4o) & Full benchmark công bố & -- & 81,6\% \\
+Supermemory (GPT-5) & Full benchmark công bố & -- & 84,6\% \\
+Supermemory (Gemini-3) & Full benchmark công bố & -- & 85,2\% \\
+HINDSIGHT (OSS-20B) & Full benchmark công bố & -- & 83,6\% \\
+HINDSIGHT (OSS-120B) & Full benchmark công bố & -- & 89,0\% \\
+\midrule
+HINDSIGHT baseline & Tập chắt lọc trong đồ án & 30/35 & 85,7\% \\
+CogMem multi-channel đầy đủ & Tập chắt lọc trong đồ án & 31/35 & 88,6\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{LoCoMo}
+
+Với LoCoMo, bảng \ref{tab:locomo_published_overall_context} cũng chỉ dùng chỉ số overall. Các baseline công bố được giữ ở vai trò bối cảnh, còn hai dòng cuối là kết quả chạy trên tập 5 hội thoại và 161 câu hỏi đã chắt lọc trong đồ án.
+
+\begin{table}[H]
+\centering
+\caption{LoCoMo: bối cảnh overall so với các baseline công bố}
+\label{tab:locomo_published_overall_context}
+\small
+\begin{tabularx}{\linewidth}{@{}p{5.0cm}p{5.6cm}cc@{}}
+\toprule
+\textbf{Hệ thống} & \textbf{Phạm vi đánh giá} & \textbf{Đạt/Tổng} & \textbf{Overall} \\
+\midrule
+Backboard & Full benchmark công bố & -- & 90,00\% \\
+Memobase (v0.0.37) & Full benchmark công bố & -- & 75,78\% \\
+Zep & Full benchmark công bố & -- & 75,14\% \\
+Mem0-Graph & Full benchmark công bố & -- & 68,44\% \\
+Mem0 & Full benchmark công bố & -- & 66,88\% \\
+LangMem & Full benchmark công bố & -- & 58,10\% \\
+OpenAI & Full benchmark công bố & -- & 52,90\% \\
+HINDSIGHT (OSS-20B) & Full benchmark công bố & -- & 83,18\% \\
+HINDSIGHT (OSS-120B) & Full benchmark công bố & -- & 85,67\% \\
+HINDSIGHT (Gemini-3) & Full benchmark công bố & -- & 89,61\% \\
+\midrule
+HINDSIGHT baseline & Tập chắt lọc trong đồ án & 105/161 & 65,2\% \\
+CogMem cấu hình cuối & Tập chắt lọc trong đồ án & 119/161 & 73,9\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Các phần tiếp theo phân tích chi tiết từng bộ dữ liệu trong phạm vi đánh giá của đồ án. Khi so sánh các cấu hình CogMem, HINDSIGHT baseline và các ablation, mọi con số đều được tính trên cùng tập câu hỏi tương ứng, nên các nhận xét về đóng góp của từng thành phần không phụ thuộc vào các baseline full benchmark ở trên.
 
 % ============================================================
 \section{Kết quả trên LongMemEval}
@@ -505,6 +600,16 @@ Hình \ref{fig:ch4_cogmem_bench_action_effect} cô đọng khác biệt giữa h
 Trong số 12 kịch bản agentic được đánh giá tại thời điểm viết báo cáo, có 5 kịch bản tạo ra được sự phân biệt rõ ràng theo tiêu chí: ngân hàng đầy đủ trả lời đúng, ngân hàng loại bỏ hành động--kết quả trả lời sai. Con số 5/12 tuy khiêm tốn nhưng mang một ý nghĩa thực tế quan trọng: nó chứng minh rằng trong các vết công cụ nơi quan hệ can thiệp là phần thông tin cốt lõi, việc lưu riêng node hành động--kết quả giúp hệ thống giữ được tri thức mà các fact phẳng dễ dàng làm mờ hoặc bỏ sót. 
 
 Đáng chú ý, trong 5 kịch bản phân biệt được, có những trường hợp mà sự khác biệt giữa hai ngân hàng bộ nhớ là rất lớn. Ví dụ, ở kịch bản về Azure token (xác thực thiết bị với mã lỗi AADSTS70043), ngân hàng đầy đủ có tới 24 fact, trong khi ngân hàng loại bỏ chỉ còn 5 fact. Điều này cho thấy mô hình trích xuất đã phân bổ phần lớn thông tin quan trọng vào đúng loại node chuyên biệt, và khi loại node này bị vô hiệu hóa, một lượng lớn tri thức biến mất khỏi đồ thị.
+
+\subsection{Kiểm tra bằng chứng theo riêng từng loại node}
+
+Sau khi xác định các kịch bản thành công, đồ án đọc lại thủ công các bằng chứng được truy vấn để trả lời một câu hỏi hẹp hơn: nếu chỉ giữ riêng các fact thuộc loại node mục tiêu, hệ thống có còn đủ thông tin để trả lời hay không? Phân tích này không chạy lại pipeline, mà chỉ kiểm tra nội dung của các fact đã được lưu và truy vấn trong các case thành công.
+
+Với nhóm \textit{intention}, kết quả khá rõ ràng. Ở các kịch bản kế hoạch chưa hoàn thành như thiết lập sao lưu cơ sở dữ liệu tự động hoặc bắt đầu thói quen ủ phân hữu cơ, riêng các fact \textit{intention} đã chứa đủ đáp án: người dùng dự định làm gì và trạng thái hiện tại là chưa thực hiện. Các fact loại khác như \textit{experience} chỉ đóng vai trò bổ trợ, ví dụ nhắc đến việc đã mua túi compostable, chứ không phải điều kiện cần để trả lời câu hỏi.
+
+Với nhóm \textit{action\_effect}, kết quả tinh tế hơn. Trong một số case agentic, riêng các fact hành động--kết quả đã đủ để khôi phục lõi nhân quả: ví dụ lỗi \texttt{manifest unknown} khi kéo image từ Docker Hub được giải quyết bằng cách chuyển sang GHCR mirror, hoặc timeout Playwright được xử lý bằng \texttt{waitForSelector} với trạng thái \texttt{attached}. Tuy nhiên, ở các câu hỏi đòi hỏi chi tiết rất cụ thể, như phải nêu chính xác chiến lược exponential backoff, thời gian chờ theo header Retry-After, hoặc mã trạng thái 200 sau retry, các fact \textit{action\_effect} dạng tóm tắt mới chỉ đủ cho ý chính. Câu trả lời đầy đủ vẫn cần thêm fact ngữ cảnh hoặc đoạn trích nguyên văn.
+
+Phát hiện này làm rõ hơn vai trò của các node chuyên biệt. Chúng không chỉ hữu ích vì làm tăng điểm khi so sánh full bank với ablated bank, mà còn vì trong nhiều trường hợp chúng tự mang phần thông tin quyết định cho câu hỏi. Đồng thời, kết quả cũng cảnh báo rằng không nên tuyệt đối hóa từng loại node: \textit{intention} thường đủ tốt cho câu hỏi về kế hoạch chưa hoàn thành, còn \textit{action\_effect} giữ được cấu trúc nhân quả lõi nhưng vẫn cần phối hợp với bằng chứng chi tiết khi câu hỏi yêu cầu mức chính xác cao.
 
 Nhìn chung, hai hình minh họa trong phần này cung cấp bằng chứng trực quan cho luận điểm cốt lõi của CogMem: \textit{không phải mọi thông tin đều có thể được biểu diễn một cách thỏa đáng dưới dạng fact phẳng}. Có những loại tri thức -- như một kế hoạch chưa hoàn thành hay một quy luật nhân quả có cấu trúc -- đòi hỏi một không gian biểu diễn chuyên biệt với thông tin bổ trợ, kiểu liên kết và ngữ nghĩa riêng. Khi không gian đó bị loại bỏ, hệ thống không chỉ mất đi một vài fact, mà còn mất đi khả năng phân biệt giữa các loại tín hiệu nhận thức khác nhau -- một mất mát mà các con số accuracy đơn thuần khó lòng phản ánh hết.
 

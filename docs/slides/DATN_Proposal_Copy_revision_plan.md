@@ -308,7 +308,7 @@ Talk goal:
 
 ### Slide 13. Qualitative Proof: Intention Stores Unfinished Plans
 
-New slide based on `data/bench/visualization/neg_intention_14_explanation.md`.
+New slide based on `experiments/cogmem_bench/visualization/neg_intention_14_explanation.md`.
 
 Audience-facing example:
 - Question: `What sustainability habit did the user intend to start but has not?`
@@ -333,7 +333,7 @@ Talk goal:
 
 ### Slide 14. Qualitative Proof: Action-Effect Stores Tool Outcomes
 
-New slide based on `data/bench/visualization/agentic_ae_01_http_429_explanation.md`.
+New slide based on `experiments/cogmem_bench/visualization/agentic_ae_01_http_429_explanation.md`.
 
 Audience-facing example:
 - Question: `When Stripe returns HTTP 429 with Retry-After, what does the agent do and what happens?`
@@ -414,8 +414,8 @@ Reuse:
 - `reports/final_reports/src/Images/manual_evaluation_flow.png` for evaluation protocol.
 - `reports/final_reports/src/Images/agentic_action_effect_trace.png` as optional backup or future-work slide.
 - `reports/final_reports/src/Images/habit_diary_workload.png` as optional backup or future-work slide.
-- `data/bench/visualization/neg_intention_14_explanation.md` as the source for the intention paired-bank mini graph.
-- `data/bench/visualization/agentic_ae_01_http_429_explanation.md` as the source for the action-effect paired-bank mini graph.
+- `experiments/cogmem_bench/visualization/neg_intention_14_explanation.md` as the source for the intention paired-bank mini graph.
+- `experiments/cogmem_bench/visualization/agentic_ae_01_http_429_explanation.md` as the source for the action-effect paired-bank mini graph.
 
 New visuals to create in PowerPoint:
 - Long-context problem timeline with scattered evidence.

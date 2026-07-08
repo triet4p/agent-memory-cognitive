@@ -166,7 +166,7 @@ COGMEM_BENCH_GEN_MAX_RETRIES       # per-session retry attempts on transient/par
 Pipeline (manual scripts; only spec authoring is agent-driven via the `cogmem-bench-author` skill):
 ```
 uv run python -m cogmem_bench.generate            # step 2: Minimax renders specs -> data/bench/work
-uv run python -m cogmem_bench.gate                # step 3: embedding + discrimination gates -> yield report
+uv run python -m cogmem_bench.gate                # step 3: embedding + discrimination gates -> experiments/cogmem_bench
 ```
 `generate` is multi-call (one LLM call per session) and needs only `COGMEM_BENCH_GEN_LLM_*`;
 `gate` needs a running `cogmem-api` with Ministral. Add `--dry-run` to `generate` for an

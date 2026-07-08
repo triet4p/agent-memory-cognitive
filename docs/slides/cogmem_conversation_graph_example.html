@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CogMem Conversation Graph Example</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --ink: #16202a;
+      --muted: #596777;
+      --line: #d9dee7;
+      --world: #61738a;
+      --experience: #2b7a78;
+      --habit: #7c5cc4;
+      --intention: #c07a1d;
+      --action: #b4495f;
+      --opinion: #4f7e36;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .frame {
+      width: min(1600px, 100vw);
+      aspect-ratio: 16 / 9;
+      margin: 0 auto;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      gap: 24px;
+    }
+
+    .dialogue {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      box-shadow: 0 14px 36px rgba(22, 32, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .dialogue h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .turn {
+      border-left: 4px solid #cfd7e3;
+      padding: 10px 12px;
+      background: #f9fafc;
+      border-radius: 0 8px 8px 0;
+      font-size: 18px;
+      line-height: 1.36;
+    }
+
+    .turn b {
+      display: block;
+      margin-bottom: 3px;
+      color: #304052;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .graph {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 14px 36px rgba(22, 32, 42, 0.08);
+    }
+
+    .edges {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: #697789;
+      stroke-width: 2.4;
+    }
+
+    .edge.transition {
+      stroke: #b47620;
+    }
+
+    .edge.causal {
+      stroke: #b4495f;
+    }
+
+    .edge.sr {
+      stroke: #7c5cc4;
+    }
+
+    .edge.opinion {
+      stroke: #4f7e36;
+    }
+
+    .edge-label {
+      paint-order: stroke;
+      stroke: #ffffff;
+      stroke-width: 6px;
+      stroke-linejoin: round;
+      fill: #223041;
+      font-size: 16px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    .node {
+      position: absolute;
+      width: 238px;
+      min-height: 134px;
+      background: #ffffff;
+      border: 1px solid #d2d9e3;
+      border-top: 7px solid var(--accent);
+      border-radius: 8px;
+      box-shadow: 0 10px 22px rgba(22, 32, 42, 0.10);
+      overflow: hidden;
+    }
+
+    .node .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px 7px;
+      border-bottom: 1px solid #edf0f4;
+    }
+
+    .node h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      color: #ffffff;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .body {
+      padding: 9px 12px 12px;
+      display: grid;
+      gap: 6px;
+      font-size: 15px;
+      line-height: 1.24;
+    }
+
+    .body p {
+      margin: 0;
+    }
+
+    .body strong {
+      color: #2d3b49;
+      font-weight: 800;
+    }
+
+    .habit { --accent: var(--habit); left: 48px; top: 62px; }
+    .exp1 { --accent: var(--experience); left: 364px; top: 54px; }
+    .intent { --accent: var(--intention); left: 680px; top: 64px; }
+    .action { --accent: var(--action); left: 226px; top: 340px; }
+    .exp2 { --accent: var(--experience); left: 536px; top: 340px; }
+    .op1 { --accent: var(--opinion); left: 42px; top: 602px; }
+    .op2 { --accent: var(--opinion); left: 354px; top: 602px; }
+    .world { --accent: var(--world); left: 690px; top: 596px; }
+
+    .legend {
+      position: absolute;
+      right: 28px;
+      bottom: 26px;
+      width: 252px;
+      padding: 12px 14px;
+      background: #f7f9fc;
+      border: 1px solid #dbe1ea;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .legend b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <main class="frame" aria-label="CogMem example conversation and memory graph">
+    <section class="dialogue" aria-label="Đoạn hội thoại ví dụ">
+      <h1>Đoạn hội thoại ví dụ</h1>
+      <div class="turn"><b>User</b>Mỗi sáng tôi thường uống 2 ly cà phê trước khi code.</div>
+      <div class="turn"><b>User</b>Tuần trước tôi bị đau dạ dày sau ly thứ hai.</div>
+      <div class="turn"><b>Assistant</b>Bạn muốn thử giảm caffeine không?</div>
+      <div class="turn"><b>User</b>Ừ, từ mai tôi sẽ đổi ly thứ hai sang trà xanh.</div>
+      <div class="turn"><b>User</b>Sau 3 ngày đổi sang trà, dạ dày ổn hơn và tôi vẫn tỉnh táo.</div>
+      <div class="turn"><b>User</b>Trước đây tôi nghĩ cà phê là cách duy nhất để tập trung; giờ tôi nghĩ trà xanh cũng đủ.</div>
+    </section>
+
+    <section class="graph" aria-label="CogMem memory graph">
+      <svg class="edges" viewBox="0 0 1110 844" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 11 5.5 L 0 11 z" fill="#697789"></path>
+          </marker>
+          <marker id="arrowTransition" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 11 5.5 L 0 11 z" fill="#b47620"></path>
+          </marker>
+          <marker id="arrowCausal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 11 5.5 L 0 11 z" fill="#b4495f"></path>
+          </marker>
+          <marker id="arrowSr" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 11 5.5 L 0 11 z" fill="#7c5cc4"></path>
+          </marker>
+          <marker id="arrowOpinion" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M 0 0 L 11 5.5 L 0 11 z" fill="#4f7e36"></path>
+          </marker>
+        </defs>
+
+        <path class="edge sr" d="M 286 132 C 322 132, 328 124, 364 124" marker-end="url(#arrowSr)"></path>
+        <text class="edge-label" x="294" y="112">s_r_link</text>
+
+        <path class="edge transition" d="M 602 122 C 630 122, 648 132, 680 136" marker-end="url(#arrowTransition)"></path>
+        <text class="edge-label" x="594" y="104">triggered</text>
+
+        <path class="edge transition" d="M 799 198 C 798 258, 708 306, 654 340" marker-end="url(#arrowTransition)"></path>
+        <text class="edge-label" x="744" y="276">fulfilled_by</text>
+
+        <path class="edge causal" d="M 464 408 C 492 404, 508 404, 536 404" marker-end="url(#arrowCausal)"></path>
+        <text class="edge-label" x="466" y="386">a_o_causal</text>
+
+        <path class="edge opinion" d="M 280 676 C 304 676, 326 676, 354 676" marker-end="url(#arrowOpinion)"></path>
+        <text class="edge-label" x="278" y="656">revised_to</text>
+
+        <path class="edge" d="M 807 596 C 790 548, 752 512, 684 474" marker-end="url(#arrow)"></path>
+        <text class="edge-label" x="760" y="536">semantic</text>
+      </svg>
+
+      <article class="node habit">
+        <div class="head"><h2>Uống 2 ly cà phê</h2><span class="badge">habit</span></div>
+        <div class="body">
+          <p><strong>what:</strong> mỗi sáng trước khi code</p>
+          <p><strong>stores:</strong> pattern lặp lại</p>
+          <p><strong>link owned:</strong> s_r_link</p>
+        </div>
+      </article>
+
+      <article class="node exp1">
+        <div class="head"><h2>Đau dạ dày</h2><span class="badge">experience</span></div>
+        <div class="body">
+          <p><strong>when:</strong> tuần trước</p>
+          <p><strong>detail:</strong> sau ly cà phê thứ hai</p>
+          <p><strong>link owned:</strong> triggered</p>
+        </div>
+      </article>
+
+      <article class="node intent">
+        <div class="head"><h2>Đổi sang trà xanh</h2><span class="badge">intention</span></div>
+        <div class="body">
+          <p><strong>status:</strong> planning -> fulfilled</p>
+          <p><strong>when:</strong> từ mai</p>
+          <p><strong>link owned:</strong> fulfilled_by</p>
+        </div>
+      </article>
+
+      <article class="node action">
+        <div class="head"><h2>Caffeine workaround</h2><span class="badge">action_effect</span></div>
+        <div class="body">
+          <p><strong>pre:</strong> đau dạ dày</p>
+          <p><strong>act:</strong> cà phê -> trà</p>
+          <p><strong>out:</strong> ổn hơn, vẫn tỉnh</p>
+        </div>
+      </article>
+
+      <article class="node exp2">
+        <div class="head"><h2>Dạ dày ổn hơn</h2><span class="badge">experience</span></div>
+        <div class="body">
+          <p><strong>when:</strong> sau 3 ngày</p>
+          <p><strong>evidence:</strong> vẫn tỉnh táo</p>
+          <p><strong>role:</strong> fulfills intention</p>
+        </div>
+      </article>
+
+      <article class="node op1">
+        <div class="head"><h2>Cà phê là duy nhất</h2><span class="badge">opinion</span></div>
+        <div class="body">
+          <p><strong>belief:</strong> cách duy nhất để tập trung</p>
+          <p><strong>confidence:</strong> cao lúc đầu</p>
+          <p><strong>link owned:</strong> revised_to</p>
+        </div>
+      </article>
+
+      <article class="node op2">
+        <div class="head"><h2>Trà xanh cũng đủ</h2><span class="badge">opinion</span></div>
+        <div class="body">
+          <p><strong>belief:</strong> vẫn tập trung được</p>
+          <p><strong>confidence:</strong> tăng sau trải nghiệm</p>
+          <p><strong>source:</strong> experience mới</p>
+        </div>
+      </article>
+
+      <article class="node world">
+        <div class="head"><h2>Trà xanh có caffeine</h2><span class="badge">world</span></div>
+        <div class="body">
+          <p><strong>fact:</strong> ít caffeine hơn cà phê</p>
+          <p><strong>use:</strong> giải thích vì sao vẫn tỉnh</p>
+          <p><strong>link:</strong> semantic</p>
+        </div>
+      </article>
+
+      <aside class="legend">
+        <b>Edge đặc trưng trong ví dụ</b>
+        habit -> experience: s_r_link<br />
+        experience -> intention: triggered<br />
+        intention -> experience: fulfilled_by<br />
+        action_effect -> experience: a_o_causal<br />
+        opinion -> opinion: revised_to
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

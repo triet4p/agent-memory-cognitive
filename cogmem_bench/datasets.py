@@ -9,10 +9,12 @@ from .schema import ScenarioSpec
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SPECS_ROOT = REPO_ROOT / "cogmem_bench" / "specs"
 PILOT_SPECS_DIR = SPECS_ROOT / "pilot"
-DEFAULT_OUT_DIR = REPO_ROOT / "data" / "bench"
-WORK_DIR = DEFAULT_OUT_DIR / "work"
-ACCEPTED_DIR = DEFAULT_OUT_DIR / "accepted"
-DEFAULT_REPORT = REPO_ROOT / "logs" / "bench_gate_report.md"
+DEFAULT_DATA_DIR = REPO_ROOT / "data" / "bench"
+DEFAULT_EXPERIMENT_DIR = REPO_ROOT / "experiments" / "cogmem_bench"
+DEFAULT_OUT_DIR = DEFAULT_DATA_DIR
+WORK_DIR = DEFAULT_DATA_DIR / "work"
+ACCEPTED_DIR = DEFAULT_EXPERIMENT_DIR / "accepted"
+DEFAULT_REPORT = DEFAULT_EXPERIMENT_DIR / "bench_gate_report.md"
 
 
 def load_specs(specs_dir: str | Path) -> list[ScenarioSpec]:
